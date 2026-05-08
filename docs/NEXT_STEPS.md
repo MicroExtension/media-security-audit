@@ -116,6 +116,29 @@ Codex action:
 - keep command execution disabled until dry-run planning and parser behavior are validated
 - add fixture-based tests before any real scanner execution exists
 
+## Step 2.3 - Nmap Guarded Execution
+
+Status: in progress.
+
+The guarded execution path must:
+- require `--execute`
+- require mission authorization
+- require approved scope
+- execute command arguments without a shell
+- reject UDP, aggressive, or NSE-script command shapes
+- parse XML output into normalized findings
+- store generated findings in the mission
+
+Owner action:
+- do not run live scans on customer networks until written authorization and
+  scope are confirmed
+- later, validate whether the default top 100 TCP ports are acceptable for your
+  customer maintenance workflow
+
+Codex action:
+- test execution with mocked runners only
+- do not launch Nmap from this development environment
+
 ## Step 3 - Decide Branding
 
 Status: not blocking.

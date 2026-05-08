@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sys
+import subprocess
 import unittest
 from pathlib import Path
 
@@ -9,10 +10,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "app"))
 from media_security_audit.models import ScopeItem, ScopeType, Severity  # noqa: E402
 from media_security_audit.scanners.nmap import (  # noqa: E402
     NmapCommandBuilder,
+    NmapExecutor,
     approved_nmap_targets,
     findings_from_hosts,
+    nmap_output_path,
     parse_nmap_xml_file,
     render_command,
+    validate_nmap_command,
     validate_nmap_target,
 )
 
@@ -71,6 +75,59 @@ class NmapScannerTests(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             validate_nmap_target("example invalid")
+
+    def test_validates_safe_command_shape(self) -> None:
+        with self.assertRaises(ValueError):
+            validate_nmap_command(["nmap", "-A", "example.invalid"])
+
+        with self.assertRaises(ValueError):
+            validate_nmap_command(["nmap", "-sU", "example.invalid"])
+
+        with self.assertRaises(ValueError):
+            validate_nmap_command(["nmap", "--script", "default", "example.invalid"])
+
+    def test_extracts_nmap_output_path(self) -> None:
+        command = ["nmap", "-oX", "runs/mission/evidence/nmap-1.xml", "example.invalid"]
+
+        self.assertEqual(
+            nmap_output_path(command),
+            Path("runs/mission/evidence/nmap-1.xml"),
+        )
+
+    def test_executor_runs_list_command_without_shell(self) -> None:
+        received: dict[str, object] = {}
+
+        def runner(command: list[str], timeout_seconds: int) -> subprocess.CompletedProcess[str]:
+            received["command"] = command
+            received["timeout"] = timeout_seconds
+            output_path = nmap_output_path(command)
+            assert output_path is not None
+            output_path.write_text("<nmaprun />", encoding="utf-8")
+            return subprocess.CompletedProcess(command, 0, "", "")
+
+        command = NmapCommandBuilder(executable="nmap").build(
+            "example.invalid",
+            Path(".tmp-tests/nmap-executor/nmap.xml"),
+        )
+        executor = NmapExecutor(
+            runner=runner,
+            executable_lookup=lambda executable: f"/usr/bin/{executable}",
+            timeout_seconds=123,
+        )
+
+        result = executor.run(command)
+
+        self.assertEqual(received["command"], command)
+        self.assertEqual(received["timeout"], 123)
+        self.assertEqual(result.exit_code, 0)
+        self.assertTrue(result.output_path and result.output_path.exists())
+
+    def test_executor_requires_nmap_executable(self) -> None:
+        command = NmapCommandBuilder(executable="nmap").build("example.invalid")
+        executor = NmapExecutor(executable_lookup=lambda _executable: None)
+
+        with self.assertRaises(FileNotFoundError):
+            executor.run(command)
 
 
 if __name__ == "__main__":

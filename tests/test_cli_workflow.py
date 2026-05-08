@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import io
+import subprocess
 import sys
 import unittest
 from contextlib import redirect_stderr
@@ -17,9 +18,11 @@ from media_security_audit.cli import (  # noqa: E402
     generate_mission_reports,
     list_scope,
     plan_nmap_scan,
+    run_nmap_scan,
     show_mission,
 )
 from media_security_audit.models import AuditType, MissionStatus, ScopeType, Severity  # noqa: E402
+from media_security_audit.scanners.nmap import NmapExecutor, nmap_output_path  # noqa: E402
 
 
 class CliWorkflowTests(unittest.TestCase):
@@ -80,6 +83,78 @@ class CliWorkflowTests(unittest.TestCase):
         self.assertEqual(commands[0][0], "nmap")
         self.assertEqual(commands[0][-1], "example.invalid")
         self.assertIn("-oX", commands[0])
+
+        fixture = Path(__file__).parent / "fixtures" / "nmap_sample.xml"
+
+        def runner(command: list[str], timeout_seconds: int) -> subprocess.CompletedProcess[str]:
+            output_path = nmap_output_path(command)
+            assert output_path is not None
+            output_path.write_text(fixture.read_text(encoding="utf-8"), encoding="utf-8")
+            return subprocess.CompletedProcess(command, 0, "", "")
+
+        results, findings = run_nmap_scan(
+            mission_id=mission.id,
+            data_dir=data_dir,
+            output_dir=root_dir / "evidence",
+            execute=True,
+            executor=NmapExecutor(
+                runner=runner,
+                executable_lookup=lambda executable: f"/usr/bin/{executable}",
+            ),
+        )
+
+        self.assertEqual(len(results), 1)
+        self.assertEqual(len(findings), 2)
+        self.assertTrue(any("RDP" in finding.title for finding in findings))
+
+    def test_nmap_run_requires_execute_flag(self) -> None:
+        root_dir = Path(__file__).resolve().parents[1] / ".tmp-tests" / "cli-nmap-guard"
+        data_dir = root_dir / "data"
+
+        client = create_client(name="Client X", data_dir=data_dir)
+        mission = create_mission(
+            client_id=client.id,
+            name="External audit",
+            audit_type=AuditType.EXTERNAL,
+            authorization_reference="signed-order",
+            data_dir=data_dir,
+        )
+        add_scope(
+            mission_id=mission.id,
+            scope_type=ScopeType.DOMAIN,
+            value="example.invalid",
+            approved=True,
+            data_dir=data_dir,
+        )
+
+        with self.assertRaises(ValueError) as error:
+            run_nmap_scan(mission_id=mission.id, data_dir=data_dir)
+
+        self.assertIn("without --execute", str(error.exception))
+
+    def test_nmap_run_requires_authorization(self) -> None:
+        root_dir = Path(__file__).resolve().parents[1] / ".tmp-tests" / "cli-nmap-auth"
+        data_dir = root_dir / "data"
+
+        client = create_client(name="Client X", data_dir=data_dir)
+        mission = create_mission(
+            client_id=client.id,
+            name="External audit",
+            audit_type=AuditType.EXTERNAL,
+            data_dir=data_dir,
+        )
+        add_scope(
+            mission_id=mission.id,
+            scope_type=ScopeType.DOMAIN,
+            value="example.invalid",
+            approved=True,
+            data_dir=data_dir,
+        )
+
+        with self.assertRaises(ValueError) as error:
+            run_nmap_scan(mission_id=mission.id, data_dir=data_dir, execute=True)
+
+        self.assertIn("authorization is required", str(error.exception))
 
     def test_missing_mission_error_is_readable(self) -> None:
         data_dir = Path(__file__).resolve().parents[1] / ".tmp-tests" / "cli-errors"

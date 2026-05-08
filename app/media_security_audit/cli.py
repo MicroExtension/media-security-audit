@@ -20,7 +20,14 @@ from media_security_audit.models import (
 )
 from media_security_audit.reports import write_report
 from media_security_audit.sample_data import sample_findings, sample_mission
-from media_security_audit.scanners.nmap import NmapCommandBuilder, render_command
+from media_security_audit.scanners.nmap import (
+    NmapCommandBuilder,
+    NmapExecutionResult,
+    NmapExecutor,
+    findings_from_hosts,
+    parse_nmap_xml_file,
+    render_command,
+)
 from media_security_audit.storage import JsonStore
 
 
@@ -171,6 +178,44 @@ def plan_nmap_scan(
     if not commands:
         raise ValueError("no approved Nmap-compatible scope items found")
     return commands
+
+
+def run_nmap_scan(
+    mission_id: str,
+    data_dir: Path,
+    output_dir: Path | None = None,
+    execute: bool = False,
+    executor: NmapExecutor | None = None,
+) -> tuple[list[NmapExecutionResult], list[Finding]]:
+    if not execute:
+        raise ValueError("refusing to execute Nmap without --execute; use scan nmap-plan first")
+
+    store = JsonStore(data_dir)
+    mission = store.get_mission(mission_id)
+    if not mission.is_authorized:
+        raise ValueError("mission authorization is required before Nmap execution")
+    if not mission.has_approved_scope:
+        raise ValueError("approved mission scope is required before Nmap execution")
+
+    evidence_dir = output_dir or Path("runs") / mission.id / "evidence"
+    commands = NmapCommandBuilder().build_for_scope(mission.scope, output_dir=evidence_dir)
+    if not commands:
+        raise ValueError("no approved Nmap-compatible scope items found")
+
+    nmap_executor = executor or NmapExecutor()
+    results = [nmap_executor.run(command) for command in commands]
+    failed = [result for result in results if result.exit_code != 0]
+    if failed:
+        first = failed[0]
+        raise RuntimeError(f"Nmap command failed with exit code {first.exit_code}: {first.stderr}")
+
+    findings: list[Finding] = []
+    for result in results:
+        if result.output_path is not None and result.output_path.exists():
+            findings.extend(findings_from_hosts(parse_nmap_xml_file(result.output_path)))
+
+    stored_findings = store.add_findings(mission_id, findings)
+    return results, stored_findings
 
 
 def format_cli_error(error: Exception) -> str:
@@ -364,6 +409,22 @@ try:
         ):
             typer.echo(render_command(command))
 
+    @scan_app.command("nmap-run")
+    def scan_nmap_run(
+        mission_id: str = typer.Option(..., "--mission-id"),
+        data_dir: Path = typer.Option(Path("data"), "--data-dir"),
+        output_dir: Path | None = typer.Option(None, "--output-dir"),
+        execute: bool = typer.Option(False, "--execute", help="Required to execute Nmap."),
+    ) -> None:
+        """Execute safe Nmap commands only when --execute is explicitly provided."""
+        results, findings = run_nmap_scan(
+            mission_id=mission_id,
+            data_dir=data_dir,
+            output_dir=output_dir,
+            execute=execute,
+        )
+        typer.echo(f"Executed {len(results)} Nmap command(s); stored {len(findings)} finding(s).")
+
 except ModuleNotFoundError:
 
     def app(argv: list[str] | None = None) -> None:
@@ -452,6 +513,14 @@ except ModuleNotFoundError:
         nmap_plan_parser.add_argument("--mission-id", required=True)
         nmap_plan_parser.add_argument("--data-dir", type=Path, default=Path("data"))
         nmap_plan_parser.add_argument("--output-dir", type=Path)
+        nmap_run_parser = scan_subparsers.add_parser(
+            "nmap-run",
+            help="Execute safe Nmap commands only when --execute is explicitly provided.",
+        )
+        nmap_run_parser.add_argument("--mission-id", required=True)
+        nmap_run_parser.add_argument("--data-dir", type=Path, default=Path("data"))
+        nmap_run_parser.add_argument("--output-dir", type=Path)
+        nmap_run_parser.add_argument("--execute", action="store_true")
 
         report_parser = subparsers.add_parser("report", help="Generate reports.")
         report_subparsers = report_parser.add_subparsers(dest="report_command")
@@ -568,6 +637,16 @@ except ModuleNotFoundError:
                     print(render_command(command))
                 return
 
+            if args.command == "scan" and args.scan_command == "nmap-run":
+                results, findings = run_nmap_scan(
+                    mission_id=args.mission_id,
+                    data_dir=args.data_dir,
+                    output_dir=args.output_dir,
+                    execute=args.execute,
+                )
+                print(f"Executed {len(results)} Nmap command(s); stored {len(findings)} finding(s).")
+                return
+
             if args.command == "report" and args.report_command == "generate":
                 for path in generate_mission_reports(
                     mission_id=args.mission_id,
@@ -576,7 +655,7 @@ except ModuleNotFoundError:
                 ):
                     print(path)
                 return
-        except (FileNotFoundError, ValueError, ValidationError) as error:
+        except (FileNotFoundError, RuntimeError, ValueError, ValidationError) as error:
             parser.exit(2, f"error: {format_cli_error(error)}\n")
 
         parser.print_help()

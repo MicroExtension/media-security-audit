@@ -224,7 +224,7 @@ Codex action:
 
 ## Step 5 - Choose Deployment Priority
 
-Status: not blocking until the local UI exists.
+Status: started.
 
 Recommended order:
 1. Docker Compose on Debian/Ubuntu
@@ -236,8 +236,19 @@ Owner action later:
 - confirm whether client appliances can have internet access for updates
 
 Codex action:
-- prepare Dockerfile and docker-compose.yml after the web UI foundation
+- prepare Dockerfile and docker-compose.yml after the web UI foundation: done
+- keep deployment documentation in `docs/DEPLOYMENT.md`
 - document offline update process later
+
+Current deployment recommendation:
+
+```text
+Private GitHub repository -> Debian/Ubuntu VM -> Docker Compose -> local web UI
+```
+
+Default deployment is local-only on `127.0.0.1:8080`. LAN access requires
+setting `MEDIA_AUDIT_BIND=0.0.0.0` in `.env` and restricting access with a
+firewall or VPN.
 
 ## Step 6 - Build The GUI
 

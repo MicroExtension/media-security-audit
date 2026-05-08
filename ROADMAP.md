@@ -72,6 +72,12 @@ Features:
 - remediation library
 - recurring audit templates
 
+Current foundation:
+- Dockerfile added
+- Docker Compose added
+- persistent `data`, `runs`, `reports`, and `evidence` folders defined
+- deployment guide started in `docs/DEPLOYMENT.md`
+
 Success criteria:
 - appliance can run on Debian/Ubuntu
 - Docker Compose deployment is documented

@@ -59,6 +59,7 @@ python -m media_security_audit.cli finding add-sample --mission-id "mission_xxxx
 python -m media_security_audit.cli mission show --mission-id "mission_xxxxx"
 python -m media_security_audit.cli scan nmap-plan --mission-id "mission_xxxxx"
 python -m media_security_audit.cli scan http-plan --mission-id "mission_xxxxx"
+python -m media_security_audit.cli scan dns-plan --mission-id "mission_xxxxx" --dkim-selector default
 python -m media_security_audit.cli report generate --mission-id "mission_xxxxx"
 ```
 
@@ -83,6 +84,17 @@ python -m media_security_audit.cli scan http-run --mission-id "mission_xxxxx" --
 ```
 
 Like Nmap execution, `http-run` is blocked unless `--execute` is present.
+
+DNS/Mail auditing uses approved domain scope items only:
+
+```powershell
+python -m media_security_audit.cli scope add --mission-id "mission_xxxxx" --type domain --value "client.example" --environment external --approved
+python -m media_security_audit.cli scan dns-plan --mission-id "mission_xxxxx" --dkim-selector default
+python -m media_security_audit.cli scan dns-run --mission-id "mission_xxxxx" --dkim-selector default --execute
+```
+
+`dns-run` checks SPF and DMARC by default. DKIM checks are performed only for
+selectors explicitly provided with `--dkim-selector`.
 
 ## Repository Map
 

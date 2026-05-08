@@ -64,6 +64,10 @@ python -m media_security_audit.cli scan nmap-plan `
 python -m media_security_audit.cli scan http-plan `
   --mission-id "mission_xxxxx"
 
+python -m media_security_audit.cli scan dns-plan `
+  --mission-id "mission_xxxxx" `
+  --dkim-selector default
+
 python -m media_security_audit.cli report generate `
   --mission-id "mission_xxxxx"
 ```
@@ -161,6 +165,28 @@ Owner action:
 Codex action:
 - test HTTP behavior with mocked fetchers
 - do not call real customer URLs from the development environment
+
+## Step 2.5 - DNS And Mail Authentication Audit
+
+Status: in progress.
+
+The DNS/Mail module:
+- uses approved domain scope items only
+- supports `scan dns-plan` without DNS requests
+- requires `scan dns-run --execute` before live DNS queries
+- checks SPF and DMARC by default
+- checks DKIM only for selectors explicitly provided with `--dkim-selector`
+- generates normalized findings for missing or weak SPF, DMARC, and DKIM records
+- stores findings on the mission
+
+Owner action:
+- no action required yet
+- later, define the common DKIM selectors used by your customers, for example
+  Microsoft 365, Google Workspace, Mailinblack, or other mail gateways
+
+Codex action:
+- test DNS behavior with mocked resolvers
+- avoid live DNS lookups in the development environment
 
 ## Step 3 - Decide Branding
 

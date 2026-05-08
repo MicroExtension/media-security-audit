@@ -70,6 +70,29 @@ Codex action:
 - add scanner adapters only after this workflow is stable
 - add better error messages
 - keep report generation connected to stored findings
+- improve report quality before adding live scanner modules
+
+## Step 2.1 - Review Report Quality
+
+Status: in progress.
+
+Reports should now include:
+- executive summary
+- simple risk score
+- risk level
+- approved scope summary
+- severity counts
+- prioritized remediation plan
+- detailed findings
+
+Owner action:
+- no action required yet
+- later, review the wording and decide whether reports should be in French,
+  English, or both
+
+Codex action:
+- keep report output deterministic
+- prepare report templates for future branding
 
 ## Step 3 - Decide Branding
 

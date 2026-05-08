@@ -37,6 +37,7 @@ Do not implement live scanners in this sprint.
 8. Add simple HTML report template.
 9. Add pytest unit tests.
 10. Update README usage examples.
+11. Add executive summary, risk score, scope summary, and remediation plan.
 
 ## Acceptance Criteria
 
@@ -45,4 +46,3 @@ Do not implement live scanners in this sprint.
 - A sample mission can generate JSON, Markdown, and HTML reports from fixture findings.
 - No command performs network activity.
 - Every generated finding contains remediation and counter-test fields.
-

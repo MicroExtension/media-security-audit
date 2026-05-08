@@ -24,6 +24,7 @@ Implemented so far:
 - safe sample data
 - bootstrap CLI with a Typer-compatible fallback
 - unit tests using safe fixture data only
+- richer reports with executive summary, risk score, scope summary, and remediation plan
 
 The first implementation target remains a CLI-only V1:
 

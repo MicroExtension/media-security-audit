@@ -59,6 +59,11 @@ Success criteria:
 - false positives and accepted risks require notes
 - reports can be generated without editing files manually
 
+Current foundation:
+- dashboard and mission detail views started
+- client, mission, and scope creation forms started
+- scan execution remains CLI-only
+
 ## V3 - Portable Appliance
 
 Goal: package the platform for repeatable client deployments.

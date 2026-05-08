@@ -4,7 +4,11 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlencode
 
+from pydantic import ValidationError
+
+from media_security_audit.models import AuditType, ScopeEnvironment, ScopeType
 from media_security_audit.reports import render_html
 from media_security_audit.storage import JsonStore
 from media_security_audit.web_auth import (
@@ -17,6 +21,14 @@ from media_security_audit.web_ui import (
     build_mission_view,
     html_escape,
     severity_class,
+)
+from media_security_audit.web_forms import (
+    add_scope_from_form,
+    create_client_from_form,
+    create_mission_from_form,
+    new_form_token,
+    parse_urlencoded_form,
+    validate_form_token,
 )
 
 
@@ -46,6 +58,22 @@ def render_template(environment: Any, name: str, context: dict[str, Any]) -> str
     return environment.get_template(name).render(**context)
 
 
+def redirect_with_status(path: str, message: str | None = None, error: str | None = None):
+    from fastapi.responses import RedirectResponse
+
+    query = {key: value for key, value in {"message": message, "error": error}.items() if value}
+    separator = "&" if "?" in path else "?"
+    target = f"{path}{separator}{urlencode(query)}" if query else path
+    return RedirectResponse(url=target, status_code=303)
+
+
+def format_web_error(error: Exception) -> str:
+    if isinstance(error, ValidationError):
+        messages = [item["msg"] for item in error.errors()]
+        return "validation failed: " + "; ".join(messages)
+    return str(error)
+
+
 def create_web_app(data_dir: Path = Path("data"), auth_settings: WebAuthSettings | None = None):
     try:
         from fastapi import Depends, FastAPI, HTTPException, Request
@@ -61,6 +89,7 @@ def create_web_app(data_dir: Path = Path("data"), auth_settings: WebAuthSettings
     store = JsonStore(data_dir)
     templates = template_environment()
     settings = auth_settings or web_auth_settings_from_env()
+    form_token = new_form_token()
     app = FastAPI(title="MEDIA Security Audit Platform")
     security = HTTPBasic(auto_error=False)
 
@@ -81,7 +110,11 @@ def create_web_app(data_dir: Path = Path("data"), auth_settings: WebAuthSettings
         app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
     @app.get("/", response_class=HTMLResponse, dependencies=protected)
-    def dashboard(request: Request) -> HTMLResponse:
+    def dashboard(
+        request: Request,
+        message: str | None = None,
+        error: str | None = None,
+    ) -> HTMLResponse:
         return HTMLResponse(
             render_template(
                 templates,
@@ -90,12 +123,41 @@ def create_web_app(data_dir: Path = Path("data"), auth_settings: WebAuthSettings
                     "request": request,
                     "data_dir": data_dir,
                     "view": build_dashboard_view(store),
+                    "audit_types": [item.value for item in AuditType],
+                    "form_token": form_token,
+                    "message": message,
+                    "error": error,
                 },
             )
         )
 
+    @app.post("/clients", dependencies=protected)
+    async def client_create(request: Request):
+        try:
+            form = parse_urlencoded_form(await request.body())
+            validate_form_token(form, form_token)
+            create_client_from_form(store, form)
+        except (FileNotFoundError, RuntimeError, ValueError, ValidationError) as error:
+            return redirect_with_status("/", error=format_web_error(error))
+        return redirect_with_status("/", message="client created")
+
+    @app.post("/missions", dependencies=protected)
+    async def mission_create(request: Request):
+        try:
+            form = parse_urlencoded_form(await request.body())
+            validate_form_token(form, form_token)
+            mission = create_mission_from_form(store, form)
+        except (FileNotFoundError, RuntimeError, ValueError, ValidationError) as error:
+            return redirect_with_status("/", error=format_web_error(error))
+        return redirect_with_status(f"/missions/{mission.id}", message="mission created")
+
     @app.get("/missions/{mission_id}", response_class=HTMLResponse, dependencies=protected)
-    def mission_detail(request: Request, mission_id: str) -> HTMLResponse:
+    def mission_detail(
+        request: Request,
+        mission_id: str,
+        message: str | None = None,
+        error: str | None = None,
+    ) -> HTMLResponse:
         try:
             view = build_mission_view(store, mission_id)
         except FileNotFoundError as error:
@@ -109,9 +171,24 @@ def create_web_app(data_dir: Path = Path("data"), auth_settings: WebAuthSettings
                     "request": request,
                     "data_dir": data_dir,
                     "view": view,
+                    "scope_types": [item.value for item in ScopeType],
+                    "scope_environments": [item.value for item in ScopeEnvironment],
+                    "form_token": form_token,
+                    "message": message,
+                    "error": error,
                 },
             )
         )
+
+    @app.post("/missions/{mission_id}/scope", dependencies=protected)
+    async def scope_create(request: Request, mission_id: str):
+        try:
+            form = parse_urlencoded_form(await request.body())
+            validate_form_token(form, form_token)
+            add_scope_from_form(store, mission_id, form)
+        except (FileNotFoundError, RuntimeError, ValueError, ValidationError) as error:
+            return redirect_with_status(f"/missions/{mission_id}", error=format_web_error(error))
+        return redirect_with_status(f"/missions/{mission_id}", message="scope item added")
 
     @app.get("/missions/{mission_id}/report.html", response_class=HTMLResponse, dependencies=protected)
     def mission_report(mission_id: str) -> HTMLResponse:

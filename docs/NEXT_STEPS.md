@@ -267,14 +267,14 @@ Current local development command:
 
 ```powershell
 $env:PYTHONPATH='app'
-python -m media_security_audit.cli web --data-dir data --host 127.0.0.1 --port 8080
+python -m media_security_audit.cli web --data-dir data --reports-dir reports --host 127.0.0.1 --port 8080
 ```
 
 Installed environment command:
 
 ```powershell
 python -m pip install -e .
-media-audit web --data-dir data --host 127.0.0.1 --port 8080
+media-audit web --data-dir data --reports-dir reports --host 127.0.0.1 --port 8080
 ```
 
 Owner action:
@@ -283,7 +283,7 @@ Owner action:
 
 Codex action:
 - build FastAPI/Jinja2 interface incrementally
-- keep the first UI read-only until scan execution controls are approved
+- keep scan execution out of the UI until browser execution controls are approved
 - keep CLI and GUI on the same domain engine
 - prevent scans without approved scope
 
@@ -292,6 +292,7 @@ Current GUI status:
 - mission pages can show scope, findings, remediation plan, and reports
 - web forms can create clients, missions, and scope items
 - finding status can be reviewed from mission pages
+- reviewed reports can be generated from mission pages
 - scan execution remains CLI-only
 
 ## Step 7 - Add Safe Scanner Modules

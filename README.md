@@ -25,13 +25,14 @@ Implemented so far:
 - bootstrap CLI with a Typer-compatible fallback
 - unit tests using safe fixture data only
 - richer reports with executive summary, risk score, scope summary, and remediation plan
-- first local read-only web interface for dashboard and mission review
+- first local web interface for dashboard, mission setup, review, and reports
 - Docker Compose deployment foundation for local Debian/Ubuntu VMs
 - first web workflow forms for clients, missions, and scope
 - first web finding review workflow
+- web report generation for JSON, Markdown, and HTML exports
 
-The first implementation target remains a CLI-driven V1 with a local read-only
-web interface that can set up the mission workflow:
+The first implementation target remains a CLI-driven V1 with a local web
+interface that can set up the mission workflow:
 
 ```powershell
 media-audit init --client "Client X"
@@ -66,7 +67,7 @@ python -m media_security_audit.cli scan nmap-plan --mission-id "mission_xxxxx"
 python -m media_security_audit.cli scan http-plan --mission-id "mission_xxxxx"
 python -m media_security_audit.cli scan dns-plan --mission-id "mission_xxxxx" --dkim-selector default
 python -m media_security_audit.cli report generate --mission-id "mission_xxxxx"
-python -m media_security_audit.cli web --data-dir data --host 127.0.0.1 --port 8080
+python -m media_security_audit.cli web --data-dir data --reports-dir reports --host 127.0.0.1 --port 8080
 ```
 
 The `scan nmap-plan` command only prints the planned safe command. It does not
@@ -106,7 +107,7 @@ Local web interface:
 
 ```powershell
 $env:PYTHONPATH='app'
-python -m media_security_audit.cli web --data-dir data --host 127.0.0.1 --port 8080
+python -m media_security_audit.cli web --data-dir data --reports-dir reports --host 127.0.0.1 --port 8080
 ```
 
 When the project is installed in a Python environment, the equivalent command
@@ -114,7 +115,7 @@ is:
 
 ```powershell
 python -m pip install -e .
-media-audit web --data-dir data --host 127.0.0.1 --port 8080
+media-audit web --data-dir data --reports-dir reports --host 127.0.0.1 --port 8080
 ```
 
 Then open:
@@ -123,12 +124,9 @@ Then open:
 http://127.0.0.1:8080
 ```
 
-The current web interface is read-only. Scan execution remains in guarded CLI
-commands while the browser workflow is being designed.
-
-The web interface can create clients, missions, and scope items. Scanner
-execution remains in guarded CLI commands only. Findings can be reviewed from
-the mission page by updating their status and optional review note.
+The current web interface can create clients, missions, and scope items, review
+findings, and generate stored reports. Scan execution remains in guarded CLI
+commands only while the browser workflow is being designed.
 
 ## Deployment
 
@@ -160,6 +158,9 @@ For LAN access from another workstation, set `MEDIA_AUDIT_BIND=0.0.0.0` in
 Docker deployments require `MEDIA_AUDIT_WEB_PASSWORD` in `.env` before startup.
 Use a generated password and keep `MEDIA_AUDIT_REQUIRE_AUTH=true` for customer
 VMs.
+
+Reviewed mission reports can be generated from the web UI and are written to
+the configured reports directory.
 
 Detailed instructions are in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
@@ -216,7 +217,7 @@ Planned screens:
 - check selection
 - run monitor
 - findings review started
-- report generation link started
+- report generation started
 - counter-tests
 - settings
 

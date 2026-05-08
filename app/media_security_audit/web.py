@@ -1,4 +1,4 @@
-"""Local read-only web interface for the audit workspace."""
+"""Local web interface for the audit workspace."""
 
 from __future__ import annotations
 
@@ -8,7 +8,13 @@ from urllib.parse import urlencode
 
 from pydantic import ValidationError
 
-from media_security_audit.models import AuditType, FindingStatus, ScopeEnvironment, ScopeType
+from media_security_audit.models import (
+    AuditType,
+    FindingStatus,
+    ReportFormat,
+    ScopeEnvironment,
+    ScopeType,
+)
 from media_security_audit.reports import render_html
 from media_security_audit.storage import JsonStore
 from media_security_audit.web_auth import (
@@ -31,6 +37,7 @@ from media_security_audit.web_forms import (
     update_finding_status_from_form,
     validate_form_token,
 )
+from media_security_audit.web_reports import generate_web_reports, generated_report_file
 
 
 PACKAGE_DIR = Path(__file__).resolve().parent
@@ -75,10 +82,14 @@ def format_web_error(error: Exception) -> str:
     return str(error)
 
 
-def create_web_app(data_dir: Path = Path("data"), auth_settings: WebAuthSettings | None = None):
+def create_web_app(
+    data_dir: Path = Path("data"),
+    reports_dir: Path = Path("reports"),
+    auth_settings: WebAuthSettings | None = None,
+):
     try:
         from fastapi import Depends, FastAPI, HTTPException, Request
-        from fastapi.responses import HTMLResponse, RedirectResponse
+        from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
         from fastapi.security import HTTPBasic, HTTPBasicCredentials
         from fastapi.staticfiles import StaticFiles
     except ModuleNotFoundError as error:
@@ -160,7 +171,7 @@ def create_web_app(data_dir: Path = Path("data"), auth_settings: WebAuthSettings
         error: str | None = None,
     ) -> HTMLResponse:
         try:
-            view = build_mission_view(store, mission_id)
+            view = build_mission_view(store, mission_id, reports_dir=reports_dir)
         except FileNotFoundError as error:
             raise HTTPException(status_code=404, detail=str(error)) from error
 
@@ -202,6 +213,25 @@ def create_web_app(data_dir: Path = Path("data"), auth_settings: WebAuthSettings
             return redirect_with_status(f"/missions/{mission_id}", error=format_web_error(error))
         return redirect_with_status(f"/missions/{mission_id}", message="finding status updated")
 
+    @app.post("/missions/{mission_id}/reports", dependencies=protected)
+    async def report_generate(request: Request, mission_id: str):
+        try:
+            form = parse_urlencoded_form(await request.body())
+            validate_form_token(form, form_token)
+            generate_web_reports(store, mission_id, reports_dir)
+        except (FileNotFoundError, RuntimeError, ValueError, ValidationError) as error:
+            return redirect_with_status(f"/missions/{mission_id}", error=format_web_error(error))
+        return redirect_with_status(f"/missions/{mission_id}", message="reports generated")
+
+    @app.get("/missions/{mission_id}/reports/{report_format}", dependencies=protected)
+    def report_download(mission_id: str, report_format: ReportFormat) -> FileResponse:
+        try:
+            store.get_mission(mission_id)
+            path = generated_report_file(reports_dir, mission_id, report_format)
+        except FileNotFoundError as error:
+            raise HTTPException(status_code=404, detail=str(error)) from error
+        return FileResponse(path)
+
     @app.get("/missions/{mission_id}/report.html", response_class=HTMLResponse, dependencies=protected)
     def mission_report(mission_id: str) -> HTMLResponse:
         try:
@@ -222,7 +252,12 @@ def create_web_app(data_dir: Path = Path("data"), auth_settings: WebAuthSettings
     return app
 
 
-def run_web_server(data_dir: Path = Path("data"), host: str = "127.0.0.1", port: int = 8080) -> None:
+def run_web_server(
+    data_dir: Path = Path("data"),
+    reports_dir: Path = Path("reports"),
+    host: str = "127.0.0.1",
+    port: int = 8080,
+) -> None:
     try:
         import uvicorn
     except ModuleNotFoundError as error:
@@ -230,7 +265,7 @@ def run_web_server(data_dir: Path = Path("data"), host: str = "127.0.0.1", port:
             "missing uvicorn; install the project dependencies before running the UI"
         ) from error
 
-    uvicorn.run(create_web_app(data_dir=data_dir), host=host, port=port)
+    uvicorn.run(create_web_app(data_dir=data_dir, reports_dir=reports_dir), host=host, port=port)
 
 
 def main() -> None:

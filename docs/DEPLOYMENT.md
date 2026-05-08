@@ -203,6 +203,9 @@ docker compose run --rm media-audit \
   --output /var/lib/media-audit/reports
 ```
 
+Reviewed reports can also be generated from the mission page in the web UI.
+Web-generated report files are written under the mounted `reports/` folder.
+
 ## Safe Scanner Execution
 
 Scanner execution remains guarded by the application.
@@ -245,7 +248,7 @@ tar -czf media-audit-backup.tgz data runs reports evidence
 
 ## Current Limitations
 
-- The web UI is read-only.
+- The web UI does not execute scans yet.
 - Full user management is not implemented yet.
 - Docker image signing is not implemented yet.
 - Offline update packaging is not implemented yet.

@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 from html import escape
+from pathlib import Path
 
 from media_security_audit.models import Finding, Mission, ScopeItem
 from media_security_audit.reports import (
@@ -13,6 +14,7 @@ from media_security_audit.reports import (
     sorted_findings,
 )
 from media_security_audit.storage import JsonStore
+from media_security_audit.web_reports import GeneratedReportLink, list_generated_reports
 
 
 @dataclass(frozen=True)
@@ -85,6 +87,7 @@ class MissionView:
     findings: list[FindingRow]
     remediation_items: list[dict[str, str]]
     executive_summary: str
+    reports: list[GeneratedReportLink]
 
 
 def format_datetime(value: datetime) -> str:
@@ -195,7 +198,11 @@ def build_dashboard_view(store: JsonStore) -> DashboardView:
     )
 
 
-def build_mission_view(store: JsonStore, mission_id: str) -> MissionView:
+def build_mission_view(
+    store: JsonStore,
+    mission_id: str,
+    reports_dir: Path | None = None,
+) -> MissionView:
     mission = store.get_mission(mission_id)
     findings = store.list_findings(mission_id)
     summary = build_report_summary(mission, findings)
@@ -206,6 +213,7 @@ def build_mission_view(store: JsonStore, mission_id: str) -> MissionView:
         findings=[finding_row(finding) for finding in sorted_findings(findings)],
         remediation_items=remediation_plan(findings),
         executive_summary=str(summary["executive_summary"]),
+        reports=list_generated_reports(mission_id, reports_dir) if reports_dir else [],
     )
 
 

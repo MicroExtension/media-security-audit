@@ -6,7 +6,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "app"))
 
-from media_security_audit.models import Client, Mission, MissionStatus, ScopeItem, ScopeType  # noqa: E402
+from media_security_audit.models import Client, Finding, Mission, MissionStatus, ScopeItem, ScopeType, Severity  # noqa: E402
 from media_security_audit.storage import JsonStore  # noqa: E402
 
 
@@ -40,6 +40,43 @@ class JsonStoreTests(unittest.TestCase):
 
         self.assertEqual(updated.status, MissionStatus.READY_TO_SCAN)
         self.assertTrue(updated.has_approved_scope)
+
+    def test_adds_and_deduplicates_findings(self) -> None:
+        data_dir = Path(__file__).resolve().parents[1] / ".tmp-tests" / "storage-findings"
+        store = JsonStore(data_dir)
+        client = store.create_client(Client(name="Client X"))
+        mission = store.create_mission(Mission(client_id=client.id, name="Audit"))
+
+        first = Finding(
+            title="Missing security header",
+            severity=Severity.LOW,
+            affected_asset="https://example.invalid",
+            category="http_headers",
+            source_module="manual",
+            proof="Observed manually",
+            risk="Browser-side protection is reduced.",
+            remediation="Enable the missing header.",
+            counter_test="Repeat the request and confirm the header.",
+            confidence=0.7,
+        )
+        second = first.model_copy(
+            update={
+                "id": "finding_second",
+                "severity": Severity.MEDIUM,
+                "source_module": "http_headers",
+                "proof": "Observed by scanner",
+                "confidence": 0.9,
+            }
+        )
+
+        store.add_finding(mission.id, first)
+        stored = store.add_finding(mission.id, second)
+        findings = store.list_findings(mission.id)
+
+        self.assertEqual(len(findings), 1)
+        self.assertEqual(stored.severity, Severity.MEDIUM)
+        self.assertIn("manual", findings[0].sources)
+        self.assertIn("http_headers", findings[0].sources)
 
 
 if __name__ == "__main__":

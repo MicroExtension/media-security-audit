@@ -49,6 +49,9 @@ python -m media_security_audit.cli scope add `
   --environment external `
   --approved
 
+python -m media_security_audit.cli finding add-sample `
+  --mission-id "mission_xxxxx"
+
 python -m media_security_audit.cli report generate `
   --mission-id "mission_xxxxx"
 ```
@@ -60,7 +63,7 @@ Owner action:
 Codex action:
 - add scanner adapters only after this workflow is stable
 - add better error messages
-- add real finding storage
+- keep report generation connected to stored findings
 
 ## Step 3 - Decide Branding
 
@@ -152,4 +155,3 @@ Codex action:
 - implement dry-run first
 - add parser fixtures
 - avoid aggressive or intrusive defaults
-

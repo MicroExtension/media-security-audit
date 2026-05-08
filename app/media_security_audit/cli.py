@@ -9,10 +9,12 @@ from media_security_audit import __version__
 from media_security_audit.models import (
     AuditType,
     Client,
+    Finding,
     ReportFormat,
     ScopeEnvironment,
     ScopeItem,
     ScopeType,
+    Severity,
 )
 from media_security_audit.reports import write_report
 from media_security_audit.sample_data import sample_findings, sample_mission
@@ -81,12 +83,49 @@ def generate_mission_reports(mission_id: str, data_dir: Path, output: Path | Non
     store = JsonStore(data_dir)
     mission = store.get_mission(mission_id)
     output_dir = output or Path("runs") / mission.id / "reports"
-    findings = []
+    findings = store.list_findings(mission_id)
     reports = [
         write_report(mission, findings, output_dir, report_format)
         for report_format in (ReportFormat.JSON, ReportFormat.MARKDOWN, ReportFormat.HTML)
     ]
     return [Path(report.output_path or "") for report in reports]
+
+
+def add_finding(
+    mission_id: str,
+    title: str,
+    severity: Severity,
+    affected_asset: str,
+    category: str,
+    proof: str,
+    risk: str,
+    remediation: str,
+    counter_test: str,
+    data_dir: Path,
+    source_module: str = "manual",
+    confidence: float = 0.8,
+) -> Finding:
+    store = JsonStore(data_dir)
+    return store.add_finding(
+        mission_id,
+        Finding(
+            title=title,
+            severity=severity,
+            affected_asset=affected_asset,
+            category=category,
+            source_module=source_module,
+            proof=proof,
+            risk=risk,
+            remediation=remediation,
+            counter_test=counter_test,
+            confidence=confidence,
+        ),
+    )
+
+
+def add_sample_findings(mission_id: str, data_dir: Path) -> list[Finding]:
+    store = JsonStore(data_dir)
+    return store.add_findings(mission_id, sample_findings())
 
 
 try:
@@ -96,10 +135,12 @@ try:
     client_app = typer.Typer(help="Manage clients.")
     mission_app = typer.Typer(help="Manage missions.")
     scope_app = typer.Typer(help="Manage mission scope.")
+    finding_app = typer.Typer(help="Manage findings.")
     report_app = typer.Typer(help="Generate reports.")
     app.add_typer(client_app, name="client")
     app.add_typer(mission_app, name="mission")
     app.add_typer(scope_app, name="scope")
+    app.add_typer(finding_app, name="finding")
     app.add_typer(report_app, name="report")
 
     @app.callback()
@@ -180,6 +221,56 @@ try:
         )
         typer.echo(f"{mission.id}\t{mission.status.value}\t{len(mission.scope)} scope item(s)")
 
+    @finding_app.command("add")
+    def finding_add(
+        mission_id: str = typer.Option(..., "--mission-id"),
+        title: str = typer.Option(..., "--title"),
+        severity: Severity = typer.Option(..., "--severity"),
+        affected_asset: str = typer.Option(..., "--asset"),
+        category: str = typer.Option("manual", "--category"),
+        proof: str = typer.Option(..., "--proof"),
+        risk: str = typer.Option(..., "--risk"),
+        remediation: str = typer.Option(..., "--remediation"),
+        counter_test: str = typer.Option(..., "--counter-test"),
+        source_module: str = typer.Option("manual", "--source-module"),
+        confidence: float = typer.Option(0.8, "--confidence"),
+        data_dir: Path = typer.Option(Path("data"), "--data-dir"),
+    ) -> None:
+        finding = add_finding(
+            mission_id=mission_id,
+            title=title,
+            severity=severity,
+            affected_asset=affected_asset,
+            category=category,
+            proof=proof,
+            risk=risk,
+            remediation=remediation,
+            counter_test=counter_test,
+            source_module=source_module,
+            confidence=confidence,
+            data_dir=data_dir,
+        )
+        typer.echo(f"{finding.id}\t{finding.severity.value}\t{finding.title}")
+
+    @finding_app.command("add-sample")
+    def finding_add_sample(
+        mission_id: str = typer.Option(..., "--mission-id"),
+        data_dir: Path = typer.Option(Path("data"), "--data-dir"),
+    ) -> None:
+        findings = add_sample_findings(mission_id=mission_id, data_dir=data_dir)
+        typer.echo(f"{len(findings)} finding(s) stored")
+
+    @finding_app.command("list")
+    def finding_list(
+        mission_id: str = typer.Option(..., "--mission-id"),
+        data_dir: Path = typer.Option(Path("data"), "--data-dir"),
+    ) -> None:
+        for finding in JsonStore(data_dir).list_findings(mission_id):
+            typer.echo(
+                f"{finding.id}\t{finding.severity.value}\t"
+                f"{finding.status.value}\t{finding.affected_asset}\t{finding.title}"
+            )
+
     @report_app.command("generate")
     def report_generate(
         mission_id: str = typer.Option(..., "--mission-id"),
@@ -237,9 +328,34 @@ except ModuleNotFoundError:
         scope_add_parser.add_argument("--notes")
         scope_add_parser.add_argument("--data-dir", type=Path, default=Path("data"))
 
+        finding_parser = subparsers.add_parser("finding", help="Manage findings.")
+        finding_subparsers = finding_parser.add_subparsers(dest="finding_command")
+        finding_add_parser = finding_subparsers.add_parser("add", help="Add a manual finding.")
+        finding_add_parser.add_argument("--mission-id", required=True)
+        finding_add_parser.add_argument("--title", required=True)
+        finding_add_parser.add_argument("--severity", required=True, choices=[item.value for item in Severity])
+        finding_add_parser.add_argument("--asset", required=True)
+        finding_add_parser.add_argument("--category", default="manual")
+        finding_add_parser.add_argument("--proof", required=True)
+        finding_add_parser.add_argument("--risk", required=True)
+        finding_add_parser.add_argument("--remediation", required=True)
+        finding_add_parser.add_argument("--counter-test", required=True)
+        finding_add_parser.add_argument("--source-module", default="manual")
+        finding_add_parser.add_argument("--confidence", type=float, default=0.8)
+        finding_add_parser.add_argument("--data-dir", type=Path, default=Path("data"))
+        finding_sample_parser = finding_subparsers.add_parser(
+            "add-sample",
+            help="Attach safe sample findings to a mission.",
+        )
+        finding_sample_parser.add_argument("--mission-id", required=True)
+        finding_sample_parser.add_argument("--data-dir", type=Path, default=Path("data"))
+        finding_list_parser = finding_subparsers.add_parser("list", help="List mission findings.")
+        finding_list_parser.add_argument("--mission-id", required=True)
+        finding_list_parser.add_argument("--data-dir", type=Path, default=Path("data"))
+
         report_parser = subparsers.add_parser("report", help="Generate reports.")
         report_subparsers = report_parser.add_subparsers(dest="report_command")
-        report_generate_parser = report_subparsers.add_parser("generate", help="Generate empty mission reports.")
+        report_generate_parser = report_subparsers.add_parser("generate", help="Generate mission reports.")
         report_generate_parser.add_argument("--mission-id", required=True)
         report_generate_parser.add_argument("--data-dir", type=Path, default=Path("data"))
         report_generate_parser.add_argument("--output", type=Path)
@@ -299,6 +415,37 @@ except ModuleNotFoundError:
                 data_dir=args.data_dir,
             )
             print(f"{mission.id}\t{mission.status.value}\t{len(mission.scope)} scope item(s)")
+            return
+
+        if args.command == "finding" and args.finding_command == "add":
+            finding = add_finding(
+                mission_id=args.mission_id,
+                title=args.title,
+                severity=Severity(args.severity),
+                affected_asset=args.asset,
+                category=args.category,
+                proof=args.proof,
+                risk=args.risk,
+                remediation=args.remediation,
+                counter_test=args.counter_test,
+                source_module=args.source_module,
+                confidence=args.confidence,
+                data_dir=args.data_dir,
+            )
+            print(f"{finding.id}\t{finding.severity.value}\t{finding.title}")
+            return
+
+        if args.command == "finding" and args.finding_command == "add-sample":
+            findings = add_sample_findings(mission_id=args.mission_id, data_dir=args.data_dir)
+            print(f"{len(findings)} finding(s) stored")
+            return
+
+        if args.command == "finding" and args.finding_command == "list":
+            for finding in JsonStore(args.data_dir).list_findings(args.mission_id):
+                print(
+                    f"{finding.id}\t{finding.severity.value}\t"
+                    f"{finding.status.value}\t{finding.affected_asset}\t{finding.title}"
+                )
             return
 
         if args.command == "report" and args.report_command == "generate":

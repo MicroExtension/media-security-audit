@@ -13,6 +13,11 @@ The project can proceed with:
 - JSON/Markdown/HTML reports
 - file-based storage for the first implementation
 
+Current owner action:
+- keep the GitHub repository private
+- wait for Codex to push working branches
+- review the CLI workflow when requested
+
 ## Needed Before Branding
 
 Decide:
@@ -78,4 +83,3 @@ Decide:
 Default assumption until decided:
 - Docker Compose on Debian/Ubuntu
 - VMware and Hyper-V documented after app stabilizes
-

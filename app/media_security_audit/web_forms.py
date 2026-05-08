@@ -8,6 +8,8 @@ from urllib.parse import parse_qs
 from media_security_audit.models import (
     AuditType,
     Client,
+    Finding,
+    FindingStatus,
     Mission,
     ScopeEnvironment,
     ScopeItem,
@@ -57,6 +59,20 @@ def add_scope_from_form(store: JsonStore, mission_id: str, form: dict[str, str])
             excluded=parse_checkbox(form, "excluded"),
             notes=optional_text(form, "notes"),
         ),
+    )
+
+
+def update_finding_status_from_form(
+    store: JsonStore,
+    mission_id: str,
+    finding_id: str,
+    form: dict[str, str],
+) -> Finding:
+    return store.update_finding_status(
+        mission_id=mission_id,
+        finding_id=finding_id,
+        status=FindingStatus(required_text(form, "status", "finding status")),
+        review_note=form.get("review_note"),
     )
 
 

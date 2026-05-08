@@ -131,7 +131,26 @@
         <dt>Risk</dt><dd>{{ finding.risk }}</dd>
         <dt>Remediation</dt><dd>{{ finding.remediation }}</dd>
         <dt>Counter-test</dt><dd>{{ finding.counter_test }}</dd>
+        {% if finding.review_note %}
+        <dt>Review note</dt><dd>{{ finding.review_note }}</dd>
+        {% endif %}
       </dl>
+      <form class="review-form" method="post" action="/missions/{{ view.mission.id }}/findings/{{ finding.id }}/status">
+        <input type="hidden" name="_csrf" value="{{ form_token }}">
+        <label>
+          <span>Status</span>
+          <select name="status" required>
+            {% for status in finding_statuses %}
+            <option value="{{ status }}" {% if status == finding.status %}selected{% endif %}>{{ status }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="review-note">
+          <span>Review Note</span>
+          <input name="review_note" value="{{ finding.review_note }}">
+        </label>
+        <button class="button secondary-button" type="submit">Update</button>
+      </form>
     </article>
     {% else %}
     <p class="empty">No finding found.</p>

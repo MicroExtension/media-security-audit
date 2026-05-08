@@ -6,7 +6,16 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "app"))
 
-from media_security_audit.models import Client, Finding, Mission, MissionStatus, ScopeItem, ScopeType, Severity  # noqa: E402
+from media_security_audit.models import (  # noqa: E402
+    Client,
+    Finding,
+    FindingStatus,
+    Mission,
+    MissionStatus,
+    ScopeItem,
+    ScopeType,
+    Severity,
+)
 from media_security_audit.storage import JsonStore  # noqa: E402
 
 
@@ -86,6 +95,42 @@ class JsonStoreTests(unittest.TestCase):
             store.get_mission("missing")
 
         self.assertIn("mission not found: missing", str(error.exception))
+
+    def test_updates_finding_review_status(self) -> None:
+        data_dir = Path(__file__).resolve().parents[1] / ".tmp-tests" / "storage-review"
+        store = JsonStore(data_dir)
+        client = store.create_client(Client(name="Client X"))
+        mission = store.create_mission(Mission(client_id=client.id, name="Audit"))
+        finding = store.add_finding(
+            mission.id,
+            Finding(
+                title="Review me",
+                severity=Severity.LOW,
+                affected_asset="example.invalid",
+                category="manual",
+                source_module="manual",
+                proof="Observed manually",
+                risk="Risk remains until reviewed.",
+                remediation="Review the finding.",
+                counter_test="Confirm the reviewed status.",
+                confidence=0.8,
+            ),
+        )
+
+        updated = store.update_finding_status(
+            mission.id,
+            finding.id,
+            FindingStatus.FALSE_POSITIVE,
+            review_note="Confirmed by technician",
+        )
+
+        self.assertEqual(updated.status, FindingStatus.FALSE_POSITIVE)
+        self.assertEqual(updated.metadata["review_note"], "Confirmed by technician")
+        self.assertIn("reviewed_at", updated.metadata)
+        self.assertEqual(
+            store.get_finding(mission.id, finding.id).status,
+            FindingStatus.FALSE_POSITIVE,
+        )
 
 
 if __name__ == "__main__":

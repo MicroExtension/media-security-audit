@@ -28,6 +28,7 @@ Implemented so far:
 - first local read-only web interface for dashboard and mission review
 - Docker Compose deployment foundation for local Debian/Ubuntu VMs
 - first web workflow forms for clients, missions, and scope
+- first web finding review workflow
 
 The first implementation target remains a CLI-driven V1 with a local read-only
 web interface that can set up the mission workflow:
@@ -126,7 +127,8 @@ The current web interface is read-only. Scan execution remains in guarded CLI
 commands while the browser workflow is being designed.
 
 The web interface can create clients, missions, and scope items. Scanner
-execution remains in guarded CLI commands only.
+execution remains in guarded CLI commands only. Findings can be reviewed from
+the mission page by updating their status and optional review note.
 
 ## Deployment
 

@@ -440,6 +440,32 @@ textarea:focus {
   font-weight: 700;
 }
 
+.review-form {
+  align-items: end;
+  border-top: 1px solid var(--border);
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 180px minmax(180px, 1fr) auto;
+  margin-top: 14px;
+  padding-top: 14px;
+}
+
+.review-form label {
+  color: #344054;
+  display: grid;
+  font-size: 13px;
+  font-weight: 700;
+  gap: 5px;
+}
+
+.secondary-button {
+  background: #344054;
+}
+
+.secondary-button:hover {
+  background: #1d2939;
+}
+
 pre {
   background: #f8fafc;
   border: 1px solid var(--border);
@@ -483,6 +509,10 @@ code {
   }
 
   .finding-details {
+    grid-template-columns: 1fr;
+  }
+
+  .review-form {
     grid-template-columns: 1fr;
   }
 }

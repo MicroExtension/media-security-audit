@@ -11,9 +11,11 @@ from pydantic import BaseModel
 from media_security_audit.models import (
     Client,
     Finding,
+    FindingStatus,
     Mission,
     MissionStatus,
     ScopeItem,
+    utc_now,
 )
 from media_security_audit.findings import FindingEngine
 
@@ -96,6 +98,38 @@ class JsonStore:
         directory = self._mission_findings_dir(mission_id)
         directory.mkdir(parents=True, exist_ok=True)
         return self._list_models(directory, Finding)
+
+    def get_finding(self, mission_id: str, finding_id: str) -> Finding:
+        self.get_mission(mission_id)
+        return self._read_model(
+            self._mission_findings_dir(mission_id) / f"{finding_id}.json",
+            Finding,
+            missing_message=f"finding not found: {finding_id}",
+        )
+
+    def save_finding(self, mission_id: str, finding: Finding) -> Finding:
+        self.get_mission(mission_id)
+        self._write_model(self._mission_findings_dir(mission_id) / f"{finding.id}.json", finding)
+        return finding
+
+    def update_finding_status(
+        self,
+        mission_id: str,
+        finding_id: str,
+        status: FindingStatus,
+        review_note: str | None = None,
+    ) -> Finding:
+        finding = self.get_finding(mission_id, finding_id)
+        metadata = dict(finding.metadata)
+        if review_note is not None:
+            cleaned_note = review_note.strip()
+            if cleaned_note:
+                metadata["review_note"] = cleaned_note
+            else:
+                metadata.pop("review_note", None)
+        metadata["reviewed_at"] = utc_now().isoformat()
+        updated = finding.model_copy(update={"status": status, "metadata": metadata})
+        return self.save_finding(mission_id, updated)
 
     def _write_model(self, path: Path, model: ModelT) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)

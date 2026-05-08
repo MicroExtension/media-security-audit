@@ -45,6 +45,20 @@ python -m media_security_audit.cli sample-report --output reports\sample
 In this Codex workspace, use the bundled Python runtime if `python` is not in
 PATH.
 
+Current local V1 workflow:
+
+```powershell
+$env:PYTHONPATH='app'
+
+python -m media_security_audit.cli client create --name "Client X" --reference "CLIENT-001"
+python -m media_security_audit.cli mission create --client-id "client_xxxxx" --name "Audit externe" --audit-type external --authorization-reference "AUTH-001"
+python -m media_security_audit.cli scope add --mission-id "mission_xxxxx" --type domain --value client.example --environment external --approved
+python -m media_security_audit.cli scope list --mission-id "mission_xxxxx"
+python -m media_security_audit.cli finding add-sample --mission-id "mission_xxxxx"
+python -m media_security_audit.cli mission show --mission-id "mission_xxxxx"
+python -m media_security_audit.cli report generate --mission-id "mission_xxxxx"
+```
+
 ## Repository Map
 
 ```text

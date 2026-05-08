@@ -20,6 +20,13 @@ from media_security_audit.models import (
 )
 from media_security_audit.reports import write_report
 from media_security_audit.sample_data import sample_findings, sample_mission
+from media_security_audit.scanners.dns_mail import (
+    DnsPythonTxtResolver,
+    DnsTxtResolver,
+    approved_dns_domains,
+    audit_dns_mail_domain,
+    dns_mail_query_plan,
+)
 from media_security_audit.scanners.http_headers import (
     HttpFetcher,
     HttpHeaderFetcher,
@@ -261,6 +268,46 @@ def run_http_headers_audit(
     return store.add_findings(mission_id, findings)
 
 
+def plan_dns_mail_audit(
+    mission_id: str,
+    data_dir: Path,
+    dkim_selectors: list[str] | None = None,
+) -> list[str]:
+    store = JsonStore(data_dir)
+    mission = store.get_mission(mission_id)
+    domains = approved_dns_domains(mission.scope)
+    if not domains:
+        raise ValueError("no approved domain scope items found for DNS/Mail audit")
+    return dns_mail_query_plan(domains, dkim_selectors)
+
+
+def run_dns_mail_audit(
+    mission_id: str,
+    data_dir: Path,
+    execute: bool = False,
+    dkim_selectors: list[str] | None = None,
+    resolver: DnsTxtResolver | None = None,
+) -> list[Finding]:
+    if not execute:
+        raise ValueError("refusing to audit DNS/Mail without --execute; use scan dns-plan first")
+
+    store = JsonStore(data_dir)
+    mission = store.get_mission(mission_id)
+    if not mission.is_authorized:
+        raise ValueError("mission authorization is required before DNS/Mail audit")
+
+    domains = approved_dns_domains(mission.scope)
+    if not domains:
+        raise ValueError("no approved domain scope items found for DNS/Mail audit")
+
+    txt_resolver = resolver or DnsPythonTxtResolver()
+    findings: list[Finding] = []
+    for domain in domains:
+        findings.extend(audit_dns_mail_domain(domain, txt_resolver, dkim_selectors))
+
+    return store.add_findings(mission_id, findings)
+
+
 def format_cli_error(error: Exception) -> str:
     if isinstance(error, ValidationError):
         messages = [item["msg"] for item in error.errors()]
@@ -491,6 +538,36 @@ try:
         )
         typer.echo(f"Stored {len(findings)} HTTP header finding(s).")
 
+    @scan_app.command("dns-plan")
+    def scan_dns_plan(
+        mission_id: str = typer.Option(..., "--mission-id"),
+        data_dir: Path = typer.Option(Path("data"), "--data-dir"),
+        dkim_selectors: list[str] | None = typer.Option(None, "--dkim-selector"),
+    ) -> None:
+        """Print DNS TXT queries for approved domains without making requests."""
+        for query in plan_dns_mail_audit(
+            mission_id=mission_id,
+            data_dir=data_dir,
+            dkim_selectors=dkim_selectors,
+        ):
+            typer.echo(query)
+
+    @scan_app.command("dns-run")
+    def scan_dns_run(
+        mission_id: str = typer.Option(..., "--mission-id"),
+        data_dir: Path = typer.Option(Path("data"), "--data-dir"),
+        execute: bool = typer.Option(False, "--execute", help="Required to make DNS requests."),
+        dkim_selectors: list[str] | None = typer.Option(None, "--dkim-selector"),
+    ) -> None:
+        """Audit DNS/Mail records only when --execute is explicitly provided."""
+        findings = run_dns_mail_audit(
+            mission_id=mission_id,
+            data_dir=data_dir,
+            execute=execute,
+            dkim_selectors=dkim_selectors,
+        )
+        typer.echo(f"Stored {len(findings)} DNS/Mail finding(s).")
+
 except ModuleNotFoundError:
 
     def app(argv: list[str] | None = None) -> None:
@@ -600,6 +677,21 @@ except ModuleNotFoundError:
         http_run_parser.add_argument("--mission-id", required=True)
         http_run_parser.add_argument("--data-dir", type=Path, default=Path("data"))
         http_run_parser.add_argument("--execute", action="store_true")
+        dns_plan_parser = scan_subparsers.add_parser(
+            "dns-plan",
+            help="Print DNS TXT queries for approved domains without making requests.",
+        )
+        dns_plan_parser.add_argument("--mission-id", required=True)
+        dns_plan_parser.add_argument("--data-dir", type=Path, default=Path("data"))
+        dns_plan_parser.add_argument("--dkim-selector", action="append", default=[])
+        dns_run_parser = scan_subparsers.add_parser(
+            "dns-run",
+            help="Audit DNS/Mail records only when --execute is explicitly provided.",
+        )
+        dns_run_parser.add_argument("--mission-id", required=True)
+        dns_run_parser.add_argument("--data-dir", type=Path, default=Path("data"))
+        dns_run_parser.add_argument("--execute", action="store_true")
+        dns_run_parser.add_argument("--dkim-selector", action="append", default=[])
 
         report_parser = subparsers.add_parser("report", help="Generate reports.")
         report_subparsers = report_parser.add_subparsers(dest="report_command")
@@ -738,6 +830,25 @@ except ModuleNotFoundError:
                     execute=args.execute,
                 )
                 print(f"Stored {len(findings)} HTTP header finding(s).")
+                return
+
+            if args.command == "scan" and args.scan_command == "dns-plan":
+                for query in plan_dns_mail_audit(
+                    mission_id=args.mission_id,
+                    data_dir=args.data_dir,
+                    dkim_selectors=args.dkim_selector,
+                ):
+                    print(query)
+                return
+
+            if args.command == "scan" and args.scan_command == "dns-run":
+                findings = run_dns_mail_audit(
+                    mission_id=args.mission_id,
+                    data_dir=args.data_dir,
+                    execute=args.execute,
+                    dkim_selectors=args.dkim_selector,
+                )
+                print(f"Stored {len(findings)} DNS/Mail finding(s).")
                 return
 
             if args.command == "report" and args.report_command == "generate":

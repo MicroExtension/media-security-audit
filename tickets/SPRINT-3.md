@@ -22,5 +22,7 @@ Implement:
 - DNS checks have unit tests with mocked responses
 - HTTP checks have unit tests with mocked responses
 - HTTP execution requires approved URL scope and explicit `--execute`
+- DNS/Mail execution requires approved domain scope and explicit `--execute`
+- DKIM checks require explicit selector configuration
 - TLS adapter supports dry-run and fixture parsing
 - findings are deduplicated across reruns

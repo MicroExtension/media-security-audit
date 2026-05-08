@@ -17,8 +17,10 @@ from media_security_audit.cli import (  # noqa: E402
     create_mission,
     generate_mission_reports,
     list_scope,
+    plan_dns_mail_audit,
     plan_http_headers_audit,
     plan_nmap_scan,
+    run_dns_mail_audit,
     run_http_headers_audit,
     run_nmap_scan,
     show_mission,
@@ -104,6 +106,34 @@ class CliWorkflowTests(unittest.TestCase):
             fetcher=lambda url: HttpHeaderResponse(url=url, status_code=200, headers={}),
         )
         self.assertTrue(any(finding.category == "http_headers" for finding in http_findings))
+
+        dns_queries = plan_dns_mail_audit(
+            mission_id=mission.id,
+            data_dir=data_dir,
+            dkim_selectors=["default"],
+        )
+        self.assertEqual(
+            dns_queries,
+            [
+                "TXT example.invalid",
+                "TXT _dmarc.example.invalid",
+                "TXT default._domainkey.example.invalid",
+            ],
+        )
+
+        dns_records = {
+            "example.invalid": ["v=spf1 +all"],
+            "_dmarc.example.invalid": ["v=DMARC1; p=none"],
+            "default._domainkey.example.invalid": [],
+        }
+        dns_findings = run_dns_mail_audit(
+            mission_id=mission.id,
+            data_dir=data_dir,
+            execute=True,
+            dkim_selectors=["default"],
+            resolver=lambda name: dns_records.get(name, []),
+        )
+        self.assertTrue(any(finding.category == "dns_mail" for finding in dns_findings))
 
         fixture = Path(__file__).parent / "fixtures" / "nmap_sample.xml"
 
@@ -199,6 +229,31 @@ class CliWorkflowTests(unittest.TestCase):
 
         with self.assertRaises(ValueError) as error:
             run_http_headers_audit(mission_id=mission.id, data_dir=data_dir)
+
+        self.assertIn("without --execute", str(error.exception))
+
+    def test_dns_run_requires_execute_flag(self) -> None:
+        root_dir = Path(__file__).resolve().parents[1] / ".tmp-tests" / "cli-dns-guard"
+        data_dir = root_dir / "data"
+
+        client = create_client(name="Client X", data_dir=data_dir)
+        mission = create_mission(
+            client_id=client.id,
+            name="External audit",
+            audit_type=AuditType.EXTERNAL,
+            authorization_reference="signed-order",
+            data_dir=data_dir,
+        )
+        add_scope(
+            mission_id=mission.id,
+            scope_type=ScopeType.DOMAIN,
+            value="example.invalid",
+            approved=True,
+            data_dir=data_dir,
+        )
+
+        with self.assertRaises(ValueError) as error:
+            run_dns_mail_audit(mission_id=mission.id, data_dir=data_dir)
 
         self.assertIn("without --execute", str(error.exception))
 

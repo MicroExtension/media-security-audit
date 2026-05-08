@@ -25,8 +25,10 @@ Implemented so far:
 - bootstrap CLI with a Typer-compatible fallback
 - unit tests using safe fixture data only
 - richer reports with executive summary, risk score, scope summary, and remediation plan
+- first local read-only web interface for dashboard and mission review
 
-The first implementation target remains a CLI-only V1:
+The first implementation target remains a CLI-driven V1 with a local read-only
+web interface:
 
 ```powershell
 media-audit init --client "Client X"
@@ -61,6 +63,7 @@ python -m media_security_audit.cli scan nmap-plan --mission-id "mission_xxxxx"
 python -m media_security_audit.cli scan http-plan --mission-id "mission_xxxxx"
 python -m media_security_audit.cli scan dns-plan --mission-id "mission_xxxxx" --dkim-selector default
 python -m media_security_audit.cli report generate --mission-id "mission_xxxxx"
+python -m media_security_audit.cli web --data-dir data --host 127.0.0.1 --port 8080
 ```
 
 The `scan nmap-plan` command only prints the planned safe command. It does not
@@ -95,6 +98,30 @@ python -m media_security_audit.cli scan dns-run --mission-id "mission_xxxxx" --d
 
 `dns-run` checks SPF and DMARC by default. DKIM checks are performed only for
 selectors explicitly provided with `--dkim-selector`.
+
+Local web interface:
+
+```powershell
+$env:PYTHONPATH='app'
+python -m media_security_audit.cli web --data-dir data --host 127.0.0.1 --port 8080
+```
+
+When the project is installed in a Python environment, the equivalent command
+is:
+
+```powershell
+python -m pip install -e .
+media-audit web --data-dir data --host 127.0.0.1 --port 8080
+```
+
+Then open:
+
+```text
+http://127.0.0.1:8080
+```
+
+The current web interface is read-only. Scan execution remains in guarded CLI
+commands while the browser workflow is being designed.
 
 ## Repository Map
 
@@ -140,14 +167,14 @@ python -m unittest discover -s tests
 The graphical interface will be a local web UI served by the appliance.
 
 Planned screens:
-- dashboard
-- clients
+- dashboard started
+- clients started
 - mission creation wizard
 - scope management
 - check selection
 - run monitor
-- findings review
-- report generation
+- findings review started
+- report generation link started
 - counter-tests
 - settings
 

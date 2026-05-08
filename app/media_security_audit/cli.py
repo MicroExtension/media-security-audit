@@ -51,6 +51,12 @@ def generate_sample_reports(output: Path) -> None:
         write_report(mission, findings, output, report_format)
 
 
+def run_web_interface(data_dir: Path, host: str = "127.0.0.1", port: int = 8080) -> None:
+    from media_security_audit.web import run_web_server
+
+    run_web_server(data_dir=data_dir, host=host, port=port)
+
+
 def create_client(name: str, data_dir: Path, reference: str | None = None, notes: str | None = None) -> Client:
     store = JsonStore(data_dir)
     return store.create_client(Client(name=name, internal_reference=reference, notes=notes))
@@ -348,6 +354,19 @@ try:
         generate_sample_reports(output)
         typer.echo(f"Sample reports written to {output}")
 
+    @app.command("web")
+    def web(
+        data_dir: Path = typer.Option(Path("data"), "--data-dir"),
+        host: str = typer.Option("127.0.0.1", "--host"),
+        port: int = typer.Option(8080, "--port"),
+    ) -> None:
+        """Start the local read-only web interface."""
+        try:
+            run_web_interface(data_dir=data_dir, host=host, port=port)
+        except RuntimeError as error:
+            typer.echo(f"error: {error}", err=True)
+            raise typer.Exit(code=2) from error
+
     @client_app.command("create")
     def client_create(
         name: str = typer.Option(..., "--name"),
@@ -582,6 +601,14 @@ except ModuleNotFoundError:
         )
         sample_parser.add_argument("--output", "-o", type=Path, default=Path("reports/sample"))
 
+        web_parser = subparsers.add_parser(
+            "web",
+            help="Start the local read-only web interface.",
+        )
+        web_parser.add_argument("--data-dir", type=Path, default=Path("data"))
+        web_parser.add_argument("--host", default="127.0.0.1")
+        web_parser.add_argument("--port", type=int, default=8080)
+
         client_parser = subparsers.add_parser("client", help="Manage clients.")
         client_subparsers = client_parser.add_subparsers(dest="client_command")
         client_create_parser = client_subparsers.add_parser("create", help="Create a client.")
@@ -710,6 +737,10 @@ except ModuleNotFoundError:
             if args.command == "sample-report":
                 generate_sample_reports(args.output)
                 print(f"Sample reports written to {args.output}")
+                return
+
+            if args.command == "web":
+                run_web_interface(data_dir=args.data_dir, host=args.host, port=args.port)
                 return
 
             if args.command == "client" and args.client_command == "create":

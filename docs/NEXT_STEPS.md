@@ -241,7 +241,7 @@ Codex action:
 
 ## Step 6 - Build The GUI
 
-Status: planned after V1 CLI foundation.
+Status: started.
 
 The GUI should run locally on the appliance:
 
@@ -249,12 +249,27 @@ The GUI should run locally on the appliance:
 http://IP-VM:8080
 ```
 
+Current local development command:
+
+```powershell
+$env:PYTHONPATH='app'
+python -m media_security_audit.cli web --data-dir data --host 127.0.0.1 --port 8080
+```
+
+Installed environment command:
+
+```powershell
+python -m pip install -e .
+media-audit web --data-dir data --host 127.0.0.1 --port 8080
+```
+
 Owner action:
 - no action required yet
 - later, validate screens and workflow wording
 
 Codex action:
-- build FastAPI/Jinja2/HTMX interface
+- build FastAPI/Jinja2 interface incrementally
+- keep the first UI read-only until scan execution controls are approved
 - keep CLI and GUI on the same domain engine
 - prevent scans without approved scope
 

@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}{{ view.mission.name }} | MEDIA Security Audit{% endblock %}
+{% block content %}
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">{{ view.mission.client_name }}</p>
+    <h1>{{ view.mission.name }}</h1>
+  </div>
+  <div class="actions">
+    <a class="button" href="/missions/{{ view.mission.id }}/report.html">HTML Report</a>
+  </div>
+</section>
+
+<section class="callout">
+  <h2>Executive Summary</h2>
+  <p>{{ view.executive_summary }}</p>
+</section>
+
+<section class="metrics" aria-label="Mission summary">
+  <div class="metric"><span>Risk score</span><strong>{{ view.mission.risk_score }}/100</strong></div>
+  <div class="metric"><span>Risk level</span><strong>{{ view.mission.risk_level }}</strong></div>
+  <div class="metric"><span>Findings</span><strong>{{ view.mission.finding_count }}</strong></div>
+  <div class="metric"><span>Approved scope</span><strong>{{ view.mission.approved_scope_count }}</strong></div>
+  <div class="metric"><span>Authorization</span><strong>{{ "yes" if view.mission.authorization_present else "no" }}</strong></div>
+</section>
+
+<section class="section two-column">
+  <div>
+    <div class="section-title">
+      <h2>Scope</h2>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Target</th>
+            <th>Type</th>
+            <th>Status</th>
+            <th>Environment</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in view.scope %}
+          <tr>
+            <td><code>{{ item.value }}</code></td>
+            <td>{{ item.type }}</td>
+            <td><span class="status">{{ item.status }}</span></td>
+            <td>{{ item.environment }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="4" class="empty">No scope item found.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div>
+    <div class="section-title">
+      <h2>Remediation Plan</h2>
+    </div>
+    <ol class="remediation-list">
+      {% for item in view.remediation_items %}
+      <li>
+        <strong>{{ item.title }}</strong>
+        <span class="badge severity-{{ item.severity | severity_class }}">{{ item.severity }}</span>
+        <p>{{ item.remediation }}</p>
+        <p class="muted">{{ item.counter_test }}</p>
+      </li>
+      {% else %}
+      <li class="empty-list">No remediation item.</li>
+      {% endfor %}
+    </ol>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-title">
+    <h2>Findings</h2>
+  </div>
+  <div class="finding-list">
+    {% for finding in view.findings %}
+    <article class="finding severity-border-{{ finding.severity | severity_class }}">
+      <div class="finding-head">
+        <div>
+          <h3>{{ finding.title }}</h3>
+          <p class="muted">{{ finding.affected_asset }} | {{ finding.category }} | {{ finding.source_module }}</p>
+        </div>
+        <span class="badge severity-{{ finding.severity | severity_class }}">{{ finding.severity }}</span>
+      </div>
+      <dl class="finding-details">
+        <dt>Status</dt><dd>{{ finding.status }}</dd>
+        <dt>Confidence</dt><dd>{{ finding.confidence }}</dd>
+        <dt>Proof</dt><dd><pre>{{ finding.proof }}</pre></dd>
+        <dt>Risk</dt><dd>{{ finding.risk }}</dd>
+        <dt>Remediation</dt><dd>{{ finding.remediation }}</dd>
+        <dt>Counter-test</dt><dd>{{ finding.counter_test }}</dd>
+      </dl>
+    </article>
+    {% else %}
+    <p class="empty">No finding found.</p>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

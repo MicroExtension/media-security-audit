@@ -16,6 +16,7 @@ from media_security_audit.cli import (  # noqa: E402
     create_mission,
     generate_mission_reports,
     list_scope,
+    plan_nmap_scan,
     show_mission,
 )
 from media_security_audit.models import AuditType, MissionStatus, ScopeType, Severity  # noqa: E402
@@ -73,6 +74,12 @@ class CliWorkflowTests(unittest.TestCase):
         self.assertIn("Findings: 1", summary)
         self.assertEqual(len(scope_items), 1)
         self.assertEqual(scope_items[0].value, "example.invalid")
+
+        commands = plan_nmap_scan(mission_id=mission.id, data_dir=data_dir)
+        self.assertEqual(len(commands), 1)
+        self.assertEqual(commands[0][0], "nmap")
+        self.assertEqual(commands[0][-1], "example.invalid")
+        self.assertIn("-oX", commands[0])
 
     def test_missing_mission_error_is_readable(self) -> None:
         data_dir = Path(__file__).resolve().parents[1] / ".tmp-tests" / "cli-errors"

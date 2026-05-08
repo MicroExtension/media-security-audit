@@ -57,8 +57,12 @@ python -m media_security_audit.cli scope add --mission-id "mission_xxxxx" --type
 python -m media_security_audit.cli scope list --mission-id "mission_xxxxx"
 python -m media_security_audit.cli finding add-sample --mission-id "mission_xxxxx"
 python -m media_security_audit.cli mission show --mission-id "mission_xxxxx"
+python -m media_security_audit.cli scan nmap-plan --mission-id "mission_xxxxx"
 python -m media_security_audit.cli report generate --mission-id "mission_xxxxx"
 ```
+
+The `scan nmap-plan` command only prints the planned safe command. It does not
+execute Nmap.
 
 ## Repository Map
 

@@ -58,6 +58,9 @@ python -m media_security_audit.cli finding add-sample `
 python -m media_security_audit.cli mission show `
   --mission-id "mission_xxxxx"
 
+python -m media_security_audit.cli scan nmap-plan `
+  --mission-id "mission_xxxxx"
+
 python -m media_security_audit.cli report generate `
   --mission-id "mission_xxxxx"
 ```
@@ -93,6 +96,25 @@ Owner action:
 Codex action:
 - keep report output deterministic
 - prepare report templates for future branding
+
+## Step 2.2 - Nmap Dry-Run Planning
+
+Status: in progress.
+
+The Nmap module starts with dry-run planning only:
+- build conservative Nmap commands as argument lists
+- use approved mission scope only
+- exclude URL scope items from Nmap targets
+- parse Nmap XML fixtures in tests
+- generate normalized findings from fixture services
+
+Owner action:
+- no action required yet
+- later, approve real execution defaults before live scanning is enabled
+
+Codex action:
+- keep command execution disabled until dry-run planning and parser behavior are validated
+- add fixture-based tests before any real scanner execution exists
 
 ## Step 3 - Decide Branding
 

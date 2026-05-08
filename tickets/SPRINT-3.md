@@ -21,6 +21,6 @@ Implement:
 - checks are non-destructive
 - DNS checks have unit tests with mocked responses
 - HTTP checks have unit tests with mocked responses
+- HTTP execution requires approved URL scope and explicit `--execute`
 - TLS adapter supports dry-run and fixture parsing
 - findings are deduplicated across reruns
-

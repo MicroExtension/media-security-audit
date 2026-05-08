@@ -17,11 +17,14 @@ from media_security_audit.cli import (  # noqa: E402
     create_mission,
     generate_mission_reports,
     list_scope,
+    plan_http_headers_audit,
     plan_nmap_scan,
+    run_http_headers_audit,
     run_nmap_scan,
     show_mission,
 )
 from media_security_audit.models import AuditType, MissionStatus, ScopeType, Severity  # noqa: E402
+from media_security_audit.scanners.http_headers import HttpHeaderResponse  # noqa: E402
 from media_security_audit.scanners.nmap import NmapExecutor, nmap_output_path  # noqa: E402
 
 
@@ -43,6 +46,13 @@ class CliWorkflowTests(unittest.TestCase):
             mission_id=mission.id,
             scope_type=ScopeType.DOMAIN,
             value="example.invalid",
+            approved=True,
+            data_dir=data_dir,
+        )
+        add_scope(
+            mission_id=mission.id,
+            scope_type=ScopeType.URL,
+            value="https://example.invalid",
             approved=True,
             data_dir=data_dir,
         )
@@ -75,7 +85,7 @@ class CliWorkflowTests(unittest.TestCase):
 
         self.assertIn("Status: ready_to_scan", summary)
         self.assertIn("Findings: 1", summary)
-        self.assertEqual(len(scope_items), 1)
+        self.assertEqual(len(scope_items), 2)
         self.assertEqual(scope_items[0].value, "example.invalid")
 
         commands = plan_nmap_scan(mission_id=mission.id, data_dir=data_dir)
@@ -83,6 +93,17 @@ class CliWorkflowTests(unittest.TestCase):
         self.assertEqual(commands[0][0], "nmap")
         self.assertEqual(commands[0][-1], "example.invalid")
         self.assertIn("-oX", commands[0])
+
+        http_targets = plan_http_headers_audit(mission_id=mission.id, data_dir=data_dir)
+        self.assertEqual(http_targets, ["https://example.invalid"])
+
+        http_findings = run_http_headers_audit(
+            mission_id=mission.id,
+            data_dir=data_dir,
+            execute=True,
+            fetcher=lambda url: HttpHeaderResponse(url=url, status_code=200, headers={}),
+        )
+        self.assertTrue(any(finding.category == "http_headers" for finding in http_findings))
 
         fixture = Path(__file__).parent / "fixtures" / "nmap_sample.xml"
 
@@ -155,6 +176,31 @@ class CliWorkflowTests(unittest.TestCase):
             run_nmap_scan(mission_id=mission.id, data_dir=data_dir, execute=True)
 
         self.assertIn("authorization is required", str(error.exception))
+
+    def test_http_run_requires_execute_flag(self) -> None:
+        root_dir = Path(__file__).resolve().parents[1] / ".tmp-tests" / "cli-http-guard"
+        data_dir = root_dir / "data"
+
+        client = create_client(name="Client X", data_dir=data_dir)
+        mission = create_mission(
+            client_id=client.id,
+            name="External audit",
+            audit_type=AuditType.EXTERNAL,
+            authorization_reference="signed-order",
+            data_dir=data_dir,
+        )
+        add_scope(
+            mission_id=mission.id,
+            scope_type=ScopeType.URL,
+            value="https://example.invalid",
+            approved=True,
+            data_dir=data_dir,
+        )
+
+        with self.assertRaises(ValueError) as error:
+            run_http_headers_audit(mission_id=mission.id, data_dir=data_dir)
+
+        self.assertIn("without --execute", str(error.exception))
 
     def test_missing_mission_error_is_readable(self) -> None:
         data_dir = Path(__file__).resolve().parents[1] / ".tmp-tests" / "cli-errors"

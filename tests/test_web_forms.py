@@ -6,7 +6,7 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "app"))
 
-from media_security_audit.models import AuditType, ScopeType  # noqa: E402
+from media_security_audit.models import AuditType, Finding, ScopeType, Severity  # noqa: E402
 from media_security_audit.storage import JsonStore  # noqa: E402
 from media_security_audit.web_forms import (  # noqa: E402
     add_scope_from_form,
@@ -15,6 +15,7 @@ from media_security_audit.web_forms import (  # noqa: E402
     new_form_token,
     parse_checkbox,
     parse_urlencoded_form,
+    update_finding_status_from_form,
     validate_form_token,
 )
 
@@ -133,6 +134,58 @@ class WebFormTests(unittest.TestCase):
             validate_form_token({"_csrf": "wrong"}, token)
         with self.assertRaises(ValueError):
             validate_form_token({}, token)
+
+    def test_update_finding_status_from_form(self) -> None:
+        store = JsonStore(clean_data_dir("web-form-finding-status"))
+        client = create_client_from_form(store, {"name": "Client X"})
+        mission = create_mission_from_form(
+            store,
+            {
+                "client_id": client.id,
+                "name": "Audit externe",
+                "audit_type": "external",
+            },
+        )
+        finding = store.add_finding(
+            mission.id,
+            Finding(
+                title="Manual finding",
+                severity=Severity.LOW,
+                affected_asset="client.example",
+                category="manual",
+                source_module="manual",
+                proof="Observed manually",
+                risk="Risk is pending review.",
+                remediation="Apply remediation.",
+                counter_test="Repeat the check.",
+                confidence=0.8,
+            ),
+        )
+
+        updated = update_finding_status_from_form(
+            store,
+            mission.id,
+            finding.id,
+            {
+                "status": "confirmed",
+                "review_note": "Looks valid",
+            },
+        )
+
+        self.assertEqual(updated.status.value, "confirmed")
+        self.assertEqual(updated.metadata["review_note"], "Looks valid")
+
+        cleared = update_finding_status_from_form(
+            store,
+            mission.id,
+            finding.id,
+            {
+                "status": "confirmed",
+                "review_note": "",
+            },
+        )
+
+        self.assertNotIn("review_note", cleared.metadata)
 
 
 if __name__ == "__main__":

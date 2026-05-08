@@ -8,7 +8,7 @@ from urllib.parse import urlencode
 
 from pydantic import ValidationError
 
-from media_security_audit.models import AuditType, ScopeEnvironment, ScopeType
+from media_security_audit.models import AuditType, FindingStatus, ScopeEnvironment, ScopeType
 from media_security_audit.reports import render_html
 from media_security_audit.storage import JsonStore
 from media_security_audit.web_auth import (
@@ -28,6 +28,7 @@ from media_security_audit.web_forms import (
     create_mission_from_form,
     new_form_token,
     parse_urlencoded_form,
+    update_finding_status_from_form,
     validate_form_token,
 )
 
@@ -173,6 +174,7 @@ def create_web_app(data_dir: Path = Path("data"), auth_settings: WebAuthSettings
                     "view": view,
                     "scope_types": [item.value for item in ScopeType],
                     "scope_environments": [item.value for item in ScopeEnvironment],
+                    "finding_statuses": [item.value for item in FindingStatus],
                     "form_token": form_token,
                     "message": message,
                     "error": error,
@@ -189,6 +191,16 @@ def create_web_app(data_dir: Path = Path("data"), auth_settings: WebAuthSettings
         except (FileNotFoundError, RuntimeError, ValueError, ValidationError) as error:
             return redirect_with_status(f"/missions/{mission_id}", error=format_web_error(error))
         return redirect_with_status(f"/missions/{mission_id}", message="scope item added")
+
+    @app.post("/missions/{mission_id}/findings/{finding_id}/status", dependencies=protected)
+    async def finding_status_update(request: Request, mission_id: str, finding_id: str):
+        try:
+            form = parse_urlencoded_form(await request.body())
+            validate_form_token(form, form_token)
+            update_finding_status_from_form(store, mission_id, finding_id, form)
+        except (FileNotFoundError, RuntimeError, ValueError, ValidationError) as error:
+            return redirect_with_status(f"/missions/{mission_id}", error=format_web_error(error))
+        return redirect_with_status(f"/missions/{mission_id}", message="finding status updated")
 
     @app.get("/missions/{mission_id}/report.html", response_class=HTMLResponse, dependencies=protected)
     def mission_report(mission_id: str) -> HTMLResponse:

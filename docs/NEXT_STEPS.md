@@ -291,6 +291,7 @@ Current GUI status:
 - dashboard can show clients and missions
 - mission pages can show scope, findings, remediation plan, and reports
 - web forms can create clients, missions, and scope items
+- finding status can be reviewed from mission pages
 - scan execution remains CLI-only
 
 ## Step 7 - Add Safe Scanner Modules

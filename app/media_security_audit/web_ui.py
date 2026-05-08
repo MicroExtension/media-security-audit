@@ -65,6 +65,7 @@ class FindingRow:
     risk: str
     remediation: str
     counter_test: str
+    review_note: str
 
 
 @dataclass(frozen=True)
@@ -150,6 +151,7 @@ def finding_row(finding: Finding) -> FindingRow:
         risk=finding.risk,
         remediation=finding.remediation,
         counter_test=finding.counter_test,
+        review_note=str(finding.metadata.get("review_note", "")),
     )
 
 

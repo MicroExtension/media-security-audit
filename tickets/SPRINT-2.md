@@ -17,6 +17,8 @@ Implement:
 - findings for risky exposed services
 - fixture-based tests
 
+First implementation must plan commands only. It must not execute Nmap.
+
 ## Safe Defaults
 
 Use conservative scanning defaults:
@@ -33,4 +35,3 @@ Use conservative scanning defaults:
 - parser tests use static XML fixtures
 - scan execution requires a mission id and validated scope
 - findings include remediation and counter-test guidance
-

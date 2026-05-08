@@ -20,6 +20,7 @@ from media_security_audit.models import (
 )
 from media_security_audit.reports import write_report
 from media_security_audit.sample_data import sample_findings, sample_mission
+from media_security_audit.scanners.nmap import NmapCommandBuilder, render_command
 from media_security_audit.storage import JsonStore
 
 
@@ -158,6 +159,20 @@ def add_sample_findings(mission_id: str, data_dir: Path) -> list[Finding]:
     return store.add_findings(mission_id, sample_findings())
 
 
+def plan_nmap_scan(
+    mission_id: str,
+    data_dir: Path,
+    output_dir: Path | None = None,
+) -> list[list[str]]:
+    store = JsonStore(data_dir)
+    mission = store.get_mission(mission_id)
+    evidence_dir = output_dir or Path("runs") / mission.id / "evidence"
+    commands = NmapCommandBuilder().build_for_scope(mission.scope, output_dir=evidence_dir)
+    if not commands:
+        raise ValueError("no approved Nmap-compatible scope items found")
+    return commands
+
+
 def format_cli_error(error: Exception) -> str:
     if isinstance(error, ValidationError):
         messages = [item["msg"] for item in error.errors()]
@@ -173,11 +188,13 @@ try:
     mission_app = typer.Typer(help="Manage missions.")
     scope_app = typer.Typer(help="Manage mission scope.")
     finding_app = typer.Typer(help="Manage findings.")
+    scan_app = typer.Typer(help="Plan safe scanner commands.")
     report_app = typer.Typer(help="Generate reports.")
     app.add_typer(client_app, name="client")
     app.add_typer(mission_app, name="mission")
     app.add_typer(scope_app, name="scope")
     app.add_typer(finding_app, name="finding")
+    app.add_typer(scan_app, name="scan")
     app.add_typer(report_app, name="report")
 
     @app.callback()
@@ -333,6 +350,20 @@ try:
         for path in generate_mission_reports(mission_id=mission_id, data_dir=data_dir, output=output):
             typer.echo(path)
 
+    @scan_app.command("nmap-plan")
+    def scan_nmap_plan(
+        mission_id: str = typer.Option(..., "--mission-id"),
+        data_dir: Path = typer.Option(Path("data"), "--data-dir"),
+        output_dir: Path | None = typer.Option(None, "--output-dir"),
+    ) -> None:
+        """Print safe Nmap commands without executing them."""
+        for command in plan_nmap_scan(
+            mission_id=mission_id,
+            data_dir=data_dir,
+            output_dir=output_dir,
+        ):
+            typer.echo(render_command(command))
+
 except ModuleNotFoundError:
 
     def app(argv: list[str] | None = None) -> None:
@@ -411,6 +442,16 @@ except ModuleNotFoundError:
         finding_list_parser = finding_subparsers.add_parser("list", help="List mission findings.")
         finding_list_parser.add_argument("--mission-id", required=True)
         finding_list_parser.add_argument("--data-dir", type=Path, default=Path("data"))
+
+        scan_parser = subparsers.add_parser("scan", help="Plan safe scanner commands.")
+        scan_subparsers = scan_parser.add_subparsers(dest="scan_command")
+        nmap_plan_parser = scan_subparsers.add_parser(
+            "nmap-plan",
+            help="Print safe Nmap commands without executing them.",
+        )
+        nmap_plan_parser.add_argument("--mission-id", required=True)
+        nmap_plan_parser.add_argument("--data-dir", type=Path, default=Path("data"))
+        nmap_plan_parser.add_argument("--output-dir", type=Path)
 
         report_parser = subparsers.add_parser("report", help="Generate reports.")
         report_subparsers = report_parser.add_subparsers(dest="report_command")
@@ -516,6 +557,15 @@ except ModuleNotFoundError:
                         f"{finding.id}\t{finding.severity.value}\t"
                         f"{finding.status.value}\t{finding.affected_asset}\t{finding.title}"
                     )
+                return
+
+            if args.command == "scan" and args.scan_command == "nmap-plan":
+                for command in plan_nmap_scan(
+                    mission_id=args.mission_id,
+                    data_dir=args.data_dir,
+                    output_dir=args.output_dir,
+                ):
+                    print(render_command(command))
                 return
 
             if args.command == "report" and args.report_command == "generate":

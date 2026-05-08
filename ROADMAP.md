@@ -1,0 +1,91 @@
+# Roadmap
+
+## V0 - Agent-Ready Repository
+
+Goal: create a clear project frame for Codex and future contributors.
+
+Deliverables:
+- AGENTS.md
+- architecture notes
+- legal and scope rules
+- sprint tickets
+- initial Python package metadata
+- empty app and test structure
+
+## V1 - CLI Audit Foundation
+
+Goal: reliable CLI, normalized findings, and clean reports.
+
+Features:
+- client and mission model
+- scope validation
+- findings engine
+- JSON report
+- Markdown report
+- HTML report
+- safe Nmap adapter
+- Nmap XML parser
+- HTTP headers audit
+- DNS and mail audit
+- TLS adapter for testssl.sh
+
+Success criteria:
+- no scan can run without a mission and scope
+- every finding has remediation and counter-test fields
+- parser tests use fixtures
+- reports are readable by a non-technical decision maker and useful to a technician
+
+## V2 - Local Web Interface
+
+Goal: make the platform easy to use for technicians without sacrificing the
+safe CLI foundation.
+
+Features:
+- local FastAPI web app
+- dashboard
+- client and mission management
+- mission creation wizard
+- authorization tracking
+- scope validation UI
+- check selection UI
+- run monitor
+- findings review workflow
+- report generation workflow
+- counter-test workflow
+
+Success criteria:
+- no scan can be launched without approved scope
+- a technician can create a mission in less than 5 minutes
+- false positives and accepted risks require notes
+- reports can be generated without editing files manually
+
+## V3 - Portable Appliance
+
+Goal: package the platform for repeatable client deployments.
+
+Features:
+- Debian/Ubuntu VM image
+- Docker Compose deployment
+- VMware OVA packaging
+- Hyper-V VHDX packaging
+- signed update workflow
+- remediation library
+- recurring audit templates
+
+Success criteria:
+- appliance can run on Debian/Ubuntu
+- Docker Compose deployment is documented
+- data, evidence, and reports persist across restarts
+- backup/export is available
+- external tool status is visible in the UI
+
+## Future MSP Differentiators
+
+Potential specialized modules:
+- Fortinet configuration review
+- Active Directory hygiene checks
+- Microsoft 365 baseline checks
+- Veeam configuration review
+- Synology/QNAP exposure review
+- VLAN and segmentation checklist
+- backup and restore evidence review

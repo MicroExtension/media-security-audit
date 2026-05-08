@@ -1,0 +1,40 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "media-security-audit"
+version = "0.0.1"
+description = "Internal MSP security audit platform for authorized, non-destructive assessments."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "Proprietary" }
+authors = [
+  { name = "M.E.D.I.A." }
+]
+dependencies = [
+  "pydantic>=2.7",
+  "typer>=0.12",
+  "jinja2>=3.1",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.2",
+  "ruff>=0.5",
+  "mypy>=1.10",
+]
+
+[project.scripts]
+media-audit = "media_security_audit.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app/media_security_audit"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+

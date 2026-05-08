@@ -1,0 +1,81 @@
+# User Interventions Needed
+
+This file tracks decisions that require the product owner.
+
+## Needed Now
+
+No blocking decision is needed to continue Sprint 1.
+
+The project can proceed with:
+- Python
+- Typer CLI
+- Pydantic models
+- JSON/Markdown/HTML reports
+- file-based storage for the first implementation
+
+## Needed Before Branding
+
+Decide:
+- final product name
+- company display name
+- report footer text
+- logo file
+- color direction for reports and UI
+
+Default assumption until decided:
+- product name: MEDIA Security Audit Platform
+- organization: M.E.D.I.A.
+
+## Needed Before Real Client Audits
+
+Provide:
+- standard customer authorization template
+- maintenance contract wording or constraints
+- emergency contact process
+- data retention policy
+- report recipient policy
+
+Default assumption until decided:
+- evidence and reports stay local
+- no cloud upload
+- manual export only
+
+## Needed Before Scanner Modules
+
+Decide safe defaults:
+- allowed Nmap timing level
+- whether service/version detection is allowed by default
+- whether UDP checks are excluded by default
+- allowed audit windows
+- customer notification procedure
+
+Default assumption until decided:
+- conservative TCP-only checks
+- no UDP by default
+- no aggressive timing
+- no intrusive scripts
+
+## Needed Before GUI V2
+
+Choose UI priority:
+- technician-only interface
+- customer-facing presentation mode
+- both
+
+Default assumption until decided:
+- technician-first interface
+- reports are the customer-facing artifact
+
+## Needed Before Appliance V3
+
+Decide:
+- VMware first or Hyper-V first
+- offline installation requirement
+- update mechanism
+- backup location
+- admin password reset process
+
+Default assumption until decided:
+- Docker Compose on Debian/Ubuntu
+- VMware and Hyper-V documented after app stabilizes
+

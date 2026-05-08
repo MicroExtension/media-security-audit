@@ -19,6 +19,9 @@ Implement:
 
 First implementation must plan commands only. It must not execute Nmap.
 
+Execution may be added only after dry-run planning exists and must require an
+explicit `--execute` flag, mission authorization, and approved scope.
+
 ## Safe Defaults
 
 Use conservative scanning defaults:

@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+import shutil
+import subprocess
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Callable
 
 from media_security_audit.models import Finding, ScopeItem, ScopeType, Severity
 
@@ -46,6 +49,19 @@ class NmapHost:
     services: tuple[NmapService, ...]
 
 
+@dataclass(frozen=True)
+class NmapExecutionResult:
+    command: tuple[str, ...]
+    exit_code: int
+    stdout: str
+    stderr: str
+    output_path: Path | None
+
+
+NmapRunner = Callable[[list[str], int], subprocess.CompletedProcess[str]]
+ExecutableLookup = Callable[[str], str | None]
+
+
 class NmapCommandBuilder:
     """Build conservative Nmap commands without invoking a shell."""
 
@@ -80,6 +96,49 @@ class NmapCommandBuilder:
         return commands
 
 
+class NmapExecutor:
+    """Execute pre-built Nmap commands with guardrails."""
+
+    def __init__(
+        self,
+        runner: NmapRunner | None = None,
+        executable_lookup: ExecutableLookup = shutil.which,
+        timeout_seconds: int = 900,
+    ) -> None:
+        self.runner = runner or self._default_runner
+        self.executable_lookup = executable_lookup
+        self.timeout_seconds = timeout_seconds
+
+    def run(self, command: list[str]) -> NmapExecutionResult:
+        validate_nmap_command(command)
+        executable = command[0]
+        if self.executable_lookup(executable) is None:
+            raise FileNotFoundError(f"Nmap executable not found: {executable}")
+
+        output_path = nmap_output_path(command)
+        if output_path is not None:
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+
+        completed = self.runner(command, self.timeout_seconds)
+        return NmapExecutionResult(
+            command=tuple(command),
+            exit_code=completed.returncode,
+            stdout=completed.stdout or "",
+            stderr=completed.stderr or "",
+            output_path=output_path,
+        )
+
+    @staticmethod
+    def _default_runner(command: list[str], timeout_seconds: int) -> subprocess.CompletedProcess[str]:
+        return subprocess.run(
+            command,
+            capture_output=True,
+            text=True,
+            timeout=timeout_seconds,
+            check=False,
+        )
+
+
 def approved_nmap_targets(scope: list[ScopeItem]) -> list[str]:
     targets = []
     for item in scope:
@@ -94,6 +153,35 @@ def validate_nmap_target(target: str) -> None:
         raise ValueError("Nmap target cannot start with '-'")
     if any(character.isspace() for character in target):
         raise ValueError("Nmap target cannot contain whitespace")
+
+
+def validate_nmap_command(command: list[str]) -> None:
+    if not command:
+        raise ValueError("Nmap command cannot be empty")
+    if command[0].startswith("-"):
+        raise ValueError("Nmap executable cannot start with '-'")
+    if "-sU" in command:
+        raise ValueError("UDP scans are not allowed by the safe Nmap adapter")
+    if "-A" in command:
+        raise ValueError("Aggressive Nmap scans are not allowed")
+    if "--script" in command:
+        raise ValueError("Nmap NSE scripts are not allowed by default")
+    validate_nmap_target(command[-1])
+
+
+def nmap_output_path(command: list[str]) -> Path | None:
+    try:
+        index = command.index("-oX")
+    except ValueError:
+        return None
+
+    if index + 1 >= len(command):
+        raise ValueError("Nmap command is missing the -oX output path")
+
+    output = command[index + 1]
+    if output == "-":
+        return None
+    return Path(output)
 
 
 def render_command(command: list[str]) -> str:

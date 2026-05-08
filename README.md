@@ -64,6 +64,15 @@ python -m media_security_audit.cli report generate --mission-id "mission_xxxxx"
 The `scan nmap-plan` command only prints the planned safe command. It does not
 execute Nmap.
 
+Nmap execution is guarded and requires an explicit flag:
+
+```powershell
+python -m media_security_audit.cli scan nmap-run --mission-id "mission_xxxxx" --execute
+```
+
+Execution is blocked unless the mission has an authorization reference and at
+least one approved Nmap-compatible scope item.
+
 ## Repository Map
 
 ```text

@@ -61,6 +61,9 @@ python -m media_security_audit.cli mission show `
 python -m media_security_audit.cli scan nmap-plan `
   --mission-id "mission_xxxxx"
 
+python -m media_security_audit.cli scan http-plan `
+  --mission-id "mission_xxxxx"
+
 python -m media_security_audit.cli report generate `
   --mission-id "mission_xxxxx"
 ```
@@ -138,6 +141,26 @@ Owner action:
 Codex action:
 - test execution with mocked runners only
 - do not launch Nmap from this development environment
+
+## Step 2.4 - HTTP Header Audit
+
+Status: in progress.
+
+The HTTP header module:
+- uses approved URL scope items only
+- supports `scan http-plan` without network requests
+- requires `scan http-run --execute` before making requests
+- uses conservative `HEAD` requests with `GET` fallback
+- generates normalized findings for missing browser security headers
+- stores findings on the mission
+
+Owner action:
+- no action required yet
+- later, decide whether customer-facing report wording should be French
+
+Codex action:
+- test HTTP behavior with mocked fetchers
+- do not call real customer URLs from the development environment
 
 ## Step 3 - Decide Branding
 

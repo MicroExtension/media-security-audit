@@ -58,6 +58,7 @@ python -m media_security_audit.cli scope list --mission-id "mission_xxxxx"
 python -m media_security_audit.cli finding add-sample --mission-id "mission_xxxxx"
 python -m media_security_audit.cli mission show --mission-id "mission_xxxxx"
 python -m media_security_audit.cli scan nmap-plan --mission-id "mission_xxxxx"
+python -m media_security_audit.cli scan http-plan --mission-id "mission_xxxxx"
 python -m media_security_audit.cli report generate --mission-id "mission_xxxxx"
 ```
 
@@ -72,6 +73,16 @@ python -m media_security_audit.cli scan nmap-run --mission-id "mission_xxxxx" --
 
 Execution is blocked unless the mission has an authorization reference and at
 least one approved Nmap-compatible scope item.
+
+HTTP header auditing uses approved URL scope items only:
+
+```powershell
+python -m media_security_audit.cli scope add --mission-id "mission_xxxxx" --type url --value "https://client.example" --environment external --approved
+python -m media_security_audit.cli scan http-plan --mission-id "mission_xxxxx"
+python -m media_security_audit.cli scan http-run --mission-id "mission_xxxxx" --execute
+```
+
+Like Nmap execution, `http-run` is blocked unless `--execute` is present.
 
 ## Repository Map
 

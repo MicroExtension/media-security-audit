@@ -20,6 +20,12 @@ from media_security_audit.models import (
 )
 from media_security_audit.reports import write_report
 from media_security_audit.sample_data import sample_findings, sample_mission
+from media_security_audit.scanners.http_headers import (
+    HttpFetcher,
+    HttpHeaderFetcher,
+    approved_http_targets,
+    audit_http_headers,
+)
 from media_security_audit.scanners.nmap import (
     NmapCommandBuilder,
     NmapExecutionResult,
@@ -216,6 +222,43 @@ def run_nmap_scan(
 
     stored_findings = store.add_findings(mission_id, findings)
     return results, stored_findings
+
+
+def plan_http_headers_audit(mission_id: str, data_dir: Path) -> list[str]:
+    store = JsonStore(data_dir)
+    mission = store.get_mission(mission_id)
+    targets = approved_http_targets(mission.scope)
+    if not targets:
+        raise ValueError("no approved URL scope items found for HTTP header audit")
+    return targets
+
+
+def run_http_headers_audit(
+    mission_id: str,
+    data_dir: Path,
+    execute: bool = False,
+    fetcher: HttpFetcher | None = None,
+) -> list[Finding]:
+    if not execute:
+        raise ValueError("refusing to audit HTTP headers without --execute; use scan http-plan first")
+
+    store = JsonStore(data_dir)
+    mission = store.get_mission(mission_id)
+    if not mission.is_authorized:
+        raise ValueError("mission authorization is required before HTTP header audit")
+    if not mission.has_approved_scope:
+        raise ValueError("approved mission scope is required before HTTP header audit")
+
+    targets = approved_http_targets(mission.scope)
+    if not targets:
+        raise ValueError("no approved URL scope items found for HTTP header audit")
+
+    http_fetcher = fetcher or HttpHeaderFetcher().fetch
+    findings: list[Finding] = []
+    for target in targets:
+        findings.extend(audit_http_headers(http_fetcher(target)))
+
+    return store.add_findings(mission_id, findings)
 
 
 def format_cli_error(error: Exception) -> str:
@@ -425,6 +468,29 @@ try:
         )
         typer.echo(f"Executed {len(results)} Nmap command(s); stored {len(findings)} finding(s).")
 
+    @scan_app.command("http-plan")
+    def scan_http_plan(
+        mission_id: str = typer.Option(..., "--mission-id"),
+        data_dir: Path = typer.Option(Path("data"), "--data-dir"),
+    ) -> None:
+        """Print approved URL targets for HTTP header audit without making requests."""
+        for target in plan_http_headers_audit(mission_id=mission_id, data_dir=data_dir):
+            typer.echo(target)
+
+    @scan_app.command("http-run")
+    def scan_http_run(
+        mission_id: str = typer.Option(..., "--mission-id"),
+        data_dir: Path = typer.Option(Path("data"), "--data-dir"),
+        execute: bool = typer.Option(False, "--execute", help="Required to make HTTP requests."),
+    ) -> None:
+        """Audit HTTP headers only when --execute is explicitly provided."""
+        findings = run_http_headers_audit(
+            mission_id=mission_id,
+            data_dir=data_dir,
+            execute=execute,
+        )
+        typer.echo(f"Stored {len(findings)} HTTP header finding(s).")
+
 except ModuleNotFoundError:
 
     def app(argv: list[str] | None = None) -> None:
@@ -521,6 +587,19 @@ except ModuleNotFoundError:
         nmap_run_parser.add_argument("--data-dir", type=Path, default=Path("data"))
         nmap_run_parser.add_argument("--output-dir", type=Path)
         nmap_run_parser.add_argument("--execute", action="store_true")
+        http_plan_parser = scan_subparsers.add_parser(
+            "http-plan",
+            help="Print approved URL targets for HTTP header audit without making requests.",
+        )
+        http_plan_parser.add_argument("--mission-id", required=True)
+        http_plan_parser.add_argument("--data-dir", type=Path, default=Path("data"))
+        http_run_parser = scan_subparsers.add_parser(
+            "http-run",
+            help="Audit HTTP headers only when --execute is explicitly provided.",
+        )
+        http_run_parser.add_argument("--mission-id", required=True)
+        http_run_parser.add_argument("--data-dir", type=Path, default=Path("data"))
+        http_run_parser.add_argument("--execute", action="store_true")
 
         report_parser = subparsers.add_parser("report", help="Generate reports.")
         report_subparsers = report_parser.add_subparsers(dest="report_command")
@@ -645,6 +724,20 @@ except ModuleNotFoundError:
                     execute=args.execute,
                 )
                 print(f"Executed {len(results)} Nmap command(s); stored {len(findings)} finding(s).")
+                return
+
+            if args.command == "scan" and args.scan_command == "http-plan":
+                for target in plan_http_headers_audit(mission_id=args.mission_id, data_dir=args.data_dir):
+                    print(target)
+                return
+
+            if args.command == "scan" and args.scan_command == "http-run":
+                findings = run_http_headers_audit(
+                    mission_id=args.mission_id,
+                    data_dir=args.data_dir,
+                    execute=args.execute,
+                )
+                print(f"Stored {len(findings)} HTTP header finding(s).")
                 return
 
             if args.command == "report" and args.report_command == "generate":

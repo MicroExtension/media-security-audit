@@ -7,7 +7,17 @@ from typing import Any
 
 from media_security_audit.reports import render_html
 from media_security_audit.storage import JsonStore
-from media_security_audit.web_ui import build_dashboard_view, build_mission_view, html_escape, severity_class
+from media_security_audit.web_auth import (
+    WebAuthSettings,
+    valid_credentials,
+    web_auth_settings_from_env,
+)
+from media_security_audit.web_ui import (
+    build_dashboard_view,
+    build_mission_view,
+    html_escape,
+    severity_class,
+)
 
 
 PACKAGE_DIR = Path(__file__).resolve().parent
@@ -36,10 +46,11 @@ def render_template(environment: Any, name: str, context: dict[str, Any]) -> str
     return environment.get_template(name).render(**context)
 
 
-def create_web_app(data_dir: Path = Path("data")):
+def create_web_app(data_dir: Path = Path("data"), auth_settings: WebAuthSettings | None = None):
     try:
-        from fastapi import FastAPI, HTTPException, Request
+        from fastapi import Depends, FastAPI, HTTPException, Request
         from fastapi.responses import HTMLResponse, RedirectResponse
+        from fastapi.security import HTTPBasic, HTTPBasicCredentials
         from fastapi.staticfiles import StaticFiles
     except ModuleNotFoundError as error:
         missing = error.name or "web dependency"
@@ -49,12 +60,27 @@ def create_web_app(data_dir: Path = Path("data")):
 
     store = JsonStore(data_dir)
     templates = template_environment()
+    settings = auth_settings or web_auth_settings_from_env()
     app = FastAPI(title="MEDIA Security Audit Platform")
+    security = HTTPBasic(auto_error=False)
+
+    def require_web_auth(credentials: HTTPBasicCredentials | None = Depends(security)) -> None:
+        username = credentials.username if credentials else None
+        password = credentials.password if credentials else None
+        if valid_credentials(settings, username, password):
+            return
+        raise HTTPException(
+            status_code=401,
+            detail="Authentication required",
+            headers={"WWW-Authenticate": f'Basic realm="{settings.realm}"'},
+        )
+
+    protected = [Depends(require_web_auth)]
 
     if STATIC_DIR.exists():
         app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
-    @app.get("/", response_class=HTMLResponse)
+    @app.get("/", response_class=HTMLResponse, dependencies=protected)
     def dashboard(request: Request) -> HTMLResponse:
         return HTMLResponse(
             render_template(
@@ -68,7 +94,7 @@ def create_web_app(data_dir: Path = Path("data")):
             )
         )
 
-    @app.get("/missions/{mission_id}", response_class=HTMLResponse)
+    @app.get("/missions/{mission_id}", response_class=HTMLResponse, dependencies=protected)
     def mission_detail(request: Request, mission_id: str) -> HTMLResponse:
         try:
             view = build_mission_view(store, mission_id)
@@ -87,7 +113,7 @@ def create_web_app(data_dir: Path = Path("data")):
             )
         )
 
-    @app.get("/missions/{mission_id}/report.html", response_class=HTMLResponse)
+    @app.get("/missions/{mission_id}/report.html", response_class=HTMLResponse, dependencies=protected)
     def mission_report(mission_id: str) -> HTMLResponse:
         try:
             mission = store.get_mission(mission_id)
@@ -100,7 +126,7 @@ def create_web_app(data_dir: Path = Path("data")):
     def healthz() -> dict[str, str]:
         return {"status": "ok"}
 
-    @app.get("/missions")
+    @app.get("/missions", dependencies=protected)
     def missions_redirect() -> RedirectResponse:
         return RedirectResponse(url="/")
 

@@ -55,6 +55,20 @@ Copy the environment template:
 cp .env.example .env
 ```
 
+Set a strong web password in `.env` before the first start:
+
+```bash
+python3 -c "import secrets; print(secrets.token_urlsafe(24))"
+```
+
+Edit `.env`:
+
+```text
+MEDIA_AUDIT_REQUIRE_AUTH=true
+MEDIA_AUDIT_WEB_USERNAME=admin
+MEDIA_AUDIT_WEB_PASSWORD=replace-with-the-generated-password
+```
+
 Create persistent folders and assign them to the default container user:
 
 ```bash
@@ -103,6 +117,29 @@ Open:
 ```text
 http://VM-IP:8080
 ```
+
+The browser will ask for the username and password configured in `.env`.
+
+## Web Authentication
+
+Docker deployments require HTTP Basic authentication by default:
+
+```text
+MEDIA_AUDIT_REQUIRE_AUTH=true
+MEDIA_AUDIT_WEB_USERNAME=admin
+MEDIA_AUDIT_WEB_PASSWORD=strong-random-password
+```
+
+The application refuses to start if authentication is enabled and the password
+is missing, too short, or left as a common placeholder.
+
+For a localhost-only development workstation, authentication can be disabled:
+
+```text
+MEDIA_AUDIT_REQUIRE_AUTH=false
+```
+
+Do not disable authentication when binding the UI to a LAN interface.
 
 ## Persistent Folders
 
@@ -209,7 +246,7 @@ tar -czf media-audit-backup.tgz data runs reports evidence
 ## Current Limitations
 
 - The web UI is read-only.
-- Authentication is not implemented yet.
+- Full user management is not implemented yet.
 - Docker image signing is not implemented yet.
 - Offline update packaging is not implemented yet.
 - OVA and VHDX packaging are future targets.

@@ -17,6 +17,10 @@ services:
       - "8080"
     ports:
       - "${MEDIA_AUDIT_BIND:-127.0.0.1}:${MEDIA_AUDIT_PORT:-8080}:8080"
+    environment:
+      MEDIA_AUDIT_REQUIRE_AUTH: "${MEDIA_AUDIT_REQUIRE_AUTH:-true}"
+      MEDIA_AUDIT_WEB_USERNAME: "${MEDIA_AUDIT_WEB_USERNAME:-admin}"
+      MEDIA_AUDIT_WEB_PASSWORD: "${MEDIA_AUDIT_WEB_PASSWORD:?Set MEDIA_AUDIT_WEB_PASSWORD in .env before starting}"
     volumes:
       - ./data:/var/lib/media-audit/data
       - ./runs:/var/lib/media-audit/runs

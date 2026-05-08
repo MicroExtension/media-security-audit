@@ -7,7 +7,7 @@
     <h1>{{ view.mission.name }}</h1>
   </div>
   <div class="actions">
-    <a class="button" href="/missions/{{ view.mission.id }}/report.html">HTML Report</a>
+    <a class="button secondary-button" href="/missions/{{ view.mission.id }}/report.html">Live HTML</a>
   </div>
 </section>
 
@@ -22,6 +22,26 @@
   <div class="metric"><span>Findings</span><strong>{{ view.mission.finding_count }}</strong></div>
   <div class="metric"><span>Approved scope</span><strong>{{ view.mission.approved_scope_count }}</strong></div>
   <div class="metric"><span>Authorization</span><strong>{{ "yes" if view.mission.authorization_present else "no" }}</strong></div>
+</section>
+
+<section class="section">
+  <div class="section-title">
+    <h2>Reports</h2>
+  </div>
+  <div class="report-panel">
+    <form method="post" action="/missions/{{ view.mission.id }}/reports">
+      <input type="hidden" name="_csrf" value="{{ form_token }}">
+      <button class="button" type="submit">Generate Reports</button>
+    </form>
+    <div class="report-links">
+      {% for report in view.reports %}
+      <a href="/missions/{{ view.mission.id }}/reports/{{ report.format }}">{{ report.format }}</a>
+      <span class="muted">{{ report.filename }} | {{ report.size_bytes }} bytes</span>
+      {% else %}
+      <span class="empty">No generated report file yet.</span>
+      {% endfor %}
+    </div>
+  </div>
 </section>
 
 <section class="section two-column">

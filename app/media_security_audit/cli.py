@@ -51,10 +51,15 @@ def generate_sample_reports(output: Path) -> None:
         write_report(mission, findings, output, report_format)
 
 
-def run_web_interface(data_dir: Path, host: str = "127.0.0.1", port: int = 8080) -> None:
+def run_web_interface(
+    data_dir: Path,
+    reports_dir: Path,
+    host: str = "127.0.0.1",
+    port: int = 8080,
+) -> None:
     from media_security_audit.web import run_web_server
 
-    run_web_server(data_dir=data_dir, host=host, port=port)
+    run_web_server(data_dir=data_dir, reports_dir=reports_dir, host=host, port=port)
 
 
 def create_client(name: str, data_dir: Path, reference: str | None = None, notes: str | None = None) -> Client:
@@ -357,12 +362,13 @@ try:
     @app.command("web")
     def web(
         data_dir: Path = typer.Option(Path("data"), "--data-dir"),
+        reports_dir: Path = typer.Option(Path("reports"), "--reports-dir"),
         host: str = typer.Option("127.0.0.1", "--host"),
         port: int = typer.Option(8080, "--port"),
     ) -> None:
-        """Start the local read-only web interface."""
+        """Start the local web interface."""
         try:
-            run_web_interface(data_dir=data_dir, host=host, port=port)
+            run_web_interface(data_dir=data_dir, reports_dir=reports_dir, host=host, port=port)
         except RuntimeError as error:
             typer.echo(f"error: {error}", err=True)
             raise typer.Exit(code=2) from error
@@ -603,9 +609,10 @@ except ModuleNotFoundError:
 
         web_parser = subparsers.add_parser(
             "web",
-            help="Start the local read-only web interface.",
+            help="Start the local web interface.",
         )
         web_parser.add_argument("--data-dir", type=Path, default=Path("data"))
+        web_parser.add_argument("--reports-dir", type=Path, default=Path("reports"))
         web_parser.add_argument("--host", default="127.0.0.1")
         web_parser.add_argument("--port", type=int, default=8080)
 
@@ -740,7 +747,12 @@ except ModuleNotFoundError:
                 return
 
             if args.command == "web":
-                run_web_interface(data_dir=args.data_dir, host=args.host, port=args.port)
+                run_web_interface(
+                    data_dir=args.data_dir,
+                    reports_dir=args.reports_dir,
+                    host=args.host,
+                    port=args.port,
+                )
                 return
 
             if args.command == "client" and args.client_command == "create":

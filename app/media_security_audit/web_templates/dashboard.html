@@ -15,6 +15,73 @@
   <div class="metric"><span>High/Critical</span><strong>{{ view.high_or_critical_findings }}</strong></div>
 </section>
 
+<section class="section form-layout">
+  <form class="form-panel" method="post" action="/clients">
+    <input type="hidden" name="_csrf" value="{{ form_token }}">
+    <div class="section-title">
+      <h2>New Client</h2>
+    </div>
+    <div class="field-grid">
+      <label>
+        <span>Name</span>
+        <input name="name" required>
+      </label>
+      <label>
+        <span>Reference</span>
+        <input name="reference">
+      </label>
+      <label class="span-2">
+        <span>Notes</span>
+        <textarea name="notes" rows="3"></textarea>
+      </label>
+    </div>
+    <div class="form-actions">
+      <button class="button" type="submit">Create Client</button>
+    </div>
+  </form>
+
+  <form class="form-panel" method="post" action="/missions">
+    <input type="hidden" name="_csrf" value="{{ form_token }}">
+    <div class="section-title">
+      <h2>New Mission</h2>
+    </div>
+    <div class="field-grid">
+      <label>
+        <span>Client</span>
+        <select name="client_id" required>
+          <option value=""></option>
+          {% for client in view.clients %}
+          <option value="{{ client.id }}">{{ client.name }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>
+        <span>Audit Type</span>
+        <select name="audit_type" required>
+          {% for audit_type in audit_types %}
+          <option value="{{ audit_type }}">{{ audit_type }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label class="span-2">
+        <span>Name</span>
+        <input name="name" required>
+      </label>
+      <label class="span-2">
+        <span>Authorization Reference</span>
+        <input name="authorization_reference">
+      </label>
+      <label class="span-2">
+        <span>Notes</span>
+        <textarea name="notes" rows="3"></textarea>
+      </label>
+    </div>
+    <div class="form-actions">
+      <button class="button" type="submit">Create Mission</button>
+    </div>
+  </form>
+</section>
+
 <section class="section">
   <div class="section-title">
     <h2>Missions</h2>

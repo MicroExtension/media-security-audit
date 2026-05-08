@@ -27,9 +27,10 @@ Implemented so far:
 - richer reports with executive summary, risk score, scope summary, and remediation plan
 - first local read-only web interface for dashboard and mission review
 - Docker Compose deployment foundation for local Debian/Ubuntu VMs
+- first web workflow forms for clients, missions, and scope
 
 The first implementation target remains a CLI-driven V1 with a local read-only
-web interface:
+web interface that can set up the mission workflow:
 
 ```powershell
 media-audit init --client "Client X"
@@ -124,6 +125,9 @@ http://127.0.0.1:8080
 The current web interface is read-only. Scan execution remains in guarded CLI
 commands while the browser workflow is being designed.
 
+The web interface can create clients, missions, and scope items. Scanner
+execution remains in guarded CLI commands only.
+
 ## Deployment
 
 Recommended hosting model:
@@ -205,8 +209,8 @@ The graphical interface will be a local web UI served by the appliance.
 Planned screens:
 - dashboard started
 - clients started
-- mission creation wizard
-- scope management
+- mission creation started
+- scope management started
 - check selection
 - run monitor
 - findings review started

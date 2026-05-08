@@ -287,6 +287,12 @@ Codex action:
 - keep CLI and GUI on the same domain engine
 - prevent scans without approved scope
 
+Current GUI status:
+- dashboard can show clients and missions
+- mission pages can show scope, findings, remediation plan, and reports
+- web forms can create clients, missions, and scope items
+- scan execution remains CLI-only
+
 ## Step 7 - Add Safe Scanner Modules
 
 Status: after V1 foundation.

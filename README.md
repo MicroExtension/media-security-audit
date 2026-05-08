@@ -151,6 +151,10 @@ http://127.0.0.1:8080
 For LAN access from another workstation, set `MEDIA_AUDIT_BIND=0.0.0.0` in
 `.env` and restrict access with the VM firewall or VPN.
 
+Docker deployments require `MEDIA_AUDIT_WEB_PASSWORD` in `.env` before startup.
+Use a generated password and keep `MEDIA_AUDIT_REQUIRE_AUTH=true` for customer
+VMs.
+
 Detailed instructions are in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 ## Repository Map
@@ -228,6 +232,7 @@ The deployment target is a local VM appliance:
 - Written authorization required.
 - Scope required before any scan.
 - Web UI is local by default.
+- Docker Web UI requires authentication by default.
 - No destructive tests.
 - No brute force.
 - No exploitation automation.

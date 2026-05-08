@@ -250,6 +250,9 @@ Default deployment is local-only on `127.0.0.1:8080`. LAN access requires
 setting `MEDIA_AUDIT_BIND=0.0.0.0` in `.env` and restricting access with a
 firewall or VPN.
 
+Docker deployments now also require `MEDIA_AUDIT_WEB_PASSWORD` in `.env`.
+Keep `MEDIA_AUDIT_REQUIRE_AUTH=true` for customer VMs.
+
 ## Step 6 - Build The GUI
 
 Status: started.

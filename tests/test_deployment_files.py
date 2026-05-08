@@ -34,7 +34,18 @@ class DeploymentFileTests(unittest.TestCase):
         self.assertIn("MEDIA_AUDIT_PORT=8080", env_example)
         self.assertIn("MEDIA_AUDIT_UID=10001", env_example)
         self.assertIn("MEDIA_AUDIT_GID=10001", env_example)
+        self.assertIn("MEDIA_AUDIT_REQUIRE_AUTH=true", env_example)
+        self.assertIn("MEDIA_AUDIT_WEB_USERNAME=admin", env_example)
+        self.assertIn("MEDIA_AUDIT_WEB_PASSWORD=", env_example)
         self.assertIn("MEDIA_AUDIT_BIND=0.0.0.0", env_example)
+
+    def test_compose_requires_web_password_before_starting(self) -> None:
+        compose = (ROOT / "docker-compose.yml").read_text(encoding="utf-8")
+
+        self.assertIn("MEDIA_AUDIT_REQUIRE_AUTH", compose)
+        self.assertIn("MEDIA_AUDIT_WEB_USERNAME", compose)
+        self.assertIn("MEDIA_AUDIT_WEB_PASSWORD", compose)
+        self.assertIn("Set MEDIA_AUDIT_WEB_PASSWORD in .env before starting", compose)
 
 
 if __name__ == "__main__":

@@ -26,6 +26,7 @@ Implemented so far:
 - unit tests using safe fixture data only
 - richer reports with executive summary, risk score, scope summary, and remediation plan
 - first local read-only web interface for dashboard and mission review
+- Docker Compose deployment foundation for local Debian/Ubuntu VMs
 
 The first implementation target remains a CLI-driven V1 with a local read-only
 web interface:
@@ -123,6 +124,35 @@ http://127.0.0.1:8080
 The current web interface is read-only. Scan execution remains in guarded CLI
 commands while the browser workflow is being designed.
 
+## Deployment
+
+Recommended hosting model:
+
+```text
+Private GitHub repository -> local customer VM -> Docker Compose -> local web UI
+```
+
+Do not host the application as a public SaaS service for V1. Deploy it on a
+local Debian/Ubuntu VM in the customer or audit environment.
+
+Local Docker launch:
+
+```bash
+cp .env.example .env
+docker compose up -d --build
+```
+
+Default URL:
+
+```text
+http://127.0.0.1:8080
+```
+
+For LAN access from another workstation, set `MEDIA_AUDIT_BIND=0.0.0.0` in
+`.env` and restrict access with the VM firewall or VPN.
+
+Detailed instructions are in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+
 ## Repository Map
 
 ```text
@@ -132,6 +162,8 @@ media-security-audit/
 ├── PRODUCT_SPEC.md
 ├── ROADMAP.md
 ├── ARCHITECTURE.md
+├── Dockerfile
+├── docker-compose.yml
 ├── pyproject.toml
 ├── app/
 ├── docs/
@@ -183,7 +215,7 @@ without an approved mission scope.
 
 ## V3 Appliance Deployment
 
-The final deployment target is a local VM appliance:
+The deployment target is a local VM appliance:
 - Debian or Ubuntu Server
 - Docker Compose
 - local web UI on port 8080
@@ -195,6 +227,7 @@ The final deployment target is a local VM appliance:
 
 - Written authorization required.
 - Scope required before any scan.
+- Web UI is local by default.
 - No destructive tests.
 - No brute force.
 - No exploitation automation.

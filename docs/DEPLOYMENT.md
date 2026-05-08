@@ -1,135 +1,215 @@
-# Deployment Strategy
+# Deployment Guide
 
-## Deployment Goal
+MEDIA Security Audit Platform is deployed as a local appliance, not as a public
+SaaS service.
 
-The final product should be deployable as a local audit appliance in customer
-environments.
+Recommended first target:
 
-The technician should be able to import a VM, open a browser, create a mission,
-run authorized checks, and export reports.
+- private GitHub repository for source control
+- Debian 12 or Ubuntu Server LTS VM for customer deployments
+- Docker Compose for runtime packaging
+- local web UI on port `8080`
+- persistent local folders for data, evidence, runs, and reports
 
-## V1 Local Development
+## Hosting Model
 
-Developer workflow:
-- Python virtual environment
-- CLI execution
-- pytest
-- local report outputs
+Use GitHub only to host the private source repository.
 
-No VM packaging is required in V1.
-
-## V2 Local Web App
-
-Recommended services:
-- app: FastAPI + UI
-- worker: scanner execution worker later
-- database: SQLite volume
-- reports volume
-- evidence volume
-
-Initial ports:
-- web UI: 8080
-
-## V3 Appliance Layout
-
-Target filesystem layout:
+Deploy the application on a local VM for each customer or audit environment:
 
 ```text
-/opt/media-audit/
-├── app/
-├── config/
-├── data/
-├── evidence/
-├── reports/
-├── logs/
-├── scripts/
-└── docker-compose.yml
+GitHub private repo -> local VM -> Docker Compose -> local web UI
 ```
 
-## VM Targets
+Do not expose the UI directly to the public internet. If remote access is
+required, use VPN, bastion access, or another controlled administration path.
 
-Supported targets:
-- Debian 12
-- Ubuntu Server LTS
+## VM Baseline
 
-Hypervisors:
-- VMware via OVA
-- Hyper-V via VHDX
+Recommended minimum VM:
 
-## Network Modes
+- Debian 12 or Ubuntu Server LTS
+- 2 vCPU
+- 4 GB RAM
+- 30 GB disk
+- static IP or DHCP reservation
+- outbound internet access for first install and updates
 
-Internal audit:
-- VM connected to customer internal network
-- static IP or DHCP
-- browser access from technician workstation
+Recommended production access:
 
-External audit:
-- run from MSP infrastructure or controlled external location
-- customer-approved public assets only
+- bind UI to `127.0.0.1` for local-only use, or
+- bind UI to `0.0.0.0` only behind a host firewall or VPN
 
-## Access Model
+## First Install
 
-V2 simple mode:
-- local admin account
-- password configured during first setup
+Clone the private repository on the VM:
 
-Later:
-- role-based access
-- technician accounts
-- read-only report viewer
+```bash
+git clone https://github.com/MicroExtension/media-security-audit.git
+cd media-security-audit
+```
 
-## Update Strategy
+Copy the environment template:
 
-V1:
-- manual code update
+```bash
+cp .env.example .env
+```
 
-V2:
-- Docker image rebuild
+Create persistent folders and assign them to the default container user:
 
-V3:
-- signed update package
-- backup before update
-- rollback notes
+```bash
+mkdir -p data runs reports evidence
+sudo chown -R 10001:10001 data runs reports evidence
+```
 
-## Backup Strategy
+Alternative for a technician-owned lab VM: set `MEDIA_AUDIT_UID` and
+`MEDIA_AUDIT_GID` in `.env` to the output of `id -u` and `id -g`, then keep the
+folders owned by that technician account.
 
-Back up:
-- database
-- reports
-- evidence
-- configuration
+Build and start the service:
 
-Do not back up:
-- temporary scanner output
-- cache directories
+```bash
+docker compose up -d --build
+```
 
-## Customer Data Handling
+Check service status:
 
-By default:
-- data stays local to the appliance
-- reports are exported manually
-- no cloud sync
-- no telemetry
+```bash
+docker compose ps
+docker compose logs -f media-audit
+```
 
-Any future cloud sync must be explicit and documented.
+Default local URL:
 
-## First Setup Wizard
+```text
+http://127.0.0.1:8080
+```
 
-The appliance should ask for:
-- organization name
-- admin password
-- default report footer
-- timezone
-- storage path confirmation
-- external tool availability check
+For access from another workstation on the customer LAN, edit `.env`:
 
-## External Tool Check
+```text
+MEDIA_AUDIT_BIND=0.0.0.0
+MEDIA_AUDIT_PORT=8080
+```
 
-The UI should show whether these tools are available:
-- nmap
-- testssl.sh
-- smbclient or enum4linux-ng
-- Python DNS libraries
+Then restart:
 
-Unavailable tools should disable only the related checks.
+```bash
+docker compose up -d
+```
 
+Open:
+
+```text
+http://VM-IP:8080
+```
+
+## Persistent Folders
+
+Docker Compose mounts these host folders:
+
+```text
+data/      application JSON store
+runs/      scan run outputs
+reports/   exported reports
+evidence/  scanner evidence files
+```
+
+These folders are intentionally ignored by Git.
+
+## CLI Commands In Docker
+
+Use `docker compose run --rm` for one-off CLI operations.
+
+Create a client:
+
+```bash
+docker compose run --rm media-audit \
+  media-audit client create \
+  --data-dir /var/lib/media-audit/data \
+  --name "Client X" \
+  --reference "CLIENT-001"
+```
+
+Create an authorized mission:
+
+```bash
+docker compose run --rm media-audit \
+  media-audit mission create \
+  --data-dir /var/lib/media-audit/data \
+  --client-id "client_xxxxx" \
+  --name "Audit externe" \
+  --audit-type external \
+  --authorization-reference "AUTH-001"
+```
+
+Add approved scope:
+
+```bash
+docker compose run --rm media-audit \
+  media-audit scope add \
+  --data-dir /var/lib/media-audit/data \
+  --mission-id "mission_xxxxx" \
+  --type domain \
+  --value client.example \
+  --environment external \
+  --approved
+```
+
+Generate reports:
+
+```bash
+docker compose run --rm media-audit \
+  media-audit report generate \
+  --data-dir /var/lib/media-audit/data \
+  --mission-id "mission_xxxxx" \
+  --output /var/lib/media-audit/reports
+```
+
+## Safe Scanner Execution
+
+Scanner execution remains guarded by the application.
+
+Nmap planning does not execute scans:
+
+```bash
+docker compose run --rm media-audit \
+  media-audit scan nmap-plan \
+  --data-dir /var/lib/media-audit/data \
+  --mission-id "mission_xxxxx" \
+  --output-dir /var/lib/media-audit/evidence
+```
+
+Nmap execution requires `--execute`, mission authorization, and approved scope:
+
+```bash
+docker compose run --rm media-audit \
+  media-audit scan nmap-run \
+  --data-dir /var/lib/media-audit/data \
+  --mission-id "mission_xxxxx" \
+  --output-dir /var/lib/media-audit/evidence \
+  --execute
+```
+
+## Updates
+
+Pull the latest approved version and rebuild:
+
+```bash
+git pull --ff-only
+docker compose up -d --build
+```
+
+Back up persistent folders before customer-impacting updates:
+
+```bash
+tar -czf media-audit-backup.tgz data runs reports evidence
+```
+
+## Current Limitations
+
+- The web UI is read-only.
+- Authentication is not implemented yet.
+- Docker image signing is not implemented yet.
+- Offline update packaging is not implemented yet.
+- OVA and VHDX packaging are future targets.

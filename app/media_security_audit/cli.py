@@ -5,6 +5,8 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
+from pydantic import ValidationError
+
 from media_security_audit import __version__
 from media_security_audit.models import (
     AuditType,
@@ -79,6 +81,34 @@ def add_scope(
     )
 
 
+def list_scope(mission_id: str, data_dir: Path) -> list[ScopeItem]:
+    store = JsonStore(data_dir)
+    return store.get_mission(mission_id).scope
+
+
+def show_mission(mission_id: str, data_dir: Path) -> str:
+    store = JsonStore(data_dir)
+    mission = store.get_mission(mission_id)
+    findings = store.list_findings(mission_id)
+    approved_scope = [item for item in mission.scope if item.approved and not item.excluded]
+    excluded_scope = [item for item in mission.scope if item.excluded]
+
+    return "\n".join(
+        [
+            f"Mission: {mission.name}",
+            f"ID: {mission.id}",
+            f"Client ID: {mission.client_id}",
+            f"Audit type: {mission.audit_type.value}",
+            f"Status: {mission.status.value}",
+            f"Authorization: {mission.authorization_reference or 'missing'}",
+            f"Scope items: {len(mission.scope)}",
+            f"Approved scope: {len(approved_scope)}",
+            f"Excluded scope: {len(excluded_scope)}",
+            f"Findings: {len(findings)}",
+        ]
+    )
+
+
 def generate_mission_reports(mission_id: str, data_dir: Path, output: Path | None = None) -> list[Path]:
     store = JsonStore(data_dir)
     mission = store.get_mission(mission_id)
@@ -126,6 +156,13 @@ def add_finding(
 def add_sample_findings(mission_id: str, data_dir: Path) -> list[Finding]:
     store = JsonStore(data_dir)
     return store.add_findings(mission_id, sample_findings())
+
+
+def format_cli_error(error: Exception) -> str:
+    if isinstance(error, ValidationError):
+        messages = [item["msg"] for item in error.errors()]
+        return "validation failed: " + "; ".join(messages)
+    return str(error)
 
 
 try:
@@ -198,6 +235,13 @@ try:
         for mission in JsonStore(data_dir).list_missions():
             typer.echo(f"{mission.id}\t{mission.client_id}\t{mission.status.value}\t{mission.name}")
 
+    @mission_app.command("show")
+    def mission_show(
+        mission_id: str = typer.Option(..., "--mission-id"),
+        data_dir: Path = typer.Option(Path("data"), "--data-dir"),
+    ) -> None:
+        typer.echo(show_mission(mission_id=mission_id, data_dir=data_dir))
+
     @scope_app.command("add")
     def scope_add(
         mission_id: str = typer.Option(..., "--mission-id"),
@@ -220,6 +264,15 @@ try:
             data_dir=data_dir,
         )
         typer.echo(f"{mission.id}\t{mission.status.value}\t{len(mission.scope)} scope item(s)")
+
+    @scope_app.command("list")
+    def scope_list(
+        mission_id: str = typer.Option(..., "--mission-id"),
+        data_dir: Path = typer.Option(Path("data"), "--data-dir"),
+    ) -> None:
+        for item in list_scope(mission_id=mission_id, data_dir=data_dir):
+            status = "excluded" if item.excluded else "approved" if item.approved else "draft"
+            typer.echo(f"{item.id}\t{item.type.value}\t{status}\t{item.environment.value}\t{item.value}")
 
     @finding_app.command("add")
     def finding_add(
@@ -315,6 +368,9 @@ except ModuleNotFoundError:
         mission_create_parser.add_argument("--data-dir", type=Path, default=Path("data"))
         mission_list_parser = mission_subparsers.add_parser("list", help="List missions.")
         mission_list_parser.add_argument("--data-dir", type=Path, default=Path("data"))
+        mission_show_parser = mission_subparsers.add_parser("show", help="Show mission details.")
+        mission_show_parser.add_argument("--mission-id", required=True)
+        mission_show_parser.add_argument("--data-dir", type=Path, default=Path("data"))
 
         scope_parser = subparsers.add_parser("scope", help="Manage mission scope.")
         scope_subparsers = scope_parser.add_subparsers(dest="scope_command")
@@ -327,6 +383,9 @@ except ModuleNotFoundError:
         scope_add_parser.add_argument("--excluded", action="store_true")
         scope_add_parser.add_argument("--notes")
         scope_add_parser.add_argument("--data-dir", type=Path, default=Path("data"))
+        scope_list_parser = scope_subparsers.add_parser("list", help="List mission scope.")
+        scope_list_parser.add_argument("--mission-id", required=True)
+        scope_list_parser.add_argument("--data-dir", type=Path, default=Path("data"))
 
         finding_parser = subparsers.add_parser("finding", help="Manage findings.")
         finding_subparsers = finding_parser.add_subparsers(dest="finding_command")
@@ -362,100 +421,113 @@ except ModuleNotFoundError:
 
         args = parser.parse_args(argv)
 
-        if args.version:
-            print(__version__)
-            return
+        try:
+            if args.version:
+                print(__version__)
+                return
 
-        if args.command == "sample-report":
-            generate_sample_reports(args.output)
-            print(f"Sample reports written to {args.output}")
-            return
+            if args.command == "sample-report":
+                generate_sample_reports(args.output)
+                print(f"Sample reports written to {args.output}")
+                return
 
-        if args.command == "client" and args.client_command == "create":
-            client = create_client(
-                name=args.name,
-                reference=args.reference,
-                notes=args.notes,
-                data_dir=args.data_dir,
-            )
-            print(client.id)
-            return
-
-        if args.command == "client" and args.client_command == "list":
-            for client in JsonStore(args.data_dir).list_clients():
-                print(f"{client.id}\t{client.name}")
-            return
-
-        if args.command == "mission" and args.mission_command == "create":
-            mission = create_mission(
-                client_id=args.client_id,
-                name=args.name,
-                audit_type=AuditType(args.audit_type),
-                authorization_reference=args.authorization_reference,
-                notes=args.notes,
-                data_dir=args.data_dir,
-            )
-            print(f"{mission.id}\t{mission.status.value}")
-            return
-
-        if args.command == "mission" and args.mission_command == "list":
-            for mission in JsonStore(args.data_dir).list_missions():
-                print(f"{mission.id}\t{mission.client_id}\t{mission.status.value}\t{mission.name}")
-            return
-
-        if args.command == "scope" and args.scope_command == "add":
-            mission = add_scope(
-                mission_id=args.mission_id,
-                scope_type=ScopeType(args.type),
-                value=args.value,
-                environment=ScopeEnvironment(args.environment),
-                approved=args.approved,
-                excluded=args.excluded,
-                notes=args.notes,
-                data_dir=args.data_dir,
-            )
-            print(f"{mission.id}\t{mission.status.value}\t{len(mission.scope)} scope item(s)")
-            return
-
-        if args.command == "finding" and args.finding_command == "add":
-            finding = add_finding(
-                mission_id=args.mission_id,
-                title=args.title,
-                severity=Severity(args.severity),
-                affected_asset=args.asset,
-                category=args.category,
-                proof=args.proof,
-                risk=args.risk,
-                remediation=args.remediation,
-                counter_test=args.counter_test,
-                source_module=args.source_module,
-                confidence=args.confidence,
-                data_dir=args.data_dir,
-            )
-            print(f"{finding.id}\t{finding.severity.value}\t{finding.title}")
-            return
-
-        if args.command == "finding" and args.finding_command == "add-sample":
-            findings = add_sample_findings(mission_id=args.mission_id, data_dir=args.data_dir)
-            print(f"{len(findings)} finding(s) stored")
-            return
-
-        if args.command == "finding" and args.finding_command == "list":
-            for finding in JsonStore(args.data_dir).list_findings(args.mission_id):
-                print(
-                    f"{finding.id}\t{finding.severity.value}\t"
-                    f"{finding.status.value}\t{finding.affected_asset}\t{finding.title}"
+            if args.command == "client" and args.client_command == "create":
+                client = create_client(
+                    name=args.name,
+                    reference=args.reference,
+                    notes=args.notes,
+                    data_dir=args.data_dir,
                 )
-            return
+                print(client.id)
+                return
 
-        if args.command == "report" and args.report_command == "generate":
-            for path in generate_mission_reports(
-                mission_id=args.mission_id,
-                data_dir=args.data_dir,
-                output=args.output,
-            ):
-                print(path)
-            return
+            if args.command == "client" and args.client_command == "list":
+                for client in JsonStore(args.data_dir).list_clients():
+                    print(f"{client.id}\t{client.name}")
+                return
+
+            if args.command == "mission" and args.mission_command == "create":
+                mission = create_mission(
+                    client_id=args.client_id,
+                    name=args.name,
+                    audit_type=AuditType(args.audit_type),
+                    authorization_reference=args.authorization_reference,
+                    notes=args.notes,
+                    data_dir=args.data_dir,
+                )
+                print(f"{mission.id}\t{mission.status.value}")
+                return
+
+            if args.command == "mission" and args.mission_command == "list":
+                for mission in JsonStore(args.data_dir).list_missions():
+                    print(f"{mission.id}\t{mission.client_id}\t{mission.status.value}\t{mission.name}")
+                return
+
+            if args.command == "mission" and args.mission_command == "show":
+                print(show_mission(mission_id=args.mission_id, data_dir=args.data_dir))
+                return
+
+            if args.command == "scope" and args.scope_command == "add":
+                mission = add_scope(
+                    mission_id=args.mission_id,
+                    scope_type=ScopeType(args.type),
+                    value=args.value,
+                    environment=ScopeEnvironment(args.environment),
+                    approved=args.approved,
+                    excluded=args.excluded,
+                    notes=args.notes,
+                    data_dir=args.data_dir,
+                )
+                print(f"{mission.id}\t{mission.status.value}\t{len(mission.scope)} scope item(s)")
+                return
+
+            if args.command == "scope" and args.scope_command == "list":
+                for item in list_scope(mission_id=args.mission_id, data_dir=args.data_dir):
+                    status = "excluded" if item.excluded else "approved" if item.approved else "draft"
+                    print(f"{item.id}\t{item.type.value}\t{status}\t{item.environment.value}\t{item.value}")
+                return
+
+            if args.command == "finding" and args.finding_command == "add":
+                finding = add_finding(
+                    mission_id=args.mission_id,
+                    title=args.title,
+                    severity=Severity(args.severity),
+                    affected_asset=args.asset,
+                    category=args.category,
+                    proof=args.proof,
+                    risk=args.risk,
+                    remediation=args.remediation,
+                    counter_test=args.counter_test,
+                    source_module=args.source_module,
+                    confidence=args.confidence,
+                    data_dir=args.data_dir,
+                )
+                print(f"{finding.id}\t{finding.severity.value}\t{finding.title}")
+                return
+
+            if args.command == "finding" and args.finding_command == "add-sample":
+                findings = add_sample_findings(mission_id=args.mission_id, data_dir=args.data_dir)
+                print(f"{len(findings)} finding(s) stored")
+                return
+
+            if args.command == "finding" and args.finding_command == "list":
+                for finding in JsonStore(args.data_dir).list_findings(args.mission_id):
+                    print(
+                        f"{finding.id}\t{finding.severity.value}\t"
+                        f"{finding.status.value}\t{finding.affected_asset}\t{finding.title}"
+                    )
+                return
+
+            if args.command == "report" and args.report_command == "generate":
+                for path in generate_mission_reports(
+                    mission_id=args.mission_id,
+                    data_dir=args.data_dir,
+                    output=args.output,
+                ):
+                    print(path)
+                return
+        except (FileNotFoundError, ValueError, ValidationError) as error:
+            parser.exit(2, f"error: {format_cli_error(error)}\n")
 
         parser.print_help()
 

@@ -44,7 +44,11 @@ class JsonStore:
         return self._list_models(self.clients_dir, Client)
 
     def get_client(self, client_id: str) -> Client:
-        return self._read_model(self.clients_dir / f"{client_id}.json", Client)
+        return self._read_model(
+            self.clients_dir / f"{client_id}.json",
+            Client,
+            missing_message=f"client not found: {client_id}",
+        )
 
     def create_mission(self, mission: Mission) -> Mission:
         self.ensure()
@@ -58,7 +62,11 @@ class JsonStore:
         return self._list_models(self.missions_dir, Mission)
 
     def get_mission(self, mission_id: str) -> Mission:
-        return self._read_model(self.missions_dir / f"{mission_id}.json", Mission)
+        return self._read_model(
+            self.missions_dir / f"{mission_id}.json",
+            Mission,
+            missing_message=f"mission not found: {mission_id}",
+        )
 
     def save_mission(self, mission: Mission) -> Mission:
         self.ensure()
@@ -96,9 +104,14 @@ class JsonStore:
             encoding="utf-8",
         )
 
-    def _read_model(self, path: Path, model_type: type[ModelT]) -> ModelT:
+    def _read_model(
+        self,
+        path: Path,
+        model_type: type[ModelT],
+        missing_message: str | None = None,
+    ) -> ModelT:
         if not path.exists():
-            raise FileNotFoundError(f"not found: {path}")
+            raise FileNotFoundError(missing_message or f"not found: {path}")
         return model_type.model_validate_json(path.read_text(encoding="utf-8"))
 
     def _list_models(self, directory: Path, model_type: type[ModelT]) -> list[ModelT]:

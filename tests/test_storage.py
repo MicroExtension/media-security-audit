@@ -78,6 +78,15 @@ class JsonStoreTests(unittest.TestCase):
         self.assertIn("manual", findings[0].sources)
         self.assertIn("http_headers", findings[0].sources)
 
+    def test_missing_mission_error_names_the_id(self) -> None:
+        data_dir = Path(__file__).resolve().parents[1] / ".tmp-tests" / "storage-missing"
+        store = JsonStore(data_dir)
+
+        with self.assertRaises(FileNotFoundError) as error:
+            store.get_mission("missing")
+
+        self.assertIn("mission not found: missing", str(error.exception))
+
 
 if __name__ == "__main__":
     unittest.main()

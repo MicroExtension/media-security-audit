@@ -49,7 +49,13 @@ python -m media_security_audit.cli scope add `
   --environment external `
   --approved
 
+python -m media_security_audit.cli scope list `
+  --mission-id "mission_xxxxx"
+
 python -m media_security_audit.cli finding add-sample `
+  --mission-id "mission_xxxxx"
+
+python -m media_security_audit.cli mission show `
   --mission-id "mission_xxxxx"
 
 python -m media_security_audit.cli report generate `

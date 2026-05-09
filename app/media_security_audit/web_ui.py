@@ -1,4 +1,4 @@
-"""Read-only view models for the local web interface."""
+"""View models for the local web interface."""
 
 from __future__ import annotations
 
@@ -14,6 +14,12 @@ from media_security_audit.reports import (
     sorted_findings,
 )
 from media_security_audit.storage import JsonStore
+from media_security_audit.web_readiness import (
+    ReadinessItem,
+    ScanPlanPreview,
+    build_readiness_items,
+    build_scan_plan_previews,
+)
 from media_security_audit.web_reports import GeneratedReportLink, list_generated_reports
 
 
@@ -88,6 +94,8 @@ class MissionView:
     remediation_items: list[dict[str, str]]
     executive_summary: str
     reports: list[GeneratedReportLink]
+    readiness_items: list[ReadinessItem]
+    scan_plans: list[ScanPlanPreview]
 
 
 def format_datetime(value: datetime) -> str:
@@ -206,6 +214,7 @@ def build_mission_view(
     mission = store.get_mission(mission_id)
     findings = store.list_findings(mission_id)
     summary = build_report_summary(mission, findings)
+    reports = list_generated_reports(mission_id, reports_dir) if reports_dir else []
 
     return MissionView(
         mission=mission_row(mission, findings, client_name_by_id(store)),
@@ -213,7 +222,9 @@ def build_mission_view(
         findings=[finding_row(finding) for finding in sorted_findings(findings)],
         remediation_items=remediation_plan(findings),
         executive_summary=str(summary["executive_summary"]),
-        reports=list_generated_reports(mission_id, reports_dir) if reports_dir else [],
+        reports=reports,
+        readiness_items=build_readiness_items(mission, findings, len(reports)),
+        scan_plans=build_scan_plan_previews(mission),
     )
 
 

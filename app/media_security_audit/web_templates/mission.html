@@ -26,6 +26,46 @@
 
 <section class="section">
   <div class="section-title">
+    <h2>Mission Readiness</h2>
+  </div>
+  <div class="readiness-grid">
+    {% for item in view.readiness_items %}
+    <div class="readiness-item readiness-{{ item.status }}">
+      <span class="badge readiness-badge">{{ item.status }}</span>
+      <strong>{{ item.label }}</strong>
+      <p>{{ item.detail }}</p>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-title">
+    <h2>Scan Plan Preview</h2>
+    <span class="muted">CLI execution only</span>
+  </div>
+  <div class="plan-grid">
+    {% for plan in view.scan_plans %}
+    <article class="plan-card plan-{{ plan.status }}">
+      <div class="plan-head">
+        <h3>{{ plan.label }}</h3>
+        <span class="badge readiness-badge">{{ plan.status }}</span>
+      </div>
+      <p>{{ plan.detail }}</p>
+      {% if plan.commands %}
+      <ul class="plan-list">
+        {% for command in plan.commands %}
+        <li><code>{{ command }}</code></li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+    </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-title">
     <h2>Reports</h2>
   </div>
   <div class="report-panel">

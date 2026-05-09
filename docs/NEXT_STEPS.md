@@ -293,6 +293,7 @@ Current GUI status:
 - web forms can create clients, missions, and scope items
 - finding status can be reviewed from mission pages
 - reviewed reports can be generated from mission pages
+- mission readiness and safe scan plan previews are visible from mission pages
 - scan execution remains CLI-only
 
 ## Step 7 - Add Safe Scanner Modules

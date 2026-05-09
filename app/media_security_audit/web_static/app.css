@@ -391,6 +391,34 @@ textarea:focus {
   text-decoration: none;
 }
 
+.scope-list {
+  display: grid;
+  gap: 12px;
+}
+
+.scope-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 14px;
+}
+
+.scope-card-head,
+.scope-card-actions {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.scope-card-head {
+  margin-bottom: 12px;
+}
+
+.scope-card-actions {
+  margin-top: 12px;
+}
+
 .readiness-grid,
 .plan-grid {
   display: grid;
@@ -641,5 +669,10 @@ code {
 
   .report-links {
     justify-content: flex-start;
+  }
+
+  .scope-card-actions {
+    align-items: stretch;
+    flex-direction: column;
   }
 }

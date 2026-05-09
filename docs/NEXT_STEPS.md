@@ -292,6 +292,7 @@ Current GUI status:
 - mission pages can show scope, findings, remediation plan, and reports
 - web forms can create clients, missions, and scope items
 - mission setup details can be updated from mission pages
+- scope items can be reviewed, corrected, approved, or excluded from mission pages
 - finding status can be reviewed from mission pages
 - reviewed reports can be generated from mission pages
 - mission readiness and safe scan plan previews are visible from mission pages

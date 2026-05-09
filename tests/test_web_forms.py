@@ -17,6 +17,7 @@ from media_security_audit.web_forms import (  # noqa: E402
     parse_urlencoded_form,
     update_finding_status_from_form,
     update_mission_from_form,
+    update_scope_from_form,
     validate_form_token,
 )
 
@@ -117,6 +118,95 @@ class WebFormTests(unittest.TestCase):
                 {
                     "scope_type": "domain",
                     "value": "client.example",
+                    "approved": "on",
+                    "excluded": "on",
+                },
+            )
+
+    def test_update_scope_from_form_recomputes_status(self) -> None:
+        store = JsonStore(clean_data_dir("web-form-scope-update"))
+        client = create_client_from_form(store, {"name": "Client X"})
+        mission = create_mission_from_form(
+            store,
+            {
+                "client_id": client.id,
+                "name": "Audit externe",
+                "audit_type": "external",
+                "authorization_reference": "AUTH-001",
+            },
+        )
+        scoped = add_scope_from_form(
+            store,
+            mission.id,
+            {
+                "scope_type": "domain",
+                "value": "client.example",
+                "environment": "external",
+                "approved": "on",
+            },
+        )
+
+        updated = update_scope_from_form(
+            store,
+            mission.id,
+            scoped.scope[0].id,
+            {
+                "scope_type": "url",
+                "value": "https://client.example",
+                "environment": "external",
+                "excluded": "on",
+                "notes": " Out of scope ",
+            },
+        )
+
+        self.assertEqual(updated.scope[0].type, ScopeType.URL)
+        self.assertEqual(updated.scope[0].value, "https://client.example")
+        self.assertFalse(updated.scope[0].approved)
+        self.assertTrue(updated.scope[0].excluded)
+        self.assertEqual(updated.scope[0].notes, "Out of scope")
+        self.assertEqual(updated.status.value, "authorized")
+
+    def test_update_scope_from_form_rejects_invalid_state(self) -> None:
+        store = JsonStore(clean_data_dir("web-form-invalid-scope-update"))
+        client = create_client_from_form(store, {"name": "Client X"})
+        mission = create_mission_from_form(
+            store,
+            {
+                "client_id": client.id,
+                "name": "Audit externe",
+                "audit_type": "external",
+            },
+        )
+        scoped = add_scope_from_form(
+            store,
+            mission.id,
+            {
+                "scope_type": "ip",
+                "value": "192.0.2.10",
+                "approved": "on",
+            },
+        )
+
+        with self.assertRaises(ValueError):
+            update_scope_from_form(
+                store,
+                mission.id,
+                scoped.scope[0].id,
+                {
+                    "scope_type": "ip",
+                    "value": "not an ip",
+                    "approved": "on",
+                },
+            )
+
+        with self.assertRaises(ValueError):
+            update_scope_from_form(
+                store,
+                mission.id,
+                scoped.scope[0].id,
+                {
+                    "scope_type": "ip",
+                    "value": "192.0.2.10",
                     "approved": "on",
                     "excluded": "on",
                 },

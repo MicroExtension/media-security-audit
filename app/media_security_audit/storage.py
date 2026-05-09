@@ -81,6 +81,21 @@ class JsonStore:
         mission.scope.append(scope_item)
         return self.save_mission(mission)
 
+    def update_scope_item(self, mission_id: str, scope_item: ScopeItem) -> Mission:
+        mission = self.get_mission(mission_id)
+        updated_scope = []
+        found = False
+        for existing in mission.scope:
+            if existing.id == scope_item.id:
+                updated_scope.append(scope_item)
+                found = True
+            else:
+                updated_scope.append(existing)
+        if not found:
+            raise FileNotFoundError(f"scope item not found: {scope_item.id}")
+        updated = mission.model_copy(update={"scope": updated_scope})
+        return self.save_mission(updated)
+
     def add_finding(self, mission_id: str, finding: Finding) -> Finding:
         self.get_mission(mission_id)
 

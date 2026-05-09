@@ -120,6 +120,11 @@ http://VM-IP:8080
 
 The browser will ask for the username and password configured in `.env`.
 
+After login, open the System page from the top navigation to verify local
+storage, web authentication, and external tool availability. The status page
+only checks local paths and whether executables are present in `PATH`; it does
+not launch scanner commands or contact customer targets.
+
 ## Web Authentication
 
 Docker deployments require HTTP Basic authentication by default:

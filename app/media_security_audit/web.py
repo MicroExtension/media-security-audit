@@ -46,6 +46,7 @@ from media_security_audit.web_forms import (
     validate_form_token,
 )
 from media_security_audit.web_reports import generate_web_reports, generated_report_file
+from media_security_audit.web_system import build_system_status
 
 
 PACKAGE_DIR = Path(__file__).resolve().parent
@@ -160,6 +161,26 @@ def create_web_app(
                     "view": build_dashboard_view(store),
                     "audit_types": [item.value for item in AuditType],
                     "form_token": form_token,
+                    "message": message,
+                    "error": error,
+                },
+            )
+        )
+
+    @app.get("/system", response_class=HTMLResponse, dependencies=protected)
+    def system_status(
+        request: Request,
+        message: str | None = None,
+        error: str | None = None,
+    ) -> HTMLResponse:
+        return HTMLResponse(
+            render_template(
+                templates,
+                "system.html",
+                {
+                    "request": request,
+                    "data_dir": data_dir,
+                    "view": build_system_status(data_dir, reports_dir, settings),
                     "message": message,
                     "error": error,
                 },

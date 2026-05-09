@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}System Status | MEDIA Security Audit{% endblock %}
+{% block content %}
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">Appliance</p>
+    <h1>System Status</h1>
+  </div>
+</section>
+
+<section class="metrics" aria-label="System summary">
+  <div class="metric">
+    <span>Authentication</span>
+    <strong>{{ view.auth.status }}</strong>
+  </div>
+  <div class="metric">
+    <span>Storage paths</span>
+    <strong>{{ view.paths | length }}</strong>
+  </div>
+  <div class="metric">
+    <span>Tool checks</span>
+    <strong>{{ view.tools | length }}</strong>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-title">
+    <h2>Web Authentication</h2>
+  </div>
+  <div class="status-panel">
+    <span class="badge status-{{ view.auth.status }}">{{ view.auth.status }}</span>
+    <div>
+      <strong>{{ view.auth.username }} | {{ view.auth.realm }}</strong>
+      <p>{{ view.auth.detail }}</p>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-title">
+    <h2>Storage</h2>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Path</th>
+          <th>Status</th>
+          <th>Detail</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in view.paths %}
+        <tr>
+          <td>
+            <strong>{{ item.label }}</strong>
+            <code class="block">{{ item.path }}</code>
+          </td>
+          <td><span class="badge status-{{ item.status }}">{{ item.status }}</span></td>
+          <td>{{ item.detail }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-title">
+    <h2>External Tools</h2>
+    <span class="muted">Availability only</span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Tool</th>
+          <th>Status</th>
+          <th>Purpose</th>
+          <th>Resolved Path</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for tool in view.tools %}
+        <tr>
+          <td>
+            <strong>{{ tool.label }}</strong>
+            <code class="block">{{ tool.command }}</code>
+          </td>
+          <td><span class="badge status-{{ tool.status }}">{{ tool.status }}</span></td>
+          <td>{{ tool.detail }}</td>
+          <td><code>{{ tool.path }}</code></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

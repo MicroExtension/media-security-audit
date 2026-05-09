@@ -14,6 +14,8 @@ from media_security_audit.models import (  # noqa: E402
     Finding,
     FindingStatus,
     Mission,
+    ScanRun,
+    ScanRunStatus,
     ScopeEnvironment,
     ScopeItem,
     ScopeType,
@@ -211,6 +213,29 @@ class WebUiTests(unittest.TestCase):
         self.assertFalse(selected["http_headers"])
         self.assertTrue(selected["dns_mail"])
         self.assertEqual([plan.label for plan in view.scan_plans], ["DNS/Mail"])
+
+    def test_mission_view_includes_scan_runs(self) -> None:
+        store = JsonStore(clean_data_dir("web-ui-runs"))
+        client = store.create_client(Client(name="Client Runs"))
+        mission = store.create_mission(Mission(client_id=client.id, name="Run Audit"))
+        store.add_scan_run(
+            ScanRun(
+                mission_id=mission.id,
+                check=AuditCheck.HTTP_HEADERS,
+                status=ScanRunStatus.COMPLETED,
+                command_count=1,
+                finding_count=2,
+                evidence_paths=["evidence/http.json"],
+            )
+        )
+
+        view = build_mission_view(store, mission.id)
+
+        self.assertEqual(len(view.scan_runs), 1)
+        self.assertEqual(view.scan_runs[0].check, "http_headers")
+        self.assertEqual(view.scan_runs[0].status, "completed")
+        self.assertEqual(view.scan_runs[0].finding_count, 2)
+        self.assertEqual(view.scan_runs[0].evidence_count, 1)
 
 
 if __name__ == "__main__":

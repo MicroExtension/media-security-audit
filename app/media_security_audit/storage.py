@@ -15,6 +15,7 @@ from media_security_audit.models import (
     FindingStatus,
     Mission,
     MissionStatus,
+    ScanRun,
     ScopeItem,
     utc_now,
 )
@@ -32,12 +33,14 @@ class JsonStore:
         self.missions_dir = self.data_dir / "missions"
         self.findings_dir = self.data_dir / "findings"
         self.events_dir = self.data_dir / "events"
+        self.runs_dir = self.data_dir / "runs"
 
     def ensure(self) -> None:
         self.clients_dir.mkdir(parents=True, exist_ok=True)
         self.missions_dir.mkdir(parents=True, exist_ok=True)
         self.findings_dir.mkdir(parents=True, exist_ok=True)
         self.events_dir.mkdir(parents=True, exist_ok=True)
+        self.runs_dir.mkdir(parents=True, exist_ok=True)
 
     def create_client(self, client: Client) -> Client:
         self.ensure()
@@ -164,6 +167,21 @@ class JsonStore:
             reverse=True,
         )
 
+    def add_scan_run(self, run: ScanRun) -> ScanRun:
+        self.get_mission(run.mission_id)
+        self._write_model(self._mission_runs_dir(run.mission_id) / f"{run.id}.json", run)
+        return run
+
+    def list_scan_runs(self, mission_id: str) -> list[ScanRun]:
+        self.get_mission(mission_id)
+        directory = self._mission_runs_dir(mission_id)
+        directory.mkdir(parents=True, exist_ok=True)
+        return sorted(
+            self._list_models(directory, ScanRun),
+            key=lambda item: item.started_at,
+            reverse=True,
+        )
+
     def _write_model(self, path: Path, model: ModelT) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(
@@ -192,6 +210,9 @@ class JsonStore:
 
     def _mission_events_dir(self, mission_id: str) -> Path:
         return self.events_dir / mission_id
+
+    def _mission_runs_dir(self, mission_id: str) -> Path:
+        return self.runs_dir / mission_id
 
     def _write_findings(self, mission_id: str, findings: list[Finding]) -> None:
         directory = self._mission_findings_dir(mission_id)

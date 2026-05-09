@@ -66,6 +66,45 @@
 
 <section class="section">
   <div class="section-title">
+    <h2>Run Monitor</h2>
+    <span class="muted">CLI executions only</span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Check</th>
+          <th>Status</th>
+          <th>Started</th>
+          <th>Commands</th>
+          <th>Findings</th>
+          <th>Evidence</th>
+          <th>Error</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for run in view.scan_runs %}
+        <tr>
+          <td><code>{{ run.check }}</code></td>
+          <td><span class="badge status-{{ run.status }}">{{ run.status }}</span></td>
+          <td>{{ run.started_at }}</td>
+          <td>{{ run.command_count }}</td>
+          <td>{{ run.finding_count }}</td>
+          <td>{{ run.evidence_count }}</td>
+          <td>{{ run.error or "-" }}</td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="7" class="empty">No CLI run recorded yet.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-title">
     <h2>Check Selection</h2>
     <span class="muted">Planning only</span>
   </div>

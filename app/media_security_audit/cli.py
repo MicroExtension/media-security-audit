@@ -9,14 +9,18 @@ from pydantic import ValidationError
 
 from media_security_audit import __version__
 from media_security_audit.models import (
+    AuditCheck,
     AuditType,
     Client,
     Finding,
     ReportFormat,
+    ScanRun,
+    ScanRunStatus,
     ScopeEnvironment,
     ScopeItem,
     ScopeType,
     Severity,
+    utc_now,
 )
 from media_security_audit.reports import write_report
 from media_security_audit.sample_data import sample_findings, sample_mission
@@ -190,6 +194,32 @@ def add_sample_findings(mission_id: str, data_dir: Path) -> list[Finding]:
     return store.add_findings(mission_id, sample_findings())
 
 
+def record_scan_run(
+    store: JsonStore,
+    mission_id: str,
+    check: AuditCheck,
+    status: ScanRunStatus,
+    command_count: int = 0,
+    finding_count: int = 0,
+    evidence_paths: list[str] | None = None,
+    error: str | None = None,
+    metadata: dict[str, str] | None = None,
+) -> ScanRun:
+    return store.add_scan_run(
+        ScanRun(
+            mission_id=mission_id,
+            check=check,
+            status=status,
+            completed_at=utc_now(),
+            command_count=command_count,
+            finding_count=finding_count,
+            evidence_paths=evidence_paths or [],
+            error=error,
+            metadata=metadata or {},
+        )
+    )
+
+
 def plan_nmap_scan(
     mission_id: str,
     data_dir: Path,
@@ -227,10 +257,38 @@ def run_nmap_scan(
         raise ValueError("no approved Nmap-compatible scope items found")
 
     nmap_executor = executor or NmapExecutor()
-    results = [nmap_executor.run(command) for command in commands]
+    try:
+        results = [nmap_executor.run(command) for command in commands]
+    except Exception as error:
+        record_scan_run(
+            store,
+            mission_id,
+            AuditCheck.NMAP,
+            ScanRunStatus.FAILED,
+            command_count=len(commands),
+            error=str(error),
+            metadata={"stage": "execution"},
+        )
+        raise
+
+    evidence_paths = [
+        str(result.output_path)
+        for result in results
+        if result.output_path is not None
+    ]
     failed = [result for result in results if result.exit_code != 0]
     if failed:
         first = failed[0]
+        record_scan_run(
+            store,
+            mission_id,
+            AuditCheck.NMAP,
+            ScanRunStatus.FAILED,
+            command_count=len(commands),
+            evidence_paths=evidence_paths,
+            error=first.stderr,
+            metadata={"exit_code": str(first.exit_code)},
+        )
         raise RuntimeError(f"Nmap command failed with exit code {first.exit_code}: {first.stderr}")
 
     findings: list[Finding] = []
@@ -239,6 +297,15 @@ def run_nmap_scan(
             findings.extend(findings_from_hosts(parse_nmap_xml_file(result.output_path)))
 
     stored_findings = store.add_findings(mission_id, findings)
+    record_scan_run(
+        store,
+        mission_id,
+        AuditCheck.NMAP,
+        ScanRunStatus.COMPLETED,
+        command_count=len(commands),
+        finding_count=len(stored_findings),
+        evidence_paths=evidence_paths,
+    )
     return results, stored_findings
 
 
@@ -273,10 +340,32 @@ def run_http_headers_audit(
 
     http_fetcher = fetcher or HttpHeaderFetcher().fetch
     findings: list[Finding] = []
-    for target in targets:
-        findings.extend(audit_http_headers(http_fetcher(target)))
+    try:
+        for target in targets:
+            findings.extend(audit_http_headers(http_fetcher(target)))
+    except Exception as error:
+        record_scan_run(
+            store,
+            mission_id,
+            AuditCheck.HTTP_HEADERS,
+            ScanRunStatus.FAILED,
+            command_count=len(targets),
+            error=str(error),
+            metadata={"target_count": str(len(targets))},
+        )
+        raise
 
-    return store.add_findings(mission_id, findings)
+    stored_findings = store.add_findings(mission_id, findings)
+    record_scan_run(
+        store,
+        mission_id,
+        AuditCheck.HTTP_HEADERS,
+        ScanRunStatus.COMPLETED,
+        command_count=len(targets),
+        finding_count=len(stored_findings),
+        metadata={"target_count": str(len(targets))},
+    )
+    return stored_findings
 
 
 def plan_dns_mail_audit(
@@ -313,10 +402,38 @@ def run_dns_mail_audit(
 
     txt_resolver = resolver or DnsPythonTxtResolver()
     findings: list[Finding] = []
-    for domain in domains:
-        findings.extend(audit_dns_mail_domain(domain, txt_resolver, dkim_selectors))
+    try:
+        for domain in domains:
+            findings.extend(audit_dns_mail_domain(domain, txt_resolver, dkim_selectors))
+    except Exception as error:
+        record_scan_run(
+            store,
+            mission_id,
+            AuditCheck.DNS_MAIL,
+            ScanRunStatus.FAILED,
+            command_count=len(domains),
+            error=str(error),
+            metadata={
+                "domain_count": str(len(domains)),
+                "dkim_selector_count": str(len(dkim_selectors or [])),
+            },
+        )
+        raise
 
-    return store.add_findings(mission_id, findings)
+    stored_findings = store.add_findings(mission_id, findings)
+    record_scan_run(
+        store,
+        mission_id,
+        AuditCheck.DNS_MAIL,
+        ScanRunStatus.COMPLETED,
+        command_count=len(domains),
+        finding_count=len(stored_findings),
+        metadata={
+            "domain_count": str(len(domains)),
+            "dkim_selector_count": str(len(dkim_selectors or [])),
+        },
+    )
+    return stored_findings
 
 
 def format_cli_error(error: Exception) -> str:

@@ -81,6 +81,11 @@ class FindingStatus(str, Enum):
     COUNTER_TEST_FAILED = "counter_test_failed"
 
 
+class ScanRunStatus(str, Enum):
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+
 class ReportFormat(str, Enum):
     JSON = "json"
     MARKDOWN = "markdown"
@@ -264,6 +269,30 @@ class Report(BaseModel):
     generated_at: datetime = Field(default_factory=utc_now)
     finding_count: int
     output_path: str | None = None
+
+
+class ScanRun(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: str = Field(default_factory=lambda: new_id("run"))
+    mission_id: str
+    check: AuditCheck
+    status: ScanRunStatus
+    started_at: datetime = Field(default_factory=utc_now)
+    completed_at: datetime | None = None
+    command_count: int = Field(default=0, ge=0)
+    finding_count: int = Field(default=0, ge=0)
+    evidence_paths: list[str] = Field(default_factory=list)
+    error: str | None = None
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+    @field_validator("mission_id")
+    @classmethod
+    def require_run_mission_id(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("scan run mission id is required")
+        return value
 
 
 class ActivityEvent(BaseModel):

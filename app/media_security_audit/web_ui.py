@@ -13,6 +13,7 @@ from media_security_audit.models import (
     Finding,
     FindingStatus,
     Mission,
+    ScanRun,
     ScopeItem,
 )
 from media_security_audit.reports import (
@@ -113,6 +114,18 @@ class CheckSelectionRow:
 
 
 @dataclass(frozen=True)
+class ScanRunRow:
+    id: str
+    check: str
+    status: str
+    started_at: str
+    command_count: int
+    finding_count: int
+    evidence_count: int
+    error: str
+
+
+@dataclass(frozen=True)
 class DashboardView:
     clients: list[ClientRow]
     missions: list[MissionRow]
@@ -130,6 +143,7 @@ class MissionView:
     counter_test_items: list[CounterTestRow]
     activity_events: list[ActivityEventRow]
     check_selection: list[CheckSelectionRow]
+    scan_runs: list[ScanRunRow]
     remediation_items: list[dict[str, str]]
     executive_summary: str
     reports: list[GeneratedReportLink]
@@ -263,6 +277,19 @@ def check_selection_rows(mission: Mission) -> list[CheckSelectionRow]:
     ]
 
 
+def scan_run_row(run: ScanRun) -> ScanRunRow:
+    return ScanRunRow(
+        id=run.id,
+        check=run.check.value,
+        status=run.status.value,
+        started_at=format_datetime(run.started_at),
+        command_count=run.command_count,
+        finding_count=run.finding_count,
+        evidence_count=len(run.evidence_paths),
+        error=run.error or "",
+    )
+
+
 def build_dashboard_view(store: JsonStore) -> DashboardView:
     clients = store.list_clients()
     missions = store.list_missions()
@@ -311,6 +338,7 @@ def build_mission_view(
     mission = store.get_mission(mission_id)
     findings = store.list_findings(mission_id)
     activity_events = store.list_activity_events(mission_id)
+    scan_runs = store.list_scan_runs(mission_id)
     summary = build_report_summary(mission, findings)
     reports = list_generated_reports(mission_id, reports_dir) if reports_dir else []
 
@@ -321,6 +349,7 @@ def build_mission_view(
         counter_test_items=[counter_test_row(finding) for finding in counter_test_findings(findings)],
         activity_events=[activity_event_row(event) for event in activity_events],
         check_selection=check_selection_rows(mission),
+        scan_runs=[scan_run_row(run) for run in scan_runs],
         remediation_items=remediation_plan(findings),
         executive_summary=str(summary["executive_summary"]),
         reports=reports,

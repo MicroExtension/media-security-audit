@@ -39,6 +39,7 @@ Implemented so far:
 - web mission activity log for traceability
 - web check selection for mission planning
 - web system status page for appliance readiness
+- web run monitor for CLI scan execution history
 
 The first implementation target remains a CLI-driven V1 with a local web
 interface that can set up the mission workflow:
@@ -141,7 +142,8 @@ execution remains in guarded CLI commands only while the browser workflow is
 being designed. Mission pages include an activity log for web workflow
 traceability and check selection for scan plan previews. The System page shows
 local storage, authentication, and external tool availability without running
-scanner commands.
+scanner commands. The mission Run Monitor shows recorded CLI scan runs without
+adding browser scan execution.
 
 ## Deployment
 
@@ -230,7 +232,7 @@ Planned screens:
 - mission creation started
 - scope management started
 - check selection started
-- run monitor
+- run monitor started
 - findings review started
 - report generation started
 - counter-tests

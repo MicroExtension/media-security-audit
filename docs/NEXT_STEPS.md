@@ -299,6 +299,7 @@ Current GUI status:
 - counter-test plans are visible from mission pages
 - mission activity events are recorded and visible from mission pages
 - audit checks can be selected from mission pages for planning
+- system status shows local storage, authentication, and tool availability
 - reviewed reports can be generated from mission pages
 - mission readiness and safe scan plan previews are visible from mission pages
 - scan execution remains CLI-only

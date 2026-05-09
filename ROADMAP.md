@@ -70,6 +70,7 @@ Current foundation:
 - counter-test plan views started
 - mission activity log started
 - check selection UI started
+- system status page started
 - report generation from mission pages started
 - mission readiness and safe scan plan previews started
 - scan execution remains CLI-only
@@ -92,6 +93,7 @@ Current foundation:
 - Docker Compose added
 - persistent `data`, `runs`, `reports`, and `evidence` folders defined
 - deployment guide started in `docs/DEPLOYMENT.md`
+- external tool availability status started in the web UI
 
 Success criteria:
 - appliance can run on Debian/Ubuntu

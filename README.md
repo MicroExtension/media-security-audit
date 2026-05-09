@@ -38,6 +38,7 @@ Implemented so far:
 - web counter-test plan for actionable findings
 - web mission activity log for traceability
 - web check selection for mission planning
+- web system status page for appliance readiness
 
 The first implementation target remains a CLI-driven V1 with a local web
 interface that can set up the mission workflow:
@@ -138,7 +139,9 @@ approval, edit manual findings, generate stored reports, and preview safe scan
 plans. It also shows a counter-test plan for actionable findings. Scan
 execution remains in guarded CLI commands only while the browser workflow is
 being designed. Mission pages include an activity log for web workflow
-traceability and check selection for scan plan previews.
+traceability and check selection for scan plan previews. The System page shows
+local storage, authentication, and external tool availability without running
+scanner commands.
 
 ## Deployment
 
@@ -231,6 +234,7 @@ Planned screens:
 - findings review started
 - report generation started
 - counter-tests
+- system status started
 - settings
 
 The GUI will use the same internal engine as the CLI. It must never allow scans

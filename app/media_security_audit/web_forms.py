@@ -15,6 +15,7 @@ from media_security_audit.models import (
     ScopeItem,
     ScopeType,
     Severity,
+    utc_now,
 )
 from media_security_audit.storage import JsonStore
 
@@ -113,6 +114,41 @@ def add_manual_finding_from_form(store: JsonStore, mission_id: str, form: dict[s
             remediation=required_text(form, "remediation", "remediation"),
             counter_test=required_text(form, "counter_test", "counter-test"),
             confidence=parse_confidence(optional_text(form, "confidence")),
+        ),
+    )
+
+
+def update_manual_finding_from_form(
+    store: JsonStore,
+    mission_id: str,
+    finding_id: str,
+    form: dict[str, str],
+) -> Finding:
+    existing = store.get_finding(mission_id, finding_id)
+    if existing.source_module != "manual":
+        raise ValueError("only manual findings can be edited from this form")
+
+    metadata = dict(existing.metadata)
+    metadata["edited_at"] = utc_now().isoformat()
+    return store.save_finding(
+        mission_id,
+        Finding(
+            id=existing.id,
+            title=required_text(form, "title", "finding title"),
+            severity=Severity(required_text(form, "severity", "severity")),
+            affected_asset=required_text(form, "affected_asset", "affected asset"),
+            category=optional_text(form, "category") or "manual",
+            source_module=existing.source_module,
+            proof=required_text(form, "proof", "proof"),
+            risk=required_text(form, "risk", "risk"),
+            remediation=required_text(form, "remediation", "remediation"),
+            counter_test=required_text(form, "counter_test", "counter-test"),
+            confidence=parse_confidence(optional_text(form, "confidence")),
+            status=existing.status,
+            sources=existing.sources,
+            first_seen=existing.first_seen,
+            last_seen=utc_now(),
+            metadata=metadata,
         ),
     )
 

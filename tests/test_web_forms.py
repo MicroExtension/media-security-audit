@@ -6,7 +6,7 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "app"))
 
-from media_security_audit.models import AuditType, Finding, ScopeType, Severity  # noqa: E402
+from media_security_audit.models import AuditType, Finding, FindingStatus, ScopeType, Severity  # noqa: E402
 from media_security_audit.storage import JsonStore  # noqa: E402
 from media_security_audit.web_forms import (  # noqa: E402
     add_manual_finding_from_form,
@@ -18,6 +18,7 @@ from media_security_audit.web_forms import (  # noqa: E402
     parse_confidence,
     parse_urlencoded_form,
     update_finding_status_from_form,
+    update_manual_finding_from_form,
     update_mission_from_form,
     update_scope_from_form,
     validate_form_token,
@@ -273,6 +274,99 @@ class WebFormTests(unittest.TestCase):
                     "risk": "Risk pending review.",
                     "remediation": "Apply remediation.",
                     "counter_test": "Repeat the check.",
+                },
+            )
+
+    def test_update_manual_finding_from_form_preserves_review_state(self) -> None:
+        store = JsonStore(clean_data_dir("web-form-manual-finding-update"))
+        client = create_client_from_form(store, {"name": "Client X"})
+        mission = create_mission_from_form(
+            store,
+            {
+                "client_id": client.id,
+                "name": "Audit externe",
+                "audit_type": "external",
+            },
+        )
+        finding = add_manual_finding_from_form(
+            store,
+            mission.id,
+            {
+                "title": "Old title",
+                "severity": "low",
+                "affected_asset": "client.example",
+                "proof": "Initial proof.",
+                "risk": "Initial risk.",
+                "remediation": "Initial remediation.",
+                "counter_test": "Initial counter-test.",
+            },
+        )
+        store.update_finding_status(mission.id, finding.id, FindingStatus.CONFIRMED, "Validated")
+
+        updated = update_manual_finding_from_form(
+            store,
+            mission.id,
+            finding.id,
+            {
+                "title": "Updated finding",
+                "severity": "high",
+                "affected_asset": "admin.client.example",
+                "category": "manual_review",
+                "proof": "Updated proof.",
+                "risk": "Updated risk.",
+                "remediation": "Updated remediation.",
+                "counter_test": "Updated counter-test.",
+                "confidence": "0.9",
+            },
+        )
+
+        self.assertEqual(updated.title, "Updated finding")
+        self.assertEqual(updated.severity, Severity.HIGH)
+        self.assertEqual(updated.status, FindingStatus.CONFIRMED)
+        self.assertEqual(updated.metadata["review_note"], "Validated")
+        self.assertIn("edited_at", updated.metadata)
+        self.assertEqual(updated.confidence, 0.9)
+
+    def test_update_manual_finding_rejects_scanner_findings(self) -> None:
+        store = JsonStore(clean_data_dir("web-form-scanner-finding-update"))
+        client = create_client_from_form(store, {"name": "Client X"})
+        mission = create_mission_from_form(
+            store,
+            {
+                "client_id": client.id,
+                "name": "Audit externe",
+                "audit_type": "external",
+            },
+        )
+        finding = store.add_finding(
+            mission.id,
+            Finding(
+                title="Scanner finding",
+                severity=Severity.LOW,
+                affected_asset="client.example",
+                category="network",
+                source_module="nmap",
+                proof="tcp/80 open",
+                risk="Risk pending review.",
+                remediation="Apply remediation.",
+                counter_test="Repeat the approved check.",
+                confidence=0.8,
+            ),
+        )
+
+        with self.assertRaises(ValueError):
+            update_manual_finding_from_form(
+                store,
+                mission.id,
+                finding.id,
+                {
+                    "title": "Updated finding",
+                    "severity": "low",
+                    "affected_asset": "client.example",
+                    "proof": "Updated proof.",
+                    "risk": "Updated risk.",
+                    "remediation": "Updated remediation.",
+                    "counter_test": "Updated counter-test.",
                 },
             )
 

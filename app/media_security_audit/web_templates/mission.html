@@ -299,6 +299,56 @@
         <dt>Review note</dt><dd>{{ finding.review_note }}</dd>
         {% endif %}
       </dl>
+      {% if finding.source_module == "manual" %}
+      <form class="finding-edit-form" method="post" action="/missions/{{ view.mission.id }}/findings/{{ finding.id }}/details">
+        <input type="hidden" name="_csrf" value="{{ form_token }}">
+        <div class="field-grid">
+          <label class="span-2">
+            <span>Title</span>
+            <input name="title" value="{{ finding.title }}" required>
+          </label>
+          <label>
+            <span>Severity</span>
+            <select name="severity" required>
+              {% for severity in severities %}
+              <option value="{{ severity }}" {% if severity == finding.severity %}selected{% endif %}>{{ severity }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <label>
+            <span>Confidence</span>
+            <input name="confidence" type="number" min="0" max="1" step="0.05" value="{{ finding.confidence }}">
+          </label>
+          <label>
+            <span>Affected Asset</span>
+            <input name="affected_asset" value="{{ finding.affected_asset }}" required>
+          </label>
+          <label>
+            <span>Category</span>
+            <input name="category" value="{{ finding.category }}">
+          </label>
+          <label class="span-2">
+            <span>Proof</span>
+            <textarea name="proof" rows="3" required>{{ finding.proof }}</textarea>
+          </label>
+          <label class="span-2">
+            <span>Risk</span>
+            <textarea name="risk" rows="2" required>{{ finding.risk }}</textarea>
+          </label>
+          <label class="span-2">
+            <span>Remediation</span>
+            <textarea name="remediation" rows="2" required>{{ finding.remediation }}</textarea>
+          </label>
+          <label class="span-2">
+            <span>Counter-test</span>
+            <textarea name="counter_test" rows="2" required>{{ finding.counter_test }}</textarea>
+          </label>
+        </div>
+        <div class="form-actions">
+          <button class="button secondary-button" type="submit">Update Finding</button>
+        </div>
+      </form>
+      {% endif %}
       <form class="review-form" method="post" action="/missions/{{ view.mission.id }}/findings/{{ finding.id }}/status">
         <input type="hidden" name="_csrf" value="{{ form_token }}">
         <label>

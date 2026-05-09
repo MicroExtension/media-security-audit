@@ -429,7 +429,8 @@ textarea:focus {
   margin-top: 14px;
 }
 
-.report-panel {
+.report-panel,
+.export-panel {
   align-items: center;
   background: var(--surface);
   border: 1px solid var(--border);
@@ -438,6 +439,10 @@ textarea:focus {
   gap: 18px;
   justify-content: space-between;
   padding: 14px;
+}
+
+.export-panel {
+  margin-top: 10px;
 }
 
 .report-links {
@@ -775,7 +780,8 @@ code {
     grid-template-columns: 1fr;
   }
 
-  .report-panel {
+  .report-panel,
+  .export-panel {
     align-items: stretch;
     flex-direction: column;
   }

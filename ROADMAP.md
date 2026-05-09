@@ -73,6 +73,7 @@ Current foundation:
 - run monitor started
 - system status page started
 - report generation from mission pages started
+- mission export packages started
 - mission readiness and safe scan plan previews started
 - scan execution remains CLI-only
 
@@ -95,6 +96,7 @@ Current foundation:
 - persistent `data`, `runs`, `reports`, and `evidence` folders defined
 - deployment guide started in `docs/DEPLOYMENT.md`
 - external tool availability status started in the web UI
+- mission ZIP export package started
 
 Success criteria:
 - appliance can run on Debian/Ubuntu

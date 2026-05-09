@@ -179,6 +179,20 @@
       {% endfor %}
     </div>
   </div>
+  <div class="export-panel">
+    <form method="post" action="/missions/{{ view.mission.id }}/export">
+      <input type="hidden" name="_csrf" value="{{ form_token }}">
+      <button class="button secondary-button" type="submit">Generate Package</button>
+    </form>
+    <div class="report-links">
+      {% if view.mission_export %}
+      <a href="/missions/{{ view.mission.id }}/export">zip</a>
+      <span class="muted">{{ view.mission_export.filename }} | {{ view.mission_export.size_bytes }} bytes</span>
+      {% else %}
+      <span class="empty">No mission export package yet.</span>
+      {% endif %}
+    </div>
+  </div>
 </section>
 
 <section class="section">

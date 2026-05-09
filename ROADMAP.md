@@ -63,6 +63,7 @@ Current foundation:
 - dashboard and mission detail views started
 - client, mission, and scope creation forms started
 - mission setup update forms started
+- scope review update forms started
 - finding status review started
 - report generation from mission pages started
 - mission readiness and safe scan plan previews started

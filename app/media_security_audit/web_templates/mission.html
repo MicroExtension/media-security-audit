@@ -159,29 +159,51 @@
         <button class="button" type="submit">Add Scope</button>
       </div>
     </form>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Target</th>
-            <th>Type</th>
-            <th>Status</th>
-            <th>Environment</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for item in view.scope %}
-          <tr>
-            <td><code>{{ item.value }}</code></td>
-            <td>{{ item.type }}</td>
-            <td><span class="status">{{ item.status }}</span></td>
-            <td>{{ item.environment }}</td>
-          </tr>
-          {% else %}
-          <tr><td colspan="4" class="empty">No scope item found.</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
+    <div class="scope-list">
+      {% for item in view.scope %}
+      <form class="scope-card" method="post" action="/missions/{{ view.mission.id }}/scope/{{ item.id }}">
+        <input type="hidden" name="_csrf" value="{{ form_token }}">
+        <div class="scope-card-head">
+          <code>{{ item.value }}</code>
+          <span class="status">{{ item.status }}</span>
+        </div>
+        <div class="field-grid">
+          <label>
+            <span>Type</span>
+            <select name="scope_type" required>
+              {% for scope_type in scope_types %}
+              <option value="{{ scope_type }}" {% if scope_type == item.type %}selected{% endif %}>{{ scope_type }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <label>
+            <span>Environment</span>
+            <select name="environment">
+              {% for environment in scope_environments %}
+              <option value="{{ environment }}" {% if environment == item.environment %}selected{% endif %}>{{ environment }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <label class="span-2">
+            <span>Value</span>
+            <input name="value" value="{{ item.value }}" required>
+          </label>
+          <label class="span-2">
+            <span>Notes</span>
+            <textarea name="notes" rows="2">{{ item.notes }}</textarea>
+          </label>
+        </div>
+        <div class="scope-card-actions">
+          <div class="check-row">
+            <label><input type="checkbox" name="approved" {% if item.status == "approved" %}checked{% endif %}> Approved</label>
+            <label><input type="checkbox" name="excluded" {% if item.status == "excluded" %}checked{% endif %}> Excluded</label>
+          </div>
+          <button class="button secondary-button" type="submit">Update Scope</button>
+        </div>
+      </form>
+      {% else %}
+      <p class="empty">No scope item found.</p>
+      {% endfor %}
     </div>
   </div>
 

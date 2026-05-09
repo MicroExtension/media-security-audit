@@ -75,6 +75,29 @@ def add_scope_from_form(store: JsonStore, mission_id: str, form: dict[str, str])
     )
 
 
+def update_scope_from_form(
+    store: JsonStore,
+    mission_id: str,
+    scope_id: str,
+    form: dict[str, str],
+) -> Mission:
+    mission = store.get_mission(mission_id)
+    existing = next((item for item in mission.scope if item.id == scope_id), None)
+    if existing is None:
+        raise FileNotFoundError(f"scope item not found: {scope_id}")
+
+    updated = ScopeItem(
+        id=existing.id,
+        type=ScopeType(required_text(form, "scope_type", "scope type")),
+        value=required_text(form, "value", "scope value"),
+        environment=ScopeEnvironment(optional_text(form, "environment") or ScopeEnvironment.UNKNOWN.value),
+        approved=parse_checkbox(form, "approved"),
+        excluded=parse_checkbox(form, "excluded"),
+        notes=optional_text(form, "notes"),
+    )
+    return store.update_scope_item(mission_id, updated)
+
+
 def update_finding_status_from_form(
     store: JsonStore,
     mission_id: str,

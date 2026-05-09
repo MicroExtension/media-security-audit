@@ -32,6 +32,7 @@ Implemented so far:
 - web report generation for JSON, Markdown, and HTML exports
 - web mission readiness checks and safe scan plan previews
 - web mission setup updates for authorization and notes
+- web scope review updates for approved and excluded targets
 
 The first implementation target remains a CLI-driven V1 with a local web
 interface that can set up the mission workflow:
@@ -127,9 +128,9 @@ http://127.0.0.1:8080
 ```
 
 The current web interface can create clients, missions, and scope items, review
-findings, update mission setup details, generate stored reports, and preview
-safe scan plans. Scan execution remains in guarded CLI commands only while the
-browser workflow is being designed.
+findings, update mission setup details, review scope approval, generate stored
+reports, and preview safe scan plans. Scan execution remains in guarded CLI
+commands only while the browser workflow is being designed.
 
 ## Deployment
 

@@ -6,6 +6,7 @@ import secrets
 from urllib.parse import parse_qs
 
 from media_security_audit.models import (
+    AuditCheck,
     AuditType,
     Client,
     Finding,
@@ -58,6 +59,19 @@ def update_mission_from_form(store: JsonStore, mission_id: str, form: dict[str, 
             "notes": optional_text(form, "notes"),
         }
     )
+    return store.save_mission(updated)
+
+
+def update_mission_checks_from_form(
+    store: JsonStore,
+    mission_id: str,
+    form: dict[str, str],
+) -> Mission:
+    mission = store.get_mission(mission_id)
+    selected_checks = [
+        check for check in AuditCheck if parse_checkbox(form, f"check_{check.value}")
+    ]
+    updated = mission.model_copy(update={"selected_checks": selected_checks})
     return store.save_mission(updated)
 
 

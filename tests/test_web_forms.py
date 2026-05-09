@@ -6,7 +6,14 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "app"))
 
-from media_security_audit.models import AuditType, Finding, FindingStatus, ScopeType, Severity  # noqa: E402
+from media_security_audit.models import (  # noqa: E402
+    AuditCheck,
+    AuditType,
+    Finding,
+    FindingStatus,
+    ScopeType,
+    Severity,
+)
 from media_security_audit.storage import JsonStore  # noqa: E402
 from media_security_audit.web_forms import (  # noqa: E402
     add_manual_finding_from_form,
@@ -19,6 +26,7 @@ from media_security_audit.web_forms import (  # noqa: E402
     parse_urlencoded_form,
     update_finding_status_from_form,
     update_manual_finding_from_form,
+    update_mission_checks_from_form,
     update_mission_from_form,
     update_scope_from_form,
     validate_form_token,
@@ -408,6 +416,33 @@ class WebFormTests(unittest.TestCase):
         self.assertEqual(updated.authorization_reference, "AUTH-002")
         self.assertEqual(updated.notes, "Validate with client")
         self.assertEqual(updated.status.value, "ready_to_scan")
+
+    def test_update_mission_checks_from_form(self) -> None:
+        store = JsonStore(clean_data_dir("web-form-check-selection"))
+        client = create_client_from_form(store, {"name": "Client X"})
+        mission = create_mission_from_form(
+            store,
+            {
+                "client_id": client.id,
+                "name": "Audit externe",
+                "audit_type": "external",
+            },
+        )
+
+        updated = update_mission_checks_from_form(
+            store,
+            mission.id,
+            {
+                "check_nmap": "on",
+                "check_dns_mail": "on",
+            },
+        )
+
+        self.assertEqual(updated.selected_checks, [AuditCheck.NMAP, AuditCheck.DNS_MAIL])
+
+        cleared = update_mission_checks_from_form(store, mission.id, {})
+
+        self.assertEqual(cleared.selected_checks, [])
 
     def test_parse_checkbox(self) -> None:
         self.assertTrue(parse_checkbox({"approved": "on"}, "approved"))

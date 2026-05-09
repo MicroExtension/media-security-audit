@@ -40,6 +40,7 @@ from media_security_audit.web_forms import (
     parse_urlencoded_form,
     update_finding_status_from_form,
     update_manual_finding_from_form,
+    update_mission_checks_from_form,
     update_mission_from_form,
     update_scope_from_form,
     validate_form_token,
@@ -228,6 +229,26 @@ def create_web_app(
         except (FileNotFoundError, RuntimeError, ValueError, ValidationError) as error:
             return redirect_with_status(f"/missions/{mission_id}", error=format_web_error(error))
         return redirect_with_status(f"/missions/{mission_id}", message="mission updated")
+
+    @app.post("/missions/{mission_id}/checks", dependencies=protected)
+    async def mission_checks_update(request: Request, mission_id: str):
+        try:
+            form = parse_urlencoded_form(await request.body())
+            validate_form_token(form, form_token)
+            mission = update_mission_checks_from_form(store, mission_id, form)
+            selected_checks = ", ".join(check.value for check in mission.selected_checks) or "none"
+            record_activity(
+                mission_id,
+                "check_selection.updated",
+                f"Check selection updated: {selected_checks}",
+                {
+                    "selected_checks": selected_checks,
+                    "selected_count": str(len(mission.selected_checks)),
+                },
+            )
+        except (FileNotFoundError, RuntimeError, ValueError, ValidationError) as error:
+            return redirect_with_status(f"/missions/{mission_id}", error=format_web_error(error))
+        return redirect_with_status(f"/missions/{mission_id}", message="check selection updated")
 
     @app.post("/missions/{mission_id}/scope", dependencies=protected)
     async def scope_create(request: Request, mission_id: str):

@@ -87,6 +87,19 @@ class ReportFormat(str, Enum):
     HTML = "html"
 
 
+class AuditCheck(str, Enum):
+    NMAP = "nmap"
+    HTTP_HEADERS = "http_headers"
+    DNS_MAIL = "dns_mail"
+
+
+DEFAULT_AUDIT_CHECKS: tuple[AuditCheck, ...] = (
+    AuditCheck.NMAP,
+    AuditCheck.HTTP_HEADERS,
+    AuditCheck.DNS_MAIL,
+)
+
+
 class Contact(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -157,6 +170,7 @@ class Mission(BaseModel):
     authorization_reference: str | None = None
     status: MissionStatus = MissionStatus.DRAFT
     scope: list[ScopeItem] = Field(default_factory=list)
+    selected_checks: list[AuditCheck] = Field(default_factory=lambda: list(DEFAULT_AUDIT_CHECKS))
     created_at: datetime = Field(default_factory=utc_now)
     notes: str | None = None
 
@@ -167,6 +181,15 @@ class Mission(BaseModel):
     @property
     def is_authorized(self) -> bool:
         return bool(self.authorization_reference)
+
+    @field_validator("selected_checks")
+    @classmethod
+    def deduplicate_selected_checks(cls, checks: list[AuditCheck]) -> list[AuditCheck]:
+        deduplicated: list[AuditCheck] = []
+        for check in checks:
+            if check not in deduplicated:
+                deduplicated.append(check)
+        return deduplicated
 
 
 class Asset(BaseModel):

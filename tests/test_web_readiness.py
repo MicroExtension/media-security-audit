@@ -5,6 +5,7 @@ import unittest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "app"))
 
 from media_security_audit.models import (  # noqa: E402
+    AuditCheck,
     Finding,
     FindingStatus,
     Mission,
@@ -27,6 +28,7 @@ class WebReadinessTests(unittest.TestCase):
 
         self.assertEqual(statuses["Authorization"], "blocked")
         self.assertEqual(statuses["Approved Scope"], "blocked")
+        self.assertEqual(statuses["Check Selection"], "ready")
         self.assertEqual(statuses["Finding Review"], "warning")
         self.assertEqual(statuses["Reports"], "warning")
 
@@ -56,6 +58,7 @@ class WebReadinessTests(unittest.TestCase):
 
         self.assertEqual(statuses["Authorization"], "ready")
         self.assertEqual(statuses["Approved Scope"], "ready")
+        self.assertEqual(statuses["Check Selection"], "ready")
         self.assertEqual(statuses["Finding Review"], "ready")
         self.assertEqual(statuses["Reports"], "ready")
 
@@ -87,6 +90,33 @@ class WebReadinessTests(unittest.TestCase):
         self.assertEqual(plans["HTTP Headers"].status, "blocked")
         self.assertEqual(plans["DNS/Mail"].status, "blocked")
         self.assertEqual(plans["Nmap"].commands, [])
+
+    def test_scan_plan_previews_respect_selected_checks(self) -> None:
+        mission = Mission(
+            client_id="client_1",
+            name="Audit",
+            scope=[
+                ScopeItem(type=ScopeType.URL, value="https://client.example", approved=True),
+                ScopeItem(type=ScopeType.DOMAIN, value="client.example", approved=True),
+            ],
+            selected_checks=[AuditCheck.HTTP_HEADERS],
+        )
+
+        plans = build_scan_plan_previews(mission)
+
+        self.assertEqual([plan.label for plan in plans], ["HTTP Headers"])
+        self.assertEqual(plans[0].status, "ready")
+
+    def test_empty_check_selection_blocks_scan_plan_preview(self) -> None:
+        mission = Mission(client_id="client_1", name="Audit", selected_checks=[])
+
+        items = build_readiness_items(mission, findings=[], generated_report_count=0)
+        plans = build_scan_plan_previews(mission)
+        statuses = {item.label: item.status for item in items}
+
+        self.assertEqual(statuses["Check Selection"], "blocked")
+        self.assertEqual(plans[0].label, "Check Selection")
+        self.assertEqual(plans[0].status, "blocked")
 
 
 if __name__ == "__main__":

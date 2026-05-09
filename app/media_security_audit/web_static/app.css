@@ -391,6 +391,90 @@ textarea:focus {
   text-decoration: none;
 }
 
+.readiness-grid,
+.plan-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.readiness-item,
+.plan-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 5px solid var(--border);
+  border-radius: 6px;
+  padding: 14px;
+}
+
+.readiness-item strong {
+  display: block;
+  margin-top: 10px;
+}
+
+.readiness-item p,
+.plan-card p {
+  color: var(--muted);
+  margin: 8px 0 0;
+}
+
+.readiness-ready,
+.plan-ready {
+  border-left-color: var(--green);
+}
+
+.readiness-warning {
+  border-left-color: var(--amber);
+}
+
+.readiness-blocked,
+.plan-blocked {
+  border-left-color: var(--red);
+}
+
+.readiness-ready .readiness-badge,
+.plan-ready .readiness-badge {
+  background: #e7f6ed;
+  color: var(--green);
+}
+
+.readiness-warning .readiness-badge {
+  background: #fff1dd;
+  color: var(--amber);
+}
+
+.readiness-blocked .readiness-badge,
+.plan-blocked .readiness-badge {
+  background: #fde8e7;
+  color: var(--red);
+}
+
+.plan-head {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.plan-head h3 {
+  font-size: 17px;
+  margin: 0;
+}
+
+.plan-list {
+  display: grid;
+  gap: 8px;
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+}
+
+.plan-list code {
+  display: block;
+  overflow-x: auto;
+  white-space: pre-wrap;
+}
+
 .button {
   background: var(--accent);
   border-radius: 6px;

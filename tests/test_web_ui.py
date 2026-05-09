@@ -111,6 +111,9 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(view.findings[0].severity, "high")
         self.assertEqual(view.findings[0].review_note, "")
         self.assertEqual(view.reports, [])
+        self.assertEqual(len(view.readiness_items), 4)
+        self.assertEqual(view.scan_plans[0].label, "Nmap")
+        self.assertEqual(view.scan_plans[0].status, "ready")
         self.assertEqual(len(view.remediation_items), 1)
         self.assertIn("High-priority", view.executive_summary)
 

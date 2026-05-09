@@ -107,6 +107,8 @@ class WebUiTests(unittest.TestCase):
         view = build_mission_view(store, mission.id)
 
         self.assertEqual(view.mission.client_name, "Client Y")
+        self.assertEqual(view.mission.authorization_reference, "AUTH-002")
+        self.assertEqual(view.mission.notes, "")
         self.assertEqual(view.scope[0].status, "approved")
         self.assertEqual(view.findings[0].severity, "high")
         self.assertEqual(view.findings[0].review_note, "")

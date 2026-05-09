@@ -10,6 +10,7 @@ from media_security_audit.models import (  # noqa: E402
     AuditType,
     Client,
     Finding,
+    FindingStatus,
     Mission,
     ScopeEnvironment,
     ScopeItem,
@@ -116,8 +117,58 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(len(view.readiness_items), 4)
         self.assertEqual(view.scan_plans[0].label, "Nmap")
         self.assertEqual(view.scan_plans[0].status, "ready")
+        self.assertEqual(view.counter_test_items, [])
         self.assertEqual(len(view.remediation_items), 1)
         self.assertIn("High-priority", view.executive_summary)
+
+    def test_mission_view_builds_counter_test_plan_for_actionable_statuses(self) -> None:
+        store = JsonStore(clean_data_dir("web-ui-counter-test"))
+        client = store.create_client(Client(name="Client Z"))
+        mission = store.create_mission(
+            Mission(
+                client_id=client.id,
+                name="Counter-test Audit",
+                authorization_reference="AUTH-003",
+            )
+        )
+        store.add_finding(
+            mission.id,
+            Finding(
+                title="Confirmed finding",
+                severity=Severity.MEDIUM,
+                affected_asset="client.example",
+                category="manual",
+                source_module="manual",
+                proof="Observed manually.",
+                risk="Risk pending correction.",
+                remediation="Apply the corrective action.",
+                counter_test="Repeat the manual check.",
+                confidence=0.8,
+                status=FindingStatus.CONFIRMED,
+            ),
+        )
+        store.add_finding(
+            mission.id,
+            Finding(
+                title="Passed finding",
+                severity=Severity.HIGH,
+                affected_asset="admin.client.example",
+                category="manual",
+                source_module="manual",
+                proof="Observed manually.",
+                risk="Risk was corrected.",
+                remediation="No further action.",
+                counter_test="Already passed.",
+                confidence=0.8,
+                status=FindingStatus.COUNTER_TEST_PASSED,
+            ),
+        )
+
+        view = build_mission_view(store, mission.id)
+
+        self.assertEqual(len(view.counter_test_items), 1)
+        self.assertEqual(view.counter_test_items[0].title, "Confirmed finding")
+        self.assertEqual(view.counter_test_items[0].status, "confirmed")
 
 
 if __name__ == "__main__":

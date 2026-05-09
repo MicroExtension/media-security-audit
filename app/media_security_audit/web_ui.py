@@ -7,7 +7,7 @@ from datetime import datetime
 from html import escape
 from pathlib import Path
 
-from media_security_audit.models import Finding, Mission, ScopeItem
+from media_security_audit.models import Finding, FindingStatus, Mission, ScopeItem
 from media_security_audit.reports import (
     build_report_summary,
     remediation_plan,
@@ -79,6 +79,17 @@ class FindingRow:
 
 
 @dataclass(frozen=True)
+class CounterTestRow:
+    id: str
+    title: str
+    severity: str
+    status: str
+    affected_asset: str
+    remediation: str
+    counter_test: str
+
+
+@dataclass(frozen=True)
 class DashboardView:
     clients: list[ClientRow]
     missions: list[MissionRow]
@@ -93,6 +104,7 @@ class MissionView:
     mission: MissionRow
     scope: list[ScopeRow]
     findings: list[FindingRow]
+    counter_test_items: list[CounterTestRow]
     remediation_items: list[dict[str, str]]
     executive_summary: str
     reports: list[GeneratedReportLink]
@@ -170,6 +182,27 @@ def finding_row(finding: Finding) -> FindingRow:
     )
 
 
+def counter_test_row(finding: Finding) -> CounterTestRow:
+    return CounterTestRow(
+        id=finding.id,
+        title=finding.title,
+        severity=finding.severity.value,
+        status=finding.status.value,
+        affected_asset=finding.affected_asset,
+        remediation=finding.remediation,
+        counter_test=finding.counter_test,
+    )
+
+
+def counter_test_findings(findings: list[Finding]) -> list[Finding]:
+    actionable_statuses = {
+        FindingStatus.CONFIRMED,
+        FindingStatus.REMEDIATED,
+        FindingStatus.COUNTER_TEST_FAILED,
+    }
+    return [finding for finding in sorted_findings(findings) if finding.status in actionable_statuses]
+
+
 def build_dashboard_view(store: JsonStore) -> DashboardView:
     clients = store.list_clients()
     missions = store.list_missions()
@@ -224,6 +257,7 @@ def build_mission_view(
         mission=mission_row(mission, findings, client_name_by_id(store)),
         scope=[scope_row(item) for item in mission.scope],
         findings=[finding_row(finding) for finding in sorted_findings(findings)],
+        counter_test_items=[counter_test_row(finding) for finding in counter_test_findings(findings)],
         remediation_items=remediation_plan(findings),
         executive_summary=str(summary["executive_summary"]),
         reports=reports,

@@ -538,7 +538,8 @@ textarea:focus {
   gap: 14px;
 }
 
-.finding {
+.finding,
+.counter-test-card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 6px;
@@ -569,7 +570,20 @@ textarea:focus {
   justify-content: space-between;
 }
 
-.finding h3 {
+.counter-test-list {
+  display: grid;
+  gap: 14px;
+}
+
+.counter-test-head {
+  align-items: start;
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+}
+
+.finding h3,
+.counter-test-card h3 {
   font-size: 18px;
   margin: 0;
 }
@@ -642,7 +656,8 @@ code {
 @media (max-width: 820px) {
   .topbar,
   .page-heading,
-  .finding-head {
+  .finding-head,
+  .counter-test-head {
     align-items: flex-start;
     flex-direction: column;
   }

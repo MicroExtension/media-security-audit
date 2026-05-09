@@ -228,6 +228,31 @@
 
 <section class="section">
   <div class="section-title">
+    <h2>Counter-test Plan</h2>
+  </div>
+  <div class="counter-test-list">
+    {% for item in view.counter_test_items %}
+    <article class="counter-test-card severity-border-{{ item.severity | severity_class }}">
+      <div class="counter-test-head">
+        <div>
+          <h3>{{ item.title }}</h3>
+          <p class="muted">{{ item.affected_asset }} | {{ item.status }}</p>
+        </div>
+        <span class="badge severity-{{ item.severity | severity_class }}">{{ item.severity }}</span>
+      </div>
+      <dl class="finding-details">
+        <dt>Remediation</dt><dd>{{ item.remediation }}</dd>
+        <dt>Counter-test</dt><dd><pre>{{ item.counter_test }}</pre></dd>
+      </dl>
+    </article>
+    {% else %}
+    <p class="empty">No finding is ready for counter-test.</p>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-title">
     <h2>Findings</h2>
   </div>
   <form class="form-panel compact-form" method="post" action="/missions/{{ view.mission.id }}/findings">

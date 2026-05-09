@@ -65,6 +65,7 @@ Current foundation:
 - mission setup update forms started
 - scope review update forms started
 - manual finding entry started
+- manual finding edit forms started
 - finding status review started
 - report generation from mission pages started
 - mission readiness and safe scan plan previews started

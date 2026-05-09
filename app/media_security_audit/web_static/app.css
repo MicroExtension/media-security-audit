@@ -604,6 +604,12 @@ textarea:focus {
   gap: 5px;
 }
 
+.finding-edit-form {
+  border-top: 1px solid var(--border);
+  margin-top: 14px;
+  padding-top: 14px;
+}
+
 .secondary-button {
   background: #344054;
 }

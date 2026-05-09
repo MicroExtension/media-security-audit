@@ -37,6 +37,7 @@ from media_security_audit.web_forms import (
     new_form_token,
     parse_urlencoded_form,
     update_finding_status_from_form,
+    update_manual_finding_from_form,
     update_mission_from_form,
     update_scope_from_form,
     validate_form_token,
@@ -238,6 +239,16 @@ def create_web_app(
         except (FileNotFoundError, RuntimeError, ValueError, ValidationError) as error:
             return redirect_with_status(f"/missions/{mission_id}", error=format_web_error(error))
         return redirect_with_status(f"/missions/{mission_id}", message="finding added")
+
+    @app.post("/missions/{mission_id}/findings/{finding_id}/details", dependencies=protected)
+    async def finding_update(request: Request, mission_id: str, finding_id: str):
+        try:
+            form = parse_urlencoded_form(await request.body())
+            validate_form_token(form, form_token)
+            update_manual_finding_from_form(store, mission_id, finding_id, form)
+        except (FileNotFoundError, RuntimeError, ValueError, ValidationError) as error:
+            return redirect_with_status(f"/missions/{mission_id}", error=format_web_error(error))
+        return redirect_with_status(f"/missions/{mission_id}", message="finding updated")
 
     @app.post("/missions/{mission_id}/findings/{finding_id}/status", dependencies=protected)
     async def finding_status_update(request: Request, mission_id: str, finding_id: str):

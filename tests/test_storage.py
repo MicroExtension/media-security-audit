@@ -8,11 +8,14 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "app"))
 
 from media_security_audit.models import (  # noqa: E402
     ActivityEvent,
+    AuditCheck,
     Client,
     Finding,
     FindingStatus,
     Mission,
     MissionStatus,
+    ScanRun,
+    ScanRunStatus,
     ScopeItem,
     ScopeType,
     Severity,
@@ -180,6 +183,37 @@ class JsonStoreTests(unittest.TestCase):
         self.assertEqual([event.id for event in events], [second.id, first.id])
         self.assertEqual(events[0].metadata["scope_id"], "scope_1")
         self.assertTrue((data_dir / "events" / mission.id / f"{first.id}.json").exists())
+
+    def test_records_scan_runs_for_mission(self) -> None:
+        data_dir = Path(__file__).resolve().parents[1] / ".tmp-tests" / "storage-runs"
+        store = JsonStore(data_dir)
+        client = store.create_client(Client(name="Client X"))
+        mission = store.create_mission(Mission(client_id=client.id, name="Audit"))
+
+        first = store.add_scan_run(
+            ScanRun(
+                mission_id=mission.id,
+                check=AuditCheck.HTTP_HEADERS,
+                status=ScanRunStatus.COMPLETED,
+                command_count=1,
+                finding_count=2,
+            )
+        )
+        second = store.add_scan_run(
+            ScanRun(
+                mission_id=mission.id,
+                check=AuditCheck.NMAP,
+                status=ScanRunStatus.FAILED,
+                command_count=1,
+                error="nmap failed",
+            )
+        )
+
+        runs = store.list_scan_runs(mission.id)
+
+        self.assertEqual([run.id for run in runs], [second.id, first.id])
+        self.assertEqual(runs[0].status, ScanRunStatus.FAILED)
+        self.assertTrue((data_dir / "runs" / mission.id / f"{first.id}.json").exists())
 
 
 if __name__ == "__main__":

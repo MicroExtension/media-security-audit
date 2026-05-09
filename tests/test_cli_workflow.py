@@ -28,6 +28,7 @@ from media_security_audit.cli import (  # noqa: E402
 from media_security_audit.models import AuditType, MissionStatus, ScopeType, Severity  # noqa: E402
 from media_security_audit.scanners.http_headers import HttpHeaderResponse  # noqa: E402
 from media_security_audit.scanners.nmap import NmapExecutor, nmap_output_path  # noqa: E402
+from media_security_audit.storage import JsonStore  # noqa: E402
 
 
 class CliWorkflowTests(unittest.TestCase):
@@ -158,6 +159,11 @@ class CliWorkflowTests(unittest.TestCase):
         self.assertEqual(len(findings), 2)
         self.assertTrue(any("RDP" in finding.title for finding in findings))
 
+        runs = JsonStore(data_dir).list_scan_runs(mission.id)
+        self.assertEqual([run.check.value for run in runs], ["nmap", "dns_mail", "http_headers"])
+        self.assertTrue(all(run.status.value == "completed" for run in runs))
+        self.assertEqual(runs[0].finding_count, 2)
+
     def test_nmap_run_requires_execute_flag(self) -> None:
         root_dir = Path(__file__).resolve().parents[1] / ".tmp-tests" / "cli-nmap-guard"
         data_dir = root_dir / "data"
@@ -231,6 +237,44 @@ class CliWorkflowTests(unittest.TestCase):
             run_http_headers_audit(mission_id=mission.id, data_dir=data_dir)
 
         self.assertIn("without --execute", str(error.exception))
+
+    def test_http_run_records_failed_execution(self) -> None:
+        root_dir = Path(__file__).resolve().parents[1] / ".tmp-tests" / "cli-http-failed-run"
+        data_dir = root_dir / "data"
+
+        client = create_client(name="Client X", data_dir=data_dir)
+        mission = create_mission(
+            client_id=client.id,
+            name="External audit",
+            audit_type=AuditType.EXTERNAL,
+            authorization_reference="signed-order",
+            data_dir=data_dir,
+        )
+        add_scope(
+            mission_id=mission.id,
+            scope_type=ScopeType.URL,
+            value="https://example.invalid",
+            approved=True,
+            data_dir=data_dir,
+        )
+
+        def failing_fetcher(url: str) -> HttpHeaderResponse:
+            raise RuntimeError(f"request failed: {url}")
+
+        with self.assertRaises(RuntimeError):
+            run_http_headers_audit(
+                mission_id=mission.id,
+                data_dir=data_dir,
+                execute=True,
+                fetcher=failing_fetcher,
+            )
+
+        runs = JsonStore(data_dir).list_scan_runs(mission.id)
+
+        self.assertEqual(len(runs), 1)
+        self.assertEqual(runs[0].check.value, "http_headers")
+        self.assertEqual(runs[0].status.value, "failed")
+        self.assertIn("request failed", runs[0].error or "")
 
     def test_dns_run_requires_execute_flag(self) -> None:
         root_dir = Path(__file__).resolve().parents[1] / ".tmp-tests" / "cli-dns-guard"

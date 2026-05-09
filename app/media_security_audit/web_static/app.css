@@ -218,13 +218,19 @@ tr:last-child td {
   color: var(--green);
 }
 
+.status-completed {
+  background: #e7f6ed;
+  color: var(--green);
+}
+
 .status-warning,
 .status-missing {
   background: #fff1dd;
   color: var(--amber);
 }
 
-.status-blocked {
+.status-blocked,
+.status-failed {
   background: #fde8e7;
   color: var(--red);
 }

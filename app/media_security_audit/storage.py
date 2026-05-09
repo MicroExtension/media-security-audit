@@ -201,7 +201,7 @@ class JsonStore:
 
 
 def compute_mission_status(mission: Mission) -> MissionStatus:
-    if mission.has_approved_scope and mission.is_authorized:
+    if mission.has_approved_scope and mission.is_authorized and mission.selected_checks:
         return MissionStatus.READY_TO_SCAN
     if mission.has_approved_scope:
         return MissionStatus.SCOPE_DEFINED

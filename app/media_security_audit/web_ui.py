@@ -7,7 +7,14 @@ from datetime import datetime
 from html import escape
 from pathlib import Path
 
-from media_security_audit.models import ActivityEvent, Finding, FindingStatus, Mission, ScopeItem
+from media_security_audit.models import (
+    ActivityEvent,
+    AuditCheck,
+    Finding,
+    FindingStatus,
+    Mission,
+    ScopeItem,
+)
 from media_security_audit.reports import (
     build_report_summary,
     remediation_plan,
@@ -98,6 +105,14 @@ class ActivityEventRow:
 
 
 @dataclass(frozen=True)
+class CheckSelectionRow:
+    value: str
+    label: str
+    description: str
+    selected: bool
+
+
+@dataclass(frozen=True)
 class DashboardView:
     clients: list[ClientRow]
     missions: list[MissionRow]
@@ -114,11 +129,25 @@ class MissionView:
     findings: list[FindingRow]
     counter_test_items: list[CounterTestRow]
     activity_events: list[ActivityEventRow]
+    check_selection: list[CheckSelectionRow]
     remediation_items: list[dict[str, str]]
     executive_summary: str
     reports: list[GeneratedReportLink]
     readiness_items: list[ReadinessItem]
     scan_plans: list[ScanPlanPreview]
+
+
+CHECK_LABELS: dict[AuditCheck, str] = {
+    AuditCheck.NMAP: "Nmap services",
+    AuditCheck.HTTP_HEADERS: "HTTP headers",
+    AuditCheck.DNS_MAIL: "DNS/Mail",
+}
+
+CHECK_DESCRIPTIONS: dict[AuditCheck, str] = {
+    AuditCheck.NMAP: "Conservative TCP service discovery on approved IP, host, domain, or CIDR scope.",
+    AuditCheck.HTTP_HEADERS: "Browser security header review on approved URL scope.",
+    AuditCheck.DNS_MAIL: "SPF, DMARC, and explicit DKIM TXT lookup plan on approved domain scope.",
+}
 
 
 def format_datetime(value: datetime) -> str:
@@ -221,6 +250,19 @@ def activity_event_row(event: ActivityEvent) -> ActivityEventRow:
     )
 
 
+def check_selection_rows(mission: Mission) -> list[CheckSelectionRow]:
+    selected = set(mission.selected_checks)
+    return [
+        CheckSelectionRow(
+            value=check.value,
+            label=CHECK_LABELS[check],
+            description=CHECK_DESCRIPTIONS[check],
+            selected=check in selected,
+        )
+        for check in AuditCheck
+    ]
+
+
 def build_dashboard_view(store: JsonStore) -> DashboardView:
     clients = store.list_clients()
     missions = store.list_missions()
@@ -278,6 +320,7 @@ def build_mission_view(
         findings=[finding_row(finding) for finding in sorted_findings(findings)],
         counter_test_items=[counter_test_row(finding) for finding in counter_test_findings(findings)],
         activity_events=[activity_event_row(event) for event in activity_events],
+        check_selection=check_selection_rows(mission),
         remediation_items=remediation_plan(findings),
         executive_summary=str(summary["executive_summary"]),
         reports=reports,

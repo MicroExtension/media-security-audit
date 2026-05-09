@@ -8,6 +8,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "app"))
 
 from media_security_audit.models import (  # noqa: E402
     ActivityEvent,
+    AuditCheck,
     AuditType,
     Client,
     Finding,
@@ -115,7 +116,9 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(view.findings[0].severity, "high")
         self.assertEqual(view.findings[0].review_note, "")
         self.assertEqual(view.reports, [])
-        self.assertEqual(len(view.readiness_items), 4)
+        self.assertEqual(len(view.readiness_items), 5)
+        self.assertEqual(view.check_selection[0].value, "nmap")
+        self.assertTrue(view.check_selection[0].selected)
         self.assertEqual(view.scan_plans[0].label, "Nmap")
         self.assertEqual(view.scan_plans[0].status, "ready")
         self.assertEqual(view.counter_test_items, [])
@@ -189,6 +192,25 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(len(view.activity_events), 1)
         self.assertEqual(view.activity_events[0].action, "mission.created")
         self.assertEqual(view.activity_events[0].summary, "Mission created")
+
+    def test_mission_view_marks_unselected_checks(self) -> None:
+        store = JsonStore(clean_data_dir("web-ui-check-selection"))
+        client = store.create_client(Client(name="Client Checks"))
+        mission = store.create_mission(
+            Mission(
+                client_id=client.id,
+                name="Check Audit",
+                selected_checks=[AuditCheck.DNS_MAIL],
+            )
+        )
+
+        view = build_mission_view(store, mission.id)
+        selected = {item.value: item.selected for item in view.check_selection}
+
+        self.assertFalse(selected["nmap"])
+        self.assertFalse(selected["http_headers"])
+        self.assertTrue(selected["dns_mail"])
+        self.assertEqual([plan.label for plan in view.scan_plans], ["DNS/Mail"])
 
 
 if __name__ == "__main__":

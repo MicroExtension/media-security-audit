@@ -37,6 +37,7 @@ Implemented so far:
 - web manual finding edits with scanner finding protection
 - web counter-test plan for actionable findings
 - web mission activity log for traceability
+- web check selection for mission planning
 
 The first implementation target remains a CLI-driven V1 with a local web
 interface that can set up the mission workflow:
@@ -137,7 +138,7 @@ approval, edit manual findings, generate stored reports, and preview safe scan
 plans. It also shows a counter-test plan for actionable findings. Scan
 execution remains in guarded CLI commands only while the browser workflow is
 being designed. Mission pages include an activity log for web workflow
-traceability.
+traceability and check selection for scan plan previews.
 
 ## Deployment
 
@@ -225,7 +226,7 @@ Planned screens:
 - clients started
 - mission creation started
 - scope management started
-- check selection
+- check selection started
 - run monitor
 - findings review started
 - report generation started

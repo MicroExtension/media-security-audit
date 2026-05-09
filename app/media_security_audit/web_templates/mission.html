@@ -66,6 +66,30 @@
 
 <section class="section">
   <div class="section-title">
+    <h2>Check Selection</h2>
+    <span class="muted">Planning only</span>
+  </div>
+  <form class="form-panel" method="post" action="/missions/{{ view.mission.id }}/checks">
+    <input type="hidden" name="_csrf" value="{{ form_token }}">
+    <div class="check-selection-grid">
+      {% for check in view.check_selection %}
+      <label class="check-selection-option">
+        <input type="checkbox" name="check_{{ check.value }}" {% if check.selected %}checked{% endif %}>
+        <span>
+          <strong>{{ check.label }}</strong>
+          <small>{{ check.description }}</small>
+        </span>
+      </label>
+      {% endfor %}
+    </div>
+    <div class="form-actions">
+      <button class="button secondary-button" type="submit">Update Checks</button>
+    </div>
+  </form>
+</section>
+
+<section class="section">
+  <div class="section-title">
     <h2>Mission Setup</h2>
   </div>
   <form class="form-panel" method="post" action="/missions/{{ view.mission.id }}/details">

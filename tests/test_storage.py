@@ -51,6 +51,26 @@ class JsonStoreTests(unittest.TestCase):
         self.assertEqual(updated.status, MissionStatus.READY_TO_SCAN)
         self.assertTrue(updated.has_approved_scope)
 
+    def test_empty_check_selection_prevents_ready_to_scan_status(self) -> None:
+        data_dir = Path(__file__).resolve().parents[1] / ".tmp-tests" / "storage-status-checks"
+        store = JsonStore(data_dir)
+        client = store.create_client(Client(name="Client X"))
+        mission = store.create_mission(
+            Mission(
+                client_id=client.id,
+                name="Audit",
+                authorization_reference="signed-order",
+                selected_checks=[],
+            )
+        )
+
+        updated = store.add_scope_item(
+            mission.id,
+            ScopeItem(type=ScopeType.DOMAIN, value="example.invalid", approved=True),
+        )
+
+        self.assertEqual(updated.status, MissionStatus.SCOPE_DEFINED)
+
     def test_adds_and_deduplicates_findings(self) -> None:
         data_dir = Path(__file__).resolve().parents[1] / ".tmp-tests" / "storage-findings"
         store = JsonStore(data_dir)

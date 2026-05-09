@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-from media_security_audit.models import Finding, FindingStatus, Mission
+from media_security_audit.models import AuditCheck, Finding, FindingStatus, Mission
 from media_security_audit.scanners.dns_mail import approved_dns_domains, dns_mail_query_plan
 from media_security_audit.scanners.http_headers import approved_http_targets
 from media_security_audit.scanners.nmap import NmapCommandBuilder, render_command
@@ -37,17 +37,21 @@ def build_readiness_items(
     return [
         _authorization_item(mission),
         _approved_scope_item(approved_scope_count),
+        _check_selection_item(mission),
         _finding_review_item(len(findings), new_finding_count),
         _report_item(generated_report_count),
     ]
 
 
 def build_scan_plan_previews(mission: Mission) -> list[ScanPlanPreview]:
-    return [
-        _nmap_preview(mission),
-        _http_preview(mission),
-        _dns_mail_preview(mission),
-    ]
+    plan_builders = {
+        AuditCheck.NMAP: _nmap_preview,
+        AuditCheck.HTTP_HEADERS: _http_preview,
+        AuditCheck.DNS_MAIL: _dns_mail_preview,
+    }
+    if not mission.selected_checks:
+        return [_blocked_plan("Check Selection", "No audit check is selected for this mission.")]
+    return [plan_builders[check](mission) for check in mission.selected_checks]
 
 
 def _authorization_item(mission: Mission) -> ReadinessItem:
@@ -75,6 +79,20 @@ def _approved_scope_item(approved_scope_count: int) -> ReadinessItem:
         label="Approved Scope",
         status="blocked",
         detail="No approved target is available.",
+    )
+
+
+def _check_selection_item(mission: Mission) -> ReadinessItem:
+    if mission.selected_checks:
+        return ReadinessItem(
+            label="Check Selection",
+            status="ready",
+            detail=f"{len(mission.selected_checks)} audit check(s) selected.",
+        )
+    return ReadinessItem(
+        label="Check Selection",
+        status="blocked",
+        detail="No audit check is selected.",
     )
 
 

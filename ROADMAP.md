@@ -69,6 +69,7 @@ Current foundation:
 - finding status review started
 - counter-test plan views started
 - mission activity log started
+- check selection UI started
 - report generation from mission pages started
 - mission readiness and safe scan plan previews started
 - scan execution remains CLI-only

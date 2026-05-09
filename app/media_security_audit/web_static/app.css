@@ -351,6 +351,41 @@ textarea:focus {
   width: auto;
 }
 
+.check-selection-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.check-selection-option {
+  align-items: start;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: #344054;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: auto minmax(0, 1fr);
+  padding: 12px;
+}
+
+.check-selection-option input {
+  margin-top: 2px;
+  min-height: auto;
+  width: auto;
+}
+
+.check-selection-option span {
+  display: grid;
+  gap: 4px;
+}
+
+.check-selection-option small {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
 .form-actions {
   display: flex;
   justify-content: flex-end;

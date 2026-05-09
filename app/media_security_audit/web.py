@@ -9,6 +9,7 @@ from urllib.parse import urlencode
 from pydantic import ValidationError
 
 from media_security_audit.models import (
+    ActivityEvent,
     AuditType,
     FindingStatus,
     ReportFormat,
@@ -28,6 +29,7 @@ from media_security_audit.web_ui import (
     build_mission_view,
     html_escape,
     severity_class,
+    scope_status,
 )
 from media_security_audit.web_forms import (
     add_manual_finding_from_form,
@@ -123,6 +125,21 @@ def create_web_app(
 
     protected = [Depends(require_web_auth)]
 
+    def record_activity(
+        mission_id: str,
+        action: str,
+        summary: str,
+        metadata: dict[str, str] | None = None,
+    ) -> None:
+        store.add_activity_event(
+            ActivityEvent(
+                mission_id=mission_id,
+                action=action,
+                summary=summary,
+                metadata=metadata or {},
+            )
+        )
+
     if STATIC_DIR.exists():
         app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
@@ -164,6 +181,7 @@ def create_web_app(
             form = parse_urlencoded_form(await request.body())
             validate_form_token(form, form_token)
             mission = create_mission_from_form(store, form)
+            record_activity(mission.id, "mission.created", f"Mission created: {mission.name}")
         except (FileNotFoundError, RuntimeError, ValueError, ValidationError) as error:
             return redirect_with_status("/", error=format_web_error(error))
         return redirect_with_status(f"/missions/{mission.id}", message="mission created")
@@ -205,7 +223,8 @@ def create_web_app(
         try:
             form = parse_urlencoded_form(await request.body())
             validate_form_token(form, form_token)
-            update_mission_from_form(store, mission_id, form)
+            mission = update_mission_from_form(store, mission_id, form)
+            record_activity(mission_id, "mission.updated", f"Mission setup updated: {mission.name}")
         except (FileNotFoundError, RuntimeError, ValueError, ValidationError) as error:
             return redirect_with_status(f"/missions/{mission_id}", error=format_web_error(error))
         return redirect_with_status(f"/missions/{mission_id}", message="mission updated")
@@ -215,7 +234,14 @@ def create_web_app(
         try:
             form = parse_urlencoded_form(await request.body())
             validate_form_token(form, form_token)
-            add_scope_from_form(store, mission_id, form)
+            mission = add_scope_from_form(store, mission_id, form)
+            scope_item = mission.scope[-1]
+            record_activity(
+                mission_id,
+                "scope.added",
+                f"Scope added: {scope_item.value}",
+                {"scope_id": scope_item.id, "scope_type": scope_item.type.value},
+            )
         except (FileNotFoundError, RuntimeError, ValueError, ValidationError) as error:
             return redirect_with_status(f"/missions/{mission_id}", error=format_web_error(error))
         return redirect_with_status(f"/missions/{mission_id}", message="scope item added")
@@ -225,7 +251,14 @@ def create_web_app(
         try:
             form = parse_urlencoded_form(await request.body())
             validate_form_token(form, form_token)
-            update_scope_from_form(store, mission_id, scope_id, form)
+            mission = update_scope_from_form(store, mission_id, scope_id, form)
+            scope_item = next(item for item in mission.scope if item.id == scope_id)
+            record_activity(
+                mission_id,
+                "scope.updated",
+                f"Scope updated: {scope_item.value}",
+                {"scope_id": scope_item.id, "scope_status": scope_status(scope_item)},
+            )
         except (FileNotFoundError, RuntimeError, ValueError, ValidationError) as error:
             return redirect_with_status(f"/missions/{mission_id}", error=format_web_error(error))
         return redirect_with_status(f"/missions/{mission_id}", message="scope item updated")
@@ -235,7 +268,13 @@ def create_web_app(
         try:
             form = parse_urlencoded_form(await request.body())
             validate_form_token(form, form_token)
-            add_manual_finding_from_form(store, mission_id, form)
+            finding = add_manual_finding_from_form(store, mission_id, form)
+            record_activity(
+                mission_id,
+                "finding.added",
+                f"Manual finding added: {finding.title}",
+                {"finding_id": finding.id, "severity": finding.severity.value},
+            )
         except (FileNotFoundError, RuntimeError, ValueError, ValidationError) as error:
             return redirect_with_status(f"/missions/{mission_id}", error=format_web_error(error))
         return redirect_with_status(f"/missions/{mission_id}", message="finding added")
@@ -245,7 +284,13 @@ def create_web_app(
         try:
             form = parse_urlencoded_form(await request.body())
             validate_form_token(form, form_token)
-            update_manual_finding_from_form(store, mission_id, finding_id, form)
+            finding = update_manual_finding_from_form(store, mission_id, finding_id, form)
+            record_activity(
+                mission_id,
+                "finding.updated",
+                f"Manual finding updated: {finding.title}",
+                {"finding_id": finding.id, "severity": finding.severity.value},
+            )
         except (FileNotFoundError, RuntimeError, ValueError, ValidationError) as error:
             return redirect_with_status(f"/missions/{mission_id}", error=format_web_error(error))
         return redirect_with_status(f"/missions/{mission_id}", message="finding updated")
@@ -255,7 +300,13 @@ def create_web_app(
         try:
             form = parse_urlencoded_form(await request.body())
             validate_form_token(form, form_token)
-            update_finding_status_from_form(store, mission_id, finding_id, form)
+            finding = update_finding_status_from_form(store, mission_id, finding_id, form)
+            record_activity(
+                mission_id,
+                "finding.status_updated",
+                f"Finding status updated: {finding.title} -> {finding.status.value}",
+                {"finding_id": finding.id, "status": finding.status.value},
+            )
         except (FileNotFoundError, RuntimeError, ValueError, ValidationError) as error:
             return redirect_with_status(f"/missions/{mission_id}", error=format_web_error(error))
         return redirect_with_status(f"/missions/{mission_id}", message="finding status updated")
@@ -265,7 +316,13 @@ def create_web_app(
         try:
             form = parse_urlencoded_form(await request.body())
             validate_form_token(form, form_token)
-            generate_web_reports(store, mission_id, reports_dir)
+            paths = generate_web_reports(store, mission_id, reports_dir)
+            record_activity(
+                mission_id,
+                "reports.generated",
+                f"Generated {len(paths)} report export(s)",
+                {"report_count": str(len(paths))},
+            )
         except (FileNotFoundError, RuntimeError, ValueError, ValidationError) as error:
             return redirect_with_status(f"/missions/{mission_id}", error=format_web_error(error))
         return redirect_with_status(f"/missions/{mission_id}", message="reports generated")

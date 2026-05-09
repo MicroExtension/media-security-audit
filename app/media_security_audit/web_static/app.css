@@ -396,6 +396,26 @@ textarea:focus {
   gap: 12px;
 }
 
+.activity-list {
+  display: grid;
+  gap: 10px;
+}
+
+.activity-item {
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  padding: 12px 14px;
+}
+
+.activity-item p {
+  margin: 0;
+}
+
 .scope-card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -695,5 +715,10 @@ code {
   .scope-card-actions {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .activity-item {
+    align-items: start;
+    grid-template-columns: 1fr;
   }
 }

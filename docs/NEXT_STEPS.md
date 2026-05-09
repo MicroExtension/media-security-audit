@@ -297,6 +297,7 @@ Current GUI status:
 - manual findings can be edited from mission pages
 - finding status can be reviewed from mission pages
 - counter-test plans are visible from mission pages
+- mission activity events are recorded and visible from mission pages
 - reviewed reports can be generated from mission pages
 - mission readiness and safe scan plan previews are visible from mission pages
 - scan execution remains CLI-only

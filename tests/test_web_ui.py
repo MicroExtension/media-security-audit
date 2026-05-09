@@ -7,6 +7,7 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "app"))
 
 from media_security_audit.models import (  # noqa: E402
+    ActivityEvent,
     AuditType,
     Client,
     Finding,
@@ -118,6 +119,7 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(view.scan_plans[0].label, "Nmap")
         self.assertEqual(view.scan_plans[0].status, "ready")
         self.assertEqual(view.counter_test_items, [])
+        self.assertEqual(view.activity_events, [])
         self.assertEqual(len(view.remediation_items), 1)
         self.assertIn("High-priority", view.executive_summary)
 
@@ -169,6 +171,24 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(len(view.counter_test_items), 1)
         self.assertEqual(view.counter_test_items[0].title, "Confirmed finding")
         self.assertEqual(view.counter_test_items[0].status, "confirmed")
+
+    def test_mission_view_includes_activity_events(self) -> None:
+        store = JsonStore(clean_data_dir("web-ui-activity"))
+        client = store.create_client(Client(name="Client Activity"))
+        mission = store.create_mission(Mission(client_id=client.id, name="Activity Audit"))
+        store.add_activity_event(
+            ActivityEvent(
+                mission_id=mission.id,
+                action="mission.created",
+                summary="Mission created",
+            )
+        )
+
+        view = build_mission_view(store, mission.id)
+
+        self.assertEqual(len(view.activity_events), 1)
+        self.assertEqual(view.activity_events[0].action, "mission.created")
+        self.assertEqual(view.activity_events[0].summary, "Mission created")
 
 
 if __name__ == "__main__":

@@ -242,3 +242,21 @@ class Report(BaseModel):
     finding_count: int
     output_path: str | None = None
 
+
+class ActivityEvent(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: str = Field(default_factory=lambda: new_id("event"))
+    mission_id: str
+    action: str
+    summary: str
+    created_at: datetime = Field(default_factory=utc_now)
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+    @field_validator("mission_id", "action", "summary")
+    @classmethod
+    def require_activity_text(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("activity event text fields cannot be empty")
+        return value

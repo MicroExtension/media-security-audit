@@ -36,6 +36,7 @@ Implemented so far:
 - web manual finding entry for structured technician observations
 - web manual finding edits with scanner finding protection
 - web counter-test plan for actionable findings
+- web mission activity log for traceability
 
 The first implementation target remains a CLI-driven V1 with a local web
 interface that can set up the mission workflow:
@@ -135,7 +136,8 @@ findings, add manual findings, update mission setup details, review scope
 approval, edit manual findings, generate stored reports, and preview safe scan
 plans. It also shows a counter-test plan for actionable findings. Scan
 execution remains in guarded CLI commands only while the browser workflow is
-being designed.
+being designed. Mission pages include an activity log for web workflow
+traceability.
 
 ## Deployment
 

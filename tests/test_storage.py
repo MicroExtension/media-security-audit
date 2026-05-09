@@ -7,6 +7,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "app"))
 
 from media_security_audit.models import (  # noqa: E402
+    ActivityEvent,
     Client,
     Finding,
     FindingStatus,
@@ -131,6 +132,34 @@ class JsonStoreTests(unittest.TestCase):
             store.get_finding(mission.id, finding.id).status,
             FindingStatus.FALSE_POSITIVE,
         )
+
+    def test_records_activity_events_for_mission(self) -> None:
+        data_dir = Path(__file__).resolve().parents[1] / ".tmp-tests" / "storage-activity"
+        store = JsonStore(data_dir)
+        client = store.create_client(Client(name="Client X"))
+        mission = store.create_mission(Mission(client_id=client.id, name="Audit"))
+
+        first = store.add_activity_event(
+            ActivityEvent(
+                mission_id=mission.id,
+                action="mission.created",
+                summary="Mission created",
+            )
+        )
+        second = store.add_activity_event(
+            ActivityEvent(
+                mission_id=mission.id,
+                action="scope.added",
+                summary="Scope added",
+                metadata={"scope_id": "scope_1"},
+            )
+        )
+
+        events = store.list_activity_events(mission.id)
+
+        self.assertEqual([event.id for event in events], [second.id, first.id])
+        self.assertEqual(events[0].metadata["scope_id"], "scope_1")
+        self.assertTrue((data_dir / "events" / mission.id / f"{first.id}.json").exists())
 
 
 if __name__ == "__main__":

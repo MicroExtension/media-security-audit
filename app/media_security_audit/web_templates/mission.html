@@ -118,6 +118,23 @@
   </div>
 </section>
 
+<section class="section">
+  <div class="section-title">
+    <h2>Activity</h2>
+  </div>
+  <div class="activity-list">
+    {% for event in view.activity_events %}
+    <div class="activity-item">
+      <span class="badge">{{ event.action }}</span>
+      <p>{{ event.summary }}</p>
+      <span class="muted">{{ event.created_at }}</span>
+    </div>
+    {% else %}
+    <p class="empty">No activity event recorded yet.</p>
+    {% endfor %}
+  </div>
+</section>
+
 <section class="section two-column">
   <div>
     <div class="section-title">

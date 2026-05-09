@@ -7,7 +7,7 @@ from datetime import datetime
 from html import escape
 from pathlib import Path
 
-from media_security_audit.models import Finding, FindingStatus, Mission, ScopeItem
+from media_security_audit.models import ActivityEvent, Finding, FindingStatus, Mission, ScopeItem
 from media_security_audit.reports import (
     build_report_summary,
     remediation_plan,
@@ -90,6 +90,14 @@ class CounterTestRow:
 
 
 @dataclass(frozen=True)
+class ActivityEventRow:
+    id: str
+    action: str
+    summary: str
+    created_at: str
+
+
+@dataclass(frozen=True)
 class DashboardView:
     clients: list[ClientRow]
     missions: list[MissionRow]
@@ -105,6 +113,7 @@ class MissionView:
     scope: list[ScopeRow]
     findings: list[FindingRow]
     counter_test_items: list[CounterTestRow]
+    activity_events: list[ActivityEventRow]
     remediation_items: list[dict[str, str]]
     executive_summary: str
     reports: list[GeneratedReportLink]
@@ -203,6 +212,15 @@ def counter_test_findings(findings: list[Finding]) -> list[Finding]:
     return [finding for finding in sorted_findings(findings) if finding.status in actionable_statuses]
 
 
+def activity_event_row(event: ActivityEvent) -> ActivityEventRow:
+    return ActivityEventRow(
+        id=event.id,
+        action=event.action,
+        summary=event.summary,
+        created_at=format_datetime(event.created_at),
+    )
+
+
 def build_dashboard_view(store: JsonStore) -> DashboardView:
     clients = store.list_clients()
     missions = store.list_missions()
@@ -250,6 +268,7 @@ def build_mission_view(
 ) -> MissionView:
     mission = store.get_mission(mission_id)
     findings = store.list_findings(mission_id)
+    activity_events = store.list_activity_events(mission_id)
     summary = build_report_summary(mission, findings)
     reports = list_generated_reports(mission_id, reports_dir) if reports_dir else []
 
@@ -258,6 +277,7 @@ def build_mission_view(
         scope=[scope_row(item) for item in mission.scope],
         findings=[finding_row(finding) for finding in sorted_findings(findings)],
         counter_test_items=[counter_test_row(finding) for finding in counter_test_findings(findings)],
+        activity_events=[activity_event_row(event) for event in activity_events],
         remediation_items=remediation_plan(findings),
         executive_summary=str(summary["executive_summary"]),
         reports=reports,

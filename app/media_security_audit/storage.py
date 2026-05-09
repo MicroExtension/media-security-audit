@@ -9,6 +9,7 @@ from typing import TypeVar
 from pydantic import BaseModel
 
 from media_security_audit.models import (
+    ActivityEvent,
     Client,
     Finding,
     FindingStatus,
@@ -30,11 +31,13 @@ class JsonStore:
         self.clients_dir = self.data_dir / "clients"
         self.missions_dir = self.data_dir / "missions"
         self.findings_dir = self.data_dir / "findings"
+        self.events_dir = self.data_dir / "events"
 
     def ensure(self) -> None:
         self.clients_dir.mkdir(parents=True, exist_ok=True)
         self.missions_dir.mkdir(parents=True, exist_ok=True)
         self.findings_dir.mkdir(parents=True, exist_ok=True)
+        self.events_dir.mkdir(parents=True, exist_ok=True)
 
     def create_client(self, client: Client) -> Client:
         self.ensure()
@@ -146,6 +149,21 @@ class JsonStore:
         updated = finding.model_copy(update={"status": status, "metadata": metadata})
         return self.save_finding(mission_id, updated)
 
+    def add_activity_event(self, event: ActivityEvent) -> ActivityEvent:
+        self.get_mission(event.mission_id)
+        self._write_model(self._mission_events_dir(event.mission_id) / f"{event.id}.json", event)
+        return event
+
+    def list_activity_events(self, mission_id: str) -> list[ActivityEvent]:
+        self.get_mission(mission_id)
+        directory = self._mission_events_dir(mission_id)
+        directory.mkdir(parents=True, exist_ok=True)
+        return sorted(
+            self._list_models(directory, ActivityEvent),
+            key=lambda item: item.created_at,
+            reverse=True,
+        )
+
     def _write_model(self, path: Path, model: ModelT) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(
@@ -171,6 +189,9 @@ class JsonStore:
 
     def _mission_findings_dir(self, mission_id: str) -> Path:
         return self.findings_dir / mission_id
+
+    def _mission_events_dir(self, mission_id: str) -> Path:
+        return self.events_dir / mission_id
 
     def _write_findings(self, mission_id: str, findings: list[Finding]) -> None:
         directory = self._mission_findings_dir(mission_id)

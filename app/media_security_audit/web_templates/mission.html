@@ -230,6 +230,54 @@
   <div class="section-title">
     <h2>Findings</h2>
   </div>
+  <form class="form-panel compact-form" method="post" action="/missions/{{ view.mission.id }}/findings">
+    <input type="hidden" name="_csrf" value="{{ form_token }}">
+    <div class="field-grid">
+      <label class="span-2">
+        <span>Title</span>
+        <input name="title" required>
+      </label>
+      <label>
+        <span>Severity</span>
+        <select name="severity" required>
+          {% for severity in severities %}
+          <option value="{{ severity }}">{{ severity }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>
+        <span>Confidence</span>
+        <input name="confidence" type="number" min="0" max="1" step="0.05" value="0.8">
+      </label>
+      <label>
+        <span>Affected Asset</span>
+        <input name="affected_asset" required>
+      </label>
+      <label>
+        <span>Category</span>
+        <input name="category" value="manual">
+      </label>
+      <label class="span-2">
+        <span>Proof</span>
+        <textarea name="proof" rows="3" required></textarea>
+      </label>
+      <label class="span-2">
+        <span>Risk</span>
+        <textarea name="risk" rows="2" required></textarea>
+      </label>
+      <label class="span-2">
+        <span>Remediation</span>
+        <textarea name="remediation" rows="2" required></textarea>
+      </label>
+      <label class="span-2">
+        <span>Counter-test</span>
+        <textarea name="counter_test" rows="2" required></textarea>
+      </label>
+    </div>
+    <div class="form-actions">
+      <button class="button" type="submit">Add Finding</button>
+    </div>
+  </form>
   <div class="finding-list">
     {% for finding in view.findings %}
     <article class="finding severity-border-{{ finding.severity | severity_class }}">

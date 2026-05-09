@@ -14,6 +14,7 @@ from media_security_audit.models import (
     ReportFormat,
     ScopeEnvironment,
     ScopeType,
+    Severity,
 )
 from media_security_audit.reports import render_html
 from media_security_audit.storage import JsonStore
@@ -29,6 +30,7 @@ from media_security_audit.web_ui import (
     severity_class,
 )
 from media_security_audit.web_forms import (
+    add_manual_finding_from_form,
     add_scope_from_form,
     create_client_from_form,
     create_mission_from_form,
@@ -189,6 +191,7 @@ def create_web_app(
                     "scope_types": [item.value for item in ScopeType],
                     "scope_environments": [item.value for item in ScopeEnvironment],
                     "finding_statuses": [item.value for item in FindingStatus],
+                    "severities": [item.value for item in Severity],
                     "form_token": form_token,
                     "message": message,
                     "error": error,
@@ -225,6 +228,16 @@ def create_web_app(
         except (FileNotFoundError, RuntimeError, ValueError, ValidationError) as error:
             return redirect_with_status(f"/missions/{mission_id}", error=format_web_error(error))
         return redirect_with_status(f"/missions/{mission_id}", message="scope item updated")
+
+    @app.post("/missions/{mission_id}/findings", dependencies=protected)
+    async def finding_create(request: Request, mission_id: str):
+        try:
+            form = parse_urlencoded_form(await request.body())
+            validate_form_token(form, form_token)
+            add_manual_finding_from_form(store, mission_id, form)
+        except (FileNotFoundError, RuntimeError, ValueError, ValidationError) as error:
+            return redirect_with_status(f"/missions/{mission_id}", error=format_web_error(error))
+        return redirect_with_status(f"/missions/{mission_id}", message="finding added")
 
     @app.post("/missions/{mission_id}/findings/{finding_id}/status", dependencies=protected)
     async def finding_status_update(request: Request, mission_id: str, finding_id: str):

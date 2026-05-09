@@ -14,6 +14,7 @@ from media_security_audit.models import (
     ScopeEnvironment,
     ScopeItem,
     ScopeType,
+    Severity,
 )
 from media_security_audit.storage import JsonStore
 
@@ -98,6 +99,24 @@ def update_scope_from_form(
     return store.update_scope_item(mission_id, updated)
 
 
+def add_manual_finding_from_form(store: JsonStore, mission_id: str, form: dict[str, str]) -> Finding:
+    return store.add_finding(
+        mission_id,
+        Finding(
+            title=required_text(form, "title", "finding title"),
+            severity=Severity(required_text(form, "severity", "severity")),
+            affected_asset=required_text(form, "affected_asset", "affected asset"),
+            category=optional_text(form, "category") or "manual",
+            source_module="manual",
+            proof=required_text(form, "proof", "proof"),
+            risk=required_text(form, "risk", "risk"),
+            remediation=required_text(form, "remediation", "remediation"),
+            counter_test=required_text(form, "counter_test", "counter-test"),
+            confidence=parse_confidence(optional_text(form, "confidence")),
+        ),
+    )
+
+
 def update_finding_status_from_form(
     store: JsonStore,
     mission_id: str,
@@ -126,6 +145,15 @@ def optional_text(form: dict[str, str], field: str) -> str | None:
 
 def parse_checkbox(form: dict[str, str], field: str) -> bool:
     return form.get(field, "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def parse_confidence(value: str | None) -> float:
+    if value is None:
+        return 0.8
+    try:
+        return float(value)
+    except ValueError as error:
+        raise ValueError("confidence must be a number between 0 and 1") from error
 
 
 def new_form_token() -> str:

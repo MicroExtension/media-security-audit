@@ -9,11 +9,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "app"))
 from media_security_audit.models import AuditType, Finding, ScopeType, Severity  # noqa: E402
 from media_security_audit.storage import JsonStore  # noqa: E402
 from media_security_audit.web_forms import (  # noqa: E402
+    add_manual_finding_from_form,
     add_scope_from_form,
     create_client_from_form,
     create_mission_from_form,
     new_form_token,
     parse_checkbox,
+    parse_confidence,
     parse_urlencoded_form,
     update_finding_status_from_form,
     update_mission_from_form,
@@ -212,6 +214,68 @@ class WebFormTests(unittest.TestCase):
                 },
             )
 
+    def test_add_manual_finding_from_form(self) -> None:
+        store = JsonStore(clean_data_dir("web-form-manual-finding"))
+        client = create_client_from_form(store, {"name": "Client X"})
+        mission = create_mission_from_form(
+            store,
+            {
+                "client_id": client.id,
+                "name": "Audit externe",
+                "audit_type": "external",
+            },
+        )
+
+        finding = add_manual_finding_from_form(
+            store,
+            mission.id,
+            {
+                "title": " Administrative interface exposed ",
+                "severity": "medium",
+                "affected_asset": "https://admin.client.example",
+                "category": "",
+                "proof": "Admin login page observed.",
+                "risk": "Attack surface is increased.",
+                "remediation": "Restrict access to trusted sources.",
+                "counter_test": "Open the URL again from the audited network.",
+                "confidence": "0.7",
+            },
+        )
+
+        self.assertEqual(finding.title, "Administrative interface exposed")
+        self.assertEqual(finding.severity, Severity.MEDIUM)
+        self.assertEqual(finding.category, "manual")
+        self.assertEqual(finding.source_module, "manual")
+        self.assertEqual(finding.confidence, 0.7)
+        self.assertEqual(len(store.list_findings(mission.id)), 1)
+
+    def test_add_manual_finding_requires_structured_fields(self) -> None:
+        store = JsonStore(clean_data_dir("web-form-invalid-manual-finding"))
+        client = create_client_from_form(store, {"name": "Client X"})
+        mission = create_mission_from_form(
+            store,
+            {
+                "client_id": client.id,
+                "name": "Audit externe",
+                "audit_type": "external",
+            },
+        )
+
+        with self.assertRaises(ValueError):
+            add_manual_finding_from_form(
+                store,
+                mission.id,
+                {
+                    "title": "",
+                    "severity": "low",
+                    "affected_asset": "client.example",
+                    "proof": "Observed manually.",
+                    "risk": "Risk pending review.",
+                    "remediation": "Apply remediation.",
+                    "counter_test": "Repeat the check.",
+                },
+            )
+
     def test_update_mission_from_form_recomputes_status(self) -> None:
         store = JsonStore(clean_data_dir("web-form-mission-update"))
         client = create_client_from_form(store, {"name": "Client X"})
@@ -255,6 +319,12 @@ class WebFormTests(unittest.TestCase):
         self.assertTrue(parse_checkbox({"approved": "on"}, "approved"))
         self.assertTrue(parse_checkbox({"approved": "true"}, "approved"))
         self.assertFalse(parse_checkbox({}, "approved"))
+
+    def test_parse_confidence(self) -> None:
+        self.assertEqual(parse_confidence(None), 0.8)
+        self.assertEqual(parse_confidence("0.4"), 0.4)
+        with self.assertRaises(ValueError):
+            parse_confidence("high")
 
     def test_form_token_validation(self) -> None:
         token = new_form_token()

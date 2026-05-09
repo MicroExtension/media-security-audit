@@ -40,12 +40,14 @@ class MissionRow:
     audit_type: str
     status: str
     authorization_present: bool
+    authorization_reference: str
     scope_count: int
     approved_scope_count: int
     finding_count: int
     risk_score: int
     risk_level: str
     severity_counts: dict[str, int]
+    notes: str
     created_at: str
 
 
@@ -127,12 +129,14 @@ def mission_row(mission: Mission, findings: list[Finding], client_names: dict[st
         audit_type=mission.audit_type.value,
         status=mission.status.value,
         authorization_present=mission.is_authorized,
+        authorization_reference=mission.authorization_reference or "",
         scope_count=len(mission.scope),
         approved_scope_count=approved_scope_count,
         finding_count=len(findings),
         risk_score=int(summary["risk_score"]),
         risk_level=str(summary["risk_level"]),
         severity_counts=dict(active_counts),
+        notes=mission.notes or "",
         created_at=format_datetime(mission.created_at),
     )
 

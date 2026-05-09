@@ -35,6 +35,7 @@ from media_security_audit.web_forms import (
     new_form_token,
     parse_urlencoded_form,
     update_finding_status_from_form,
+    update_mission_from_form,
     validate_form_token,
 )
 from media_security_audit.web_reports import generate_web_reports, generated_report_file
@@ -183,6 +184,7 @@ def create_web_app(
                     "request": request,
                     "data_dir": data_dir,
                     "view": view,
+                    "audit_types": [item.value for item in AuditType],
                     "scope_types": [item.value for item in ScopeType],
                     "scope_environments": [item.value for item in ScopeEnvironment],
                     "finding_statuses": [item.value for item in FindingStatus],
@@ -192,6 +194,16 @@ def create_web_app(
                 },
             )
         )
+
+    @app.post("/missions/{mission_id}/details", dependencies=protected)
+    async def mission_update(request: Request, mission_id: str):
+        try:
+            form = parse_urlencoded_form(await request.body())
+            validate_form_token(form, form_token)
+            update_mission_from_form(store, mission_id, form)
+        except (FileNotFoundError, RuntimeError, ValueError, ValidationError) as error:
+            return redirect_with_status(f"/missions/{mission_id}", error=format_web_error(error))
+        return redirect_with_status(f"/missions/{mission_id}", message="mission updated")
 
     @app.post("/missions/{mission_id}/scope", dependencies=protected)
     async def scope_create(request: Request, mission_id: str):

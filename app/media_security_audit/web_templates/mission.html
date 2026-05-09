@@ -66,6 +66,40 @@
 
 <section class="section">
   <div class="section-title">
+    <h2>Mission Setup</h2>
+  </div>
+  <form class="form-panel" method="post" action="/missions/{{ view.mission.id }}/details">
+    <input type="hidden" name="_csrf" value="{{ form_token }}">
+    <div class="field-grid">
+      <label>
+        <span>Name</span>
+        <input name="name" value="{{ view.mission.name }}" required>
+      </label>
+      <label>
+        <span>Audit Type</span>
+        <select name="audit_type" required>
+          {% for audit_type in audit_types %}
+          <option value="{{ audit_type }}" {% if audit_type == view.mission.audit_type %}selected{% endif %}>{{ audit_type }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label class="span-2">
+        <span>Authorization Reference</span>
+        <input name="authorization_reference" value="{{ view.mission.authorization_reference }}">
+      </label>
+      <label class="span-2">
+        <span>Notes</span>
+        <textarea name="notes" rows="3">{{ view.mission.notes }}</textarea>
+      </label>
+    </div>
+    <div class="form-actions">
+      <button class="button" type="submit">Update Mission</button>
+    </div>
+  </form>
+</section>
+
+<section class="section">
+  <div class="section-title">
     <h2>Reports</h2>
   </div>
   <div class="report-panel">

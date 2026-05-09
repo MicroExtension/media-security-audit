@@ -16,6 +16,7 @@ from media_security_audit.web_forms import (  # noqa: E402
     parse_checkbox,
     parse_urlencoded_form,
     update_finding_status_from_form,
+    update_mission_from_form,
     validate_form_token,
 )
 
@@ -120,6 +121,45 @@ class WebFormTests(unittest.TestCase):
                     "excluded": "on",
                 },
             )
+
+    def test_update_mission_from_form_recomputes_status(self) -> None:
+        store = JsonStore(clean_data_dir("web-form-mission-update"))
+        client = create_client_from_form(store, {"name": "Client X"})
+        mission = create_mission_from_form(
+            store,
+            {
+                "client_id": client.id,
+                "name": "Audit draft",
+                "audit_type": "external",
+            },
+        )
+        add_scope_from_form(
+            store,
+            mission.id,
+            {
+                "scope_type": "domain",
+                "value": "client.example",
+                "environment": "external",
+                "approved": "on",
+            },
+        )
+
+        updated = update_mission_from_form(
+            store,
+            mission.id,
+            {
+                "name": " Audit externe ",
+                "audit_type": "mixed",
+                "authorization_reference": " AUTH-002 ",
+                "notes": " Validate with client ",
+            },
+        )
+
+        self.assertEqual(updated.name, "Audit externe")
+        self.assertEqual(updated.audit_type.value, "mixed")
+        self.assertEqual(updated.authorization_reference, "AUTH-002")
+        self.assertEqual(updated.notes, "Validate with client")
+        self.assertEqual(updated.status.value, "ready_to_scan")
 
     def test_parse_checkbox(self) -> None:
         self.assertTrue(parse_checkbox({"approved": "on"}, "approved"))

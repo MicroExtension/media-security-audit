@@ -18,6 +18,7 @@ from media_security_audit.models import (  # noqa: E402
     Severity,
 )
 from media_security_audit.storage import JsonStore  # noqa: E402
+from media_security_audit.web_authorization import generate_authorization_brief  # noqa: E402
 from media_security_audit.web_exports import (  # noqa: E402
     generate_mission_export,
     list_mission_export,
@@ -72,6 +73,7 @@ class WebExportTests(unittest.TestCase):
             )
         )
         generate_web_reports(store, mission.id, reports_dir)
+        generate_authorization_brief(store, mission.id, reports_dir)
 
         export_path = generate_mission_export(store, mission.id, reports_dir)
 
@@ -83,11 +85,19 @@ class WebExportTests(unittest.TestCase):
 
         self.assertEqual(manifest["mission_id"], mission.id)
         self.assertEqual(manifest["finding_count"], 1)
+        self.assertEqual(
+            manifest["authorization_briefs"],
+            [
+                f"authorization/{mission.id}-authorization-brief.md",
+                f"authorization/{mission.id}-authorization-brief.html",
+            ],
+        )
         self.assertIn("data/client.json", names)
         self.assertIn("data/mission.json", names)
         self.assertIn(f"data/findings/{finding.id}.json", names)
         self.assertIn(f"data/activity/{event.id}.json", names)
         self.assertIn(f"data/runs/{run.id}.json", names)
+        self.assertIn(f"authorization/{mission.id}-authorization-brief.md", names)
         self.assertIn(f"reports/{mission.id}.json", names)
         self.assertIn(f"reports/{mission.id}.html", names)
 

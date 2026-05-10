@@ -19,6 +19,11 @@ from media_security_audit.models import (
 )
 from media_security_audit.reports import render_html
 from media_security_audit.storage import JsonStore
+from media_security_audit.web_authorization import (
+    AuthorizationBriefFormat,
+    authorization_brief_file,
+    generate_authorization_brief,
+)
 from media_security_audit.web_auth import (
     WebAuthSettings,
     valid_credentials,
@@ -369,6 +374,34 @@ def create_web_app(
         except (FileNotFoundError, RuntimeError, ValueError, ValidationError) as error:
             return redirect_with_status(f"/missions/{mission_id}", error=format_web_error(error))
         return redirect_with_status(f"/missions/{mission_id}", message="reports generated")
+
+    @app.post("/missions/{mission_id}/authorization-brief", dependencies=protected)
+    async def authorization_brief_generate(request: Request, mission_id: str):
+        try:
+            form = parse_urlencoded_form(await request.body())
+            validate_form_token(form, form_token)
+            paths = generate_authorization_brief(store, mission_id, reports_dir)
+            record_activity(
+                mission_id,
+                "authorization_brief.generated",
+                f"Generated {len(paths)} authorization brief export(s)",
+                {"brief_count": str(len(paths))},
+            )
+        except (FileNotFoundError, RuntimeError, ValueError, ValidationError) as error:
+            return redirect_with_status(f"/missions/{mission_id}", error=format_web_error(error))
+        return redirect_with_status(f"/missions/{mission_id}", message="authorization brief generated")
+
+    @app.get("/missions/{mission_id}/authorization-brief/{brief_format}", dependencies=protected)
+    def authorization_brief_download(
+        mission_id: str,
+        brief_format: AuthorizationBriefFormat,
+    ) -> FileResponse:
+        try:
+            store.get_mission(mission_id)
+            path = authorization_brief_file(reports_dir, mission_id, brief_format)
+        except FileNotFoundError as error:
+            raise HTTPException(status_code=404, detail=str(error)) from error
+        return FileResponse(path)
 
     @app.post("/missions/{mission_id}/export", dependencies=protected)
     async def mission_export_generate(request: Request, mission_id: str):

@@ -71,6 +71,7 @@ Current foundation:
 - mission activity log started
 - check selection UI started
 - structured authorization tracking started
+- authorization brief exports started
 - run monitor started
 - system status page started
 - report generation from mission pages started

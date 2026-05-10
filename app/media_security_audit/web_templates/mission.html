@@ -190,6 +190,20 @@
     <h2>Reports</h2>
   </div>
   <div class="report-panel">
+    <form method="post" action="/missions/{{ view.mission.id }}/authorization-brief">
+      <input type="hidden" name="_csrf" value="{{ form_token }}">
+      <button class="button secondary-button" type="submit">Generate Authorization Brief</button>
+    </form>
+    <div class="report-links">
+      {% for brief in view.authorization_briefs %}
+      <a href="/missions/{{ view.mission.id }}/authorization-brief/{{ brief.format }}">{{ brief.format }}</a>
+      <span class="muted">{{ brief.filename }} | {{ brief.size_bytes }} bytes</span>
+      {% else %}
+      <span class="empty">No authorization brief yet.</span>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="report-panel">
     <form method="post" action="/missions/{{ view.mission.id }}/reports">
       <input type="hidden" name="_csrf" value="{{ form_token }}">
       <button class="button" type="submit">Generate Reports</button>

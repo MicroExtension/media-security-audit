@@ -28,6 +28,10 @@ from media_security_audit.web_readiness import (
     build_readiness_items,
     build_scan_plan_previews,
 )
+from media_security_audit.web_authorization import (
+    AuthorizationBriefLink,
+    list_authorization_briefs,
+)
 from media_security_audit.web_exports import MissionExportLink, list_mission_export
 from media_security_audit.web_reports import GeneratedReportLink, list_generated_reports
 
@@ -153,6 +157,7 @@ class MissionView:
     scan_runs: list[ScanRunRow]
     remediation_items: list[dict[str, str]]
     executive_summary: str
+    authorization_briefs: list[AuthorizationBriefLink]
     reports: list[GeneratedReportLink]
     mission_export: MissionExportLink | None
     readiness_items: list[ReadinessItem]
@@ -362,6 +367,7 @@ def build_mission_view(
     activity_events = store.list_activity_events(mission_id)
     scan_runs = store.list_scan_runs(mission_id)
     summary = build_report_summary(mission, findings)
+    authorization_briefs = list_authorization_briefs(mission_id, reports_dir) if reports_dir else []
     reports = list_generated_reports(mission_id, reports_dir) if reports_dir else []
     mission_export = list_mission_export(mission_id, reports_dir) if reports_dir else None
 
@@ -375,6 +381,7 @@ def build_mission_view(
         scan_runs=[scan_run_row(run) for run in scan_runs],
         remediation_items=remediation_plan(findings),
         executive_summary=str(summary["executive_summary"]),
+        authorization_briefs=authorization_briefs,
         reports=reports,
         mission_export=mission_export,
         readiness_items=build_readiness_items(mission, findings, len(reports)),

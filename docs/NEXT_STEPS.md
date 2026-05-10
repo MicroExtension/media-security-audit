@@ -220,6 +220,7 @@ Owner action later:
 Codex action:
 - add authorization tracking fields: done
 - add report references to authorization id: done
+- add authorization brief export for pre-audit review: done
 - block scans when authorization is missing where required
 
 Current authorization metadata fields:
@@ -308,6 +309,7 @@ Current GUI status:
 - counter-test plans are visible from mission pages
 - mission activity events are recorded and visible from mission pages
 - mission authorization details are editable from mission pages
+- authorization briefs can be generated from mission pages
 - audit checks can be selected from mission pages for planning
 - CLI scan runs are recorded and visible in the mission Run Monitor
 - system status shows local storage, authentication, and tool availability

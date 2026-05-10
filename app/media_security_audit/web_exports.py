@@ -11,6 +11,10 @@ from pydantic import BaseModel
 
 from media_security_audit.models import ReportFormat, utc_now
 from media_security_audit.storage import JsonStore
+from media_security_audit.web_authorization import (
+    AuthorizationBriefFormat,
+    authorization_brief_path,
+)
 from media_security_audit.web_reports import (
     mission_report_dir,
     mission_report_path,
@@ -46,6 +50,14 @@ def generate_mission_export(store: JsonStore, mission_id: str, reports_dir: Path
         )
         if path.exists() and path.is_file()
     ]
+    authorization_brief_paths = [
+        path
+        for path in (
+            authorization_brief_path(reports_dir, mission_id, brief_format)
+            for brief_format in AuthorizationBriefFormat
+        )
+        if path.exists() and path.is_file()
+    ]
 
     output_path = mission_export_path(reports_dir, mission_id)
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -57,6 +69,9 @@ def generate_mission_export(store: JsonStore, mission_id: str, reports_dir: Path
         "activity_event_count": len(activity_events),
         "scan_run_count": len(scan_runs),
         "reports": [f"reports/{path.name}" for path in report_paths],
+        "authorization_briefs": [
+            f"authorization/{path.name}" for path in authorization_brief_paths
+        ],
     }
 
     with ZipFile(output_path, mode="w", compression=ZIP_DEFLATED) as archive:
@@ -70,6 +85,8 @@ def generate_mission_export(store: JsonStore, mission_id: str, reports_dir: Path
             archive.writestr(f"data/activity/{event.id}.json", model_json(event))
         for run in scan_runs:
             archive.writestr(f"data/runs/{run.id}.json", model_json(run))
+        for path in authorization_brief_paths:
+            archive.write(path, f"authorization/{path.name}")
         for path in report_paths:
             archive.write(path, f"reports/{path.name}")
 

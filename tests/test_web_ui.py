@@ -23,6 +23,7 @@ from media_security_audit.models import (  # noqa: E402
     Severity,
 )
 from media_security_audit.storage import JsonStore  # noqa: E402
+from media_security_audit.web_authorization import generate_authorization_brief  # noqa: E402
 from media_security_audit.web_exports import generate_mission_export  # noqa: E402
 from media_security_audit.web_ui import build_dashboard_view, build_mission_view  # noqa: E402
 
@@ -263,6 +264,27 @@ class WebUiTests(unittest.TestCase):
 
         self.assertIsNotNone(view.mission_export)
         self.assertEqual(view.mission_export.filename, f"{mission.id}-package.zip")
+
+    def test_mission_view_includes_authorization_brief_links(self) -> None:
+        store = JsonStore(clean_data_dir("web-ui-authorization-data"))
+        reports_dir = clean_data_dir("web-ui-authorization-reports")
+        client = store.create_client(Client(name="Client Authorization"))
+        mission = store.create_mission(
+            Mission(
+                client_id=client.id,
+                name="Authorization Audit",
+                authorization_reference="AUTH-004",
+            )
+        )
+        generate_authorization_brief(store, mission.id, reports_dir)
+
+        view = build_mission_view(store, mission.id, reports_dir=reports_dir)
+
+        self.assertEqual([brief.format for brief in view.authorization_briefs], ["markdown", "html"])
+        self.assertEqual(
+            view.authorization_briefs[0].filename,
+            f"{mission.id}-authorization-brief.md",
+        )
 
 
 if __name__ == "__main__":

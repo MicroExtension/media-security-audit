@@ -30,7 +30,10 @@ from media_security_audit.web_auth import (
     web_auth_settings_from_env,
 )
 from media_security_audit.web_backup import generate_workspace_backup, workspace_backup_file
-from media_security_audit.web_remediations import build_remediation_library_view
+from media_security_audit.web_remediations import (
+    build_remediation_library_export,
+    build_remediation_library_view,
+)
 from media_security_audit.web_ui import (
     build_dashboard_view,
     build_mission_view,
@@ -106,7 +109,7 @@ def create_web_app(
 ):
     try:
         from fastapi import Depends, FastAPI, HTTPException, Request
-        from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
+        from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, Response
         from fastapi.security import HTTPBasic, HTTPBasicCredentials
         from fastapi.staticfiles import StaticFiles
     except ModuleNotFoundError as error:
@@ -216,6 +219,23 @@ def create_web_app(
                     "error": error,
                 },
             )
+        )
+
+    @app.get("/remediations/export/{export_format}", dependencies=protected)
+    def remediation_library_export(
+        export_format: ReportFormat,
+        q: str | None = None,
+        category: str | None = None,
+    ) -> Response:
+        export = build_remediation_library_export(
+            export_format=export_format,
+            query=q,
+            category=category,
+        )
+        return Response(
+            content=export.content,
+            media_type=export.media_type,
+            headers={"Content-Disposition": f'attachment; filename="{export.filename}"'},
         )
 
     @app.post("/system/backup", dependencies=protected)

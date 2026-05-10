@@ -313,6 +313,7 @@ Current GUI status:
 - audit checks can be selected from mission pages for planning
 - a first remediation library is visible from the web navigation
 - mission findings show matching remediation library suggestions
+- remediation library filters can be exported as JSON, Markdown, or HTML
 - CLI scan runs are recorded and visible in the mission Run Monitor
 - system status shows local storage, authentication, and tool availability
 - workspace inventory and integrity diagnostics are visible on the System page

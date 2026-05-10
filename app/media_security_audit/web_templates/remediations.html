@@ -45,6 +45,11 @@
 <section class="section">
   <div class="section-title">
     <h2>Entries</h2>
+    <div class="report-links" aria-label="Remediation library exports">
+      {% for link in view.export_links %}
+      <a href="{{ link.url }}">{{ link.label }}</a>
+      {% endfor %}
+    </div>
   </div>
   <div class="library-grid">
     {% for entry in view.entries %}

@@ -167,6 +167,19 @@ class MissionView:
     mission_export: MissionExportLink | None
     readiness_items: list[ReadinessItem]
     scan_plans: list[ScanPlanPreview]
+    template_guidance: TemplateGuidance | None
+
+
+@dataclass(frozen=True)
+class TemplateGuidance:
+    id: str
+    title: str
+    summary: str
+    cadence: str
+    recommended_checks: list[str]
+    scope_guidance: tuple[str, ...]
+    authorization_requirements: tuple[str, ...]
+    deliverables: tuple[str, ...]
 
 
 CHECK_LABELS: dict[AuditCheck, str] = {
@@ -317,6 +330,22 @@ def check_selection_rows(mission: Mission) -> list[CheckSelectionRow]:
     ]
 
 
+def template_guidance(mission: Mission) -> TemplateGuidance | None:
+    template = get_audit_template(mission.audit_template_id)
+    if template is None:
+        return None
+    return TemplateGuidance(
+        id=template.id,
+        title=template.title,
+        summary=template.summary,
+        cadence=template.cadence,
+        recommended_checks=[CHECK_LABELS[check] for check in template.recommended_checks],
+        scope_guidance=template.scope_guidance,
+        authorization_requirements=template.authorization_requirements,
+        deliverables=template.deliverables,
+    )
+
+
 def scan_run_row(run: ScanRun) -> ScanRunRow:
     return ScanRunRow(
         id=run.id,
@@ -399,6 +428,7 @@ def build_mission_view(
         mission_export=mission_export,
         readiness_items=build_readiness_items(mission, findings, len(reports)),
         scan_plans=build_scan_plan_previews(mission),
+        template_guidance=template_guidance(mission),
     )
 
 

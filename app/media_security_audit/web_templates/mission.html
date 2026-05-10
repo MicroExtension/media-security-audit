@@ -39,6 +39,46 @@
   </div>
 </section>
 
+{% if view.template_guidance %}
+<section class="section">
+  <div class="section-title">
+    <h2>Template Guidance</h2>
+    <span class="muted">{{ view.template_guidance.title }} | {{ view.template_guidance.cadence }}</span>
+  </div>
+  <div class="guidance-grid">
+    <article class="guidance-card">
+      <h3>Summary</h3>
+      <p>{{ view.template_guidance.summary }}</p>
+      <p class="muted">Checks: {{ view.template_guidance.recommended_checks | join(", ") }}</p>
+    </article>
+    <article class="guidance-card">
+      <h3>Scope</h3>
+      <ul class="compact-list">
+        {% for item in view.template_guidance.scope_guidance %}
+        <li>{{ item }}</li>
+        {% endfor %}
+      </ul>
+    </article>
+    <article class="guidance-card">
+      <h3>Authorization</h3>
+      <ul class="compact-list">
+        {% for item in view.template_guidance.authorization_requirements %}
+        <li>{{ item }}</li>
+        {% endfor %}
+      </ul>
+    </article>
+    <article class="guidance-card">
+      <h3>Deliverables</h3>
+      <ul class="compact-list">
+        {% for item in view.template_guidance.deliverables %}
+        <li>{{ item }}</li>
+        {% endfor %}
+      </ul>
+    </article>
+  </div>
+</section>
+{% endif %}
+
 <section class="section">
   <div class="section-title">
     <h2>Scan Plan Preview</h2>

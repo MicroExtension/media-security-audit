@@ -94,6 +94,42 @@ class WebFormTests(unittest.TestCase):
         self.assertEqual(mission.emergency_contact, "astreinte@example.invalid")
         self.assertEqual(mission.report_recipients, "direction@example.invalid")
         self.assertEqual(mission.evidence_retention_days, 90)
+        self.assertIsNone(mission.audit_template_id)
+
+    def test_create_mission_from_template_sets_audit_type_and_checks(self) -> None:
+        store = JsonStore(clean_data_dir("web-form-mission-template"))
+        client = create_client_from_form(store, {"name": "Client Template"})
+
+        mission = create_mission_from_form(
+            store,
+            {
+                "client_id": client.id,
+                "name": "Web Mail Hygiene",
+                "audit_template_id": "tpl_web_mail_hygiene",
+                "audit_type": "mixed",
+            },
+        )
+
+        self.assertEqual(mission.audit_template_id, "tpl_web_mail_hygiene")
+        self.assertEqual(mission.audit_type, AuditType.EXTERNAL)
+        self.assertEqual(mission.selected_checks, [AuditCheck.HTTP_HEADERS, AuditCheck.DNS_MAIL])
+
+    def test_create_mission_rejects_unknown_template(self) -> None:
+        store = JsonStore(clean_data_dir("web-form-mission-template-missing"))
+        client = create_client_from_form(store, {"name": "Client Template"})
+
+        with self.assertRaises(ValueError) as error:
+            create_mission_from_form(
+                store,
+                {
+                    "client_id": client.id,
+                    "name": "Unknown Template",
+                    "audit_template_id": "tpl_missing",
+                    "audit_type": "external",
+                },
+            )
+
+        self.assertIn("audit template not found", str(error.exception))
 
     def test_add_scope_from_form(self) -> None:
         store = JsonStore(clean_data_dir("web-form-scope"))

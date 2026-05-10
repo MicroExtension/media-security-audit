@@ -56,6 +56,15 @@
         </select>
       </label>
       <label>
+        <span>Template</span>
+        <select name="audit_template_id">
+          <option value=""></option>
+          {% for template in audit_templates %}
+          <option value="{{ template.id }}">{{ template.title }} | {{ template.audit_type }} | {{ template.cadence }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>
         <span>Audit Type</span>
         <select name="audit_type" required>
           {% for audit_type in audit_types %}
@@ -118,7 +127,10 @@
       <tbody>
         {% for mission in view.missions %}
         <tr>
-          <td><a href="/missions/{{ mission.id }}">{{ mission.name }}</a><span class="muted block">{{ mission.audit_type }}</span></td>
+          <td>
+            <a href="/missions/{{ mission.id }}">{{ mission.name }}</a>
+            <span class="muted block">{{ mission.audit_type }}{% if mission.audit_template_title %} | {{ mission.audit_template_title }}{% endif %}</span>
+          </td>
           <td>{{ mission.client_name }}</td>
           <td><span class="status">{{ mission.status }}</span></td>
           <td>{{ mission.approved_scope_count }}/{{ mission.scope_count }}</td>

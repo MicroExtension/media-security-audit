@@ -7,6 +7,7 @@ from datetime import date, datetime
 from html import escape
 from pathlib import Path
 
+from media_security_audit.audit_templates import get_audit_template
 from media_security_audit.models import (
     ActivityEvent,
     AuditCheck,
@@ -52,6 +53,8 @@ class MissionRow:
     client_id: str
     client_name: str
     audit_type: str
+    audit_template_id: str
+    audit_template_title: str
     status: str
     authorization_present: bool
     authorization_reference: str
@@ -203,6 +206,7 @@ def mission_row(mission: Mission, findings: list[Finding], client_names: dict[st
     summary = build_report_summary(mission, findings)
     active_counts = summary["severity_counts"]
     approved_scope_count = len([item for item in mission.scope if item.approved and not item.excluded])
+    audit_template = get_audit_template(mission.audit_template_id)
 
     return MissionRow(
         id=mission.id,
@@ -210,6 +214,8 @@ def mission_row(mission: Mission, findings: list[Finding], client_names: dict[st
         client_id=mission.client_id,
         client_name=client_names.get(mission.client_id, mission.client_id),
         audit_type=mission.audit_type.value,
+        audit_template_id=mission.audit_template_id or "",
+        audit_template_title=audit_template.title if audit_template else "",
         status=mission.status.value,
         authorization_present=mission.is_authorized,
         authorization_reference=mission.authorization_reference or "",

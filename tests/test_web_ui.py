@@ -81,6 +81,7 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(view.clients[0].mission_count, 1)
         self.assertEqual(view.missions[0].client_name, "Client X")
         self.assertEqual(view.missions[0].approved_scope_count, 1)
+        self.assertEqual(view.missions[0].audit_template_title, "")
 
     def test_mission_view_orders_scope_findings_and_remediation(self) -> None:
         store = JsonStore(clean_data_dir("web-ui-mission"))
@@ -89,6 +90,7 @@ class WebUiTests(unittest.TestCase):
             Mission(
                 client_id=client.id,
                 name="Internal Audit",
+                audit_template_id="tpl_internal_hygiene",
                 authorization_reference="AUTH-002",
                 authorization_contact="RSSI Client",
                 authorization_date=date(2026, 5, 10),
@@ -121,6 +123,8 @@ class WebUiTests(unittest.TestCase):
         view = build_mission_view(store, mission.id)
 
         self.assertEqual(view.mission.client_name, "Client Y")
+        self.assertEqual(view.mission.audit_template_id, "tpl_internal_hygiene")
+        self.assertEqual(view.mission.audit_template_title, "Internal Network Hygiene")
         self.assertEqual(view.mission.authorization_reference, "AUTH-002")
         self.assertEqual(view.mission.authorization_contact, "RSSI Client")
         self.assertEqual(view.mission.authorization_date, "2026-05-10")

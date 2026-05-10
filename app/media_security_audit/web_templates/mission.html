@@ -147,6 +147,10 @@
         </select>
       </label>
       <label class="span-2">
+        <span>Template</span>
+        <input value="{{ view.mission.audit_template_title or '-' }}" disabled>
+      </label>
+      <label class="span-2">
         <span>Authorization Reference</span>
         <input name="authorization_reference" value="{{ view.mission.authorization_reference }}">
       </label>

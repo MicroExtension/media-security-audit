@@ -172,6 +172,7 @@ class Mission(BaseModel):
     client_id: str
     name: str
     audit_type: AuditType = AuditType.MIXED
+    audit_template_id: str | None = None
     authorization_reference: str | None = None
     authorization_contact: str | None = None
     authorization_date: date | None = None

@@ -128,6 +128,13 @@ def list_audit_templates() -> list[AuditTemplate]:
     return sorted(BUILTIN_AUDIT_TEMPLATES, key=lambda item: item.title)
 
 
+def get_audit_template(template_id: str | None) -> AuditTemplate | None:
+    selected_id = (template_id or "").strip()
+    if not selected_id:
+        return None
+    return next((item for item in BUILTIN_AUDIT_TEMPLATES if item.id == selected_id), None)
+
+
 def filter_audit_templates(
     query: str | None = None,
     audit_type: str | AuditType | None = None,

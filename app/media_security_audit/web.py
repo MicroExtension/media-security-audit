@@ -172,6 +172,7 @@ def create_web_app(
                     "data_dir": data_dir,
                     "view": build_dashboard_view(store),
                     "audit_types": [item.value for item in AuditType],
+                    "audit_templates": build_audit_template_library_view().templates,
                     "form_token": form_token,
                     "message": message,
                     "error": error,

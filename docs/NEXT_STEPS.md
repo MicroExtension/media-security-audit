@@ -311,6 +311,7 @@ Current GUI status:
 - mission authorization details are editable from mission pages
 - authorization briefs can be generated from mission pages
 - audit checks can be selected from mission pages for planning
+- audit templates are visible from the web navigation
 - a first remediation library is visible from the web navigation
 - mission findings show matching remediation library suggestions
 - remediation library filters can be exported as JSON, Markdown, or HTML

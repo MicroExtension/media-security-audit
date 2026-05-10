@@ -81,6 +81,7 @@ Current foundation:
 - remediation library foundation started
 - remediation suggestions on findings started
 - remediation library export started
+- audit template library started
 - mission readiness and safe scan plan previews started
 - scan execution remains CLI-only
 
@@ -108,6 +109,7 @@ Current foundation:
 - workspace integrity diagnostics started
 - remediation library foundation started
 - remediation library export started
+- recurring audit templates started
 
 Success criteria:
 - appliance can run on Debian/Ubuntu

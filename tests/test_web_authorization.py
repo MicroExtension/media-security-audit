@@ -38,6 +38,7 @@ class WebAuthorizationTests(unittest.TestCase):
                 client_id=client.id,
                 name="Authorized External Audit",
                 audit_type=AuditType.EXTERNAL,
+                audit_template_id="tpl_external_perimeter",
                 authorization_reference="AUTH-2026-001",
                 authorization_contact="RSSI Client",
                 authorization_date=date(2026, 5, 10),
@@ -62,6 +63,11 @@ class WebAuthorizationTests(unittest.TestCase):
             mission.id,
             AuthorizationBriefFormat.MARKDOWN,
         ).read_text(encoding="utf-8")
+        html = authorization_brief_file(
+            reports_dir,
+            mission.id,
+            AuthorizationBriefFormat.HTML,
+        ).read_text(encoding="utf-8")
 
         self.assertEqual(len(paths), 2)
         self.assertTrue(all(path.exists() for path in paths))
@@ -69,6 +75,12 @@ class WebAuthorizationTests(unittest.TestCase):
         self.assertIn("Status: `ready_for_guarded_cli_execution`", markdown)
         self.assertIn("RSSI Client", markdown)
         self.assertIn("domain:client.example", markdown)
+        self.assertIn("## Audit Template", markdown)
+        self.assertIn("External Perimeter Review", markdown)
+        self.assertIn("Approved public IP addresses and hostnames", markdown)
+        self.assertIn("External exposure summary", markdown)
+        self.assertIn("<h2>Audit Template</h2>", html)
+        self.assertIn("External Perimeter Review", html)
         self.assertIn("No scan is executed by this brief.", markdown)
 
     def test_marks_missing_authorization_or_scope_as_not_ready(self) -> None:
@@ -79,6 +91,7 @@ class WebAuthorizationTests(unittest.TestCase):
         self.assertEqual(authorization_decision(mission), "not_ready")
         self.assertIn("Blocking items: `authorization reference, approved scope`", markdown)
         self.assertIn("Client Draft", markdown)
+        self.assertNotIn("## Audit Template", markdown)
 
     def test_missing_authorization_brief_has_named_error(self) -> None:
         reports_dir = clean_dir("web-auth-brief-missing")

@@ -51,6 +51,7 @@ Implemented so far:
 - audit template library for repeatable MSP mission planning
 - template-assisted mission creation with recommended check selection
 - mission template guidance for scope, authorization, and deliverables
+- template guidance in authorization briefs
 
 The first implementation target remains a CLI-driven V1 with a local web
 interface that can set up the mission workflow:
@@ -169,6 +170,7 @@ The Templates page exposes repeatable MSP audit profiles for external,
 internal, web/mail, and counter-test workflows. New missions can be created
 from these templates to set the initial audit type and recommended checks.
 Mission pages show selected template guidance during preparation.
+Authorization briefs include selected template guidance for pre-audit review.
 
 ## Deployment
 
@@ -271,6 +273,7 @@ Planned screens:
 - audit template library started
 - template-assisted mission creation started
 - mission template guidance started
+- template guidance in authorization briefs started
 - counter-tests
 - system status started
 - settings

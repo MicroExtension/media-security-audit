@@ -84,6 +84,7 @@ Current foundation:
 - audit template library started
 - template-assisted mission creation started
 - mission template guidance started
+- template guidance in authorization briefs started
 - mission readiness and safe scan plan previews started
 - scan execution remains CLI-only
 
@@ -114,6 +115,7 @@ Current foundation:
 - recurring audit templates started
 - template-assisted mission creation started
 - mission template guidance started
+- template guidance in authorization briefs started
 
 Success criteria:
 - appliance can run on Debian/Ubuntu

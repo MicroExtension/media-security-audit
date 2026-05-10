@@ -7,6 +7,7 @@ from enum import Enum
 from html import escape
 from pathlib import Path
 
+from media_security_audit.audit_templates import AuditTemplate, get_audit_template
 from media_security_audit.models import Mission, ScopeItem, utc_now
 from media_security_audit.reports import authorization_summary, scope_summary
 from media_security_audit.storage import JsonStore
@@ -97,6 +98,40 @@ def render_scope_list(items: list[ScopeItem]) -> list[str]:
     return [f"- `{scope_line(item)}`" for item in items]
 
 
+def render_template_list(items: tuple[str, ...]) -> list[str]:
+    if not items:
+        return ["- none"]
+    return [f"- {item}" for item in items]
+
+
+def render_template_guidance_markdown(template: AuditTemplate | None) -> list[str]:
+    if template is None:
+        return []
+    checks = ", ".join(check.value for check in template.recommended_checks) or "none"
+    lines = [
+        "## Audit Template",
+        "",
+        f"- Template: `{template.title}`",
+        f"- Template id: `{template.id}`",
+        f"- Cadence: `{template.cadence}`",
+        f"- Recommended checks: `{checks}`",
+        "",
+        "### Template Summary",
+        "",
+        template.summary,
+        "",
+        "### Scope Guidance",
+        "",
+    ]
+    lines.extend(render_template_list(template.scope_guidance))
+    lines.extend(["", "### Authorization Requirements", ""])
+    lines.extend(render_template_list(template.authorization_requirements))
+    lines.extend(["", "### Expected Deliverables", ""])
+    lines.extend(render_template_list(template.deliverables))
+    lines.append("")
+    return lines
+
+
 def render_authorization_brief_markdown(
     mission: Mission,
     client_name: str | None = None,
@@ -108,6 +143,7 @@ def render_authorization_brief_markdown(
     decision = authorization_decision(mission)
     generated_at = utc_now().isoformat()
     checks = ", ".join(check.value for check in mission.selected_checks) or "none"
+    template = get_audit_template(mission.audit_template_id)
 
     lines = [
         f"# Authorization Brief - {mission.name}",
@@ -152,9 +188,10 @@ def render_authorization_brief_markdown(
     lines.extend(render_scope_list(excluded_scope_items(mission)))
     lines.extend(["", "### Draft Scope", ""])
     lines.extend(render_scope_list(draft_scope_items(mission)))
+    lines.extend([""])
+    lines.extend(render_template_guidance_markdown(template))
     lines.extend(
         [
-            "",
             "## Guardrails",
             "",
             "- No scan is executed by this brief.",
@@ -171,10 +208,38 @@ def html_list(items: list[str]) -> str:
     return "".join(f"<li>{escape(item)}</li>" for item in items) if items else "<li>none</li>"
 
 
+def html_tuple_list(items: tuple[str, ...]) -> str:
+    return "".join(f"<li>{escape(item)}</li>" for item in items) if items else "<li>none</li>"
+
+
 def scope_html(items: list[ScopeItem]) -> str:
     if not items:
         return "<li>none</li>"
     return "".join(f"<li><code>{escape(scope_line(item))}</code></li>" for item in items)
+
+
+def template_guidance_html(template: AuditTemplate | None) -> str:
+    if template is None:
+        return ""
+    checks = ", ".join(check.value for check in template.recommended_checks) or "none"
+    return f"""
+  <section>
+    <h2>Audit Template</h2>
+    <dl>
+      <dt>Template</dt><dd>{escape(template.title)}</dd>
+      <dt>Template ID</dt><dd>{escape(template.id)}</dd>
+      <dt>Cadence</dt><dd>{escape(template.cadence)}</dd>
+      <dt>Recommended checks</dt><dd>{escape(checks)}</dd>
+    </dl>
+    <h3>Template Summary</h3>
+    <p>{escape(template.summary)}</p>
+    <h3>Scope Guidance</h3>
+    <ul>{html_tuple_list(template.scope_guidance)}</ul>
+    <h3>Authorization Requirements</h3>
+    <ul>{html_tuple_list(template.authorization_requirements)}</ul>
+    <h3>Expected Deliverables</h3>
+    <ul>{html_tuple_list(template.deliverables)}</ul>
+  </section>"""
 
 
 def render_authorization_brief_html(
@@ -188,6 +253,7 @@ def render_authorization_brief_html(
     decision = authorization_decision(mission)
     generated_at = utc_now().isoformat()
     checks = ", ".join(check.value for check in mission.selected_checks) or "none"
+    template = get_audit_template(mission.audit_template_id)
 
     return f"""<!doctype html>
 <html lang="en">
@@ -255,6 +321,7 @@ def render_authorization_brief_html(
     <h3>Draft Scope</h3>
     <ul>{scope_html(draft_scope_items(mission))}</ul>
   </section>
+  {template_guidance_html(template)}
   <section>
     <h2>Guardrails</h2>
     <ul>

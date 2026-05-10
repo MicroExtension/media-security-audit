@@ -46,6 +46,8 @@ class WebSystemTests(unittest.TestCase):
         self.assertEqual(status.tools[0].status, "ready")
         self.assertEqual(status.tools[1].status, "missing")
         self.assertIsNone(status.workspace_backup)
+        self.assertEqual(status.inventory.status, "ready")
+        self.assertEqual(status.inventory.metrics[0].label, "Clients")
 
     def test_missing_path_and_disabled_auth_are_reported_safely(self) -> None:
         root = clean_data_dir("web-system-missing")
@@ -61,6 +63,7 @@ class WebSystemTests(unittest.TestCase):
         self.assertTrue(all(item.status == "blocked" for item in status.paths))
         self.assertTrue(all(tool.status == "missing" for tool in status.tools))
         self.assertIsNone(status.workspace_backup)
+        self.assertEqual(status.inventory.status, "ready")
 
 
 if __name__ == "__main__":

@@ -313,6 +313,7 @@ Current GUI status:
 - audit checks can be selected from mission pages for planning
 - CLI scan runs are recorded and visible in the mission Run Monitor
 - system status shows local storage, authentication, and tool availability
+- workspace inventory and integrity diagnostics are visible on the System page
 - workspace backups can be generated from the System page
 - reviewed reports can be generated from mission pages
 - mission ZIP export packages can be generated from mission pages

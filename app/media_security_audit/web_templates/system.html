@@ -25,6 +25,10 @@
     <span>Workspace backup</span>
     <strong>{{ "ready" if view.workspace_backup else "none" }}</strong>
   </div>
+  <div class="metric">
+    <span>Inventory</span>
+    <strong>{{ view.inventory.status }}</strong>
+  </div>
 </section>
 
 <section class="section">
@@ -62,6 +66,41 @@
           </td>
           <td><span class="badge status-{{ item.status }}">{{ item.status }}</span></td>
           <td>{{ item.detail }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-title">
+    <h2>Workspace Inventory</h2>
+    <span class="muted">Read-only diagnostics</span>
+  </div>
+  <section class="metrics" aria-label="Workspace inventory">
+    {% for metric in view.inventory.metrics %}
+    <div class="metric">
+      <span>{{ metric.label }}</span>
+      <strong>{{ metric.value }}</strong>
+    </div>
+    {% endfor %}
+  </section>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Check</th>
+          <th>Status</th>
+          <th>Detail</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for issue in view.inventory.issues %}
+        <tr>
+          <td>{{ issue.label }}</td>
+          <td><span class="badge status-{{ issue.status }}">{{ issue.status }}</span></td>
+          <td>{{ issue.detail }}</td>
         </tr>
         {% endfor %}
       </tbody>

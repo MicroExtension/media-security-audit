@@ -77,6 +77,7 @@ Current foundation:
 - report generation from mission pages started
 - mission export packages started
 - workspace backup export started
+- workspace inventory diagnostics started
 - mission readiness and safe scan plan previews started
 - scan execution remains CLI-only
 
@@ -101,6 +102,7 @@ Current foundation:
 - external tool availability status started in the web UI
 - mission ZIP export package started
 - workspace backup ZIP export started
+- workspace integrity diagnostics started
 
 Success criteria:
 - appliance can run on Debian/Ubuntu

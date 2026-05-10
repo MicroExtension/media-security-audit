@@ -8,8 +8,10 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
+from media_security_audit.storage import JsonStore
 from media_security_audit.web_auth import WebAuthSettings
 from media_security_audit.web_backup import WorkspaceBackupLink, list_workspace_backup
+from media_security_audit.web_inventory import WorkspaceInventory, build_workspace_inventory
 
 
 @dataclass(frozen=True)
@@ -43,6 +45,7 @@ class SystemStatus:
     paths: list[PathStatus]
     tools: list[ToolStatus]
     workspace_backup: WorkspaceBackupLink | None
+    inventory: WorkspaceInventory
 
 
 TOOL_CHECKS: tuple[tuple[str, str, str], ...] = (
@@ -60,6 +63,7 @@ def build_system_status(
     auth_settings: WebAuthSettings,
     tool_resolver: Callable[[str], str | None] = shutil.which,
 ) -> SystemStatus:
+    store = JsonStore(data_dir)
     return SystemStatus(
         auth=auth_status(auth_settings),
         paths=[
@@ -71,6 +75,7 @@ def build_system_status(
             for label, command, purpose in TOOL_CHECKS
         ],
         workspace_backup=list_workspace_backup(reports_dir),
+        inventory=build_workspace_inventory(store, reports_dir),
     )
 
 

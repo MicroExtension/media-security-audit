@@ -79,6 +79,7 @@ Current foundation:
 - workspace backup export started
 - workspace inventory diagnostics started
 - remediation library foundation started
+- remediation suggestions on findings started
 - mission readiness and safe scan plan previews started
 - scan execution remains CLI-only
 

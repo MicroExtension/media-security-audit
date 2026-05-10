@@ -132,6 +132,7 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(view.scope[0].status, "approved")
         self.assertEqual(view.findings[0].severity, "high")
         self.assertEqual(view.findings[0].review_note, "")
+        self.assertEqual(view.findings[0].related_remediations[0].id, "rem_rdp_restrict_exposure")
         self.assertEqual(view.reports, [])
         self.assertIsNone(view.mission_export)
         self.assertEqual(len(view.readiness_items), 5)
@@ -192,6 +193,7 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(len(view.counter_test_items), 1)
         self.assertEqual(view.counter_test_items[0].title, "Confirmed finding")
         self.assertEqual(view.counter_test_items[0].status, "confirmed")
+        self.assertEqual(view.findings[0].related_remediations, [])
 
     def test_mission_view_includes_activity_events(self) -> None:
         store = JsonStore(clean_data_dir("web-ui-activity"))

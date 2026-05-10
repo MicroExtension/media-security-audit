@@ -46,6 +46,7 @@ Implemented so far:
 - web workspace backup package for appliance operations
 - web workspace inventory and integrity diagnostics
 - remediation library foundation for common MSP findings
+- remediation library suggestions on mission findings
 
 The first implementation target remains a CLI-driven V1 with a local web
 interface that can set up the mission workflow:
@@ -157,7 +158,8 @@ approval and scope before guarded CLI execution. The System page can generate a
 workspace backup ZIP containing local data and generated reports. The System
 page also shows workspace inventory counts and read-only integrity diagnostics.
 The Remediations page exposes a first built-in remediation library for common
-HTTP, DNS/Mail, SMB, TLS, and network findings.
+HTTP, DNS/Mail, SMB, TLS, and network findings. Mission finding cards show
+matching library suggestions based on finding category.
 
 ## Deployment
 
@@ -255,6 +257,7 @@ Planned screens:
 - workspace backup export started
 - workspace inventory diagnostics started
 - remediation library started
+- remediation suggestions on findings started
 - counter-tests
 - system status started
 - settings

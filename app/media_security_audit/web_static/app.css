@@ -630,6 +630,24 @@ textarea:focus {
   margin: 6px 0 0;
 }
 
+.suggestion-list {
+  display: grid;
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.suggestion-list li {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px;
+}
+
+.suggestion-list p {
+  margin: 6px 0 0;
+}
+
 .finding-list {
   display: grid;
   gap: 14px;

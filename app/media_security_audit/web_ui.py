@@ -21,6 +21,7 @@ from media_security_audit.reports import (
     remediation_plan,
     sorted_findings,
 )
+from media_security_audit.remediation_library import RemediationEntry, filter_remediations
 from media_security_audit.storage import JsonStore
 from media_security_audit.web_readiness import (
     ReadinessItem,
@@ -95,6 +96,7 @@ class FindingRow:
     remediation: str
     counter_test: str
     review_note: str
+    related_remediations: list[RemediationEntry]
 
 
 @dataclass(frozen=True)
@@ -258,7 +260,12 @@ def finding_row(finding: Finding) -> FindingRow:
         remediation=finding.remediation,
         counter_test=finding.counter_test,
         review_note=str(finding.metadata.get("review_note", "")),
+        related_remediations=related_remediations(finding),
     )
+
+
+def related_remediations(finding: Finding, limit: int = 3) -> list[RemediationEntry]:
+    return filter_remediations(category=finding.category)[:limit]
 
 
 def counter_test_row(finding: Finding) -> CounterTestRow:

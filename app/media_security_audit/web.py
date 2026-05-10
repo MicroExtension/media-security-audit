@@ -29,6 +29,7 @@ from media_security_audit.web_auth import (
     valid_credentials,
     web_auth_settings_from_env,
 )
+from media_security_audit.web_audit_templates import build_audit_template_library_view
 from media_security_audit.web_backup import generate_workspace_backup, workspace_backup_file
 from media_security_audit.web_remediations import (
     build_remediation_library_export,
@@ -215,6 +216,28 @@ def create_web_app(
                     "request": request,
                     "data_dir": data_dir,
                     "view": build_remediation_library_view(query=q, category=category),
+                    "message": message,
+                    "error": error,
+                },
+            )
+        )
+
+    @app.get("/templates", response_class=HTMLResponse, dependencies=protected)
+    def audit_templates(
+        request: Request,
+        q: str | None = None,
+        audit_type: str | None = None,
+        message: str | None = None,
+        error: str | None = None,
+    ) -> HTMLResponse:
+        return HTMLResponse(
+            render_template(
+                templates,
+                "audit_templates.html",
+                {
+                    "request": request,
+                    "data_dir": data_dir,
+                    "view": build_audit_template_library_view(query=q, audit_type=audit_type),
                     "message": message,
                     "error": error,
                 },

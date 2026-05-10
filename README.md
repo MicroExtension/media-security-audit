@@ -48,6 +48,7 @@ Implemented so far:
 - remediation library foundation for common MSP findings
 - remediation library suggestions on mission findings
 - remediation library exports for technician handoff
+- audit template library for repeatable MSP mission planning
 
 The first implementation target remains a CLI-driven V1 with a local web
 interface that can set up the mission workflow:
@@ -162,6 +163,8 @@ The Remediations page exposes a first built-in remediation library for common
 HTTP, DNS/Mail, SMB, TLS, and network findings. Mission finding cards show
 matching library suggestions based on finding category. The filtered
 remediation library can be exported from the web UI as JSON, Markdown, or HTML.
+The Templates page exposes repeatable MSP audit profiles for external,
+internal, web/mail, and counter-test workflows.
 
 ## Deployment
 
@@ -261,6 +264,7 @@ Planned screens:
 - remediation library started
 - remediation suggestions on findings started
 - remediation library export started
+- audit template library started
 - counter-tests
 - system status started
 - settings

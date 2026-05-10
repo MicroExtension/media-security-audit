@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Audit Templates | MEDIA Security Audit{% endblock %}
+{% block content %}
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">Planning</p>
+    <h1>Audit Templates</h1>
+  </div>
+</section>
+
+<section class="metrics" aria-label="Audit template summary">
+  <div class="metric">
+    <span>Visible templates</span>
+    <strong>{{ view.total_count }}</strong>
+  </div>
+  <div class="metric">
+    <span>Audit types</span>
+    <strong>{{ view.audit_types | length }}</strong>
+  </div>
+</section>
+
+<section class="section">
+  <form class="form-panel" method="get" action="/templates">
+    <div class="field-grid">
+      <label>
+        <span>Search</span>
+        <input name="q" value="{{ view.query }}">
+      </label>
+      <label>
+        <span>Audit Type</span>
+        <select name="audit_type">
+          <option value=""></option>
+          {% for audit_type in view.audit_types %}
+          <option value="{{ audit_type }}" {% if audit_type == view.selected_audit_type %}selected{% endif %}>{{ audit_type }}</option>
+          {% endfor %}
+        </select>
+      </label>
+    </div>
+    <div class="form-actions">
+      <button class="button secondary-button" type="submit">Filter</button>
+    </div>
+  </form>
+</section>
+
+<section class="section">
+  <div class="section-title">
+    <h2>Templates</h2>
+  </div>
+  <div class="library-grid">
+    {% for template in view.templates %}
+    <article class="library-card">
+      <div class="library-card-head">
+        <div>
+          <h3>{{ template.title }}</h3>
+          <p class="muted">{{ template.id }} | {{ template.audit_type }} | {{ template.cadence }}</p>
+        </div>
+        <span class="status">{{ template.audit_type }}</span>
+      </div>
+      <p>{{ template.summary }}</p>
+      <dl class="finding-details">
+        <dt>Checks</dt><dd>{{ template.recommended_checks | join(", ") }}</dd>
+        <dt>Scope</dt>
+        <dd>
+          <ul class="compact-list">
+            {% for item in template.scope_guidance %}
+            <li>{{ item }}</li>
+            {% endfor %}
+          </ul>
+        </dd>
+        <dt>Authorization</dt>
+        <dd>
+          <ul class="compact-list">
+            {% for item in template.authorization_requirements %}
+            <li>{{ item }}</li>
+            {% endfor %}
+          </ul>
+        </dd>
+        <dt>Deliverables</dt>
+        <dd>
+          <ul class="compact-list">
+            {% for item in template.deliverables %}
+            <li>{{ item }}</li>
+            {% endfor %}
+          </ul>
+        </dd>
+      </dl>
+    </article>
+    {% else %}
+    <p class="empty">No audit template found.</p>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

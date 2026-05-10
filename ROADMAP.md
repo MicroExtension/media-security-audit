@@ -83,6 +83,7 @@ Current foundation:
 - remediation library export started
 - audit template library started
 - template-assisted mission creation started
+- mission template guidance started
 - mission readiness and safe scan plan previews started
 - scan execution remains CLI-only
 
@@ -112,6 +113,7 @@ Current foundation:
 - remediation library export started
 - recurring audit templates started
 - template-assisted mission creation started
+- mission template guidance started
 
 Success criteria:
 - appliance can run on Debian/Ubuntu

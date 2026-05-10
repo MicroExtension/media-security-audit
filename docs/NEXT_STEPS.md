@@ -313,6 +313,7 @@ Current GUI status:
 - audit checks can be selected from mission pages for planning
 - audit templates are visible from the web navigation
 - new missions can use a template to set audit type and initial checks
+- mission pages show selected template guidance for preparation
 - a first remediation library is visible from the web navigation
 - mission findings show matching remediation library suggestions
 - remediation library filters can be exported as JSON, Markdown, or HTML

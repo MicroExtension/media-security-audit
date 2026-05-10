@@ -518,6 +518,7 @@ textarea:focus {
 }
 
 .readiness-grid,
+.guidance-grid,
 .plan-grid {
   display: grid;
   gap: 12px;
@@ -525,6 +526,7 @@ textarea:focus {
 }
 
 .readiness-item,
+.guidance-card,
 .plan-card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -539,9 +541,19 @@ textarea:focus {
 }
 
 .readiness-item p,
+.guidance-card p,
 .plan-card p {
   color: var(--muted);
   margin: 8px 0 0;
+}
+
+.guidance-card {
+  border-left-color: var(--accent);
+}
+
+.guidance-card h3 {
+  font-size: 17px;
+  margin: 0 0 8px;
 }
 
 .readiness-ready,

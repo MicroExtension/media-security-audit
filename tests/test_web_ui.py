@@ -125,6 +125,10 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(view.mission.client_name, "Client Y")
         self.assertEqual(view.mission.audit_template_id, "tpl_internal_hygiene")
         self.assertEqual(view.mission.audit_template_title, "Internal Network Hygiene")
+        self.assertIsNotNone(view.template_guidance)
+        self.assertEqual(view.template_guidance.title, "Internal Network Hygiene")
+        self.assertEqual(view.template_guidance.recommended_checks, ["Nmap services"])
+        self.assertIn("Approved internal CIDR ranges", view.template_guidance.scope_guidance)
         self.assertEqual(view.mission.authorization_reference, "AUTH-002")
         self.assertEqual(view.mission.authorization_contact, "RSSI Client")
         self.assertEqual(view.mission.authorization_date, "2026-05-10")
@@ -198,6 +202,7 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(view.counter_test_items[0].title, "Confirmed finding")
         self.assertEqual(view.counter_test_items[0].status, "confirmed")
         self.assertEqual(view.findings[0].related_remediations, [])
+        self.assertIsNone(view.template_guidance)
 
     def test_mission_view_includes_activity_events(self) -> None:
         store = JsonStore(clean_data_dir("web-ui-activity"))

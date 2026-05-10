@@ -45,6 +45,7 @@ from media_security_audit.web_forms import (
     update_scope_from_form,
     validate_form_token,
 )
+from media_security_audit.web_exports import generate_mission_export, mission_export_file
 from media_security_audit.web_reports import generate_web_reports, generated_report_file
 from media_security_audit.web_system import build_system_status
 
@@ -368,6 +369,31 @@ def create_web_app(
         except (FileNotFoundError, RuntimeError, ValueError, ValidationError) as error:
             return redirect_with_status(f"/missions/{mission_id}", error=format_web_error(error))
         return redirect_with_status(f"/missions/{mission_id}", message="reports generated")
+
+    @app.post("/missions/{mission_id}/export", dependencies=protected)
+    async def mission_export_generate(request: Request, mission_id: str):
+        try:
+            form = parse_urlencoded_form(await request.body())
+            validate_form_token(form, form_token)
+            path = generate_mission_export(store, mission_id, reports_dir)
+            record_activity(
+                mission_id,
+                "mission.exported",
+                f"Mission export package generated: {path.name}",
+                {"filename": path.name},
+            )
+        except (FileNotFoundError, RuntimeError, ValueError, ValidationError) as error:
+            return redirect_with_status(f"/missions/{mission_id}", error=format_web_error(error))
+        return redirect_with_status(f"/missions/{mission_id}", message="mission export generated")
+
+    @app.get("/missions/{mission_id}/export", dependencies=protected)
+    def mission_export_download(mission_id: str) -> FileResponse:
+        try:
+            store.get_mission(mission_id)
+            path = mission_export_file(reports_dir, mission_id)
+        except FileNotFoundError as error:
+            raise HTTPException(status_code=404, detail=str(error)) from error
+        return FileResponse(path)
 
     @app.get("/missions/{mission_id}/reports/{report_format}", dependencies=protected)
     def report_download(mission_id: str, report_format: ReportFormat) -> FileResponse:

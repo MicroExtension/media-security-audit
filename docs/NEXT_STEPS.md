@@ -302,6 +302,7 @@ Current GUI status:
 - CLI scan runs are recorded and visible in the mission Run Monitor
 - system status shows local storage, authentication, and tool availability
 - reviewed reports can be generated from mission pages
+- mission ZIP export packages can be generated from mission pages
 - mission readiness and safe scan plan previews are visible from mission pages
 - scan execution remains CLI-only
 

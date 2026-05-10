@@ -452,6 +452,21 @@
         <dt>Risk</dt><dd>{{ finding.risk }}</dd>
         <dt>Remediation</dt><dd>{{ finding.remediation }}</dd>
         <dt>Counter-test</dt><dd>{{ finding.counter_test }}</dd>
+        {% if finding.related_remediations %}
+        <dt>Library matches</dt>
+        <dd>
+          <ul class="suggestion-list">
+            {% for suggestion in finding.related_remediations %}
+            <li>
+              <strong>{{ suggestion.title }}</strong>
+              <span class="badge severity-{{ suggestion.severity.value | severity_class }}">{{ suggestion.severity.value }}</span>
+              <p>{{ suggestion.remediation }}</p>
+              <p class="muted">{{ suggestion.counter_test }}</p>
+            </li>
+            {% endfor %}
+          </ul>
+        </dd>
+        {% endif %}
         {% if finding.review_note %}
         <dt>Review note</dt><dd>{{ finding.review_note }}</dd>
         {% endif %}

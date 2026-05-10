@@ -312,6 +312,7 @@ Current GUI status:
 - authorization briefs can be generated from mission pages
 - audit checks can be selected from mission pages for planning
 - a first remediation library is visible from the web navigation
+- mission findings show matching remediation library suggestions
 - CLI scan runs are recorded and visible in the mission Run Monitor
 - system status shows local storage, authentication, and tool availability
 - workspace inventory and integrity diagnostics are visible on the System page

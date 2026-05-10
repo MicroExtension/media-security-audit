@@ -76,6 +76,7 @@ Current foundation:
 - system status page started
 - report generation from mission pages started
 - mission export packages started
+- workspace backup export started
 - mission readiness and safe scan plan previews started
 - scan execution remains CLI-only
 
@@ -99,6 +100,7 @@ Current foundation:
 - deployment guide started in `docs/DEPLOYMENT.md`
 - external tool availability status started in the web UI
 - mission ZIP export package started
+- workspace backup ZIP export started
 
 Success criteria:
 - appliance can run on Debian/Ubuntu

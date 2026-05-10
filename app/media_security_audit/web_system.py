@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from media_security_audit.web_auth import WebAuthSettings
+from media_security_audit.web_backup import WorkspaceBackupLink, list_workspace_backup
 
 
 @dataclass(frozen=True)
@@ -41,6 +42,7 @@ class SystemStatus:
     auth: AuthStatus
     paths: list[PathStatus]
     tools: list[ToolStatus]
+    workspace_backup: WorkspaceBackupLink | None
 
 
 TOOL_CHECKS: tuple[tuple[str, str, str], ...] = (
@@ -68,6 +70,7 @@ def build_system_status(
             tool_status(label, command, purpose, tool_resolver)
             for label, command, purpose in TOOL_CHECKS
         ],
+        workspace_backup=list_workspace_backup(reports_dir),
     )
 
 

@@ -29,6 +29,7 @@ from media_security_audit.web_auth import (
     valid_credentials,
     web_auth_settings_from_env,
 )
+from media_security_audit.web_backup import generate_workspace_backup, workspace_backup_file
 from media_security_audit.web_ui import (
     build_dashboard_view,
     build_mission_view,
@@ -187,11 +188,30 @@ def create_web_app(
                     "request": request,
                     "data_dir": data_dir,
                     "view": build_system_status(data_dir, reports_dir, settings),
+                    "form_token": form_token,
                     "message": message,
                     "error": error,
                 },
             )
         )
+
+    @app.post("/system/backup", dependencies=protected)
+    async def workspace_backup_generate(request: Request):
+        try:
+            form = parse_urlencoded_form(await request.body())
+            validate_form_token(form, form_token)
+            generate_workspace_backup(data_dir, reports_dir)
+        except (FileNotFoundError, RuntimeError, ValueError, ValidationError) as error:
+            return redirect_with_status("/system", error=format_web_error(error))
+        return redirect_with_status("/system", message="workspace backup generated")
+
+    @app.get("/system/backup", dependencies=protected)
+    def workspace_backup_download() -> FileResponse:
+        try:
+            path = workspace_backup_file(reports_dir)
+        except FileNotFoundError as error:
+            raise HTTPException(status_code=404, detail=str(error)) from error
+        return FileResponse(path)
 
     @app.post("/clients", dependencies=protected)
     async def client_create(request: Request):

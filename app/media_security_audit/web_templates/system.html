@@ -21,6 +21,10 @@
     <span>Tool checks</span>
     <strong>{{ view.tools | length }}</strong>
   </div>
+  <div class="metric">
+    <span>Workspace backup</span>
+    <strong>{{ "ready" if view.workspace_backup else "none" }}</strong>
+  </div>
 </section>
 
 <section class="section">
@@ -62,6 +66,27 @@
         {% endfor %}
       </tbody>
     </table>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-title">
+    <h2>Workspace Backup</h2>
+    <span class="muted">Data and generated reports</span>
+  </div>
+  <div class="report-panel">
+    <form method="post" action="/system/backup">
+      <input type="hidden" name="_csrf" value="{{ form_token }}">
+      <button class="button secondary-button" type="submit">Generate Backup</button>
+    </form>
+    <div class="report-links">
+      {% if view.workspace_backup %}
+      <a href="/system/backup">zip</a>
+      <span class="muted">{{ view.workspace_backup.filename }} | {{ view.workspace_backup.size_bytes }} bytes</span>
+      {% else %}
+      <span class="empty">No workspace backup yet.</span>
+      {% endif %}
+    </div>
   </div>
 </section>
 

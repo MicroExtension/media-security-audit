@@ -78,6 +78,7 @@ Current foundation:
 - mission export packages started
 - workspace backup export started
 - workspace inventory diagnostics started
+- remediation library foundation started
 - mission readiness and safe scan plan previews started
 - scan execution remains CLI-only
 
@@ -103,6 +104,7 @@ Current foundation:
 - mission ZIP export package started
 - workspace backup ZIP export started
 - workspace integrity diagnostics started
+- remediation library foundation started
 
 Success criteria:
 - appliance can run on Debian/Ubuntu

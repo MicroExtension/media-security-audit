@@ -30,6 +30,7 @@ from media_security_audit.web_auth import (
     web_auth_settings_from_env,
 )
 from media_security_audit.web_backup import generate_workspace_backup, workspace_backup_file
+from media_security_audit.web_remediations import build_remediation_library_view
 from media_security_audit.web_ui import (
     build_dashboard_view,
     build_mission_view,
@@ -189,6 +190,28 @@ def create_web_app(
                     "data_dir": data_dir,
                     "view": build_system_status(data_dir, reports_dir, settings),
                     "form_token": form_token,
+                    "message": message,
+                    "error": error,
+                },
+            )
+        )
+
+    @app.get("/remediations", response_class=HTMLResponse, dependencies=protected)
+    def remediation_library(
+        request: Request,
+        q: str | None = None,
+        category: str | None = None,
+        message: str | None = None,
+        error: str | None = None,
+    ) -> HTMLResponse:
+        return HTMLResponse(
+            render_template(
+                templates,
+                "remediations.html",
+                {
+                    "request": request,
+                    "data_dir": data_dir,
+                    "view": build_remediation_library_view(query=q, category=category),
                     "message": message,
                     "error": error,
                 },

@@ -635,8 +635,15 @@ textarea:focus {
   gap: 14px;
 }
 
+.library-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+
 .finding,
-.counter-test-card {
+.counter-test-card,
+.library-card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 6px;
@@ -667,6 +674,13 @@ textarea:focus {
   justify-content: space-between;
 }
 
+.library-card-head {
+  align-items: start;
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+}
+
 .counter-test-list {
   display: grid;
   gap: 14px;
@@ -680,6 +694,7 @@ textarea:focus {
 }
 
 .finding h3,
+.library-card h3,
 .counter-test-card h3 {
   font-size: 18px;
   margin: 0;
@@ -754,6 +769,7 @@ code {
   .topbar,
   .page-heading,
   .finding-head,
+  .library-card-head,
   .counter-test-head {
     align-items: flex-start;
     flex-direction: column;

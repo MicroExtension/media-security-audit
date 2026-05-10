@@ -47,6 +47,7 @@ Implemented so far:
 - web workspace inventory and integrity diagnostics
 - remediation library foundation for common MSP findings
 - remediation library suggestions on mission findings
+- remediation library exports for technician handoff
 
 The first implementation target remains a CLI-driven V1 with a local web
 interface that can set up the mission workflow:
@@ -159,7 +160,8 @@ workspace backup ZIP containing local data and generated reports. The System
 page also shows workspace inventory counts and read-only integrity diagnostics.
 The Remediations page exposes a first built-in remediation library for common
 HTTP, DNS/Mail, SMB, TLS, and network findings. Mission finding cards show
-matching library suggestions based on finding category.
+matching library suggestions based on finding category. The filtered
+remediation library can be exported from the web UI as JSON, Markdown, or HTML.
 
 ## Deployment
 
@@ -258,6 +260,7 @@ Planned screens:
 - workspace inventory diagnostics started
 - remediation library started
 - remediation suggestions on findings started
+- remediation library export started
 - counter-tests
 - system status started
 - settings

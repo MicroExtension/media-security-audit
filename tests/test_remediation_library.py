@@ -1,15 +1,20 @@
 from pathlib import Path
+import json
 import sys
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "app"))
 
+from media_security_audit.models import ReportFormat  # noqa: E402
 from media_security_audit.remediation_library import (  # noqa: E402
     filter_remediations,
     list_remediations,
     remediation_categories,
 )
-from media_security_audit.web_remediations import build_remediation_library_view  # noqa: E402
+from media_security_audit.web_remediations import (  # noqa: E402
+    build_remediation_library_export,
+    build_remediation_library_view,
+)
 
 
 class RemediationLibraryTests(unittest.TestCase):
@@ -41,6 +46,39 @@ class RemediationLibraryTests(unittest.TestCase):
         self.assertEqual(view.total_count, 2)
         self.assertIn("smb", remediation_categories())
         self.assertTrue(all(entry.category == "smb" for entry in view.entries))
+        self.assertEqual(
+            view.export_links[0].url,
+            "/remediations/export/json?q=SMB&category=smb",
+        )
+
+    def test_exports_filtered_library_as_json_markdown_and_html(self) -> None:
+        json_export = build_remediation_library_export(
+            ReportFormat.JSON,
+            query="SMB",
+            category="smb",
+        )
+        markdown_export = build_remediation_library_export(
+            ReportFormat.MARKDOWN,
+            query="SMB",
+            category="smb",
+        )
+        html_export = build_remediation_library_export(
+            ReportFormat.HTML,
+            query="SMB",
+            category="smb",
+        )
+
+        payload = json.loads(json_export.content)
+        self.assertEqual(json_export.filename, "remediation-library-smb-filtered.json")
+        self.assertEqual(json_export.media_type, "application/json")
+        self.assertEqual(payload["category"], "smb")
+        self.assertEqual(payload["count"], 2)
+        self.assertEqual(markdown_export.filename, "remediation-library-smb-filtered.md")
+        self.assertIn("# Remediation Library", markdown_export.content)
+        self.assertIn("Require SMB Signing Where Appropriate", markdown_export.content)
+        self.assertEqual(html_export.filename, "remediation-library-smb-filtered.html")
+        self.assertIn("<!doctype html>", html_export.content)
+        self.assertIn("Disable SMBv1", html_export.content)
 
 
 if __name__ == "__main__":

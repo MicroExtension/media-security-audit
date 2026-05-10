@@ -45,6 +45,7 @@ Implemented so far:
 - web authorization brief export for pre-audit approval review
 - web workspace backup package for appliance operations
 - web workspace inventory and integrity diagnostics
+- remediation library foundation for common MSP findings
 
 The first implementation target remains a CLI-driven V1 with a local web
 interface that can set up the mission workflow:
@@ -155,6 +156,8 @@ Mission pages can generate Markdown and HTML authorization briefs to review
 approval and scope before guarded CLI execution. The System page can generate a
 workspace backup ZIP containing local data and generated reports. The System
 page also shows workspace inventory counts and read-only integrity diagnostics.
+The Remediations page exposes a first built-in remediation library for common
+HTTP, DNS/Mail, SMB, TLS, and network findings.
 
 ## Deployment
 
@@ -251,6 +254,7 @@ Planned screens:
 - authorization brief export started
 - workspace backup export started
 - workspace inventory diagnostics started
+- remediation library started
 - counter-tests
 - system status started
 - settings

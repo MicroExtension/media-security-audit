@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Remediations | MEDIA Security Audit{% endblock %}
+{% block content %}
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">Library</p>
+    <h1>Remediation Library</h1>
+  </div>
+</section>
+
+<section class="metrics" aria-label="Remediation summary">
+  <div class="metric">
+    <span>Visible entries</span>
+    <strong>{{ view.total_count }}</strong>
+  </div>
+  <div class="metric">
+    <span>Categories</span>
+    <strong>{{ view.categories | length }}</strong>
+  </div>
+</section>
+
+<section class="section">
+  <form class="form-panel" method="get" action="/remediations">
+    <div class="field-grid">
+      <label>
+        <span>Search</span>
+        <input name="q" value="{{ view.query }}">
+      </label>
+      <label>
+        <span>Category</span>
+        <select name="category">
+          <option value=""></option>
+          {% for category in view.categories %}
+          <option value="{{ category }}" {% if category == view.selected_category %}selected{% endif %}>{{ category }}</option>
+          {% endfor %}
+        </select>
+      </label>
+    </div>
+    <div class="form-actions">
+      <button class="button secondary-button" type="submit">Filter</button>
+    </div>
+  </form>
+</section>
+
+<section class="section">
+  <div class="section-title">
+    <h2>Entries</h2>
+  </div>
+  <div class="library-grid">
+    {% for entry in view.entries %}
+    <article class="library-card severity-border-{{ entry.severity.value | severity_class }}">
+      <div class="library-card-head">
+        <div>
+          <h3>{{ entry.title }}</h3>
+          <p class="muted">{{ entry.id }} | {{ entry.category }} | effort: {{ entry.effort }}</p>
+        </div>
+        <span class="badge severity-{{ entry.severity.value | severity_class }}">{{ entry.severity.value }}</span>
+      </div>
+      <dl class="finding-details">
+        <dt>Applies to</dt><dd>{{ entry.applies_to | join(", ") }}</dd>
+        <dt>Risk</dt><dd>{{ entry.risk }}</dd>
+        <dt>Remediation</dt><dd>{{ entry.remediation }}</dd>
+        <dt>Counter-test</dt><dd><pre>{{ entry.counter_test }}</pre></dd>
+      </dl>
+    </article>
+    {% else %}
+    <p class="empty">No remediation entry found.</p>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

@@ -43,6 +43,7 @@ Implemented so far:
 - web mission export package for audit handoff
 - structured authorization details for mission records and reports
 - web authorization brief export for pre-audit approval review
+- web workspace backup package for appliance operations
 
 The first implementation target remains a CLI-driven V1 with a local web
 interface that can set up the mission workflow:
@@ -150,7 +151,8 @@ adding browser scan execution. Mission export packages can be generated as ZIP
 files for controlled audit handoff. Mission setup stores authorization contact,
 dates, emergency contact, report recipients, and evidence retention metadata.
 Mission pages can generate Markdown and HTML authorization briefs to review
-approval and scope before guarded CLI execution.
+approval and scope before guarded CLI execution. The System page can generate a
+workspace backup ZIP containing local data and generated reports.
 
 ## Deployment
 
@@ -245,6 +247,7 @@ Planned screens:
 - mission export package started
 - authorization tracking details started
 - authorization brief export started
+- workspace backup export started
 - counter-tests
 - system status started
 - settings

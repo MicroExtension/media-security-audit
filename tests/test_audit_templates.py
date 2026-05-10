@@ -6,6 +6,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "app"))
 
 from media_security_audit.audit_templates import (  # noqa: E402
     filter_audit_templates,
+    get_audit_template,
     list_audit_templates,
 )
 from media_security_audit.models import AuditCheck, AuditType  # noqa: E402
@@ -35,6 +36,8 @@ class AuditTemplateTests(unittest.TestCase):
             all(template.audit_type is AuditType.EXTERNAL for template in external_templates)
         )
         self.assertIn("tpl_web_mail_hygiene", [template.id for template in mail_templates])
+        self.assertEqual(get_audit_template("tpl_external_perimeter").title, "External Perimeter Review")
+        self.assertIsNone(get_audit_template("tpl_missing"))
 
     def test_builds_web_view_with_check_labels(self) -> None:
         view = build_audit_template_library_view(query="internal", audit_type="internal")

@@ -6,10 +6,12 @@ from datetime import date
 import secrets
 from urllib.parse import parse_qs
 
+from media_security_audit.audit_templates import get_audit_template
 from media_security_audit.models import (
     AuditCheck,
     AuditType,
     Client,
+    DEFAULT_AUDIT_CHECKS,
     Finding,
     FindingStatus,
     Mission,
@@ -39,11 +41,19 @@ def create_client_from_form(store: JsonStore, form: dict[str, str]) -> Client:
 
 
 def create_mission_from_form(store: JsonStore, form: dict[str, str]) -> Mission:
+    template_id = optional_text(form, "audit_template_id")
+    template = get_audit_template(template_id)
+    if template_id and template is None:
+        raise ValueError(f"audit template not found: {template_id}")
+
     return store.create_mission(
         Mission(
             client_id=required_text(form, "client_id", "client"),
             name=required_text(form, "name", "mission name"),
-            audit_type=AuditType(required_text(form, "audit_type", "audit type")),
+            audit_type=template.audit_type
+            if template
+            else AuditType(required_text(form, "audit_type", "audit type")),
+            audit_template_id=template.id if template else None,
             authorization_reference=optional_text(form, "authorization_reference"),
             authorization_contact=optional_text(form, "authorization_contact"),
             authorization_date=parse_optional_date(form, "authorization_date"),
@@ -51,6 +61,9 @@ def create_mission_from_form(store: JsonStore, form: dict[str, str]) -> Mission:
             emergency_contact=optional_text(form, "emergency_contact"),
             report_recipients=optional_text(form, "report_recipients"),
             evidence_retention_days=parse_optional_int(form, "evidence_retention_days"),
+            selected_checks=(
+                list(template.recommended_checks) if template else list(DEFAULT_AUDIT_CHECKS)
+            ),
             notes=optional_text(form, "notes"),
         )
     )

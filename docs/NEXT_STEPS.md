@@ -312,6 +312,7 @@ Current GUI status:
 - authorization briefs can be generated from mission pages
 - audit checks can be selected from mission pages for planning
 - audit templates are visible from the web navigation
+- new missions can use a template to set audit type and initial checks
 - a first remediation library is visible from the web navigation
 - mission findings show matching remediation library suggestions
 - remediation library filters can be exported as JSON, Markdown, or HTML

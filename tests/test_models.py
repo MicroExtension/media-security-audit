@@ -28,8 +28,13 @@ class ScopeItemTests(unittest.TestCase):
 
 class MissionTests(unittest.TestCase):
     def test_default_selected_checks_are_safe_foundation_modules(self) -> None:
-        mission = Mission(client_id="client_1", name="Audit")
+        mission = Mission(
+            client_id="client_1",
+            name="Audit",
+            audit_template_id="tpl_external_perimeter",
+        )
 
+        self.assertEqual(mission.audit_template_id, "tpl_external_perimeter")
         self.assertEqual(
             mission.selected_checks,
             [AuditCheck.NMAP, AuditCheck.HTTP_HEADERS, AuditCheck.DNS_MAIL],

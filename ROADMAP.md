@@ -70,6 +70,7 @@ Current foundation:
 - counter-test plan views started
 - mission activity log started
 - check selection UI started
+- structured authorization tracking started
 - run monitor started
 - system status page started
 - report generation from mission pages started

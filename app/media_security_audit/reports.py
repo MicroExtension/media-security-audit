@@ -99,6 +99,25 @@ def scope_summary(mission: Mission) -> dict[str, object]:
     }
 
 
+def display_value(value: object | None) -> str:
+    if value is None:
+        return "missing"
+    text = str(value).strip()
+    return " ".join(text.split()) if text else "missing"
+
+
+def authorization_summary(mission: Mission) -> dict[str, str]:
+    return {
+        "reference": display_value(mission.authorization_reference),
+        "contact": display_value(mission.authorization_contact),
+        "authorization_date": display_value(mission.authorization_date),
+        "authorization_expires_at": display_value(mission.authorization_expires_at),
+        "emergency_contact": display_value(mission.emergency_contact),
+        "report_recipients": display_value(mission.report_recipients),
+        "evidence_retention_days": display_value(mission.evidence_retention_days),
+    }
+
+
 def remediation_plan(findings: list[Finding], limit: int = 10) -> list[dict[str, str]]:
     prioritized = [
         finding
@@ -129,6 +148,7 @@ def build_report_summary(mission: Mission, findings: list[Finding]) -> dict[str,
         "risk_level": risk_level(score),
         "executive_summary": executive_summary(findings),
         "authorization_present": mission.is_authorized,
+        "authorization": authorization_summary(mission),
         "scope": scope_summary(mission),
     }
 
@@ -148,6 +168,7 @@ def render_markdown(mission: Mission, findings: list[Finding]) -> str:
     summary = build_report_summary(mission, ordered_findings)
     counts = summary["severity_counts"]
     scope = summary["scope"]
+    authorization = summary["authorization"]
     plan = remediation_plan(ordered_findings)
 
     lines = [
@@ -168,7 +189,13 @@ def render_markdown(mission: Mission, findings: list[Finding]) -> str:
         f"- Client id: `{mission.client_id}`",
         f"- Audit type: `{mission.audit_type.value}`",
         f"- Mission status: `{mission.status.value}`",
-        f"- Authorization reference: `{mission.authorization_reference or 'missing'}`",
+        f"- Authorization reference: `{authorization['reference']}`",
+        f"- Authorization contact: `{authorization['contact']}`",
+        f"- Authorization date: `{authorization['authorization_date']}`",
+        f"- Authorization expires: `{authorization['authorization_expires_at']}`",
+        f"- Emergency contact: `{authorization['emergency_contact']}`",
+        f"- Report recipients: `{authorization['report_recipients']}`",
+        f"- Evidence retention days: `{authorization['evidence_retention_days']}`",
         "",
         "## Scope Summary",
         "",
@@ -293,6 +320,7 @@ def render_html(mission: Mission, findings: list[Finding]) -> str:
     summary = build_report_summary(mission, ordered_findings)
     counts = summary["severity_counts"]
     scope = summary["scope"]
+    authorization = summary["authorization"]
     plan = remediation_plan(ordered_findings)
     finding_blocks = []
 
@@ -388,7 +416,13 @@ def render_html(mission: Mission, findings: list[Finding]) -> str:
       <dt>Client ID</dt><dd>{escape(mission.client_id)}</dd>
       <dt>Audit type</dt><dd>{escape(mission.audit_type.value)}</dd>
       <dt>Mission status</dt><dd>{escape(mission.status.value)}</dd>
-      <dt>Authorization</dt><dd>{escape(mission.authorization_reference or "missing")}</dd>
+      <dt>Authorization</dt><dd>{escape(authorization["reference"])}</dd>
+      <dt>Authorization contact</dt><dd>{escape(authorization["contact"])}</dd>
+      <dt>Authorization date</dt><dd>{escape(authorization["authorization_date"])}</dd>
+      <dt>Authorization expires</dt><dd>{escape(authorization["authorization_expires_at"])}</dd>
+      <dt>Emergency contact</dt><dd>{escape(authorization["emergency_contact"])}</dd>
+      <dt>Report recipients</dt><dd>{escape(authorization["report_recipients"])}</dd>
+      <dt>Evidence retention days</dt><dd>{escape(authorization["evidence_retention_days"])}</dd>
       <dt>Approved targets</dt><dd>{scope["approved_count"]}</dd>
       <dt>Excluded targets</dt><dd>{scope["excluded_count"]}</dd>
     </dl>

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from datetime import date
+
 from media_security_audit.models import AuditType, Finding, Mission, ScopeItem, ScopeType, Severity
 
 
@@ -12,6 +14,12 @@ def sample_mission() -> Mission:
         name="Sample Authorized Audit",
         audit_type=AuditType.EXTERNAL,
         authorization_reference="sample-authorization",
+        authorization_contact="Sample Sponsor",
+        authorization_date=date(2026, 5, 10),
+        authorization_expires_at=date(2026, 6, 10),
+        emergency_contact="security@example.invalid",
+        report_recipients="owner@example.invalid",
+        evidence_retention_days=90,
         scope=[
             ScopeItem(
                 id="scope_sample_domain",
@@ -52,4 +60,3 @@ def sample_findings() -> list[Finding]:
             confidence=0.8,
         ),
     ]
-

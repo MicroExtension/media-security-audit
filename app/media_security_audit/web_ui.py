@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import date, datetime
 from html import escape
 from pathlib import Path
 
@@ -50,6 +50,12 @@ class MissionRow:
     status: str
     authorization_present: bool
     authorization_reference: str
+    authorization_contact: str
+    authorization_date: str
+    authorization_expires_at: str
+    emergency_contact: str
+    report_recipients: str
+    evidence_retention_days: str
     scope_count: int
     approved_scope_count: int
     finding_count: int
@@ -170,6 +176,10 @@ def format_datetime(value: datetime) -> str:
     return value.strftime("%Y-%m-%d %H:%M UTC")
 
 
+def format_date(value: date | None) -> str:
+    return value.isoformat() if value else ""
+
+
 def scope_status(item: ScopeItem) -> str:
     if item.excluded:
         return "excluded"
@@ -196,6 +206,16 @@ def mission_row(mission: Mission, findings: list[Finding], client_names: dict[st
         status=mission.status.value,
         authorization_present=mission.is_authorized,
         authorization_reference=mission.authorization_reference or "",
+        authorization_contact=mission.authorization_contact or "",
+        authorization_date=format_date(mission.authorization_date),
+        authorization_expires_at=format_date(mission.authorization_expires_at),
+        emergency_contact=mission.emergency_contact or "",
+        report_recipients=mission.report_recipients or "",
+        evidence_retention_days=(
+            str(mission.evidence_retention_days)
+            if mission.evidence_retention_days is not None
+            else ""
+        ),
         scope_count=len(mission.scope),
         approved_scope_count=approved_scope_count,
         finding_count=len(findings),

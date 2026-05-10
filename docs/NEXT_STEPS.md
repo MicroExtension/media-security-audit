@@ -209,7 +209,7 @@ Codex action:
 
 ## Step 4 - Prepare The Client Authorization Template
 
-Status: required before real audits.
+Status: in progress; template wording is still required before real audits.
 
 Owner action later:
 - provide the wording used in customer authorization documents
@@ -218,9 +218,18 @@ Owner action later:
 - define who receives final reports
 
 Codex action:
-- add authorization tracking fields
-- add report references to authorization id
+- add authorization tracking fields: done
+- add report references to authorization id: done
 - block scans when authorization is missing where required
+
+Current authorization metadata fields:
+- authorization reference
+- authorization contact
+- authorization date
+- authorization expiration date
+- emergency contact
+- report recipients
+- evidence retention duration
 
 ## Step 5 - Choose Deployment Priority
 
@@ -298,6 +307,7 @@ Current GUI status:
 - finding status can be reviewed from mission pages
 - counter-test plans are visible from mission pages
 - mission activity events are recorded and visible from mission pages
+- mission authorization details are editable from mission pages
 - audit checks can be selected from mission pages for planning
 - CLI scan runs are recorded and visible in the mission Run Monitor
 - system status shows local storage, authentication, and tool availability

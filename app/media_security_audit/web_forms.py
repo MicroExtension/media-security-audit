@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import date
 import secrets
 from urllib.parse import parse_qs
 
@@ -44,6 +45,12 @@ def create_mission_from_form(store: JsonStore, form: dict[str, str]) -> Mission:
             name=required_text(form, "name", "mission name"),
             audit_type=AuditType(required_text(form, "audit_type", "audit type")),
             authorization_reference=optional_text(form, "authorization_reference"),
+            authorization_contact=optional_text(form, "authorization_contact"),
+            authorization_date=parse_optional_date(form, "authorization_date"),
+            authorization_expires_at=parse_optional_date(form, "authorization_expires_at"),
+            emergency_contact=optional_text(form, "emergency_contact"),
+            report_recipients=optional_text(form, "report_recipients"),
+            evidence_retention_days=parse_optional_int(form, "evidence_retention_days"),
             notes=optional_text(form, "notes"),
         )
     )
@@ -51,14 +58,19 @@ def create_mission_from_form(store: JsonStore, form: dict[str, str]) -> Mission:
 
 def update_mission_from_form(store: JsonStore, mission_id: str, form: dict[str, str]) -> Mission:
     mission = store.get_mission(mission_id)
-    updated = mission.model_copy(
-        update={
-            "name": required_text(form, "name", "mission name"),
-            "audit_type": AuditType(required_text(form, "audit_type", "audit type")),
-            "authorization_reference": optional_text(form, "authorization_reference"),
-            "notes": optional_text(form, "notes"),
-        }
-    )
+    updates = {
+        "name": required_text(form, "name", "mission name"),
+        "audit_type": AuditType(required_text(form, "audit_type", "audit type")),
+        "authorization_reference": optional_text(form, "authorization_reference"),
+        "authorization_contact": optional_text(form, "authorization_contact"),
+        "authorization_date": parse_optional_date(form, "authorization_date"),
+        "authorization_expires_at": parse_optional_date(form, "authorization_expires_at"),
+        "emergency_contact": optional_text(form, "emergency_contact"),
+        "report_recipients": optional_text(form, "report_recipients"),
+        "evidence_retention_days": parse_optional_int(form, "evidence_retention_days"),
+        "notes": optional_text(form, "notes"),
+    }
+    updated = Mission.model_validate({**mission.model_dump(mode="python"), **updates})
     return store.save_mission(updated)
 
 
@@ -204,6 +216,26 @@ def parse_confidence(value: str | None) -> float:
         return float(value)
     except ValueError as error:
         raise ValueError("confidence must be a number between 0 and 1") from error
+
+
+def parse_optional_date(form: dict[str, str], field: str) -> date | None:
+    value = optional_text(form, field)
+    if value is None:
+        return None
+    try:
+        return date.fromisoformat(value)
+    except ValueError as error:
+        raise ValueError(f"{field} must be a valid ISO date") from error
+
+
+def parse_optional_int(form: dict[str, str], field: str) -> int | None:
+    value = optional_text(form, field)
+    if value is None:
+        return None
+    try:
+        return int(value)
+    except ValueError as error:
+        raise ValueError(f"{field} must be a whole number") from error
 
 
 def new_form_token() -> str:

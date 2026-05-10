@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+from datetime import date
 from pathlib import Path
 
 from pydantic import ValidationError
@@ -77,6 +78,12 @@ def create_mission(
     data_dir: Path,
     audit_type: AuditType = AuditType.MIXED,
     authorization_reference: str | None = None,
+    authorization_contact: str | None = None,
+    authorization_date: date | None = None,
+    authorization_expires_at: date | None = None,
+    emergency_contact: str | None = None,
+    report_recipients: str | None = None,
+    evidence_retention_days: int | None = None,
     notes: str | None = None,
 ):
     from media_security_audit.models import Mission
@@ -88,6 +95,12 @@ def create_mission(
             name=name,
             audit_type=audit_type,
             authorization_reference=authorization_reference,
+            authorization_contact=authorization_contact,
+            authorization_date=authorization_date,
+            authorization_expires_at=authorization_expires_at,
+            emergency_contact=emergency_contact,
+            report_recipients=report_recipients,
+            evidence_retention_days=evidence_retention_days,
             notes=notes,
         )
     )
@@ -128,6 +141,11 @@ def show_mission(mission_id: str, data_dir: Path) -> str:
     findings = store.list_findings(mission_id)
     approved_scope = [item for item in mission.scope if item.approved and not item.excluded]
     excluded_scope = [item for item in mission.scope if item.excluded]
+    evidence_retention = (
+        str(mission.evidence_retention_days)
+        if mission.evidence_retention_days is not None
+        else "missing"
+    )
 
     return "\n".join(
         [
@@ -137,6 +155,12 @@ def show_mission(mission_id: str, data_dir: Path) -> str:
             f"Audit type: {mission.audit_type.value}",
             f"Status: {mission.status.value}",
             f"Authorization: {mission.authorization_reference or 'missing'}",
+            f"Authorization contact: {mission.authorization_contact or 'missing'}",
+            f"Authorization date: {mission.authorization_date or 'missing'}",
+            f"Authorization expires: {mission.authorization_expires_at or 'missing'}",
+            f"Emergency contact: {mission.emergency_contact or 'missing'}",
+            f"Report recipients: {mission.report_recipients or 'missing'}",
+            f"Evidence retention days: {evidence_retention}",
             f"Scope items: {len(mission.scope)}",
             f"Approved scope: {len(approved_scope)}",
             f"Excluded scope: {len(excluded_scope)}",
@@ -443,6 +467,13 @@ def format_cli_error(error: Exception) -> str:
     return str(error)
 
 
+def parse_cli_date(value: str) -> date:
+    try:
+        return date.fromisoformat(value)
+    except ValueError as error:
+        raise argparse.ArgumentTypeError("date must use YYYY-MM-DD format") from error
+
+
 try:
     import typer
 
@@ -511,6 +542,12 @@ try:
         name: str = typer.Option(..., "--name"),
         audit_type: AuditType = typer.Option(AuditType.MIXED, "--audit-type"),
         authorization_reference: str | None = typer.Option(None, "--authorization-reference"),
+        authorization_contact: str | None = typer.Option(None, "--authorization-contact"),
+        authorization_date: date | None = typer.Option(None, "--authorization-date"),
+        authorization_expires_at: date | None = typer.Option(None, "--authorization-expires-at"),
+        emergency_contact: str | None = typer.Option(None, "--emergency-contact"),
+        report_recipients: str | None = typer.Option(None, "--report-recipients"),
+        evidence_retention_days: int | None = typer.Option(None, "--evidence-retention-days"),
         notes: str | None = typer.Option(None, "--notes"),
         data_dir: Path = typer.Option(Path("data"), "--data-dir"),
     ) -> None:
@@ -519,6 +556,12 @@ try:
             name=name,
             audit_type=audit_type,
             authorization_reference=authorization_reference,
+            authorization_contact=authorization_contact,
+            authorization_date=authorization_date,
+            authorization_expires_at=authorization_expires_at,
+            emergency_contact=emergency_contact,
+            report_recipients=report_recipients,
+            evidence_retention_days=evidence_retention_days,
             notes=notes,
             data_dir=data_dir,
         )
@@ -750,6 +793,12 @@ except ModuleNotFoundError:
         mission_create_parser.add_argument("--name", required=True)
         mission_create_parser.add_argument("--audit-type", choices=[item.value for item in AuditType], default=AuditType.MIXED.value)
         mission_create_parser.add_argument("--authorization-reference")
+        mission_create_parser.add_argument("--authorization-contact")
+        mission_create_parser.add_argument("--authorization-date", type=parse_cli_date)
+        mission_create_parser.add_argument("--authorization-expires-at", type=parse_cli_date)
+        mission_create_parser.add_argument("--emergency-contact")
+        mission_create_parser.add_argument("--report-recipients")
+        mission_create_parser.add_argument("--evidence-retention-days", type=int)
         mission_create_parser.add_argument("--notes")
         mission_create_parser.add_argument("--data-dir", type=Path, default=Path("data"))
         mission_list_parser = mission_subparsers.add_parser("list", help="List missions.")
@@ -893,6 +942,12 @@ except ModuleNotFoundError:
                     name=args.name,
                     audit_type=AuditType(args.audit_type),
                     authorization_reference=args.authorization_reference,
+                    authorization_contact=args.authorization_contact,
+                    authorization_date=args.authorization_date,
+                    authorization_expires_at=args.authorization_expires_at,
+                    emergency_contact=args.emergency_contact,
+                    report_recipients=args.report_recipients,
+                    evidence_retention_days=args.evidence_retention_days,
                     notes=args.notes,
                     data_dir=args.data_dir,
                 )

@@ -1,3 +1,4 @@
+from datetime import date
 from pathlib import Path
 import shutil
 import unittest
@@ -88,6 +89,12 @@ class WebUiTests(unittest.TestCase):
                 client_id=client.id,
                 name="Internal Audit",
                 authorization_reference="AUTH-002",
+                authorization_contact="RSSI Client",
+                authorization_date=date(2026, 5, 10),
+                authorization_expires_at=date(2026, 6, 10),
+                emergency_contact="astreinte@example.invalid",
+                report_recipients="direction@example.invalid",
+                evidence_retention_days=60,
             )
         )
         store.add_scope_item(
@@ -114,6 +121,12 @@ class WebUiTests(unittest.TestCase):
 
         self.assertEqual(view.mission.client_name, "Client Y")
         self.assertEqual(view.mission.authorization_reference, "AUTH-002")
+        self.assertEqual(view.mission.authorization_contact, "RSSI Client")
+        self.assertEqual(view.mission.authorization_date, "2026-05-10")
+        self.assertEqual(view.mission.authorization_expires_at, "2026-06-10")
+        self.assertEqual(view.mission.emergency_contact, "astreinte@example.invalid")
+        self.assertEqual(view.mission.report_recipients, "direction@example.invalid")
+        self.assertEqual(view.mission.evidence_retention_days, "60")
         self.assertEqual(view.mission.notes, "")
         self.assertEqual(view.scope[0].status, "approved")
         self.assertEqual(view.findings[0].severity, "high")

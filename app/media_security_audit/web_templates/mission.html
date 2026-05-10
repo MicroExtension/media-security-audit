@@ -150,6 +150,30 @@
         <span>Authorization Reference</span>
         <input name="authorization_reference" value="{{ view.mission.authorization_reference }}">
       </label>
+      <label>
+        <span>Authorization Contact</span>
+        <input name="authorization_contact" value="{{ view.mission.authorization_contact }}">
+      </label>
+      <label>
+        <span>Authorization Date</span>
+        <input name="authorization_date" type="date" value="{{ view.mission.authorization_date }}">
+      </label>
+      <label>
+        <span>Authorization Expires</span>
+        <input name="authorization_expires_at" type="date" value="{{ view.mission.authorization_expires_at }}">
+      </label>
+      <label>
+        <span>Evidence Retention Days</span>
+        <input name="evidence_retention_days" type="number" min="0" step="1" value="{{ view.mission.evidence_retention_days }}">
+      </label>
+      <label class="span-2">
+        <span>Emergency Contact</span>
+        <input name="emergency_contact" value="{{ view.mission.emergency_contact }}">
+      </label>
+      <label class="span-2">
+        <span>Report Recipients</span>
+        <textarea name="report_recipients" rows="2">{{ view.mission.report_recipients }}</textarea>
+      </label>
       <label class="span-2">
         <span>Notes</span>
         <textarea name="notes" rows="3">{{ view.mission.notes }}</textarea>

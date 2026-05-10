@@ -28,8 +28,10 @@ class ReportTests(unittest.TestCase):
         self.assertEqual(payload["summary"]["risk_score"], 13)
         self.assertEqual(payload["summary"]["risk_level"], "low")
         self.assertEqual(payload["summary"]["scope"]["approved_count"], 1)
+        self.assertEqual(payload["summary"]["authorization"]["contact"], "Sample Sponsor")
         self.assertEqual(len(payload["remediation_plan"]), 2)
         self.assertEqual(payload["mission"]["id"], "mission_sample")
+        self.assertEqual(payload["mission"]["evidence_retention_days"], 90)
 
     def test_renders_markdown_report(self) -> None:
         markdown = render_markdown(sample_mission(), sample_findings())
@@ -38,6 +40,8 @@ class ReportTests(unittest.TestCase):
         self.assertIn("## Executive Summary", markdown)
         self.assertIn("## Remediation Plan", markdown)
         self.assertIn("Risk score: `13/100`", markdown)
+        self.assertIn("Authorization contact: `Sample Sponsor`", markdown)
+        self.assertIn("Evidence retention days: `90`", markdown)
         self.assertIn("Missing HTTP Strict Transport Security header", markdown)
 
     def test_renders_html_report(self) -> None:
@@ -46,6 +50,8 @@ class ReportTests(unittest.TestCase):
         self.assertIn("<!doctype html>", html)
         self.assertIn("Risk Overview", html)
         self.assertIn("Remediation Plan", html)
+        self.assertIn("Sample Sponsor", html)
+        self.assertIn("security@example.invalid", html)
         self.assertIn("Missing HTTP Strict Transport Security header", html)
 
     def test_builds_report_summary_and_remediation_plan(self) -> None:
@@ -53,6 +59,7 @@ class ReportTests(unittest.TestCase):
         plan = remediation_plan(sample_findings())
 
         self.assertTrue(summary["authorization_present"])
+        self.assertEqual(summary["authorization"]["evidence_retention_days"], "90")
         self.assertEqual(summary["scope"]["approved_targets"], ["domain:example.invalid"])
         self.assertEqual(plan[0]["severity"], "medium")
 

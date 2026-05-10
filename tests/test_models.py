@@ -44,6 +44,14 @@ class MissionTests(unittest.TestCase):
 
         self.assertEqual(mission.selected_checks, [AuditCheck.NMAP, AuditCheck.DNS_MAIL])
 
+    def test_rejects_negative_evidence_retention(self) -> None:
+        with self.assertRaises(ValidationError):
+            Mission(
+                client_id="client_1",
+                name="Audit",
+                evidence_retention_days=-1,
+            )
+
 
 if __name__ == "__main__":
     unittest.main()

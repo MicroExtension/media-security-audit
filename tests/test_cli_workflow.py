@@ -5,6 +5,7 @@ import subprocess
 import sys
 import unittest
 from contextlib import redirect_stderr
+from datetime import date
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "app"))
@@ -43,6 +44,12 @@ class CliWorkflowTests(unittest.TestCase):
             name="External audit",
             audit_type=AuditType.EXTERNAL,
             authorization_reference="signed-order",
+            authorization_contact="Jane Sponsor",
+            authorization_date=date(2026, 5, 10),
+            authorization_expires_at=date(2026, 6, 10),
+            emergency_contact="security@example.invalid",
+            report_recipients="owner@example.invalid",
+            evidence_retention_days=90,
             data_dir=data_dir,
         )
         updated = add_scope(
@@ -87,6 +94,8 @@ class CliWorkflowTests(unittest.TestCase):
         scope_items = list_scope(mission_id=mission.id, data_dir=data_dir)
 
         self.assertIn("Status: ready_to_scan", summary)
+        self.assertIn("Authorization contact: Jane Sponsor", summary)
+        self.assertIn("Evidence retention days: 90", summary)
         self.assertIn("Findings: 1", summary)
         self.assertEqual(len(scope_items), 2)
         self.assertEqual(scope_items[0].value, "example.invalid")

@@ -41,6 +41,7 @@ Implemented so far:
 - web system status page for appliance readiness
 - web run monitor for CLI scan execution history
 - web mission export package for audit handoff
+- structured authorization details for mission records and reports
 
 The first implementation target remains a CLI-driven V1 with a local web
 interface that can set up the mission workflow:
@@ -145,7 +146,8 @@ traceability and check selection for scan plan previews. The System page shows
 local storage, authentication, and external tool availability without running
 scanner commands. The mission Run Monitor shows recorded CLI scan runs without
 adding browser scan execution. Mission export packages can be generated as ZIP
-files for controlled audit handoff.
+files for controlled audit handoff. Mission setup stores authorization contact,
+dates, emergency contact, report recipients, and evidence retention metadata.
 
 ## Deployment
 
@@ -238,6 +240,7 @@ Planned screens:
 - findings review started
 - report generation started
 - mission export package started
+- authorization tracking details started
 - counter-tests
 - system status started
 - settings

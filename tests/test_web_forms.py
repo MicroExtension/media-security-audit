@@ -4,6 +4,8 @@ import unittest
 
 import sys
 
+from pydantic import ValidationError
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "app"))
 
 from media_security_audit.models import (  # noqa: E402
@@ -75,11 +77,23 @@ class WebFormTests(unittest.TestCase):
                 "name": "Audit externe",
                 "audit_type": "external",
                 "authorization_reference": "AUTH-001",
+                "authorization_contact": " Sponsor Client ",
+                "authorization_date": "2026-05-10",
+                "authorization_expires_at": "2026-06-10",
+                "emergency_contact": " astreinte@example.invalid ",
+                "report_recipients": " direction@example.invalid ",
+                "evidence_retention_days": "90",
             },
         )
 
         self.assertEqual(mission.audit_type, AuditType.EXTERNAL)
         self.assertEqual(mission.authorization_reference, "AUTH-001")
+        self.assertEqual(mission.authorization_contact, "Sponsor Client")
+        self.assertEqual(mission.authorization_date.isoformat(), "2026-05-10")
+        self.assertEqual(mission.authorization_expires_at.isoformat(), "2026-06-10")
+        self.assertEqual(mission.emergency_contact, "astreinte@example.invalid")
+        self.assertEqual(mission.report_recipients, "direction@example.invalid")
+        self.assertEqual(mission.evidence_retention_days, 90)
 
     def test_add_scope_from_form(self) -> None:
         store = JsonStore(clean_data_dir("web-form-scope"))
@@ -407,6 +421,12 @@ class WebFormTests(unittest.TestCase):
                 "name": " Audit externe ",
                 "audit_type": "mixed",
                 "authorization_reference": " AUTH-002 ",
+                "authorization_contact": " DSI ",
+                "authorization_date": "2026-05-10",
+                "authorization_expires_at": "2026-05-31",
+                "emergency_contact": " security@example.invalid ",
+                "report_recipients": " rss@example.invalid ",
+                "evidence_retention_days": "45",
                 "notes": " Validate with client ",
             },
         )
@@ -414,8 +434,48 @@ class WebFormTests(unittest.TestCase):
         self.assertEqual(updated.name, "Audit externe")
         self.assertEqual(updated.audit_type.value, "mixed")
         self.assertEqual(updated.authorization_reference, "AUTH-002")
+        self.assertEqual(updated.authorization_contact, "DSI")
+        self.assertEqual(updated.authorization_date.isoformat(), "2026-05-10")
+        self.assertEqual(updated.authorization_expires_at.isoformat(), "2026-05-31")
+        self.assertEqual(updated.emergency_contact, "security@example.invalid")
+        self.assertEqual(updated.report_recipients, "rss@example.invalid")
+        self.assertEqual(updated.evidence_retention_days, 45)
         self.assertEqual(updated.notes, "Validate with client")
         self.assertEqual(updated.status.value, "ready_to_scan")
+
+    def test_update_mission_from_form_rejects_invalid_authorization_details(self) -> None:
+        store = JsonStore(clean_data_dir("web-form-invalid-auth-details"))
+        client = create_client_from_form(store, {"name": "Client X"})
+        mission = create_mission_from_form(
+            store,
+            {
+                "client_id": client.id,
+                "name": "Audit draft",
+                "audit_type": "external",
+            },
+        )
+
+        with self.assertRaises(ValueError):
+            update_mission_from_form(
+                store,
+                mission.id,
+                {
+                    "name": "Audit externe",
+                    "audit_type": "external",
+                    "authorization_date": "10/05/2026",
+                },
+            )
+
+        with self.assertRaises(ValidationError):
+            update_mission_from_form(
+                store,
+                mission.id,
+                {
+                    "name": "Audit externe",
+                    "audit_type": "external",
+                    "evidence_retention_days": "-1",
+                },
+            )
 
     def test_update_mission_checks_from_form(self) -> None:
         store = JsonStore(clean_data_dir("web-form-check-selection"))

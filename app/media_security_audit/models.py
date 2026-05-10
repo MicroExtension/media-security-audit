@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from enum import Enum
 from hashlib import sha256
 from ipaddress import ip_address, ip_network
@@ -173,6 +173,12 @@ class Mission(BaseModel):
     name: str
     audit_type: AuditType = AuditType.MIXED
     authorization_reference: str | None = None
+    authorization_contact: str | None = None
+    authorization_date: date | None = None
+    authorization_expires_at: date | None = None
+    emergency_contact: str | None = None
+    report_recipients: str | None = None
+    evidence_retention_days: int | None = Field(default=None, ge=0)
     status: MissionStatus = MissionStatus.DRAFT
     scope: list[ScopeItem] = Field(default_factory=list)
     selected_checks: list[AuditCheck] = Field(default_factory=lambda: list(DEFAULT_AUDIT_CHECKS))

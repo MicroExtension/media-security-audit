@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Activity | MEDIA Security Audit{% endblock %}
+{% block content %}
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">Traceability</p>
+    <h1>Activity Log</h1>
+  </div>
+</section>
+
+<section class="metrics" aria-label="Activity summary">
+  <div class="metric">
+    <span>Events</span>
+    <strong>{{ view.total_events }}</strong>
+  </div>
+  <div class="metric">
+    <span>Missions</span>
+    <strong>{{ view.mission_count }}</strong>
+  </div>
+  <div class="metric">
+    <span>Clients</span>
+    <strong>{{ view.client_count }}</strong>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-title">
+    <h2>Latest Events</h2>
+    <div class="report-links" aria-label="Activity log exports">
+      {% for link in view.export_links %}
+      <a href="{{ link.url }}">{{ link.label }}</a>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Created</th>
+          <th>Client</th>
+          <th>Mission</th>
+          <th>Action</th>
+          <th>Summary</th>
+          <th>Metadata</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in view.rows %}
+        <tr>
+          <td>{{ row.created_at }}</td>
+          <td>{{ row.client_name }}</td>
+          <td><a href="/missions/{{ row.mission_id }}">{{ row.mission_name }}</a></td>
+          <td><span class="badge">{{ row.action }}</span></td>
+          <td>{{ row.summary }}</td>
+          <td>{{ row.metadata_summary }}</td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="6" class="empty">No activity event recorded yet.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

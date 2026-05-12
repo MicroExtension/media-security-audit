@@ -15,6 +15,8 @@ from media_security_audit.models import (  # noqa: E402
     Mission,
     ScanRun,
     ScanRunStatus,
+    ScopeItem,
+    ScopeType,
     Severity,
 )
 from media_security_audit.storage import JsonStore  # noqa: E402
@@ -40,7 +42,22 @@ class WebExportTests(unittest.TestCase):
         reports_dir = clean_dir("web-export-reports")
         store = JsonStore(data_dir)
         client = store.create_client(Client(name="Client Export"))
-        mission = store.create_mission(Mission(client_id=client.id, name="Export Audit"))
+        mission = store.create_mission(
+            Mission(
+                client_id=client.id,
+                name="Export Audit",
+                audit_template_id="tpl_web_mail_hygiene",
+                authorization_reference="AUTH-EXPORT",
+                selected_checks=[AuditCheck.HTTP_HEADERS, AuditCheck.DNS_MAIL],
+                scope=[
+                    ScopeItem(
+                        type=ScopeType.URL,
+                        value="https://client.example",
+                        approved=True,
+                    )
+                ],
+            )
+        )
         finding = store.add_finding(
             mission.id,
             Finding(
@@ -70,6 +87,7 @@ class WebExportTests(unittest.TestCase):
                 status=ScanRunStatus.COMPLETED,
                 command_count=1,
                 finding_count=1,
+                evidence_paths=["runs/evidence/http-headers.json"],
             )
         )
         generate_web_reports(store, mission.id, reports_dir)
@@ -84,7 +102,17 @@ class WebExportTests(unittest.TestCase):
             manifest = json.loads(archive.read("manifest.json").decode("utf-8"))
 
         self.assertEqual(manifest["mission_id"], mission.id)
+        self.assertEqual(manifest["mission_name"], "Export Audit")
+        self.assertEqual(manifest["client_name"], "Client Export")
+        self.assertEqual(manifest["audit_template_id"], "tpl_web_mail_hygiene")
+        self.assertEqual(manifest["audit_template_title"], "Web And Mail Hygiene")
+        self.assertEqual(manifest["authorization_decision"], "ready_for_guarded_cli_execution")
+        self.assertEqual(manifest["selected_checks"], ["http_headers", "dns_mail"])
+        self.assertEqual(manifest["scope"]["approved_count"], 1)
         self.assertEqual(manifest["finding_count"], 1)
+        self.assertEqual(manifest["report_count"], 3)
+        self.assertEqual(manifest["authorization_brief_count"], 2)
+        self.assertEqual(manifest["evidence_path_count"], 1)
         self.assertEqual(
             manifest["authorization_briefs"],
             [

@@ -9,10 +9,13 @@ from zipfile import ZIP_DEFLATED, ZipFile
 
 from pydantic import BaseModel
 
-from media_security_audit.models import ReportFormat, utc_now
+from media_security_audit.audit_templates import get_audit_template
+from media_security_audit.models import Client, Mission, ReportFormat, ScanRun, utc_now
+from media_security_audit.reports import scope_summary
 from media_security_audit.storage import JsonStore
 from media_security_audit.web_authorization import (
     AuthorizationBriefFormat,
+    authorization_decision,
     authorization_brief_path,
 )
 from media_security_audit.web_reports import (
@@ -61,18 +64,15 @@ def generate_mission_export(store: JsonStore, mission_id: str, reports_dir: Path
 
     output_path = mission_export_path(reports_dir, mission_id)
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    manifest = {
-        "generated_at": utc_now().isoformat(),
-        "mission_id": mission.id,
-        "client_id": mission.client_id,
-        "finding_count": len(findings),
-        "activity_event_count": len(activity_events),
-        "scan_run_count": len(scan_runs),
-        "reports": [f"reports/{path.name}" for path in report_paths],
-        "authorization_briefs": [
-            f"authorization/{path.name}" for path in authorization_brief_paths
-        ],
-    }
+    manifest = build_mission_export_manifest(
+        mission=mission,
+        client=client,
+        finding_count=len(findings),
+        activity_event_count=len(activity_events),
+        scan_runs=scan_runs,
+        report_paths=report_paths,
+        authorization_brief_paths=authorization_brief_paths,
+    )
 
     with ZipFile(output_path, mode="w", compression=ZIP_DEFLATED) as archive:
         archive.writestr("manifest.json", json.dumps(manifest, indent=2, ensure_ascii=False))
@@ -91,6 +91,44 @@ def generate_mission_export(store: JsonStore, mission_id: str, reports_dir: Path
             archive.write(path, f"reports/{path.name}")
 
     return output_path
+
+
+def build_mission_export_manifest(
+    mission: Mission,
+    client: Client | None,
+    finding_count: int,
+    activity_event_count: int,
+    scan_runs: list[ScanRun],
+    report_paths: list[Path],
+    authorization_brief_paths: list[Path],
+) -> dict[str, object]:
+    template = get_audit_template(mission.audit_template_id)
+    reports = [f"reports/{path.name}" for path in report_paths]
+    authorization_briefs = [f"authorization/{path.name}" for path in authorization_brief_paths]
+    evidence_path_count = sum(len(run.evidence_paths) for run in scan_runs)
+
+    return {
+        "generated_at": utc_now().isoformat(),
+        "mission_id": mission.id,
+        "mission_name": mission.name,
+        "client_id": mission.client_id,
+        "client_name": client.name if client else None,
+        "audit_type": mission.audit_type.value,
+        "audit_template_id": mission.audit_template_id,
+        "audit_template_title": template.title if template else None,
+        "mission_status": mission.status.value,
+        "authorization_decision": authorization_decision(mission),
+        "selected_checks": [check.value for check in mission.selected_checks],
+        "scope": scope_summary(mission),
+        "finding_count": finding_count,
+        "activity_event_count": activity_event_count,
+        "scan_run_count": len(scan_runs),
+        "evidence_path_count": evidence_path_count,
+        "report_count": len(reports),
+        "authorization_brief_count": len(authorization_briefs),
+        "reports": reports,
+        "authorization_briefs": authorization_briefs,
+    }
 
 
 def list_mission_export(mission_id: str, reports_dir: Path) -> MissionExportLink | None:

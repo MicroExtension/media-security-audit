@@ -86,6 +86,7 @@ Current foundation:
 - mission template guidance started
 - template guidance in authorization briefs started
 - enriched mission export manifest started
+- mission export checksum manifest started
 - mission readiness and safe scan plan previews started
 - scan execution remains CLI-only
 
@@ -118,6 +119,7 @@ Current foundation:
 - mission template guidance started
 - template guidance in authorization briefs started
 - enriched mission export manifest started
+- mission export checksum manifest started
 
 Success criteria:
 - appliance can run on Debian/Ubuntu

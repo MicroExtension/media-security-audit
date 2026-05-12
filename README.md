@@ -52,6 +52,7 @@ Implemented so far:
 - template-assisted mission creation with recommended check selection
 - mission template guidance for scope, authorization, and deliverables
 - template guidance in authorization briefs
+- enriched mission export manifest for audit handoff
 
 The first implementation target remains a CLI-driven V1 with a local web
 interface that can set up the mission workflow:
@@ -171,6 +172,8 @@ internal, web/mail, and counter-test workflows. New missions can be created
 from these templates to set the initial audit type and recommended checks.
 Mission pages show selected template guidance during preparation.
 Authorization briefs include selected template guidance for pre-audit review.
+Mission export ZIP packages include an enriched manifest for handoff review and
+archival.
 
 ## Deployment
 
@@ -274,6 +277,7 @@ Planned screens:
 - template-assisted mission creation started
 - mission template guidance started
 - template guidance in authorization briefs started
+- enriched mission export manifest started
 - counter-tests
 - system status started
 - settings

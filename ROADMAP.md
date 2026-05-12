@@ -91,6 +91,7 @@ Current foundation:
 - workspace activity log export started
 - activity log filters started
 - activity log client and mission filters started
+- activity log date filters started
 - mission readiness and safe scan plan previews started
 - scan execution remains CLI-only
 
@@ -128,6 +129,7 @@ Current foundation:
 - workspace activity log export started
 - activity log filters started
 - activity log client and mission filters started
+- activity log date filters started
 
 Success criteria:
 - appliance can run on Debian/Ubuntu

@@ -212,6 +212,8 @@ def create_web_app(
         action: str | None = None,
         client_id: str | None = None,
         mission_id: str | None = None,
+        date_from: str | None = None,
+        date_to: str | None = None,
         message: str | None = None,
         error: str | None = None,
     ) -> HTMLResponse:
@@ -228,6 +230,8 @@ def create_web_app(
                         action=action,
                         client_id=client_id,
                         mission_id=mission_id,
+                        date_from=date_from,
+                        date_to=date_to,
                     ),
                     "message": message,
                     "error": error,
@@ -242,6 +246,8 @@ def create_web_app(
         action: str | None = None,
         client_id: str | None = None,
         mission_id: str | None = None,
+        date_from: str | None = None,
+        date_to: str | None = None,
     ) -> Response:
         export = build_activity_log_export(
             store,
@@ -250,6 +256,8 @@ def create_web_app(
             action=action,
             client_id=client_id,
             mission_id=mission_id,
+            date_from=date_from,
+            date_to=date_to,
         )
         return Response(
             content=export.content,

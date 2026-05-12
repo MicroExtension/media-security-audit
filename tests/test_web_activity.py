@@ -1,5 +1,5 @@
 from pathlib import Path
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 import json
 import shutil
 import sys
@@ -62,6 +62,8 @@ class WebActivityTests(unittest.TestCase):
         self.assertEqual(view.visible_events, 2)
         self.assertEqual(view.action_filter, "")
         self.assertEqual(view.query, "")
+        self.assertEqual(view.date_from_filter, "")
+        self.assertEqual(view.date_to_filter, "")
         self.assertEqual(view.actions, ["mission.created", "scope.added"])
         self.assertEqual([option.label for option in view.clients], ["Client A", "Client B"])
         self.assertEqual(
@@ -177,6 +179,64 @@ class WebActivityTests(unittest.TestCase):
         self.assertEqual(payload["mission_id"], mission_b.id)
         self.assertEqual(payload["events"][0]["client_id"], client_b.id)
         self.assertEqual(payload["events"][0]["mission_id"], mission_b.id)
+
+    def test_filters_activity_log_by_date_range(self) -> None:
+        store = JsonStore(clean_dir("web-activity-date-filter"))
+        client = store.create_client(Client(name="Client Date"))
+        mission = store.create_mission(Mission(client_id=client.id, name="Date Audit"))
+        store.add_activity_event(
+            ActivityEvent(
+                mission_id=mission.id,
+                action="mission.created",
+                summary="Created before range",
+                created_at=datetime(2026, 5, 9, 10, 0, tzinfo=timezone.utc),
+            )
+        )
+        expected = store.add_activity_event(
+            ActivityEvent(
+                mission_id=mission.id,
+                action="scope.added",
+                summary="Created inside range",
+                created_at=datetime(2026, 5, 10, 10, 0, tzinfo=timezone.utc),
+            )
+        )
+        store.add_activity_event(
+            ActivityEvent(
+                mission_id=mission.id,
+                action="reports.generated",
+                summary="Created after range",
+                created_at=datetime(2026, 5, 11, 10, 0, tzinfo=timezone.utc),
+            )
+        )
+
+        view = build_activity_log_view(
+            store,
+            date_from="2026-05-10",
+            date_to="2026-05-10",
+        )
+        export = build_activity_log_export(
+            store,
+            ReportFormat.JSON,
+            date_from="2026-05-10",
+            date_to="2026-05-10",
+        )
+        payload = json.loads(export.content)
+
+        self.assertEqual(view.total_events, 3)
+        self.assertEqual(view.visible_events, 1)
+        self.assertEqual(view.date_from_filter, "2026-05-10")
+        self.assertEqual(view.date_to_filter, "2026-05-10")
+        self.assertEqual(
+            view.export_links[0].url,
+            "/activity/export/json?date_from=2026-05-10&date_to=2026-05-10",
+        )
+        self.assertEqual([row.id for row in view.rows], [expected.id])
+        self.assertEqual(export.filename, "activity-log-dates-filtered.json")
+        self.assertEqual(payload["count"], 1)
+        self.assertEqual(payload["total_events"], 3)
+        self.assertEqual(payload["date_from"], "2026-05-10")
+        self.assertEqual(payload["date_to"], "2026-05-10")
+        self.assertEqual(payload["events"][0]["created_date"], "2026-05-10")
 
     def test_exports_activity_log_as_json_markdown_and_html(self) -> None:
         store = JsonStore(clean_dir("web-activity-export"))

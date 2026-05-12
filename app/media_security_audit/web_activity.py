@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
+from datetime import date
 from html import escape
 from urllib.parse import urlencode
 
@@ -36,6 +37,7 @@ class ActivityLogRow:
     summary: str
     created_at: str
     created_at_iso: str
+    created_date: str
     metadata: dict[str, str]
     metadata_summary: str
 
@@ -53,6 +55,8 @@ class ActivityLogView:
     action_filter: str
     client_filter: str
     mission_filter: str
+    date_from_filter: str
+    date_to_filter: str
     query: str
     export_links: list[ActivityExportLink]
 
@@ -70,6 +74,8 @@ def build_activity_log_view(
     action: str | None = None,
     client_id: str | None = None,
     mission_id: str | None = None,
+    date_from: str | None = None,
+    date_to: str | None = None,
     limit: int | None = 200,
 ) -> ActivityLogView:
     clients = store.list_clients()
@@ -79,6 +85,8 @@ def build_activity_log_view(
     action_filter = (action or "").strip()
     client_filter = (client_id or "").strip()
     mission_filter = (mission_id or "").strip()
+    date_from_filter = (date_from or "").strip()
+    date_to_filter = (date_to or "").strip()
     rows: list[ActivityLogRow] = []
 
     for mission in missions:
@@ -94,6 +102,7 @@ def build_activity_log_view(
                     summary=event.summary,
                     created_at=format_datetime(event.created_at),
                     created_at_iso=event.created_at.isoformat(),
+                    created_date=event.created_at.date().isoformat(),
                     metadata={str(key): str(value) for key, value in event.metadata.items()},
                     metadata_summary=metadata_summary(event.metadata),
                 )
@@ -107,6 +116,8 @@ def build_activity_log_view(
         action=action_filter,
         client_id=client_filter,
         mission_id=mission_filter,
+        date_from=date_from_filter,
+        date_to=date_to_filter,
     )
     visible_rows = filtered_rows if limit is None else filtered_rows[:limit]
     return ActivityLogView(
@@ -121,12 +132,16 @@ def build_activity_log_view(
         action_filter=action_filter,
         client_filter=client_filter,
         mission_filter=mission_filter,
+        date_from_filter=date_from_filter,
+        date_to_filter=date_to_filter,
         query=query_text,
         export_links=activity_export_links(
             query=query_text,
             action=action_filter,
             client_id=client_filter,
             mission_id=mission_filter,
+            date_from=date_from_filter,
+            date_to=date_to_filter,
         ),
     )
 
@@ -137,8 +152,12 @@ def filter_activity_rows(
     action: str = "",
     client_id: str = "",
     mission_id: str = "",
+    date_from: str = "",
+    date_to: str = "",
 ) -> list[ActivityLogRow]:
     query_text = query.casefold()
+    lower_date = parse_date_filter(date_from)
+    upper_date = parse_date_filter(date_to)
     filtered_rows = rows
     if client_id:
         filtered_rows = [row for row in filtered_rows if row.client_id == client_id]
@@ -146,6 +165,14 @@ def filter_activity_rows(
         filtered_rows = [row for row in filtered_rows if row.mission_id == mission_id]
     if action:
         filtered_rows = [row for row in filtered_rows if row.action == action]
+    if lower_date:
+        filtered_rows = [
+            row for row in filtered_rows if date.fromisoformat(row.created_date) >= lower_date
+        ]
+    if upper_date:
+        filtered_rows = [
+            row for row in filtered_rows if date.fromisoformat(row.created_date) <= upper_date
+        ]
     if query_text:
         filtered_rows = [
             row
@@ -168,6 +195,13 @@ def activity_search_text(row: ActivityLogRow) -> str:
             row.metadata_summary,
         ]
     )
+
+
+def parse_date_filter(value: str) -> date | None:
+    try:
+        return date.fromisoformat(value)
+    except ValueError:
+        return None
 
 
 def client_filter_options(clients: list[Client]) -> list[ActivityFilterOption]:
@@ -198,6 +232,8 @@ def activity_export_links(
     action: str = "",
     client_id: str = "",
     mission_id: str = "",
+    date_from: str = "",
+    date_to: str = "",
 ) -> list[ActivityExportLink]:
     return [
         ActivityExportLink(
@@ -209,6 +245,8 @@ def activity_export_links(
                 action=action,
                 client_id=client_id,
                 mission_id=mission_id,
+                date_from=date_from,
+                date_to=date_to,
             ),
         )
         for report_format in (ReportFormat.JSON, ReportFormat.MARKDOWN, ReportFormat.HTML)
@@ -221,6 +259,8 @@ def activity_export_url(
     action: str = "",
     client_id: str = "",
     mission_id: str = "",
+    date_from: str = "",
+    date_to: str = "",
 ) -> str:
     params = {
         key: value
@@ -229,6 +269,8 @@ def activity_export_url(
             "action": action,
             "client_id": client_id,
             "mission_id": mission_id,
+            "date_from": date_from,
+            "date_to": date_to,
         }.items()
         if value
     }
@@ -244,6 +286,8 @@ def build_activity_log_export(
     action: str | None = None,
     client_id: str | None = None,
     mission_id: str | None = None,
+    date_from: str | None = None,
+    date_to: str | None = None,
 ) -> ActivityLogExport:
     view = build_activity_log_view(
         store,
@@ -251,6 +295,8 @@ def build_activity_log_export(
         action=action,
         client_id=client_id,
         mission_id=mission_id,
+        date_from=date_from,
+        date_to=date_to,
         limit=None,
     )
     filename = activity_export_filename(export_format, view)
@@ -284,9 +330,17 @@ def activity_export_filename(export_format: ReportFormat, view: ActivityLogView)
         parts.append("client")
     if view.mission_filter:
         parts.append("mission")
+    if view.date_from_filter or view.date_to_filter:
+        parts.append("dates")
     if view.action_filter:
         parts.append(slugify(view.action_filter))
-    if view.query or view.client_filter or view.mission_filter:
+    if (
+        view.query
+        or view.client_filter
+        or view.mission_filter
+        or view.date_from_filter
+        or view.date_to_filter
+    ):
         parts.append("filtered")
     return "-".join(parts) + f".{extension}"
 
@@ -322,6 +376,8 @@ def render_activity_log_json(view: ActivityLogView) -> str:
         "action": view.action_filter or None,
         "client_id": view.client_filter or None,
         "mission_id": view.mission_filter or None,
+        "date_from": view.date_from_filter or None,
+        "date_to": view.date_to_filter or None,
         "events": [
             {
                 "id": row.id,
@@ -332,6 +388,7 @@ def render_activity_log_json(view: ActivityLogView) -> str:
                 "action": row.action,
                 "summary": row.summary,
                 "created_at": row.created_at_iso,
+                "created_date": row.created_date,
                 "metadata": row.metadata,
             }
             for row in view.rows
@@ -351,6 +408,8 @@ def render_activity_log_markdown(view: ActivityLogView) -> str:
         f"Action filter: {view.action_filter or 'all'}",
         f"Client filter: {view.client_filter or 'all'}",
         f"Mission filter: {view.mission_filter or 'all'}",
+        f"Date from: {view.date_from_filter or 'none'}",
+        f"Date to: {view.date_to_filter or 'none'}",
         f"Search filter: {view.query or 'none'}",
         "",
     ]
@@ -390,7 +449,7 @@ def render_activity_log_html(view: ActivityLogView) -> str:
 <body>
   <h1>Activity Log</h1>
   <p>Visible events: {view.visible_events} | Total events: {view.total_events} | Missions: {view.mission_count} | Clients: {view.client_count}</p>
-  <p>Action filter: {escape(view.action_filter or "all")} | Client filter: {escape(view.client_filter or "all")} | Mission filter: {escape(view.mission_filter or "all")} | Search filter: {escape(view.query or "none")}</p>
+  <p>Action filter: {escape(view.action_filter or "all")} | Client filter: {escape(view.client_filter or "all")} | Mission filter: {escape(view.mission_filter or "all")} | Date from: {escape(view.date_from_filter or "none")} | Date to: {escape(view.date_to_filter or "none")} | Search filter: {escape(view.query or "none")}</p>
   <table>
     <thead>
       <tr>

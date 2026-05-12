@@ -58,6 +58,7 @@ Implemented so far:
 - workspace activity log page with JSON, Markdown, and HTML exports
 - activity log search and action filters with filtered exports
 - activity log client and mission filters with filtered exports
+- activity log date range filters with filtered exports
 
 The first implementation target remains a CLI-driven V1 with a local web
 interface that can set up the mission workflow:
@@ -182,7 +183,7 @@ archival. The manifest includes SHA-256 checksums for packaged files, and the
 mission page verifies export integrity before showing the package status.
 The Activity page provides a workspace-level event log for operational review
 and export. The log can be filtered by search text, event action, client, and
-mission.
+mission, plus an inclusive date range.
 
 ## Deployment
 
@@ -292,6 +293,7 @@ Planned screens:
 - workspace activity log export started
 - activity log filters started
 - activity log client and mission filters started
+- activity log date filters started
 - counter-tests
 - system status started
 - settings

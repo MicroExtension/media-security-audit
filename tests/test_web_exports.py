@@ -26,6 +26,7 @@ from media_security_audit.web_exports import (  # noqa: E402
     generate_mission_export,
     list_mission_export,
     mission_export_file,
+    verify_mission_export,
 )
 from media_security_audit.web_reports import generate_web_reports  # noqa: E402
 
@@ -95,9 +96,16 @@ class WebExportTests(unittest.TestCase):
         generate_authorization_brief(store, mission.id, reports_dir)
 
         export_path = generate_mission_export(store, mission.id, reports_dir)
+        export_link = list_mission_export(mission.id, reports_dir)
+        verification = verify_mission_export(export_path)
 
         self.assertEqual(export_path, mission_export_file(reports_dir, mission.id))
-        self.assertEqual(list_mission_export(mission.id, reports_dir).filename, export_path.name)
+        self.assertEqual(export_link.filename, export_path.name)
+        self.assertEqual(export_link.integrity_status, "ready")
+        self.assertIn("packaged file(s) verified", export_link.integrity_detail)
+        self.assertEqual(verification.status, "ready")
+        self.assertEqual(verification.missing_files, [])
+        self.assertEqual(verification.mismatched_files, [])
         with ZipFile(export_path) as archive:
             names = set(archive.namelist())
             manifest = json.loads(archive.read("manifest.json").decode("utf-8"))
@@ -140,6 +148,30 @@ class WebExportTests(unittest.TestCase):
         self.assertIn(f"authorization/{mission.id}-authorization-brief.md", names)
         self.assertIn(f"reports/{mission.id}.json", names)
         self.assertIn(f"reports/{mission.id}.html", names)
+
+    def test_mission_export_verification_fails_when_manifest_member_is_missing(self) -> None:
+        reports_dir = clean_dir("web-export-bad-package")
+        export_path = reports_dir / "mission_bad-package.zip"
+        export_path.parent.mkdir(parents=True, exist_ok=True)
+        manifest = {
+            "archive_files": [
+                {
+                    "path": "data/mission.json",
+                    "size_bytes": 2,
+                    "sha256": sha256(b"{}").hexdigest(),
+                }
+            ]
+        }
+        with ZipFile(export_path, mode="w") as archive:
+            archive.writestr("manifest.json", json.dumps(manifest))
+
+        verification = verify_mission_export(export_path)
+
+        self.assertEqual(verification.status, "failed")
+        self.assertEqual(verification.checked_files, 0)
+        self.assertEqual(verification.missing_files, ["data/mission.json"])
+        self.assertEqual(verification.mismatched_files, [])
+        self.assertIn("Integrity check failed", verification.detail)
 
     def test_missing_mission_export_has_named_error(self) -> None:
         reports_dir = clean_dir("web-export-missing")

@@ -1,4 +1,5 @@
 from pathlib import Path
+from datetime import timedelta
 import json
 import shutil
 import sys
@@ -6,7 +7,13 @@ import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "app"))
 
-from media_security_audit.models import ActivityEvent, Client, Mission, ReportFormat  # noqa: E402
+from media_security_audit.models import (  # noqa: E402
+    ActivityEvent,
+    Client,
+    Mission,
+    ReportFormat,
+    utc_now,
+)
 from media_security_audit.storage import JsonStore  # noqa: E402
 from media_security_audit.web_activity import (  # noqa: E402
     build_activity_log_export,
@@ -28,11 +35,13 @@ class WebActivityTests(unittest.TestCase):
         client_b = store.create_client(Client(name="Client B"))
         mission_a = store.create_mission(Mission(client_id=client_a.id, name="Audit A"))
         mission_b = store.create_mission(Mission(client_id=client_b.id, name="Audit B"))
+        first_created_at = utc_now()
         first = store.add_activity_event(
             ActivityEvent(
                 mission_id=mission_a.id,
                 action="mission.created",
                 summary="Mission created",
+                created_at=first_created_at,
             )
         )
         second = store.add_activity_event(
@@ -40,6 +49,7 @@ class WebActivityTests(unittest.TestCase):
                 mission_id=mission_b.id,
                 action="scope.added",
                 summary="Scope added",
+                created_at=first_created_at + timedelta(seconds=1),
                 metadata={"scope_id": "scope_1"},
             )
         )
@@ -49,11 +59,68 @@ class WebActivityTests(unittest.TestCase):
         self.assertEqual(view.total_events, 2)
         self.assertEqual(view.mission_count, 2)
         self.assertEqual(view.client_count, 2)
+        self.assertEqual(view.visible_events, 2)
+        self.assertEqual(view.action_filter, "")
+        self.assertEqual(view.query, "")
+        self.assertEqual(view.actions, ["mission.created", "scope.added"])
         self.assertEqual(view.export_links[0].url, "/activity/export/json")
         self.assertEqual([row.id for row in view.rows], [second.id, first.id])
         self.assertEqual(view.rows[0].client_name, "Client B")
         self.assertEqual(view.rows[0].mission_name, "Audit B")
         self.assertEqual(view.rows[0].metadata_summary, "scope_id=scope_1")
+
+    def test_filters_activity_log_by_query_and_action(self) -> None:
+        store = JsonStore(clean_dir("web-activity-filter"))
+        client = store.create_client(Client(name="Client Filter"))
+        mission = store.create_mission(Mission(client_id=client.id, name="Filter Audit"))
+        store.add_activity_event(
+            ActivityEvent(
+                mission_id=mission.id,
+                action="mission.created",
+                summary="Mission created",
+            )
+        )
+        expected = store.add_activity_event(
+            ActivityEvent(
+                mission_id=mission.id,
+                action="scope.added",
+                summary="Scope added",
+                metadata={"scope_id": "scope_1"},
+            )
+        )
+        store.add_activity_event(
+            ActivityEvent(
+                mission_id=mission.id,
+                action="reports.generated",
+                summary="Generated 3 report export(s)",
+                metadata={"report_count": "3"},
+            )
+        )
+
+        view = build_activity_log_view(store, query="scope_1", action="scope.added")
+        export = build_activity_log_export(
+            store,
+            ReportFormat.JSON,
+            query="scope_1",
+            action="scope.added",
+        )
+        payload = json.loads(export.content)
+
+        self.assertEqual(view.total_events, 3)
+        self.assertEqual(view.visible_events, 1)
+        self.assertEqual(view.action_filter, "scope.added")
+        self.assertEqual(view.query, "scope_1")
+        self.assertEqual(
+            view.export_links[0].url,
+            "/activity/export/json?q=scope_1&action=scope.added",
+        )
+        self.assertEqual([row.id for row in view.rows], [expected.id])
+        self.assertEqual(export.filename, "activity-log-scope-added-filtered.json")
+        self.assertEqual(payload["count"], 1)
+        self.assertEqual(payload["total_events"], 3)
+        self.assertEqual(payload["action"], "scope.added")
+        self.assertEqual(payload["query"], "scope_1")
+        self.assertEqual(payload["events"][0]["id"], expected.id)
 
     def test_exports_activity_log_as_json_markdown_and_html(self) -> None:
         store = JsonStore(clean_dir("web-activity-export"))

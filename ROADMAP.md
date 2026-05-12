@@ -89,6 +89,7 @@ Current foundation:
 - mission export checksum manifest started
 - mission export integrity verification started
 - workspace activity log export started
+- activity log filters started
 - mission readiness and safe scan plan previews started
 - scan execution remains CLI-only
 
@@ -124,6 +125,7 @@ Current foundation:
 - mission export checksum manifest started
 - mission export integrity verification started
 - workspace activity log export started
+- activity log filters started
 
 Success criteria:
 - appliance can run on Debian/Ubuntu

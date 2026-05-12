@@ -10,7 +10,11 @@
 
 <section class="metrics" aria-label="Activity summary">
   <div class="metric">
-    <span>Events</span>
+    <span>Visible events</span>
+    <strong>{{ view.visible_events }}</strong>
+  </div>
+  <div class="metric">
+    <span>Total events</span>
     <strong>{{ view.total_events }}</strong>
   </div>
   <div class="metric">
@@ -21,6 +25,29 @@
     <span>Clients</span>
     <strong>{{ view.client_count }}</strong>
   </div>
+</section>
+
+<section class="section">
+  <form class="form-panel" method="get" action="/activity">
+    <div class="field-grid">
+      <label>
+        <span>Search</span>
+        <input name="q" value="{{ view.query }}">
+      </label>
+      <label>
+        <span>Action</span>
+        <select name="action">
+          <option value=""></option>
+          {% for action in view.actions %}
+          <option value="{{ action }}" {% if action == view.action_filter %}selected{% endif %}>{{ action }}</option>
+          {% endfor %}
+        </select>
+      </label>
+    </div>
+    <div class="form-actions">
+      <button class="button secondary-button" type="submit">Filter</button>
+    </div>
+  </form>
 </section>
 
 <section class="section">

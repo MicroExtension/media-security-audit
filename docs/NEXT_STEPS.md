@@ -329,6 +329,7 @@ Current GUI status:
 - mission pages verify mission ZIP package integrity from the manifest
 - a workspace Activity page lists mission events and exports the log
 - Activity log filters can narrow events by search text and action
+- Activity log filters can narrow events by client and mission
 - mission readiness and safe scan plan previews are visible from mission pages
 - scan execution remains CLI-only
 

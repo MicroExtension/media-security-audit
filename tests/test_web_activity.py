@@ -63,6 +63,11 @@ class WebActivityTests(unittest.TestCase):
         self.assertEqual(view.action_filter, "")
         self.assertEqual(view.query, "")
         self.assertEqual(view.actions, ["mission.created", "scope.added"])
+        self.assertEqual([option.label for option in view.clients], ["Client A", "Client B"])
+        self.assertEqual(
+            [option.label for option in view.missions],
+            ["Client A / Audit A", "Client B / Audit B"],
+        )
         self.assertEqual(view.export_links[0].url, "/activity/export/json")
         self.assertEqual([row.id for row in view.rows], [second.id, first.id])
         self.assertEqual(view.rows[0].client_name, "Client B")
@@ -121,6 +126,57 @@ class WebActivityTests(unittest.TestCase):
         self.assertEqual(payload["action"], "scope.added")
         self.assertEqual(payload["query"], "scope_1")
         self.assertEqual(payload["events"][0]["id"], expected.id)
+
+    def test_filters_activity_log_by_client_and_mission(self) -> None:
+        store = JsonStore(clean_dir("web-activity-client-mission-filter"))
+        client_a = store.create_client(Client(name="Client A"))
+        client_b = store.create_client(Client(name="Client B"))
+        mission_a = store.create_mission(Mission(client_id=client_a.id, name="Audit A"))
+        mission_b = store.create_mission(Mission(client_id=client_b.id, name="Audit B"))
+        store.add_activity_event(
+            ActivityEvent(
+                mission_id=mission_a.id,
+                action="mission.created",
+                summary="Mission A created",
+            )
+        )
+        expected = store.add_activity_event(
+            ActivityEvent(
+                mission_id=mission_b.id,
+                action="mission.created",
+                summary="Mission B created",
+            )
+        )
+
+        view = build_activity_log_view(
+            store,
+            client_id=client_b.id,
+            mission_id=mission_b.id,
+        )
+        export = build_activity_log_export(
+            store,
+            ReportFormat.JSON,
+            client_id=client_b.id,
+            mission_id=mission_b.id,
+        )
+        payload = json.loads(export.content)
+
+        self.assertEqual(view.total_events, 2)
+        self.assertEqual(view.visible_events, 1)
+        self.assertEqual(view.client_filter, client_b.id)
+        self.assertEqual(view.mission_filter, mission_b.id)
+        self.assertEqual(
+            view.export_links[0].url,
+            f"/activity/export/json?client_id={client_b.id}&mission_id={mission_b.id}",
+        )
+        self.assertEqual([row.id for row in view.rows], [expected.id])
+        self.assertEqual(export.filename, "activity-log-client-mission-filtered.json")
+        self.assertEqual(payload["count"], 1)
+        self.assertEqual(payload["total_events"], 2)
+        self.assertEqual(payload["client_id"], client_b.id)
+        self.assertEqual(payload["mission_id"], mission_b.id)
+        self.assertEqual(payload["events"][0]["client_id"], client_b.id)
+        self.assertEqual(payload["events"][0]["mission_id"], mission_b.id)
 
     def test_exports_activity_log_as_json_markdown_and_html(self) -> None:
         store = JsonStore(clean_dir("web-activity-export"))

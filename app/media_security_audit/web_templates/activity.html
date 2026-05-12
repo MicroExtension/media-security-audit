@@ -43,6 +43,24 @@
           {% endfor %}
         </select>
       </label>
+      <label>
+        <span>Client</span>
+        <select name="client_id">
+          <option value=""></option>
+          {% for client in view.clients %}
+          <option value="{{ client.value }}" {% if client.value == view.client_filter %}selected{% endif %}>{{ client.label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>
+        <span>Mission</span>
+        <select name="mission_id">
+          <option value=""></option>
+          {% for mission in view.missions %}
+          <option value="{{ mission.value }}" {% if mission.value == view.mission_filter %}selected{% endif %}>{{ mission.label }}</option>
+          {% endfor %}
+        </select>
+      </label>
     </div>
     <div class="form-actions">
       <button class="button secondary-button" type="submit">Filter</button>

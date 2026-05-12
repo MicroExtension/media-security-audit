@@ -1,4 +1,5 @@
 from pathlib import Path
+from hashlib import sha256
 import json
 import shutil
 import sys
@@ -100,8 +101,11 @@ class WebExportTests(unittest.TestCase):
         with ZipFile(export_path) as archive:
             names = set(archive.namelist())
             manifest = json.loads(archive.read("manifest.json").decode("utf-8"))
+            mission_payload = archive.read("data/mission.json")
 
+        archive_files = {item["path"]: item for item in manifest["archive_files"]}
         self.assertEqual(manifest["mission_id"], mission.id)
+        self.assertEqual(manifest["manifest_version"], 2)
         self.assertEqual(manifest["mission_name"], "Export Audit")
         self.assertEqual(manifest["client_name"], "Client Export")
         self.assertEqual(manifest["audit_template_id"], "tpl_web_mail_hygiene")
@@ -113,6 +117,14 @@ class WebExportTests(unittest.TestCase):
         self.assertEqual(manifest["report_count"], 3)
         self.assertEqual(manifest["authorization_brief_count"], 2)
         self.assertEqual(manifest["evidence_path_count"], 1)
+        self.assertEqual(manifest["archive_file_count"], len(names) - 1)
+        self.assertNotIn("manifest.json", archive_files)
+        self.assertIn("data/mission.json", archive_files)
+        self.assertEqual(archive_files["data/mission.json"]["size_bytes"], len(mission_payload))
+        self.assertEqual(
+            archive_files["data/mission.json"]["sha256"],
+            sha256(mission_payload).hexdigest(),
+        )
         self.assertEqual(
             manifest["authorization_briefs"],
             [

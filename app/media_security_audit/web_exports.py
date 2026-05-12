@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from hashlib import sha256
 from dataclasses import dataclass
 from pathlib import Path
 from zipfile import ZIP_DEFLATED, ZipFile
@@ -28,6 +29,12 @@ from media_security_audit.web_reports import (
 class MissionExportLink:
     filename: str
     size_bytes: int
+
+
+@dataclass(frozen=True)
+class ArchiveMember:
+    name: str
+    content: bytes
 
 
 def mission_export_path(reports_dir: Path, mission_id: str) -> Path:
@@ -64,6 +71,15 @@ def generate_mission_export(store: JsonStore, mission_id: str, reports_dir: Path
 
     output_path = mission_export_path(reports_dir, mission_id)
     output_path.parent.mkdir(parents=True, exist_ok=True)
+    members = mission_export_members(
+        client=client,
+        mission=mission,
+        findings=findings,
+        activity_events=activity_events,
+        scan_runs=scan_runs,
+        report_paths=report_paths,
+        authorization_brief_paths=authorization_brief_paths,
+    )
     manifest = build_mission_export_manifest(
         mission=mission,
         client=client,
@@ -72,25 +88,41 @@ def generate_mission_export(store: JsonStore, mission_id: str, reports_dir: Path
         scan_runs=scan_runs,
         report_paths=report_paths,
         authorization_brief_paths=authorization_brief_paths,
+        archive_members=members,
     )
 
     with ZipFile(output_path, mode="w", compression=ZIP_DEFLATED) as archive:
         archive.writestr("manifest.json", json.dumps(manifest, indent=2, ensure_ascii=False))
-        if client is not None:
-            archive.writestr("data/client.json", model_json(client))
-        archive.writestr("data/mission.json", model_json(mission))
-        for finding in findings:
-            archive.writestr(f"data/findings/{finding.id}.json", model_json(finding))
-        for event in activity_events:
-            archive.writestr(f"data/activity/{event.id}.json", model_json(event))
-        for run in scan_runs:
-            archive.writestr(f"data/runs/{run.id}.json", model_json(run))
-        for path in authorization_brief_paths:
-            archive.write(path, f"authorization/{path.name}")
-        for path in report_paths:
-            archive.write(path, f"reports/{path.name}")
+        for member in members:
+            archive.writestr(member.name, member.content)
 
     return output_path
+
+
+def mission_export_members(
+    client: Client | None,
+    mission: Mission,
+    findings: list[BaseModel],
+    activity_events: list[BaseModel],
+    scan_runs: list[ScanRun],
+    report_paths: list[Path],
+    authorization_brief_paths: list[Path],
+) -> list[ArchiveMember]:
+    members: list[ArchiveMember] = []
+    if client is not None:
+        members.append(text_member("data/client.json", model_json(client)))
+    members.append(text_member("data/mission.json", model_json(mission)))
+    for finding in findings:
+        members.append(text_member(f"data/findings/{finding.id}.json", model_json(finding)))
+    for event in activity_events:
+        members.append(text_member(f"data/activity/{event.id}.json", model_json(event)))
+    for run in scan_runs:
+        members.append(text_member(f"data/runs/{run.id}.json", model_json(run)))
+    for path in authorization_brief_paths:
+        members.append(file_member(f"authorization/{path.name}", path))
+    for path in report_paths:
+        members.append(file_member(f"reports/{path.name}", path))
+    return members
 
 
 def build_mission_export_manifest(
@@ -101,13 +133,16 @@ def build_mission_export_manifest(
     scan_runs: list[ScanRun],
     report_paths: list[Path],
     authorization_brief_paths: list[Path],
+    archive_members: list[ArchiveMember] | None = None,
 ) -> dict[str, object]:
     template = get_audit_template(mission.audit_template_id)
     reports = [f"reports/{path.name}" for path in report_paths]
     authorization_briefs = [f"authorization/{path.name}" for path in authorization_brief_paths]
     evidence_path_count = sum(len(run.evidence_paths) for run in scan_runs)
+    archive_files = archive_member_entries(archive_members or [])
 
     return {
+        "manifest_version": 2,
         "generated_at": utc_now().isoformat(),
         "mission_id": mission.id,
         "mission_name": mission.name,
@@ -126,6 +161,8 @@ def build_mission_export_manifest(
         "evidence_path_count": evidence_path_count,
         "report_count": len(reports),
         "authorization_brief_count": len(authorization_briefs),
+        "archive_file_count": len(archive_files),
+        "archive_files": archive_files,
         "reports": reports,
         "authorization_briefs": authorization_briefs,
     }
@@ -143,6 +180,25 @@ def mission_export_file(reports_dir: Path, mission_id: str) -> Path:
     if not path.exists() or not path.is_file():
         raise FileNotFoundError("mission export package not found")
     return path
+
+
+def text_member(name: str, content: str) -> ArchiveMember:
+    return ArchiveMember(name=name, content=content.encode("utf-8"))
+
+
+def file_member(name: str, path: Path) -> ArchiveMember:
+    return ArchiveMember(name=name, content=path.read_bytes())
+
+
+def archive_member_entries(members: list[ArchiveMember]) -> list[dict[str, object]]:
+    return [
+        {
+            "path": member.name,
+            "size_bytes": len(member.content),
+            "sha256": sha256(member.content).hexdigest(),
+        }
+        for member in members
+    ]
 
 
 def model_json(model: BaseModel) -> str:

@@ -208,6 +208,8 @@ def create_web_app(
     @app.get("/activity", response_class=HTMLResponse, dependencies=protected)
     def activity_log(
         request: Request,
+        q: str | None = None,
+        action: str | None = None,
         message: str | None = None,
         error: str | None = None,
     ) -> HTMLResponse:
@@ -218,7 +220,7 @@ def create_web_app(
                 {
                     "request": request,
                     "data_dir": data_dir,
-                    "view": build_activity_log_view(store),
+                    "view": build_activity_log_view(store, query=q, action=action),
                     "message": message,
                     "error": error,
                 },
@@ -226,8 +228,12 @@ def create_web_app(
         )
 
     @app.get("/activity/export/{export_format}", dependencies=protected)
-    def activity_log_export(export_format: ReportFormat) -> Response:
-        export = build_activity_log_export(store, export_format)
+    def activity_log_export(
+        export_format: ReportFormat,
+        q: str | None = None,
+        action: str | None = None,
+    ) -> Response:
+        export = build_activity_log_export(store, export_format, query=q, action=action)
         return Response(
             content=export.content,
             media_type=export.media_type,

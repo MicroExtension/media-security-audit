@@ -29,6 +29,10 @@ from media_security_audit.web_auth import (
     valid_credentials,
     web_auth_settings_from_env,
 )
+from media_security_audit.web_activity import (
+    build_activity_log_export,
+    build_activity_log_view,
+)
 from media_security_audit.web_audit_templates import build_audit_template_library_view
 from media_security_audit.web_backup import generate_workspace_backup, workspace_backup_file
 from media_security_audit.web_remediations import (
@@ -199,6 +203,35 @@ def create_web_app(
                     "error": error,
                 },
             )
+        )
+
+    @app.get("/activity", response_class=HTMLResponse, dependencies=protected)
+    def activity_log(
+        request: Request,
+        message: str | None = None,
+        error: str | None = None,
+    ) -> HTMLResponse:
+        return HTMLResponse(
+            render_template(
+                templates,
+                "activity.html",
+                {
+                    "request": request,
+                    "data_dir": data_dir,
+                    "view": build_activity_log_view(store),
+                    "message": message,
+                    "error": error,
+                },
+            )
+        )
+
+    @app.get("/activity/export/{export_format}", dependencies=protected)
+    def activity_log_export(export_format: ReportFormat) -> Response:
+        export = build_activity_log_export(store, export_format)
+        return Response(
+            content=export.content,
+            media_type=export.media_type,
+            headers={"Content-Disposition": f'attachment; filename="{export.filename}"'},
         )
 
     @app.get("/remediations", response_class=HTMLResponse, dependencies=protected)

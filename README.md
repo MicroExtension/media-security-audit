@@ -55,6 +55,7 @@ Implemented so far:
 - enriched mission export manifest for audit handoff
 - SHA-256 checksums in mission export manifests
 - mission export integrity verification in the web UI
+- workspace activity log page with JSON, Markdown, and HTML exports
 
 The first implementation target remains a CLI-driven V1 with a local web
 interface that can set up the mission workflow:
@@ -177,6 +178,8 @@ Authorization briefs include selected template guidance for pre-audit review.
 Mission export ZIP packages include an enriched manifest for handoff review and
 archival. The manifest includes SHA-256 checksums for packaged files, and the
 mission page verifies export integrity before showing the package status.
+The Activity page provides a workspace-level event log for operational review
+and export.
 
 ## Deployment
 
@@ -283,6 +286,7 @@ Planned screens:
 - enriched mission export manifest started
 - mission export checksum manifest started
 - mission export integrity verification started
+- workspace activity log export started
 - counter-tests
 - system status started
 - settings

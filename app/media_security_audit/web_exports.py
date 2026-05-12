@@ -6,7 +6,7 @@ import json
 from hashlib import sha256
 from dataclasses import dataclass
 from pathlib import Path
-from zipfile import ZIP_DEFLATED, ZipFile
+from zipfile import ZIP_DEFLATED, BadZipFile, ZipFile
 
 from pydantic import BaseModel
 
@@ -29,12 +29,24 @@ from media_security_audit.web_reports import (
 class MissionExportLink:
     filename: str
     size_bytes: int
+    integrity_status: str
+    integrity_detail: str
 
 
 @dataclass(frozen=True)
 class ArchiveMember:
     name: str
     content: bytes
+
+
+@dataclass(frozen=True)
+class MissionExportVerification:
+    status: str
+    detail: str
+    checked_files: int
+    missing_files: list[str]
+    mismatched_files: list[str]
+    unexpected_files: list[str]
 
 
 def mission_export_path(reports_dir: Path, mission_id: str) -> Path:
@@ -172,7 +184,13 @@ def list_mission_export(mission_id: str, reports_dir: Path) -> MissionExportLink
     path = mission_export_path(reports_dir, mission_id)
     if not path.exists() or not path.is_file():
         return None
-    return MissionExportLink(filename=path.name, size_bytes=path.stat().st_size)
+    verification = verify_mission_export(path)
+    return MissionExportLink(
+        filename=path.name,
+        size_bytes=path.stat().st_size,
+        integrity_status=verification.status,
+        integrity_detail=verification.detail,
+    )
 
 
 def mission_export_file(reports_dir: Path, mission_id: str) -> Path:
@@ -180,6 +198,106 @@ def mission_export_file(reports_dir: Path, mission_id: str) -> Path:
     if not path.exists() or not path.is_file():
         raise FileNotFoundError("mission export package not found")
     return path
+
+
+def verify_mission_export(path: Path) -> MissionExportVerification:
+    try:
+        with ZipFile(path) as archive:
+            names = set(archive.namelist())
+            if "manifest.json" not in names:
+                return export_verification_failed("manifest.json is missing")
+
+            manifest = json.loads(archive.read("manifest.json").decode("utf-8"))
+            manifest_entries = manifest.get("archive_files")
+            if not isinstance(manifest_entries, list):
+                return export_verification_failed("manifest archive_files is missing")
+            if not manifest_entries:
+                return export_verification_failed("manifest archive_files is empty")
+
+            missing_files: list[str] = []
+            mismatched_files: list[str] = []
+            checked_files = 0
+            expected_names: set[str] = set()
+
+            for entry in manifest_entries:
+                if not isinstance(entry, dict):
+                    mismatched_files.append("<invalid-manifest-entry>")
+                    continue
+
+                member_name = str(entry.get("path") or "").strip()
+                if not member_name:
+                    mismatched_files.append("<missing-member-path>")
+                    continue
+
+                expected_names.add(member_name)
+                if member_name not in names:
+                    missing_files.append(member_name)
+                    continue
+
+                content = archive.read(member_name)
+                checked_files += 1
+                if entry.get("size_bytes") != len(content):
+                    mismatched_files.append(member_name)
+                    continue
+                if entry.get("sha256") != sha256(content).hexdigest():
+                    mismatched_files.append(member_name)
+
+            unexpected_files = sorted(names - expected_names - {"manifest.json"})
+    except (FileNotFoundError, BadZipFile, json.JSONDecodeError, OSError, UnicodeDecodeError) as error:
+        return export_verification_failed(f"package cannot be verified: {error}")
+
+    return export_verification_result(
+        checked_files=checked_files,
+        missing_files=sorted(missing_files),
+        mismatched_files=sorted(set(mismatched_files)),
+        unexpected_files=unexpected_files,
+    )
+
+
+def export_verification_result(
+    checked_files: int,
+    missing_files: list[str],
+    mismatched_files: list[str],
+    unexpected_files: list[str],
+) -> MissionExportVerification:
+    if missing_files or mismatched_files:
+        issue_count = len(missing_files) + len(mismatched_files)
+        return MissionExportVerification(
+            status="failed",
+            detail=f"Integrity check failed: {issue_count} packaged file issue(s).",
+            checked_files=checked_files,
+            missing_files=missing_files,
+            mismatched_files=mismatched_files,
+            unexpected_files=unexpected_files,
+        )
+    if unexpected_files:
+        return MissionExportVerification(
+            status="warning",
+            detail=f"{checked_files} packaged file(s) verified; {len(unexpected_files)} unexpected file(s).",
+            checked_files=checked_files,
+            missing_files=missing_files,
+            mismatched_files=mismatched_files,
+            unexpected_files=unexpected_files,
+        )
+    return MissionExportVerification(
+        status="ready",
+        detail=f"{checked_files} packaged file(s) verified.",
+        checked_files=checked_files,
+        missing_files=missing_files,
+        mismatched_files=mismatched_files,
+        unexpected_files=unexpected_files,
+    )
+
+
+def export_verification_failed(detail: str) -> MissionExportVerification:
+    return MissionExportVerification(
+        status="failed",
+        detail=detail,
+        checked_files=0,
+        missing_files=[],
+        mismatched_files=[],
+        unexpected_files=[],
+    )
 
 
 def text_member(name: str, content: str) -> ArchiveMember:

@@ -326,6 +326,7 @@ Current GUI status:
 - mission ZIP export packages can be generated from mission pages
 - mission ZIP manifests include client, template, scope, report, and evidence metadata
 - mission ZIP manifests include SHA-256 checksums for packaged files
+- mission pages verify mission ZIP package integrity from the manifest
 - mission readiness and safe scan plan previews are visible from mission pages
 - scan execution remains CLI-only
 

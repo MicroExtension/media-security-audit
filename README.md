@@ -54,6 +54,7 @@ Implemented so far:
 - template guidance in authorization briefs
 - enriched mission export manifest for audit handoff
 - SHA-256 checksums in mission export manifests
+- mission export integrity verification in the web UI
 
 The first implementation target remains a CLI-driven V1 with a local web
 interface that can set up the mission workflow:
@@ -174,7 +175,8 @@ from these templates to set the initial audit type and recommended checks.
 Mission pages show selected template guidance during preparation.
 Authorization briefs include selected template guidance for pre-audit review.
 Mission export ZIP packages include an enriched manifest for handoff review and
-archival. The manifest includes SHA-256 checksums for packaged files.
+archival. The manifest includes SHA-256 checksums for packaged files, and the
+mission page verifies export integrity before showing the package status.
 
 ## Deployment
 
@@ -280,6 +282,7 @@ Planned screens:
 - template guidance in authorization briefs started
 - enriched mission export manifest started
 - mission export checksum manifest started
+- mission export integrity verification started
 - counter-tests
 - system status started
 - settings

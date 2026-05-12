@@ -270,6 +270,8 @@
       {% if view.mission_export %}
       <a href="/missions/{{ view.mission.id }}/export">zip</a>
       <span class="muted">{{ view.mission_export.filename }} | {{ view.mission_export.size_bytes }} bytes</span>
+      <span class="badge status-{{ view.mission_export.integrity_status }}">{{ view.mission_export.integrity_status }}</span>
+      <span class="muted">{{ view.mission_export.integrity_detail }}</span>
       {% else %}
       <span class="empty">No mission export package yet.</span>
       {% endif %}

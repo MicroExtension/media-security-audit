@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from datetime import timedelta
 from pathlib import Path
 from typing import TypeVar
 
@@ -154,8 +155,14 @@ class JsonStore:
 
     def add_activity_event(self, event: ActivityEvent) -> ActivityEvent:
         self.get_mission(event.mission_id)
-        self._write_model(self._mission_events_dir(event.mission_id) / f"{event.id}.json", event)
-        return event
+        stored = self._with_append_timestamp(
+            event,
+            self._mission_events_dir(event.mission_id),
+            ActivityEvent,
+            "created_at",
+        )
+        self._write_model(self._mission_events_dir(stored.mission_id) / f"{stored.id}.json", stored)
+        return stored
 
     def list_activity_events(self, mission_id: str) -> list[ActivityEvent]:
         self.get_mission(mission_id)
@@ -169,8 +176,14 @@ class JsonStore:
 
     def add_scan_run(self, run: ScanRun) -> ScanRun:
         self.get_mission(run.mission_id)
-        self._write_model(self._mission_runs_dir(run.mission_id) / f"{run.id}.json", run)
-        return run
+        stored = self._with_append_timestamp(
+            run,
+            self._mission_runs_dir(run.mission_id),
+            ScanRun,
+            "started_at",
+        )
+        self._write_model(self._mission_runs_dir(stored.mission_id) / f"{stored.id}.json", stored)
+        return stored
 
     def list_scan_runs(self, mission_id: str) -> list[ScanRun]:
         self.get_mission(mission_id)
@@ -204,6 +217,27 @@ class JsonStore:
             (self._read_model(path, model_type) for path in directory.glob("*.json")),
             key=lambda item: getattr(item, "created_at", ""),
         )
+
+    def _with_append_timestamp(
+        self,
+        model: ModelT,
+        directory: Path,
+        model_type: type[ModelT],
+        field_name: str,
+    ) -> ModelT:
+        directory.mkdir(parents=True, exist_ok=True)
+        existing_values = [
+            getattr(item, field_name)
+            for item in self._list_models(directory, model_type)
+        ]
+        if not existing_values:
+            return model
+
+        latest_value = max(existing_values)
+        current_value = getattr(model, field_name)
+        if current_value > latest_value:
+            return model
+        return model.model_copy(update={field_name: latest_value + timedelta(microseconds=1)})
 
     def _mission_findings_dir(self, mission_id: str) -> Path:
         return self.findings_dir / mission_id

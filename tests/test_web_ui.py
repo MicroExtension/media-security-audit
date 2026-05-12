@@ -275,6 +275,8 @@ class WebUiTests(unittest.TestCase):
 
         self.assertIsNotNone(view.mission_export)
         self.assertEqual(view.mission_export.filename, f"{mission.id}-package.zip")
+        self.assertEqual(view.mission_export.integrity_status, "ready")
+        self.assertIn("packaged file(s) verified", view.mission_export.integrity_detail)
 
     def test_mission_view_includes_authorization_brief_links(self) -> None:
         store = JsonStore(clean_data_dir("web-ui-authorization-data"))

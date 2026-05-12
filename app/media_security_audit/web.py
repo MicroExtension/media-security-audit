@@ -210,6 +210,8 @@ def create_web_app(
         request: Request,
         q: str | None = None,
         action: str | None = None,
+        client_id: str | None = None,
+        mission_id: str | None = None,
         message: str | None = None,
         error: str | None = None,
     ) -> HTMLResponse:
@@ -220,7 +222,13 @@ def create_web_app(
                 {
                     "request": request,
                     "data_dir": data_dir,
-                    "view": build_activity_log_view(store, query=q, action=action),
+                    "view": build_activity_log_view(
+                        store,
+                        query=q,
+                        action=action,
+                        client_id=client_id,
+                        mission_id=mission_id,
+                    ),
                     "message": message,
                     "error": error,
                 },
@@ -232,8 +240,17 @@ def create_web_app(
         export_format: ReportFormat,
         q: str | None = None,
         action: str | None = None,
+        client_id: str | None = None,
+        mission_id: str | None = None,
     ) -> Response:
-        export = build_activity_log_export(store, export_format, query=q, action=action)
+        export = build_activity_log_export(
+            store,
+            export_format,
+            query=q,
+            action=action,
+            client_id=client_id,
+            mission_id=mission_id,
+        )
         return Response(
             content=export.content,
             media_type=export.media_type,

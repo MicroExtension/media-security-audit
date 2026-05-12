@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from html import escape
 from urllib.parse import urlencode
 
-from media_security_audit.models import ReportFormat, utc_now
+from media_security_audit.models import Client, Mission, ReportFormat, utc_now
 from media_security_audit.storage import JsonStore
 from media_security_audit.web_ui import format_datetime
 
@@ -20,8 +20,15 @@ class ActivityExportLink:
 
 
 @dataclass(frozen=True)
+class ActivityFilterOption:
+    value: str
+    label: str
+
+
+@dataclass(frozen=True)
 class ActivityLogRow:
     id: str
+    client_id: str
     mission_id: str
     mission_name: str
     client_name: str
@@ -41,7 +48,11 @@ class ActivityLogView:
     mission_count: int
     client_count: int
     actions: list[str]
+    clients: list[ActivityFilterOption]
+    missions: list[ActivityFilterOption]
     action_filter: str
+    client_filter: str
+    mission_filter: str
     query: str
     export_links: list[ActivityExportLink]
 
@@ -57,6 +68,8 @@ def build_activity_log_view(
     store: JsonStore,
     query: str | None = None,
     action: str | None = None,
+    client_id: str | None = None,
+    mission_id: str | None = None,
     limit: int | None = 200,
 ) -> ActivityLogView:
     clients = store.list_clients()
@@ -64,6 +77,8 @@ def build_activity_log_view(
     client_names = {client.id: client.name for client in clients}
     query_text = (query or "").strip()
     action_filter = (action or "").strip()
+    client_filter = (client_id or "").strip()
+    mission_filter = (mission_id or "").strip()
     rows: list[ActivityLogRow] = []
 
     for mission in missions:
@@ -71,6 +86,7 @@ def build_activity_log_view(
             rows.append(
                 ActivityLogRow(
                     id=event.id,
+                    client_id=mission.client_id,
                     mission_id=mission.id,
                     mission_name=mission.name,
                     client_name=client_names.get(mission.client_id, mission.client_id),
@@ -85,7 +101,13 @@ def build_activity_log_view(
 
     rows.sort(key=lambda row: (row.created_at_iso, row.id), reverse=True)
     actions = sorted({row.action for row in rows})
-    filtered_rows = filter_activity_rows(rows, query=query_text, action=action_filter)
+    filtered_rows = filter_activity_rows(
+        rows,
+        query=query_text,
+        action=action_filter,
+        client_id=client_filter,
+        mission_id=mission_filter,
+    )
     visible_rows = filtered_rows if limit is None else filtered_rows[:limit]
     return ActivityLogView(
         rows=visible_rows,
@@ -94,9 +116,18 @@ def build_activity_log_view(
         mission_count=len(missions),
         client_count=len(clients),
         actions=actions,
+        clients=client_filter_options(clients),
+        missions=mission_filter_options(missions, client_names),
         action_filter=action_filter,
+        client_filter=client_filter,
+        mission_filter=mission_filter,
         query=query_text,
-        export_links=activity_export_links(query=query_text, action=action_filter),
+        export_links=activity_export_links(
+            query=query_text,
+            action=action_filter,
+            client_id=client_filter,
+            mission_id=mission_filter,
+        ),
     )
 
 
@@ -104,9 +135,15 @@ def filter_activity_rows(
     rows: list[ActivityLogRow],
     query: str = "",
     action: str = "",
+    client_id: str = "",
+    mission_id: str = "",
 ) -> list[ActivityLogRow]:
     query_text = query.casefold()
     filtered_rows = rows
+    if client_id:
+        filtered_rows = [row for row in filtered_rows if row.client_id == client_id]
+    if mission_id:
+        filtered_rows = [row for row in filtered_rows if row.mission_id == mission_id]
     if action:
         filtered_rows = [row for row in filtered_rows if row.action == action]
     if query_text:
@@ -122,6 +159,7 @@ def activity_search_text(row: ActivityLogRow) -> str:
     return " ".join(
         [
             row.id,
+            row.client_id,
             row.mission_id,
             row.mission_name,
             row.client_name,
@@ -132,19 +170,68 @@ def activity_search_text(row: ActivityLogRow) -> str:
     )
 
 
-def activity_export_links(query: str = "", action: str = "") -> list[ActivityExportLink]:
+def client_filter_options(clients: list[Client]) -> list[ActivityFilterOption]:
+    return sorted(
+        [ActivityFilterOption(value=client.id, label=client.name) for client in clients],
+        key=lambda option: option.label.casefold(),
+    )
+
+
+def mission_filter_options(
+    missions: list[Mission],
+    client_names: dict[str, str],
+) -> list[ActivityFilterOption]:
+    return sorted(
+        [
+            ActivityFilterOption(
+                value=mission.id,
+                label=f"{client_names.get(mission.client_id, mission.client_id)} / {mission.name}",
+            )
+            for mission in missions
+        ],
+        key=lambda option: option.label.casefold(),
+    )
+
+
+def activity_export_links(
+    query: str = "",
+    action: str = "",
+    client_id: str = "",
+    mission_id: str = "",
+) -> list[ActivityExportLink]:
     return [
         ActivityExportLink(
             format=report_format.value,
             label=export_label(report_format),
-            url=activity_export_url(report_format, query=query, action=action),
+            url=activity_export_url(
+                report_format,
+                query=query,
+                action=action,
+                client_id=client_id,
+                mission_id=mission_id,
+            ),
         )
         for report_format in (ReportFormat.JSON, ReportFormat.MARKDOWN, ReportFormat.HTML)
     ]
 
 
-def activity_export_url(report_format: ReportFormat, query: str = "", action: str = "") -> str:
-    params = {key: value for key, value in {"q": query, "action": action}.items() if value}
+def activity_export_url(
+    report_format: ReportFormat,
+    query: str = "",
+    action: str = "",
+    client_id: str = "",
+    mission_id: str = "",
+) -> str:
+    params = {
+        key: value
+        for key, value in {
+            "q": query,
+            "action": action,
+            "client_id": client_id,
+            "mission_id": mission_id,
+        }.items()
+        if value
+    }
     query_string = urlencode(params)
     suffix = f"?{query_string}" if query_string else ""
     return f"/activity/export/{report_format.value}{suffix}"
@@ -155,8 +242,17 @@ def build_activity_log_export(
     export_format: ReportFormat,
     query: str | None = None,
     action: str | None = None,
+    client_id: str | None = None,
+    mission_id: str | None = None,
 ) -> ActivityLogExport:
-    view = build_activity_log_view(store, query=query, action=action, limit=None)
+    view = build_activity_log_view(
+        store,
+        query=query,
+        action=action,
+        client_id=client_id,
+        mission_id=mission_id,
+        limit=None,
+    )
     filename = activity_export_filename(export_format, view)
     if export_format is ReportFormat.JSON:
         return ActivityLogExport(
@@ -184,9 +280,13 @@ def activity_export_filename(export_format: ReportFormat, view: ActivityLogView)
         ReportFormat.HTML: "html",
     }[export_format]
     parts = ["activity-log"]
+    if view.client_filter:
+        parts.append("client")
+    if view.mission_filter:
+        parts.append("mission")
     if view.action_filter:
         parts.append(slugify(view.action_filter))
-    if view.query:
+    if view.query or view.client_filter or view.mission_filter:
         parts.append("filtered")
     return "-".join(parts) + f".{extension}"
 
@@ -220,9 +320,12 @@ def render_activity_log_json(view: ActivityLogView) -> str:
         "clients": view.client_count,
         "query": view.query,
         "action": view.action_filter or None,
+        "client_id": view.client_filter or None,
+        "mission_id": view.mission_filter or None,
         "events": [
             {
                 "id": row.id,
+                "client_id": row.client_id,
                 "mission_id": row.mission_id,
                 "mission_name": row.mission_name,
                 "client_name": row.client_name,
@@ -246,6 +349,8 @@ def render_activity_log_markdown(view: ActivityLogView) -> str:
         f"Missions: {view.mission_count}",
         f"Clients: {view.client_count}",
         f"Action filter: {view.action_filter or 'all'}",
+        f"Client filter: {view.client_filter or 'all'}",
+        f"Mission filter: {view.mission_filter or 'all'}",
         f"Search filter: {view.query or 'none'}",
         "",
     ]
@@ -285,7 +390,7 @@ def render_activity_log_html(view: ActivityLogView) -> str:
 <body>
   <h1>Activity Log</h1>
   <p>Visible events: {view.visible_events} | Total events: {view.total_events} | Missions: {view.mission_count} | Clients: {view.client_count}</p>
-  <p>Action filter: {escape(view.action_filter or "all")} | Search filter: {escape(view.query or "none")}</p>
+  <p>Action filter: {escape(view.action_filter or "all")} | Client filter: {escape(view.client_filter or "all")} | Mission filter: {escape(view.mission_filter or "all")} | Search filter: {escape(view.query or "none")}</p>
   <table>
     <thead>
       <tr>

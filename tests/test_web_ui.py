@@ -450,6 +450,72 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(view.findings[0].related_remediations, [])
         self.assertIsNone(view.template_guidance)
 
+    def test_mission_view_summarizes_finding_dispositions(self) -> None:
+        store = JsonStore(clean_data_dir("web-ui-finding-dispositions"))
+        client = store.create_client(Client(name="Client Dispositions"))
+        mission = store.create_mission(
+            Mission(client_id=client.id, name="Disposition Audit")
+        )
+        store.add_finding(
+            mission.id,
+            Finding(
+                title="New finding",
+                severity=Severity.LOW,
+                affected_asset="new.example",
+                category="manual",
+                source_module="manual",
+                proof="Observed manually.",
+                risk="Risk needs review.",
+                remediation="Apply correction.",
+                counter_test="Repeat the check.",
+                confidence=0.8,
+            ),
+        )
+        store.add_finding(
+            mission.id,
+            Finding(
+                title="Accepted risk",
+                severity=Severity.LOW,
+                affected_asset="accepted.example",
+                category="manual",
+                source_module="manual",
+                proof="Observed manually.",
+                risk="Risk accepted by owner.",
+                remediation="Track exception.",
+                counter_test="Confirm exception remains documented.",
+                confidence=0.8,
+                status=FindingStatus.ACCEPTED_RISK,
+                metadata={"review_note": "Accepted by owner."},
+            ),
+        )
+        store.add_finding(
+            mission.id,
+            Finding(
+                title="False positive",
+                severity=Severity.MEDIUM,
+                affected_asset="false-positive.example",
+                category="manual",
+                source_module="manual",
+                proof="Observed manually.",
+                risk="No confirmed risk.",
+                remediation="No remediation required.",
+                counter_test="Repeat manual verification.",
+                confidence=0.8,
+                status=FindingStatus.FALSE_POSITIVE,
+                metadata={"review_note": "Verified as benign."},
+            ),
+        )
+
+        view = build_mission_view(store, mission.id)
+        dispositions = {item.status: item for item in view.finding_dispositions}
+
+        self.assertEqual(dispositions["new"].label, "New")
+        self.assertEqual(dispositions["new"].count, 1)
+        self.assertEqual(dispositions["accepted_risk"].count, 1)
+        self.assertEqual(dispositions["false_positive"].count, 1)
+        self.assertEqual(dispositions["confirmed"].count, 0)
+        self.assertEqual(dispositions["counter_test_failed"].label, "Counter-test failed")
+
     def test_mission_view_readiness_items_include_action_targets(self) -> None:
         store = JsonStore(clean_data_dir("web-ui-readiness-actions"))
         client = store.create_client(Client(name="Client Readiness"))

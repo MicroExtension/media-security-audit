@@ -41,6 +41,7 @@ from media_security_audit.web_remediations import (
     build_remediation_library_view,
 )
 from media_security_audit.web_ui import (
+    build_client_view,
     build_dashboard_view,
     build_mission_view,
     html_escape,
@@ -200,6 +201,31 @@ def create_web_app(
                     "data_dir": data_dir,
                     "view": build_system_status(data_dir, reports_dir, settings),
                     "form_token": form_token,
+                    "message": message,
+                    "error": error,
+                },
+            )
+        )
+
+    @app.get("/clients/{client_id}", response_class=HTMLResponse, dependencies=protected)
+    def client_detail(
+        request: Request,
+        client_id: str,
+        message: str | None = None,
+        error: str | None = None,
+    ) -> HTMLResponse:
+        try:
+            view = build_client_view(store, client_id)
+        except FileNotFoundError as error:
+            raise HTTPException(status_code=404, detail=str(error)) from error
+        return HTMLResponse(
+            render_template(
+                templates,
+                "client.html",
+                {
+                    "request": request,
+                    "data_dir": data_dir,
+                    "view": view,
                     "message": message,
                     "error": error,
                 },

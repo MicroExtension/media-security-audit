@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}{{ view.client.name }} | MEDIA Security Audit{% endblock %}
+{% block content %}
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">Client</p>
+    <h1>{{ view.client.name }}</h1>
+    <p class="muted">{{ view.client.reference or view.client.id }}</p>
+  </div>
+</section>
+
+<section class="metrics" aria-label="Client summary">
+  <div class="metric"><span>Missions</span><strong>{{ view.total_missions }}</strong></div>
+  <div class="metric"><span>Findings</span><strong>{{ view.total_findings }}</strong></div>
+  <div class="metric"><span>High/Critical</span><strong>{{ view.high_or_critical_findings }}</strong></div>
+  <div class="metric"><span>Approved scope</span><strong>{{ view.approved_scope_count }}/{{ view.scope_count }}</strong></div>
+</section>
+
+{% if view.client.notes %}
+<section class="callout">
+  <h2>Notes</h2>
+  <p>{{ view.client.notes }}</p>
+</section>
+{% endif %}
+
+<section class="section">
+  <div class="section-title">
+    <h2>Missions</h2>
+    <span class="muted">Created {{ view.client.created_at }}</span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Mission</th>
+          <th>Status</th>
+          <th>Scope</th>
+          <th>Findings</th>
+          <th>Risk</th>
+          <th>Created</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for mission in view.missions %}
+        <tr>
+          <td>
+            <a href="/missions/{{ mission.id }}">{{ mission.name }}</a>
+            <span class="muted block">{{ mission.audit_type }}{% if mission.audit_template_title %} | {{ mission.audit_template_title }}{% endif %}</span>
+          </td>
+          <td><span class="status">{{ mission.status }}</span></td>
+          <td>{{ mission.approved_scope_count }}/{{ mission.scope_count }}</td>
+          <td>{{ mission.finding_count }}</td>
+          <td><span class="risk risk-{{ mission.risk_level }}">{{ mission.risk_score }}/100</span></td>
+          <td>{{ mission.created_at }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="empty">No mission found for this client.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

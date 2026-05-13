@@ -30,6 +30,7 @@ from media_security_audit.web_auth import (
     web_auth_settings_from_env,
 )
 from media_security_audit.web_activity import (
+    ActivityExportFormat,
     build_activity_log_export,
     build_activity_log_view,
 )
@@ -241,7 +242,7 @@ def create_web_app(
 
     @app.get("/activity/export/{export_format}", dependencies=protected)
     def activity_log_export(
-        export_format: ReportFormat,
+        export_format: ActivityExportFormat,
         q: str | None = None,
         action: str | None = None,
         client_id: str | None = None,

@@ -3,14 +3,24 @@
 from __future__ import annotations
 
 import json
+from csv import DictWriter
 from dataclasses import dataclass
 from datetime import date
+from enum import Enum
 from html import escape
+from io import StringIO
 from urllib.parse import urlencode
 
-from media_security_audit.models import Client, Mission, ReportFormat, utc_now
+from media_security_audit.models import Client, Mission, utc_now
 from media_security_audit.storage import JsonStore
 from media_security_audit.web_ui import format_datetime
+
+
+class ActivityExportFormat(str, Enum):
+    JSON = "json"
+    MARKDOWN = "markdown"
+    HTML = "html"
+    CSV = "csv"
 
 
 @dataclass(frozen=True)
@@ -249,12 +259,17 @@ def activity_export_links(
                 date_to=date_to,
             ),
         )
-        for report_format in (ReportFormat.JSON, ReportFormat.MARKDOWN, ReportFormat.HTML)
+        for report_format in (
+            ActivityExportFormat.JSON,
+            ActivityExportFormat.MARKDOWN,
+            ActivityExportFormat.HTML,
+            ActivityExportFormat.CSV,
+        )
     ]
 
 
 def activity_export_url(
-    report_format: ReportFormat,
+    report_format: ActivityExportFormat,
     query: str = "",
     action: str = "",
     client_id: str = "",
@@ -281,7 +296,7 @@ def activity_export_url(
 
 def build_activity_log_export(
     store: JsonStore,
-    export_format: ReportFormat,
+    export_format: ActivityExportFormat,
     query: str | None = None,
     action: str | None = None,
     client_id: str | None = None,
@@ -300,17 +315,23 @@ def build_activity_log_export(
         limit=None,
     )
     filename = activity_export_filename(export_format, view)
-    if export_format is ReportFormat.JSON:
+    if export_format is ActivityExportFormat.JSON:
         return ActivityLogExport(
             filename=filename,
             media_type="application/json",
             content=render_activity_log_json(view),
         )
-    if export_format is ReportFormat.HTML:
+    if export_format is ActivityExportFormat.HTML:
         return ActivityLogExport(
             filename=filename,
             media_type="text/html; charset=utf-8",
             content=render_activity_log_html(view),
+        )
+    if export_format is ActivityExportFormat.CSV:
+        return ActivityLogExport(
+            filename=filename,
+            media_type="text/csv; charset=utf-8",
+            content=render_activity_log_csv(view),
         )
     return ActivityLogExport(
         filename=filename,
@@ -319,11 +340,12 @@ def build_activity_log_export(
     )
 
 
-def activity_export_filename(export_format: ReportFormat, view: ActivityLogView) -> str:
+def activity_export_filename(export_format: ActivityExportFormat, view: ActivityLogView) -> str:
     extension = {
-        ReportFormat.JSON: "json",
-        ReportFormat.MARKDOWN: "md",
-        ReportFormat.HTML: "html",
+        ActivityExportFormat.JSON: "json",
+        ActivityExportFormat.MARKDOWN: "md",
+        ActivityExportFormat.HTML: "html",
+        ActivityExportFormat.CSV: "csv",
     }[export_format]
     parts = ["activity-log"]
     if view.client_filter:
@@ -351,11 +373,13 @@ def slugify(value: str) -> str:
     return slug or "filtered"
 
 
-def export_label(report_format: ReportFormat) -> str:
-    if report_format is ReportFormat.JSON:
+def export_label(report_format: ActivityExportFormat) -> str:
+    if report_format is ActivityExportFormat.JSON:
         return "JSON"
-    if report_format is ReportFormat.HTML:
+    if report_format is ActivityExportFormat.HTML:
         return "HTML"
+    if report_format is ActivityExportFormat.CSV:
+        return "CSV"
     return "Markdown"
 
 
@@ -395,6 +419,42 @@ def render_activity_log_json(view: ActivityLogView) -> str:
         ],
     }
     return json.dumps(payload, indent=2, ensure_ascii=False)
+
+
+def render_activity_log_csv(view: ActivityLogView) -> str:
+    output = StringIO()
+    writer = DictWriter(
+        output,
+        fieldnames=[
+            "id",
+            "client_id",
+            "client_name",
+            "mission_id",
+            "mission_name",
+            "action",
+            "summary",
+            "created_at",
+            "created_date",
+            "metadata",
+        ],
+    )
+    writer.writeheader()
+    for row in view.rows:
+        writer.writerow(
+            {
+                "id": row.id,
+                "client_id": row.client_id,
+                "client_name": row.client_name,
+                "mission_id": row.mission_id,
+                "mission_name": row.mission_name,
+                "action": row.action,
+                "summary": row.summary,
+                "created_at": row.created_at_iso,
+                "created_date": row.created_date,
+                "metadata": row.metadata_summary,
+            }
+        )
+    return output.getvalue()
 
 
 def render_activity_log_markdown(view: ActivityLogView) -> str:

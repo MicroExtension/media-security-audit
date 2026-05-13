@@ -55,10 +55,11 @@ Implemented so far:
 - enriched mission export manifest for audit handoff
 - SHA-256 checksums in mission export manifests
 - mission export integrity verification in the web UI
-- workspace activity log page with JSON, Markdown, and HTML exports
+- workspace activity log page with JSON, Markdown, HTML, and CSV exports
 - activity log search and action filters with filtered exports
 - activity log client and mission filters with filtered exports
 - activity log date range filters with filtered exports
+- activity log CSV export for spreadsheet review
 
 The first implementation target remains a CLI-driven V1 with a local web
 interface that can set up the mission workflow:
@@ -294,6 +295,7 @@ Planned screens:
 - activity log filters started
 - activity log client and mission filters started
 - activity log date filters started
+- activity log CSV export started
 - counter-tests
 - system status started
 - settings

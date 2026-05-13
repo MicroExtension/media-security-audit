@@ -31,6 +31,7 @@ Implemented so far:
 - first web workflow forms for clients, missions, and scope
 - first web finding review workflow
 - web report generation for JSON, Markdown, and HTML exports
+- reports include finding disposition counts and review notes
 - web mission readiness checks and safe scan plan previews
 - web mission setup updates for authorization and notes
 - web scope review updates for approved and excluded targets
@@ -212,6 +213,8 @@ Mission readiness cards link directly to the relevant setup, scope, check
 selection, findings, or report section when technician action is required.
 Finding review requires a technician note before marking an item as a false
 positive or accepted risk.
+Reports include finding disposition counts and review notes so accepted risks
+and false positives remain explainable in audit exports.
 
 ## Deployment
 
@@ -304,6 +307,7 @@ Planned screens:
 - run monitor started
 - findings review started
 - report generation started
+- report finding disposition summary started
 - mission export package started
 - authorization tracking details started
 - authorization brief export started

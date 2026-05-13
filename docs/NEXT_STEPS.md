@@ -333,6 +333,8 @@ Current GUI status:
 - Activity log filters can narrow events by client and mission
 - Activity log filters can narrow events by inclusive date range
 - Activity log exports include CSV for spreadsheet review
+- client detail pages show recent client activity and link to the filtered
+  Activity page
 - mission readiness and safe scan plan previews are visible from mission pages
 - scan execution remains CLI-only
 

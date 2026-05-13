@@ -125,7 +125,21 @@ class WebUiTests(unittest.TestCase):
                 confidence=0.8,
             ),
         )
-        store.create_mission(Mission(client_id=client_b.id, name="Client B Audit"))
+        mission_b = store.create_mission(Mission(client_id=client_b.id, name="Client B Audit"))
+        store.add_activity_event(
+            ActivityEvent(
+                mission_id=mission_a.id,
+                action="scope.approved",
+                summary="Scope approved for Client A Audit",
+            )
+        )
+        store.add_activity_event(
+            ActivityEvent(
+                mission_id=mission_b.id,
+                action="mission.created",
+                summary="Client B mission created",
+            )
+        )
 
         view = build_client_view(store, client_a.id)
 
@@ -139,6 +153,10 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(view.scope_count, 1)
         self.assertEqual([mission.name for mission in view.missions], ["Client A Audit"])
         self.assertEqual(view.missions[0].client_name, "Client A")
+        self.assertEqual(view.activity_log_url, f"/activity?client_id={client_a.id}")
+        self.assertEqual(len(view.recent_activity_events), 1)
+        self.assertEqual(view.recent_activity_events[0].mission_name, "Client A Audit")
+        self.assertEqual(view.recent_activity_events[0].action, "scope.approved")
 
     def test_mission_view_orders_scope_findings_and_remediation(self) -> None:
         store = JsonStore(clean_data_dir("web-ui-mission"))

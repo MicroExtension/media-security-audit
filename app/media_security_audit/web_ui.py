@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from datetime import date, datetime
 from html import escape
 from pathlib import Path
+from urllib.parse import urlencode
 
 from media_security_audit.audit_templates import get_audit_template
 from media_security_audit.models import (
@@ -132,6 +133,16 @@ class ActivityEventRow:
 
 
 @dataclass(frozen=True)
+class ClientActivityEventRow:
+    id: str
+    mission_id: str
+    mission_name: str
+    action: str
+    summary: str
+    created_at: str
+
+
+@dataclass(frozen=True)
 class CheckSelectionRow:
     value: str
     label: str
@@ -165,6 +176,8 @@ class DashboardView:
 class ClientView:
     client: ClientDetail
     missions: list[MissionRow]
+    recent_activity_events: list[ClientActivityEventRow]
+    activity_log_url: str
     total_missions: int
     total_findings: int
     high_or_critical_findings: int
@@ -348,6 +361,21 @@ def activity_event_row(event: ActivityEvent) -> ActivityEventRow:
     )
 
 
+def client_activity_event_row(event: ActivityEvent, mission: Mission) -> ClientActivityEventRow:
+    return ClientActivityEventRow(
+        id=event.id,
+        mission_id=mission.id,
+        mission_name=mission.name,
+        action=event.action,
+        summary=event.summary,
+        created_at=format_datetime(event.created_at),
+    )
+
+
+def client_activity_log_url(client_id: str) -> str:
+    return f"/activity?{urlencode({'client_id': client_id})}"
+
+
 def check_selection_rows(mission: Mission) -> list[CheckSelectionRow]:
     selected = set(mission.selected_checks)
     return [
@@ -433,15 +461,17 @@ def build_dashboard_view(store: JsonStore) -> DashboardView:
 def build_client_view(store: JsonStore, client_id: str) -> ClientView:
     client = store.get_client(client_id)
     client_names = {client.id: client.name}
+    client_missions = [
+        mission for mission in store.list_missions() if mission.client_id == client.id
+    ]
     mission_rows: list[MissionRow] = []
+    activity_rows: list[tuple[datetime, str, ClientActivityEventRow]] = []
     total_findings = 0
     high_or_critical = 0
     approved_scope_count = 0
     scope_count = 0
 
-    for mission in store.list_missions():
-        if mission.client_id != client.id:
-            continue
+    for mission in client_missions:
         findings = store.list_findings(mission.id)
         total_findings += len(findings)
         high_or_critical += len(
@@ -452,11 +482,19 @@ def build_client_view(store: JsonStore, client_id: str) -> ClientView:
         )
         scope_count += len(mission.scope)
         mission_rows.append(mission_row(mission, findings, client_names))
+        for event in store.list_activity_events(mission.id):
+            activity_rows.append(
+                (event.created_at, event.id, client_activity_event_row(event, mission))
+            )
 
     mission_rows.sort(key=lambda item: item.created_at, reverse=True)
+    activity_rows.sort(key=lambda item: (item[0], item[1]), reverse=True)
+
     return ClientView(
         client=client_detail(client),
         missions=mission_rows,
+        recent_activity_events=[row for _, _, row in activity_rows[:10]],
+        activity_log_url=client_activity_log_url(client.id),
         total_missions=len(mission_rows),
         total_findings=total_findings,
         high_or_critical_findings=high_or_critical,

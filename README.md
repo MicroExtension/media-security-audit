@@ -64,6 +64,7 @@ Implemented so far:
 - client detail pages show recent client activity and filtered Activity links
 - client detail pages show mission preparation status summaries
 - dashboard shows workspace mission preparation status summaries
+- dashboard client list shows per-client preparation counts
 
 The first implementation target remains a CLI-driven V1 with a local web
 interface that can set up the mission workflow:
@@ -195,6 +196,8 @@ They also show mission preparation status, including missing authorization,
 approved scope, check selection, and findings awaiting review.
 The dashboard shows the same preparation status across the whole workspace so
 blocked missions are visible immediately.
+The client list includes per-client preparation counts to identify which
+customer accounts need attention first.
 
 ## Deployment
 
@@ -310,6 +313,7 @@ Planned screens:
 - client activity summary started
 - client mission preparation summary started
 - dashboard mission preparation summary started
+- dashboard client preparation counts started
 - counter-tests
 - system status started
 - settings

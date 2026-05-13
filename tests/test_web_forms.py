@@ -600,6 +600,33 @@ class WebFormTests(unittest.TestCase):
         self.assertEqual(updated.status.value, "confirmed")
         self.assertEqual(updated.metadata["review_note"], "Looks valid")
 
+        with self.assertRaises(ValueError):
+            update_finding_status_from_form(
+                store,
+                mission.id,
+                finding.id,
+                {
+                    "status": "false_positive",
+                    "review_note": "",
+                },
+            )
+
+        accepted = update_finding_status_from_form(
+            store,
+            mission.id,
+            finding.id,
+            {
+                "status": "accepted_risk",
+                "review_note": "Accepted by the client owner.",
+            },
+        )
+
+        self.assertEqual(accepted.status.value, "accepted_risk")
+        self.assertEqual(
+            accepted.metadata["review_note"],
+            "Accepted by the client owner.",
+        )
+
         cleared = update_finding_status_from_form(
             store,
             mission.id,

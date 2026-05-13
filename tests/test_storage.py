@@ -156,6 +156,58 @@ class JsonStoreTests(unittest.TestCase):
             FindingStatus.FALSE_POSITIVE,
         )
 
+    def test_false_positive_and_accepted_risk_require_review_note(self) -> None:
+        data_dir = (
+            Path(__file__).resolve().parents[1]
+            / ".tmp-tests"
+            / "storage-review-required"
+        )
+        store = JsonStore(data_dir)
+        client = store.create_client(Client(name="Client X"))
+        mission = store.create_mission(Mission(client_id=client.id, name="Audit"))
+        finding = store.add_finding(
+            mission.id,
+            Finding(
+                title="Review me",
+                severity=Severity.LOW,
+                affected_asset="example.invalid",
+                category="manual",
+                source_module="manual",
+                proof="Observed manually",
+                risk="Risk remains until reviewed.",
+                remediation="Review the finding.",
+                counter_test="Confirm the reviewed status.",
+                confidence=0.8,
+            ),
+        )
+
+        with self.assertRaises(ValueError):
+            store.update_finding_status(
+                mission.id,
+                finding.id,
+                FindingStatus.FALSE_POSITIVE,
+                review_note="",
+            )
+        with self.assertRaises(ValueError):
+            store.update_finding_status(
+                mission.id,
+                finding.id,
+                FindingStatus.ACCEPTED_RISK,
+            )
+
+        updated = store.update_finding_status(
+            mission.id,
+            finding.id,
+            FindingStatus.ACCEPTED_RISK,
+            review_note="Accepted by the client owner.",
+        )
+
+        self.assertEqual(updated.status, FindingStatus.ACCEPTED_RISK)
+        self.assertEqual(
+            updated.metadata["review_note"],
+            "Accepted by the client owner.",
+        )
+
     def test_records_activity_events_for_mission(self) -> None:
         data_dir = Path(__file__).resolve().parents[1] / ".tmp-tests" / "storage-activity"
         store = JsonStore(data_dir)

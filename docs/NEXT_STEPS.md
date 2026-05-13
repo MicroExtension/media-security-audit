@@ -335,6 +335,8 @@ Current GUI status:
 - Activity log exports include CSV for spreadsheet review
 - client detail pages show recent client activity and link to the filtered
   Activity page
+- client detail pages show mission preparation status for missing
+  authorization, scope, checks, and finding review
 - mission readiness and safe scan plan previews are visible from mission pages
 - scan execution remains CLI-only
 

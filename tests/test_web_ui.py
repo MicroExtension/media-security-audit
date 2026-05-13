@@ -158,6 +158,75 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(view.recent_activity_events[0].mission_name, "Client A Audit")
         self.assertEqual(view.recent_activity_events[0].action, "scope.approved")
 
+    def test_client_view_builds_preparation_summary_by_client(self) -> None:
+        store = JsonStore(clean_data_dir("web-ui-client-preparation"))
+        client_a = store.create_client(Client(name="Client A"))
+        client_b = store.create_client(Client(name="Client B"))
+        ready_mission = store.create_mission(
+            Mission(
+                client_id=client_a.id,
+                name="Ready Audit",
+                authorization_reference="AUTH-READY",
+            )
+        )
+        store.add_scope_item(
+            ready_mission.id,
+            ScopeItem(type=ScopeType.IP, value="192.0.2.10", approved=True),
+        )
+        store.create_mission(
+            Mission(client_id=client_a.id, name="Blocked Audit", selected_checks=[])
+        )
+        warning_mission = store.create_mission(
+            Mission(
+                client_id=client_a.id,
+                name="Warning Audit",
+                authorization_reference="AUTH-WARN",
+            )
+        )
+        store.add_scope_item(
+            warning_mission.id,
+            ScopeItem(type=ScopeType.DOMAIN, value="client-a.example", approved=True),
+        )
+        store.add_finding(
+            warning_mission.id,
+            Finding(
+                title="Finding awaiting review",
+                severity=Severity.MEDIUM,
+                affected_asset="client-a.example",
+                category="manual",
+                source_module="manual",
+                proof="Observed manually.",
+                risk="Risk needs review.",
+                remediation="Apply correction.",
+                counter_test="Repeat the check.",
+                confidence=0.8,
+            ),
+        )
+        store.create_mission(Mission(client_id=client_b.id, name="Other Blocked Audit"))
+
+        view = build_client_view(store, client_a.id)
+
+        self.assertEqual(view.blocked_preparation_count, 1)
+        self.assertEqual(view.warning_preparation_count, 1)
+        self.assertEqual(view.ready_preparation_count, 1)
+        self.assertEqual(
+            [item.status for item in view.preparation_items],
+            ["blocked", "warning", "ready"],
+        )
+        self.assertEqual(
+            [item.mission_name for item in view.preparation_items],
+            ["Blocked Audit", "Warning Audit", "Ready Audit"],
+        )
+        blocked = view.preparation_items[0]
+        self.assertEqual(blocked.authorization_status, "missing")
+        self.assertEqual(blocked.scope_status, "missing")
+        self.assertEqual(blocked.check_status, "missing")
+        self.assertEqual(blocked.blocked_count, 3)
+        self.assertEqual(blocked.next_action, "Add written authorization reference.")
+        warning = view.preparation_items[1]
+        self.assertEqual(warning.warning_count, 1)
+        self.assertEqual(warning.next_action, "Review 1 new finding(s).")
+
     def test_mission_view_orders_scope_findings_and_remediation(self) -> None:
         store = JsonStore(clean_data_dir("web-ui-mission"))
         client = store.create_client(Client(name="Client Y"))

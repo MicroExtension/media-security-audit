@@ -62,6 +62,7 @@ Implemented so far:
 - activity log date range filters with filtered exports
 - activity log CSV export for spreadsheet review
 - client detail pages show recent client activity and filtered Activity links
+- client detail pages show mission preparation status summaries
 
 The first implementation target remains a CLI-driven V1 with a local web
 interface that can set up the mission workflow:
@@ -189,6 +190,8 @@ and export. The log can be filtered by search text, event action, client, and
 mission, plus an inclusive date range.
 Client detail pages show recent activity for the client and link directly to
 the filtered Activity page.
+They also show mission preparation status, including missing authorization,
+approved scope, check selection, and findings awaiting review.
 
 ## Deployment
 
@@ -302,6 +305,7 @@ Planned screens:
 - activity log date filters started
 - activity log CSV export started
 - client activity summary started
+- client mission preparation summary started
 - counter-tests
 - system status started
 - settings

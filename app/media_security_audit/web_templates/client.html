@@ -14,6 +14,7 @@
   <div class="metric"><span>Findings</span><strong>{{ view.total_findings }}</strong></div>
   <div class="metric"><span>High/Critical</span><strong>{{ view.high_or_critical_findings }}</strong></div>
   <div class="metric"><span>Approved scope</span><strong>{{ view.approved_scope_count }}/{{ view.scope_count }}</strong></div>
+  <div class="metric"><span>Blocked prep</span><strong>{{ view.blocked_preparation_count }}</strong></div>
 </section>
 
 {% if view.client.notes %}
@@ -22,6 +23,45 @@
   <p>{{ view.client.notes }}</p>
 </section>
 {% endif %}
+
+<section class="section">
+  <div class="section-title">
+    <h2>Preparation</h2>
+    <span class="muted">
+      {{ view.ready_preparation_count }} ready |
+      {{ view.warning_preparation_count }} warning |
+      {{ view.blocked_preparation_count }} blocked
+    </span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Mission</th>
+          <th>Status</th>
+          <th>Next Action</th>
+          <th>Authorization</th>
+          <th>Scope</th>
+          <th>Checks</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in view.preparation_items %}
+        <tr>
+          <td><a href="/missions/{{ item.mission_id }}">{{ item.mission_name }}</a></td>
+          <td><span class="status status-{{ item.status }}">{{ item.status }}</span></td>
+          <td>{{ item.next_action }}</td>
+          <td><span class="status status-{{ item.authorization_status }}">{{ item.authorization_status }}</span></td>
+          <td><span class="status status-{{ item.scope_status }}">{{ item.scope_status }}</span></td>
+          <td><span class="status status-{{ item.check_status }}">{{ item.check_status }}</span></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="empty">No mission preparation item for this client.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
 
 <section class="section">
   <div class="section-title">

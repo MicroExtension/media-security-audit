@@ -34,6 +34,9 @@
       <span class="badge readiness-badge">{{ item.status }}</span>
       <strong>{{ item.label }}</strong>
       <p>{{ item.detail }}</p>
+      {% if item.action_label %}
+      <a class="readiness-action" href="{{ item.action_href }}">{{ item.action_label }}</a>
+      {% endif %}
     </div>
     {% endfor %}
   </div>
@@ -143,7 +146,7 @@
   </div>
 </section>
 
-<section class="section">
+<section class="section" id="check-selection">
   <div class="section-title">
     <h2>Check Selection</h2>
     <span class="muted">Planning only</span>
@@ -167,7 +170,7 @@
   </form>
 </section>
 
-<section class="section">
+<section class="section" id="mission-setup">
   <div class="section-title">
     <h2>Mission Setup</h2>
   </div>
@@ -229,7 +232,7 @@
   </form>
 </section>
 
-<section class="section">
+<section class="section" id="reports">
   <div class="section-title">
     <h2>Reports</h2>
   </div>
@@ -296,7 +299,7 @@
   </div>
 </section>
 
-<section class="section two-column">
+<section class="section two-column" id="scope">
   <div>
     <div class="section-title">
       <h2>Scope</h2>
@@ -429,7 +432,7 @@
   </div>
 </section>
 
-<section class="section">
+<section class="section" id="findings">
   <div class="section-title">
     <h2>Findings</h2>
   </div>

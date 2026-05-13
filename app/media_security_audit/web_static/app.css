@@ -540,6 +540,21 @@ textarea:focus {
   margin-top: 10px;
 }
 
+.readiness-action {
+  align-self: start;
+  background: #eef3f7;
+  border-radius: 5px;
+  display: inline-flex;
+  font-size: 13px;
+  margin-top: 12px;
+  padding: 7px 9px;
+}
+
+.readiness-action:hover {
+  background: #dbe6ee;
+  text-decoration: none;
+}
+
 .readiness-item p,
 .guidance-card p,
 .plan-card p {

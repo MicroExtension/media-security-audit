@@ -16,6 +16,8 @@ class ReadinessItem:
     label: str
     status: str
     detail: str
+    action_label: str = ""
+    action_href: str = ""
 
 
 @dataclass(frozen=True)
@@ -65,6 +67,8 @@ def _authorization_item(mission: Mission) -> ReadinessItem:
         label="Authorization",
         status="blocked",
         detail="Missing written authorization reference.",
+        action_label="Update Setup",
+        action_href="#mission-setup",
     )
 
 
@@ -79,6 +83,8 @@ def _approved_scope_item(approved_scope_count: int) -> ReadinessItem:
         label="Approved Scope",
         status="blocked",
         detail="No approved target is available.",
+        action_label="Review Scope",
+        action_href="#scope",
     )
 
 
@@ -93,6 +99,8 @@ def _check_selection_item(mission: Mission) -> ReadinessItem:
         label="Check Selection",
         status="blocked",
         detail="No audit check is selected.",
+        action_label="Select Checks",
+        action_href="#check-selection",
     )
 
 
@@ -102,12 +110,16 @@ def _finding_review_item(total_findings: int, new_finding_count: int) -> Readine
             label="Finding Review",
             status="warning",
             detail="No stored finding yet.",
+            action_label="Open Findings",
+            action_href="#findings",
         )
     if new_finding_count:
         return ReadinessItem(
             label="Finding Review",
             status="warning",
             detail=f"{new_finding_count} finding(s) still have new status.",
+            action_label="Review Findings",
+            action_href="#findings",
         )
     return ReadinessItem(
         label="Finding Review",
@@ -127,6 +139,8 @@ def _report_item(generated_report_count: int) -> ReadinessItem:
         label="Reports",
         status="warning",
         detail="No persistent report export yet.",
+        action_label="Open Reports",
+        action_href="#reports",
     )
 
 

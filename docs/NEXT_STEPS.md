@@ -342,6 +342,7 @@ Current GUI status:
 - dashboard client list shows each client's priority and next action
 - dashboard client list is ordered by preparation priority
 - dashboard and client mission tables show preparation status and next action
+- mission readiness cards link to the setup section that needs action
 - mission readiness and safe scan plan previews are visible from mission pages
 - scan execution remains CLI-only
 

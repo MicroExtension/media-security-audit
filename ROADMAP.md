@@ -95,6 +95,7 @@ Current foundation:
 - activity log date filters started
 - activity log CSV export started
 - client activity summary started
+- client mission preparation summary started
 - mission readiness and safe scan plan previews started
 - scan execution remains CLI-only
 
@@ -135,6 +136,7 @@ Current foundation:
 - activity log date filters started
 - activity log CSV export started
 - client activity summary started
+- client mission preparation summary started
 
 Success criteria:
 - appliance can run on Debian/Ubuntu

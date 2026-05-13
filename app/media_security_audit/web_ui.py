@@ -143,6 +143,19 @@ class ClientActivityEventRow:
 
 
 @dataclass(frozen=True)
+class ClientPreparationRow:
+    mission_id: str
+    mission_name: str
+    status: str
+    next_action: str
+    authorization_status: str
+    scope_status: str
+    check_status: str
+    warning_count: int
+    blocked_count: int
+
+
+@dataclass(frozen=True)
 class CheckSelectionRow:
     value: str
     label: str
@@ -177,7 +190,11 @@ class ClientView:
     client: ClientDetail
     missions: list[MissionRow]
     recent_activity_events: list[ClientActivityEventRow]
+    preparation_items: list[ClientPreparationRow]
     activity_log_url: str
+    blocked_preparation_count: int
+    warning_preparation_count: int
+    ready_preparation_count: int
     total_missions: int
     total_findings: int
     high_or_critical_findings: int
@@ -376,6 +393,49 @@ def client_activity_log_url(client_id: str) -> str:
     return f"/activity?{urlencode({'client_id': client_id})}"
 
 
+def client_preparation_row(mission: Mission, findings: list[Finding]) -> ClientPreparationRow:
+    approved_scope_count = len(
+        [item for item in mission.scope if item.approved and not item.excluded]
+    )
+    blocked_actions: list[str] = []
+    warning_actions: list[str] = []
+
+    if not mission.is_authorized:
+        blocked_actions.append("Add written authorization reference.")
+    if approved_scope_count == 0:
+        blocked_actions.append("Approve at least one scope target.")
+    if not mission.selected_checks:
+        blocked_actions.append("Select audit checks for planning.")
+
+    new_finding_count = len(
+        [finding for finding in findings if finding.status == FindingStatus.NEW]
+    )
+    if new_finding_count:
+        warning_actions.append(f"Review {new_finding_count} new finding(s).")
+
+    if blocked_actions:
+        status = "blocked"
+        next_action = blocked_actions[0]
+    elif warning_actions:
+        status = "warning"
+        next_action = warning_actions[0]
+    else:
+        status = "ready"
+        next_action = "Ready for guarded CLI execution or reporting."
+
+    return ClientPreparationRow(
+        mission_id=mission.id,
+        mission_name=mission.name,
+        status=status,
+        next_action=next_action,
+        authorization_status="ready" if mission.is_authorized else "missing",
+        scope_status="ready" if approved_scope_count else "missing",
+        check_status="ready" if mission.selected_checks else "missing",
+        warning_count=len(warning_actions),
+        blocked_count=len(blocked_actions),
+    )
+
+
 def check_selection_rows(mission: Mission) -> list[CheckSelectionRow]:
     selected = set(mission.selected_checks)
     return [
@@ -466,10 +526,12 @@ def build_client_view(store: JsonStore, client_id: str) -> ClientView:
     ]
     mission_rows: list[MissionRow] = []
     activity_rows: list[tuple[datetime, str, ClientActivityEventRow]] = []
+    preparation_rows: list[tuple[int, datetime, str, ClientPreparationRow]] = []
     total_findings = 0
     high_or_critical = 0
     approved_scope_count = 0
     scope_count = 0
+    preparation_rank = {"blocked": 0, "warning": 1, "ready": 2}
 
     for mission in client_missions:
         findings = store.list_findings(mission.id)
@@ -486,15 +548,36 @@ def build_client_view(store: JsonStore, client_id: str) -> ClientView:
             activity_rows.append(
                 (event.created_at, event.id, client_activity_event_row(event, mission))
             )
+        preparation = client_preparation_row(mission, findings)
+        preparation_rows.append(
+            (
+                preparation_rank[preparation.status],
+                mission.created_at,
+                mission.id,
+                preparation,
+            )
+        )
 
     mission_rows.sort(key=lambda item: item.created_at, reverse=True)
     activity_rows.sort(key=lambda item: (item[0], item[1]), reverse=True)
+    preparation_rows.sort(key=lambda item: (item[0], item[1], item[2]))
+    preparation_items = [row for _, _, _, row in preparation_rows]
 
     return ClientView(
         client=client_detail(client),
         missions=mission_rows,
         recent_activity_events=[row for _, _, row in activity_rows[:10]],
+        preparation_items=preparation_items,
         activity_log_url=client_activity_log_url(client.id),
+        blocked_preparation_count=len(
+            [item for item in preparation_items if item.status == "blocked"]
+        ),
+        warning_preparation_count=len(
+            [item for item in preparation_items if item.status == "warning"]
+        ),
+        ready_preparation_count=len(
+            [item for item in preparation_items if item.status == "ready"]
+        ),
         total_missions=len(mission_rows),
         total_findings=total_findings,
         high_or_critical_findings=high_or_critical,

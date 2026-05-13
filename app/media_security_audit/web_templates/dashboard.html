@@ -201,6 +201,7 @@
           <th>Client</th>
           <th>Reference</th>
           <th>Missions</th>
+          <th>Preparation</th>
         </tr>
       </thead>
       <tbody>
@@ -209,9 +210,14 @@
           <td><a href="/clients/{{ client.id }}">{{ client.name }}</a><span class="muted block">{{ client.id }}</span></td>
           <td>{{ client.reference or "-" }}</td>
           <td>{{ client.mission_count }}</td>
+          <td>
+            <span class="status status-blocked">Blocked {{ client.blocked_preparation_count }}</span>
+            <span class="status status-warning">Review {{ client.warning_preparation_count }}</span>
+            <span class="status status-ready">Ready {{ client.ready_preparation_count }}</span>
+          </td>
         </tr>
         {% else %}
-        <tr><td colspan="3" class="empty">No client found.</td></tr>
+        <tr><td colspan="4" class="empty">No client found.</td></tr>
         {% endfor %}
       </tbody>
     </table>

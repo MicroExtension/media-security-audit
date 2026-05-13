@@ -83,6 +83,9 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(view.total_findings, 1)
         self.assertEqual(view.high_or_critical_findings, 0)
         self.assertEqual(view.clients[0].mission_count, 1)
+        self.assertEqual(view.clients[0].blocked_preparation_count, 0)
+        self.assertEqual(view.clients[0].warning_preparation_count, 1)
+        self.assertEqual(view.clients[0].ready_preparation_count, 0)
         self.assertEqual(view.missions[0].client_name, "Client X")
         self.assertEqual(view.missions[0].approved_scope_count, 1)
         self.assertEqual(view.missions[0].audit_template_title, "")
@@ -158,6 +161,13 @@ class WebUiTests(unittest.TestCase):
         )
         self.assertEqual(view.preparation_items[1].mission_id, warning_mission.id)
         self.assertEqual(view.preparation_items[2].mission_id, ready_mission.id)
+        client_rows = {client.name: client for client in view.clients}
+        self.assertEqual(client_rows["Client A"].blocked_preparation_count, 0)
+        self.assertEqual(client_rows["Client A"].warning_preparation_count, 0)
+        self.assertEqual(client_rows["Client A"].ready_preparation_count, 1)
+        self.assertEqual(client_rows["Client B"].blocked_preparation_count, 1)
+        self.assertEqual(client_rows["Client B"].warning_preparation_count, 1)
+        self.assertEqual(client_rows["Client B"].ready_preparation_count, 0)
 
     def test_client_view_summarizes_only_client_missions(self) -> None:
         store = JsonStore(clean_data_dir("web-ui-client"))

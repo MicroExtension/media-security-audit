@@ -46,6 +46,9 @@ class ClientRow:
     name: str
     reference: str
     mission_count: int
+    blocked_preparation_count: int
+    warning_preparation_count: int
+    ready_preparation_count: int
 
 
 @dataclass(frozen=True)
@@ -521,6 +524,10 @@ def build_dashboard_view(store: JsonStore) -> DashboardView:
     missions = store.list_missions()
     client_names = {client.id: client.name for client in clients}
     mission_counts = {client.id: 0 for client in clients}
+    preparation_counts = {
+        client.id: {"blocked": 0, "warning": 0, "ready": 0}
+        for client in clients
+    }
 
     mission_rows: list[MissionRow] = []
     preparation_rows: list[tuple[int, datetime, str, DashboardPreparationRow]] = []
@@ -535,6 +542,10 @@ def build_dashboard_view(store: JsonStore) -> DashboardView:
         )
         mission_rows.append(mission_row(mission, findings, client_names))
         preparation = dashboard_preparation_row(mission, findings, client_names)
+        preparation_counts.setdefault(
+            mission.client_id,
+            {"blocked": 0, "warning": 0, "ready": 0},
+        )[preparation.status] += 1
         preparation_rows.append(
             (
                 PREPARATION_STATUS_RANK[preparation.status],
@@ -550,6 +561,18 @@ def build_dashboard_view(store: JsonStore) -> DashboardView:
             name=client.name,
             reference=client.internal_reference or "",
             mission_count=mission_counts.get(client.id, 0),
+            blocked_preparation_count=preparation_counts.get(client.id, {}).get(
+                "blocked",
+                0,
+            ),
+            warning_preparation_count=preparation_counts.get(client.id, {}).get(
+                "warning",
+                0,
+            ),
+            ready_preparation_count=preparation_counts.get(client.id, {}).get(
+                "ready",
+                0,
+            ),
         )
         for client in clients
     ]

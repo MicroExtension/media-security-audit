@@ -82,6 +82,10 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(view.total_missions, 1)
         self.assertEqual(view.total_findings, 1)
         self.assertEqual(view.high_or_critical_findings, 0)
+        dispositions = {item.status: item.count for item in view.finding_dispositions}
+        self.assertEqual(dispositions["new"], 1)
+        self.assertEqual(dispositions["confirmed"], 0)
+        self.assertEqual(dispositions["accepted_risk"], 0)
         self.assertEqual(view.clients[0].mission_count, 1)
         self.assertEqual(view.clients[0].preparation_priority, "warning")
         self.assertEqual(view.clients[0].next_action, "Review 1 new finding(s).")
@@ -186,6 +190,73 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(client_rows["Client C"].preparation_priority, "none")
         self.assertEqual(client_rows["Client C"].next_action, "Create first mission for this client.")
         self.assertEqual(client_rows["Client C"].next_action_mission_id, "")
+
+    def test_dashboard_view_summarizes_workspace_finding_dispositions(self) -> None:
+        store = JsonStore(clean_data_dir("web-ui-dashboard-dispositions"))
+        client = store.create_client(Client(name="Client Dispositions"))
+        mission_a = store.create_mission(
+            Mission(client_id=client.id, name="Disposition Audit A")
+        )
+        mission_b = store.create_mission(
+            Mission(client_id=client.id, name="Disposition Audit B")
+        )
+        store.add_finding(
+            mission_a.id,
+            Finding(
+                title="New finding",
+                severity=Severity.LOW,
+                affected_asset="new.example",
+                category="manual",
+                source_module="manual",
+                proof="Observed manually.",
+                risk="Risk needs review.",
+                remediation="Apply correction.",
+                counter_test="Repeat the check.",
+                confidence=0.8,
+            ),
+        )
+        store.add_finding(
+            mission_a.id,
+            Finding(
+                title="Confirmed finding",
+                severity=Severity.MEDIUM,
+                affected_asset="confirmed.example",
+                category="manual",
+                source_module="manual",
+                proof="Observed manually.",
+                risk="Risk confirmed.",
+                remediation="Apply correction.",
+                counter_test="Repeat the check.",
+                confidence=0.8,
+                status=FindingStatus.CONFIRMED,
+            ),
+        )
+        store.add_finding(
+            mission_b.id,
+            Finding(
+                title="Accepted risk",
+                severity=Severity.LOW,
+                affected_asset="accepted.example",
+                category="manual",
+                source_module="manual",
+                proof="Observed manually.",
+                risk="Risk accepted by owner.",
+                remediation="Track exception.",
+                counter_test="Confirm exception remains documented.",
+                confidence=0.8,
+                status=FindingStatus.ACCEPTED_RISK,
+                metadata={"review_note": "Accepted by owner."},
+            ),
+        )
+
+        view = build_dashboard_view(store)
+        dispositions = {item.status: item for item in view.finding_dispositions}
+
+        self.assertEqual(dispositions["new"].label, "New")
+        self.assertEqual(dispositions["new"].count, 1)
+        self.assertEqual(dispositions["confirmed"].count, 1)
+        self.assertEqual(dispositions["accepted_risk"].count, 1)
+        self.assertEqual(dispositions["false_positive"].count, 0)
 
     def test_client_view_summarizes_only_client_missions(self) -> None:
         store = JsonStore(clean_data_dir("web-ui-client"))

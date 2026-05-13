@@ -221,6 +221,7 @@ class DashboardView:
     clients: list[ClientRow]
     missions: list[MissionRow]
     preparation_items: list[DashboardPreparationRow]
+    finding_dispositions: list[FindingDispositionRow]
     total_clients: int
     total_missions: int
     total_findings: int
@@ -630,11 +631,13 @@ def build_dashboard_view(store: JsonStore) -> DashboardView:
         str,
         list[tuple[int, datetime, str, DashboardPreparationRow]],
     ] = {}
+    all_findings: list[Finding] = []
     total_findings = 0
     high_or_critical = 0
     for mission in missions:
         mission_counts[mission.client_id] = mission_counts.get(mission.client_id, 0) + 1
         findings = store.list_findings(mission.id)
+        all_findings.extend(findings)
         total_findings += len(findings)
         high_or_critical += len(
             [finding for finding in findings if finding.severity.value in {"critical", "high"}]
@@ -693,6 +696,7 @@ def build_dashboard_view(store: JsonStore) -> DashboardView:
         clients=client_rows,
         missions=mission_rows,
         preparation_items=preparation_items,
+        finding_dispositions=finding_disposition_rows(all_findings),
         total_clients=len(client_rows),
         total_missions=len(mission_rows),
         total_findings=total_findings,

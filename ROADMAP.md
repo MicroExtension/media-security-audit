@@ -100,6 +100,7 @@ Current foundation:
 - dashboard client preparation counts started
 - dashboard client priority actions started
 - dashboard client priority ordering started
+- mission preparation columns started
 - mission readiness and safe scan plan previews started
 - scan execution remains CLI-only
 
@@ -145,6 +146,7 @@ Current foundation:
 - dashboard client preparation counts started
 - dashboard client priority actions started
 - dashboard client priority ordering started
+- mission preparation columns started
 
 Success criteria:
 - appliance can run on Debian/Ubuntu

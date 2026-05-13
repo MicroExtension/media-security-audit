@@ -97,6 +97,7 @@
         <tr>
           <th>Mission</th>
           <th>Status</th>
+          <th>Prep</th>
           <th>Scope</th>
           <th>Findings</th>
           <th>Risk</th>
@@ -111,13 +112,17 @@
             <span class="muted block">{{ mission.audit_type }}{% if mission.audit_template_title %} | {{ mission.audit_template_title }}{% endif %}</span>
           </td>
           <td><span class="status">{{ mission.status }}</span></td>
+          <td>
+            <span class="status status-{{ mission.preparation_status }}">{{ mission.preparation_status }}</span>
+            <span class="muted block">{{ mission.preparation_next_action }}</span>
+          </td>
           <td>{{ mission.approved_scope_count }}/{{ mission.scope_count }}</td>
           <td>{{ mission.finding_count }}</td>
           <td><span class="risk risk-{{ mission.risk_level }}">{{ mission.risk_score }}/100</span></td>
           <td>{{ mission.created_at }}</td>
         </tr>
         {% else %}
-        <tr><td colspan="6" class="empty">No mission found for this client.</td></tr>
+        <tr><td colspan="7" class="empty">No mission found for this client.</td></tr>
         {% endfor %}
       </tbody>
     </table>

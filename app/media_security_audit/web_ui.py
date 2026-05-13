@@ -65,6 +65,17 @@ class ClientDetail:
 
 
 @dataclass(frozen=True)
+class MissionPreparationSummary:
+    status: str
+    next_action: str
+    authorization_status: str
+    scope_status: str
+    check_status: str
+    warning_count: int
+    blocked_count: int
+
+
+@dataclass(frozen=True)
 class MissionRow:
     id: str
     name: str
@@ -74,6 +85,8 @@ class MissionRow:
     audit_template_id: str
     audit_template_title: str
     status: str
+    preparation_status: str
+    preparation_next_action: str
     authorization_present: bool
     authorization_reference: str
     authorization_contact: str
@@ -303,11 +316,56 @@ def client_detail(client: Client) -> ClientDetail:
     )
 
 
+def mission_preparation_summary(
+    mission: Mission,
+    findings: list[Finding],
+) -> MissionPreparationSummary:
+    approved_scope_count = len(
+        [item for item in mission.scope if item.approved and not item.excluded]
+    )
+    blocked_actions: list[str] = []
+    warning_actions: list[str] = []
+
+    if not mission.is_authorized:
+        blocked_actions.append("Add written authorization reference.")
+    if approved_scope_count == 0:
+        blocked_actions.append("Approve at least one scope target.")
+    if not mission.selected_checks:
+        blocked_actions.append("Select audit checks for planning.")
+
+    new_finding_count = len(
+        [finding for finding in findings if finding.status == FindingStatus.NEW]
+    )
+    if new_finding_count:
+        warning_actions.append(f"Review {new_finding_count} new finding(s).")
+
+    if blocked_actions:
+        status = "blocked"
+        next_action = blocked_actions[0]
+    elif warning_actions:
+        status = "warning"
+        next_action = warning_actions[0]
+    else:
+        status = "ready"
+        next_action = "Ready for guarded CLI execution or reporting."
+
+    return MissionPreparationSummary(
+        status=status,
+        next_action=next_action,
+        authorization_status="ready" if mission.is_authorized else "missing",
+        scope_status="ready" if approved_scope_count else "missing",
+        check_status="ready" if mission.selected_checks else "missing",
+        warning_count=len(warning_actions),
+        blocked_count=len(blocked_actions),
+    )
+
+
 def mission_row(mission: Mission, findings: list[Finding], client_names: dict[str, str]) -> MissionRow:
     summary = build_report_summary(mission, findings)
     active_counts = summary["severity_counts"]
     approved_scope_count = len([item for item in mission.scope if item.approved and not item.excluded])
     audit_template = get_audit_template(mission.audit_template_id)
+    preparation = mission_preparation_summary(mission, findings)
 
     return MissionRow(
         id=mission.id,
@@ -318,6 +376,8 @@ def mission_row(mission: Mission, findings: list[Finding], client_names: dict[st
         audit_template_id=mission.audit_template_id or "",
         audit_template_title=audit_template.title if audit_template else "",
         status=mission.status.value,
+        preparation_status=preparation.status,
+        preparation_next_action=preparation.next_action,
         authorization_present=mission.is_authorized,
         authorization_reference=mission.authorization_reference or "",
         authorization_contact=mission.authorization_contact or "",
@@ -421,45 +481,18 @@ def client_activity_log_url(client_id: str) -> str:
 
 
 def client_preparation_row(mission: Mission, findings: list[Finding]) -> ClientPreparationRow:
-    approved_scope_count = len(
-        [item for item in mission.scope if item.approved and not item.excluded]
-    )
-    blocked_actions: list[str] = []
-    warning_actions: list[str] = []
-
-    if not mission.is_authorized:
-        blocked_actions.append("Add written authorization reference.")
-    if approved_scope_count == 0:
-        blocked_actions.append("Approve at least one scope target.")
-    if not mission.selected_checks:
-        blocked_actions.append("Select audit checks for planning.")
-
-    new_finding_count = len(
-        [finding for finding in findings if finding.status == FindingStatus.NEW]
-    )
-    if new_finding_count:
-        warning_actions.append(f"Review {new_finding_count} new finding(s).")
-
-    if blocked_actions:
-        status = "blocked"
-        next_action = blocked_actions[0]
-    elif warning_actions:
-        status = "warning"
-        next_action = warning_actions[0]
-    else:
-        status = "ready"
-        next_action = "Ready for guarded CLI execution or reporting."
+    preparation = mission_preparation_summary(mission, findings)
 
     return ClientPreparationRow(
         mission_id=mission.id,
         mission_name=mission.name,
-        status=status,
-        next_action=next_action,
-        authorization_status="ready" if mission.is_authorized else "missing",
-        scope_status="ready" if approved_scope_count else "missing",
-        check_status="ready" if mission.selected_checks else "missing",
-        warning_count=len(warning_actions),
-        blocked_count=len(blocked_actions),
+        status=preparation.status,
+        next_action=preparation.next_action,
+        authorization_status=preparation.authorization_status,
+        scope_status=preparation.scope_status,
+        check_status=preparation.check_status,
+        warning_count=preparation.warning_count,
+        blocked_count=preparation.blocked_count,
     )
 
 

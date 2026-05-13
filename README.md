@@ -68,6 +68,7 @@ Implemented so far:
 - dashboard client list shows client preparation priority and next action
 - dashboard client list is ordered by preparation priority
 - mission tables show preparation status and next action
+- mission readiness cards link directly to the setup sections that need action
 
 The first implementation target remains a CLI-driven V1 with a local web
 interface that can set up the mission workflow:
@@ -206,6 +207,8 @@ when the action belongs to an existing mission.
 Clients are ordered by preparation priority so blocked accounts appear first.
 Mission tables show the same preparation status and next action for each
 mission row.
+Mission readiness cards link directly to the relevant setup, scope, check
+selection, findings, or report section when technician action is required.
 
 ## Deployment
 
@@ -325,6 +328,7 @@ Planned screens:
 - dashboard client priority actions started
 - dashboard client priority ordering started
 - mission preparation columns started
+- mission readiness action links started
 - counter-tests
 - system status started
 - settings

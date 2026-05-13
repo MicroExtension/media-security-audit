@@ -450,6 +450,46 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(view.findings[0].related_remediations, [])
         self.assertIsNone(view.template_guidance)
 
+    def test_mission_view_readiness_items_include_action_targets(self) -> None:
+        store = JsonStore(clean_data_dir("web-ui-readiness-actions"))
+        client = store.create_client(Client(name="Client Readiness"))
+        mission = store.create_mission(
+            Mission(
+                client_id=client.id,
+                name="Blocked Readiness Audit",
+                selected_checks=[],
+            )
+        )
+        store.add_finding(
+            mission.id,
+            Finding(
+                title="Finding awaiting review",
+                severity=Severity.LOW,
+                affected_asset="client.example",
+                category="manual",
+                source_module="manual",
+                proof="Observed manually.",
+                risk="Risk needs review.",
+                remediation="Apply correction.",
+                counter_test="Repeat the check.",
+                confidence=0.8,
+            ),
+        )
+
+        view = build_mission_view(store, mission.id)
+        readiness = {item.label: item for item in view.readiness_items}
+
+        self.assertEqual(readiness["Authorization"].action_label, "Update Setup")
+        self.assertEqual(readiness["Authorization"].action_href, "#mission-setup")
+        self.assertEqual(readiness["Approved Scope"].action_label, "Review Scope")
+        self.assertEqual(readiness["Approved Scope"].action_href, "#scope")
+        self.assertEqual(readiness["Check Selection"].action_label, "Select Checks")
+        self.assertEqual(readiness["Check Selection"].action_href, "#check-selection")
+        self.assertEqual(readiness["Finding Review"].action_label, "Review Findings")
+        self.assertEqual(readiness["Finding Review"].action_href, "#findings")
+        self.assertEqual(readiness["Reports"].action_label, "Open Reports")
+        self.assertEqual(readiness["Reports"].action_href, "#reports")
+
     def test_mission_view_includes_activity_events(self) -> None:
         store = JsonStore(clean_data_dir("web-ui-activity"))
         client = store.create_client(Client(name="Client Activity"))

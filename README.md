@@ -66,6 +66,7 @@ Implemented so far:
 - dashboard shows workspace mission preparation status summaries
 - dashboard client list shows per-client preparation counts
 - dashboard client list shows client preparation priority and next action
+- dashboard client list is ordered by preparation priority
 
 The first implementation target remains a CLI-driven V1 with a local web
 interface that can set up the mission workflow:
@@ -201,6 +202,7 @@ The client list includes per-client preparation counts to identify which
 customer accounts need attention first.
 It also shows the highest priority action for each client, with a mission link
 when the action belongs to an existing mission.
+Clients are ordered by preparation priority so blocked accounts appear first.
 
 ## Deployment
 
@@ -318,6 +320,7 @@ Planned screens:
 - dashboard mission preparation summary started
 - dashboard client preparation counts started
 - dashboard client priority actions started
+- dashboard client priority ordering started
 - counter-tests
 - system status started
 - settings

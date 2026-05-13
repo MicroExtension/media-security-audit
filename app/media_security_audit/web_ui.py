@@ -156,6 +156,19 @@ class ClientPreparationRow:
 
 
 @dataclass(frozen=True)
+class DashboardPreparationRow:
+    client_id: str
+    client_name: str
+    mission_id: str
+    mission_name: str
+    status: str
+    next_action: str
+    authorization_status: str
+    scope_status: str
+    check_status: str
+
+
+@dataclass(frozen=True)
 class CheckSelectionRow:
     value: str
     label: str
@@ -179,10 +192,14 @@ class ScanRunRow:
 class DashboardView:
     clients: list[ClientRow]
     missions: list[MissionRow]
+    preparation_items: list[DashboardPreparationRow]
     total_clients: int
     total_missions: int
     total_findings: int
     high_or_critical_findings: int
+    blocked_preparation_count: int
+    warning_preparation_count: int
+    ready_preparation_count: int
 
 
 @dataclass(frozen=True)
@@ -244,6 +261,8 @@ CHECK_DESCRIPTIONS: dict[AuditCheck, str] = {
     AuditCheck.HTTP_HEADERS: "Browser security header review on approved URL scope.",
     AuditCheck.DNS_MAIL: "SPF, DMARC, and explicit DKIM TXT lookup plan on approved domain scope.",
 }
+
+PREPARATION_STATUS_RANK = {"blocked": 0, "warning": 1, "ready": 2}
 
 
 def format_datetime(value: datetime) -> str:
@@ -436,6 +455,25 @@ def client_preparation_row(mission: Mission, findings: list[Finding]) -> ClientP
     )
 
 
+def dashboard_preparation_row(
+    mission: Mission,
+    findings: list[Finding],
+    client_names: dict[str, str],
+) -> DashboardPreparationRow:
+    preparation = client_preparation_row(mission, findings)
+    return DashboardPreparationRow(
+        client_id=mission.client_id,
+        client_name=client_names.get(mission.client_id, mission.client_id),
+        mission_id=preparation.mission_id,
+        mission_name=preparation.mission_name,
+        status=preparation.status,
+        next_action=preparation.next_action,
+        authorization_status=preparation.authorization_status,
+        scope_status=preparation.scope_status,
+        check_status=preparation.check_status,
+    )
+
+
 def check_selection_rows(mission: Mission) -> list[CheckSelectionRow]:
     selected = set(mission.selected_checks)
     return [
@@ -485,6 +523,7 @@ def build_dashboard_view(store: JsonStore) -> DashboardView:
     mission_counts = {client.id: 0 for client in clients}
 
     mission_rows: list[MissionRow] = []
+    preparation_rows: list[tuple[int, datetime, str, DashboardPreparationRow]] = []
     total_findings = 0
     high_or_critical = 0
     for mission in missions:
@@ -495,6 +534,15 @@ def build_dashboard_view(store: JsonStore) -> DashboardView:
             [finding for finding in findings if finding.severity.value in {"critical", "high"}]
         )
         mission_rows.append(mission_row(mission, findings, client_names))
+        preparation = dashboard_preparation_row(mission, findings, client_names)
+        preparation_rows.append(
+            (
+                PREPARATION_STATUS_RANK[preparation.status],
+                mission.created_at,
+                mission.id,
+                preparation,
+            )
+        )
 
     client_rows = [
         ClientRow(
@@ -507,14 +555,26 @@ def build_dashboard_view(store: JsonStore) -> DashboardView:
     ]
 
     mission_rows.sort(key=lambda item: item.created_at, reverse=True)
+    preparation_rows.sort(key=lambda item: (item[0], item[1], item[2]))
+    preparation_items = [row for _, _, _, row in preparation_rows]
 
     return DashboardView(
         clients=client_rows,
         missions=mission_rows,
+        preparation_items=preparation_items,
         total_clients=len(client_rows),
         total_missions=len(mission_rows),
         total_findings=total_findings,
         high_or_critical_findings=high_or_critical,
+        blocked_preparation_count=len(
+            [item for item in preparation_items if item.status == "blocked"]
+        ),
+        warning_preparation_count=len(
+            [item for item in preparation_items if item.status == "warning"]
+        ),
+        ready_preparation_count=len(
+            [item for item in preparation_items if item.status == "ready"]
+        ),
     )
 
 
@@ -531,7 +591,6 @@ def build_client_view(store: JsonStore, client_id: str) -> ClientView:
     high_or_critical = 0
     approved_scope_count = 0
     scope_count = 0
-    preparation_rank = {"blocked": 0, "warning": 1, "ready": 2}
 
     for mission in client_missions:
         findings = store.list_findings(mission.id)
@@ -551,7 +610,7 @@ def build_client_view(store: JsonStore, client_id: str) -> ClientView:
         preparation = client_preparation_row(mission, findings)
         preparation_rows.append(
             (
-                preparation_rank[preparation.status],
+                PREPARATION_STATUS_RANK[preparation.status],
                 mission.created_at,
                 mission.id,
                 preparation,

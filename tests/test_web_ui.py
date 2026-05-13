@@ -86,6 +86,78 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(view.missions[0].client_name, "Client X")
         self.assertEqual(view.missions[0].approved_scope_count, 1)
         self.assertEqual(view.missions[0].audit_template_title, "")
+        self.assertEqual(view.blocked_preparation_count, 0)
+        self.assertEqual(view.warning_preparation_count, 1)
+        self.assertEqual(view.ready_preparation_count, 0)
+        self.assertEqual(view.preparation_items[0].client_name, "Client X")
+        self.assertEqual(view.preparation_items[0].status, "warning")
+        self.assertEqual(
+            view.preparation_items[0].next_action,
+            "Review 1 new finding(s).",
+        )
+
+    def test_dashboard_view_builds_workspace_preparation_summary(self) -> None:
+        store = JsonStore(clean_data_dir("web-ui-dashboard-preparation"))
+        client_a = store.create_client(Client(name="Client A"))
+        client_b = store.create_client(Client(name="Client B"))
+        ready_mission = store.create_mission(
+            Mission(
+                client_id=client_a.id,
+                name="Ready Audit",
+                authorization_reference="AUTH-READY",
+            )
+        )
+        store.add_scope_item(
+            ready_mission.id,
+            ScopeItem(type=ScopeType.IP, value="192.0.2.10", approved=True),
+        )
+        blocked_mission = store.create_mission(
+            Mission(client_id=client_b.id, name="Blocked Audit", selected_checks=[])
+        )
+        warning_mission = store.create_mission(
+            Mission(
+                client_id=client_b.id,
+                name="Warning Audit",
+                authorization_reference="AUTH-WARN",
+            )
+        )
+        store.add_scope_item(
+            warning_mission.id,
+            ScopeItem(type=ScopeType.DOMAIN, value="client-b.example", approved=True),
+        )
+        store.add_finding(
+            warning_mission.id,
+            Finding(
+                title="Finding awaiting review",
+                severity=Severity.LOW,
+                affected_asset="client-b.example",
+                category="manual",
+                source_module="manual",
+                proof="Observed manually.",
+                risk="Risk needs review.",
+                remediation="Apply correction.",
+                counter_test="Repeat the check.",
+                confidence=0.8,
+            ),
+        )
+
+        view = build_dashboard_view(store)
+
+        self.assertEqual(view.blocked_preparation_count, 1)
+        self.assertEqual(view.warning_preparation_count, 1)
+        self.assertEqual(view.ready_preparation_count, 1)
+        self.assertEqual(
+            [item.status for item in view.preparation_items],
+            ["blocked", "warning", "ready"],
+        )
+        self.assertEqual(view.preparation_items[0].mission_id, blocked_mission.id)
+        self.assertEqual(view.preparation_items[0].client_name, "Client B")
+        self.assertEqual(
+            view.preparation_items[0].next_action,
+            "Add written authorization reference.",
+        )
+        self.assertEqual(view.preparation_items[1].mission_id, warning_mission.id)
+        self.assertEqual(view.preparation_items[2].mission_id, ready_mission.id)
 
     def test_client_view_summarizes_only_client_missions(self) -> None:
         store = JsonStore(clean_data_dir("web-ui-client"))

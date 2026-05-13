@@ -63,6 +63,7 @@ Implemented so far:
 - activity log CSV export for spreadsheet review
 - client detail pages show recent client activity and filtered Activity links
 - client detail pages show mission preparation status summaries
+- dashboard shows workspace mission preparation status summaries
 
 The first implementation target remains a CLI-driven V1 with a local web
 interface that can set up the mission workflow:
@@ -192,6 +193,8 @@ Client detail pages show recent activity for the client and link directly to
 the filtered Activity page.
 They also show mission preparation status, including missing authorization,
 approved scope, check selection, and findings awaiting review.
+The dashboard shows the same preparation status across the whole workspace so
+blocked missions are visible immediately.
 
 ## Deployment
 
@@ -306,6 +309,7 @@ Planned screens:
 - activity log CSV export started
 - client activity summary started
 - client mission preparation summary started
+- dashboard mission preparation summary started
 - counter-tests
 - system status started
 - settings

@@ -337,6 +337,7 @@ Current GUI status:
   Activity page
 - client detail pages show mission preparation status for missing
   authorization, scope, checks, and finding review
+- dashboard shows workspace mission preparation status across clients
 - mission readiness and safe scan plan previews are visible from mission pages
 - scan execution remains CLI-only
 

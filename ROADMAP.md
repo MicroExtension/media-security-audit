@@ -69,6 +69,7 @@ Current foundation:
 - manual finding edit forms started
 - finding status review started
 - finding review note guardrails started
+- mission finding disposition summary started
 - counter-test plan views started
 - mission activity log started
 - check selection UI started
@@ -105,6 +106,7 @@ Current foundation:
 - mission preparation columns started
 - mission readiness action links started
 - finding review note guardrails started
+- mission finding disposition summary started
 - mission readiness and safe scan plan previews started
 - scan execution remains CLI-only
 
@@ -153,6 +155,7 @@ Current foundation:
 - mission preparation columns started
 - mission readiness action links started
 - finding review note guardrails started
+- mission finding disposition summary started
 
 Success criteria:
 - appliance can run on Debian/Ubuntu

@@ -21,6 +21,7 @@ from media_security_audit.models import (
 )
 from media_security_audit.reports import (
     build_report_summary,
+    finding_status_counts,
     remediation_plan,
     sorted_findings,
 )
@@ -134,6 +135,13 @@ class FindingRow:
 
 
 @dataclass(frozen=True)
+class FindingDispositionRow:
+    status: str
+    label: str
+    count: int
+
+
+@dataclass(frozen=True)
 class CounterTestRow:
     id: str
     title: str
@@ -244,6 +252,7 @@ class MissionView:
     mission: MissionRow
     scope: list[ScopeRow]
     findings: list[FindingRow]
+    finding_dispositions: list[FindingDispositionRow]
     counter_test_items: list[CounterTestRow]
     activity_events: list[ActivityEventRow]
     check_selection: list[CheckSelectionRow]
@@ -284,6 +293,16 @@ CHECK_DESCRIPTIONS: dict[AuditCheck, str] = {
 
 PREPARATION_STATUS_RANK = {"blocked": 0, "warning": 1, "ready": 2}
 CLIENT_PRIORITY_RANK = {"blocked": 0, "warning": 1, "ready": 2, "none": 3}
+
+FINDING_DISPOSITION_LABELS = {
+    "new": "New",
+    "confirmed": "Confirmed",
+    "false_positive": "False positive",
+    "accepted_risk": "Accepted risk",
+    "remediated": "Remediated",
+    "counter_test_passed": "Counter-test passed",
+    "counter_test_failed": "Counter-test failed",
+}
 
 
 def format_datetime(value: datetime) -> str:
@@ -429,6 +448,18 @@ def finding_row(finding: Finding) -> FindingRow:
         review_note=str(finding.metadata.get("review_note", "")),
         related_remediations=related_remediations(finding),
     )
+
+
+def finding_disposition_rows(findings: list[Finding]) -> list[FindingDispositionRow]:
+    counts = finding_status_counts(findings)
+    return [
+        FindingDispositionRow(
+            status=status,
+            label=FINDING_DISPOSITION_LABELS[status],
+            count=counts[status],
+        )
+        for status in FINDING_DISPOSITION_LABELS
+    ]
 
 
 def related_remediations(finding: Finding, limit: int = 3) -> list[RemediationEntry]:
@@ -763,6 +794,7 @@ def build_mission_view(
         mission=mission_row(mission, findings, client_name_by_id(store)),
         scope=[scope_row(item) for item in mission.scope],
         findings=[finding_row(finding) for finding in sorted_findings(findings)],
+        finding_dispositions=finding_disposition_rows(findings),
         counter_test_items=[counter_test_row(finding) for finding in counter_test_findings(findings)],
         activity_events=[activity_event_row(event) for event in activity_events],
         check_selection=check_selection_rows(mission),

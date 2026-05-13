@@ -236,6 +236,25 @@ tr:last-child td {
   color: var(--red);
 }
 
+.status-false_positive,
+.status-accepted_risk,
+.status-new {
+  background: #eef3f7;
+  color: #344054;
+}
+
+.status-confirmed,
+.status-remediated,
+.status-counter_test_passed {
+  background: #e7f6ed;
+  color: var(--green);
+}
+
+.status-counter_test_failed {
+  background: #fde8e7;
+  color: var(--red);
+}
+
 .status-panel {
   align-items: center;
   background: var(--surface);
@@ -688,6 +707,30 @@ textarea:focus {
 .finding-list {
   display: grid;
   gap: 14px;
+}
+
+.disposition-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  margin-bottom: 12px;
+}
+
+.disposition-item {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+}
+
+.disposition-item span {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.disposition-item strong {
+  font-size: 24px;
 }
 
 .library-grid {

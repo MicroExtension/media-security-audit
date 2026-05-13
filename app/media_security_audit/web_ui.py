@@ -270,6 +270,7 @@ CHECK_DESCRIPTIONS: dict[AuditCheck, str] = {
 }
 
 PREPARATION_STATUS_RANK = {"blocked": 0, "warning": 1, "ready": 2}
+CLIENT_PRIORITY_RANK = {"blocked": 0, "warning": 1, "ready": 2, "none": 3}
 
 
 def format_datetime(value: datetime) -> str:
@@ -497,6 +498,16 @@ def client_priority_action(
     )
 
 
+def client_priority_sort_key(client: ClientRow) -> tuple[int, int, int, int, str]:
+    return (
+        CLIENT_PRIORITY_RANK.get(client.preparation_priority, 99),
+        -client.blocked_preparation_count,
+        -client.warning_preparation_count,
+        -client.ready_preparation_count,
+        client.name.lower(),
+    )
+
+
 def check_selection_rows(mission: Mission) -> list[CheckSelectionRow]:
     selected = set(mission.selected_checks)
     return [
@@ -608,6 +619,7 @@ def build_dashboard_view(store: JsonStore) -> DashboardView:
                 ),
             )
         )
+    client_rows.sort(key=client_priority_sort_key)
 
     mission_rows.sort(key=lambda item: item.created_at, reverse=True)
     preparation_rows.sort(key=lambda item: (item[0], item[1], item[2]))

@@ -166,6 +166,10 @@ class WebUiTests(unittest.TestCase):
         )
         self.assertEqual(view.preparation_items[1].mission_id, warning_mission.id)
         self.assertEqual(view.preparation_items[2].mission_id, ready_mission.id)
+        self.assertEqual(
+            [client.name for client in view.clients],
+            ["Client B", "Client A", "Client C"],
+        )
         client_rows = {client.name: client for client in view.clients}
         self.assertEqual(client_rows["Client A"].preparation_priority, "ready")
         self.assertEqual(client_rows["Client A"].next_action_mission_id, ready_mission.id)

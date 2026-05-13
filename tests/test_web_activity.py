@@ -1,9 +1,11 @@
 from pathlib import Path
+import csv
 from datetime import datetime, timedelta, timezone
 import json
 import shutil
 import sys
 import unittest
+from io import StringIO
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "app"))
 
@@ -11,11 +13,11 @@ from media_security_audit.models import (  # noqa: E402
     ActivityEvent,
     Client,
     Mission,
-    ReportFormat,
     utc_now,
 )
 from media_security_audit.storage import JsonStore  # noqa: E402
 from media_security_audit.web_activity import (  # noqa: E402
+    ActivityExportFormat,
     build_activity_log_export,
     build_activity_log_view,
 )
@@ -70,7 +72,12 @@ class WebActivityTests(unittest.TestCase):
             [option.label for option in view.missions],
             ["Client A / Audit A", "Client B / Audit B"],
         )
+        self.assertEqual(
+            [link.label for link in view.export_links],
+            ["JSON", "Markdown", "HTML", "CSV"],
+        )
         self.assertEqual(view.export_links[0].url, "/activity/export/json")
+        self.assertEqual(view.export_links[3].url, "/activity/export/csv")
         self.assertEqual([row.id for row in view.rows], [second.id, first.id])
         self.assertEqual(view.rows[0].client_name, "Client B")
         self.assertEqual(view.rows[0].mission_name, "Audit B")
@@ -107,7 +114,7 @@ class WebActivityTests(unittest.TestCase):
         view = build_activity_log_view(store, query="scope_1", action="scope.added")
         export = build_activity_log_export(
             store,
-            ReportFormat.JSON,
+            ActivityExportFormat.JSON,
             query="scope_1",
             action="scope.added",
         )
@@ -157,7 +164,7 @@ class WebActivityTests(unittest.TestCase):
         )
         export = build_activity_log_export(
             store,
-            ReportFormat.JSON,
+            ActivityExportFormat.JSON,
             client_id=client_b.id,
             mission_id=mission_b.id,
         )
@@ -216,11 +223,18 @@ class WebActivityTests(unittest.TestCase):
         )
         export = build_activity_log_export(
             store,
-            ReportFormat.JSON,
+            ActivityExportFormat.JSON,
+            date_from="2026-05-10",
+            date_to="2026-05-10",
+        )
+        csv_export = build_activity_log_export(
+            store,
+            ActivityExportFormat.CSV,
             date_from="2026-05-10",
             date_to="2026-05-10",
         )
         payload = json.loads(export.content)
+        csv_rows = list(csv.DictReader(StringIO(csv_export.content)))
 
         self.assertEqual(view.total_events, 3)
         self.assertEqual(view.visible_events, 1)
@@ -237,6 +251,10 @@ class WebActivityTests(unittest.TestCase):
         self.assertEqual(payload["date_from"], "2026-05-10")
         self.assertEqual(payload["date_to"], "2026-05-10")
         self.assertEqual(payload["events"][0]["created_date"], "2026-05-10")
+        self.assertEqual(csv_export.filename, "activity-log-dates-filtered.csv")
+        self.assertEqual(len(csv_rows), 1)
+        self.assertEqual(csv_rows[0]["id"], expected.id)
+        self.assertEqual(csv_rows[0]["created_date"], "2026-05-10")
 
     def test_exports_activity_log_as_json_markdown_and_html(self) -> None:
         store = JsonStore(clean_dir("web-activity-export"))
@@ -251,11 +269,13 @@ class WebActivityTests(unittest.TestCase):
             )
         )
 
-        json_export = build_activity_log_export(store, ReportFormat.JSON)
-        markdown_export = build_activity_log_export(store, ReportFormat.MARKDOWN)
-        html_export = build_activity_log_export(store, ReportFormat.HTML)
+        json_export = build_activity_log_export(store, ActivityExportFormat.JSON)
+        markdown_export = build_activity_log_export(store, ActivityExportFormat.MARKDOWN)
+        html_export = build_activity_log_export(store, ActivityExportFormat.HTML)
+        csv_export = build_activity_log_export(store, ActivityExportFormat.CSV)
 
         payload = json.loads(json_export.content)
+        csv_rows = list(csv.DictReader(StringIO(csv_export.content)))
         self.assertEqual(json_export.filename, "activity-log.json")
         self.assertEqual(json_export.media_type, "application/json")
         self.assertEqual(payload["count"], 1)
@@ -267,6 +287,12 @@ class WebActivityTests(unittest.TestCase):
         self.assertEqual(html_export.filename, "activity-log.html")
         self.assertIn("<!doctype html>", html_export.content)
         self.assertIn("Client Export", html_export.content)
+        self.assertEqual(csv_export.filename, "activity-log.csv")
+        self.assertEqual(csv_export.media_type, "text/csv; charset=utf-8")
+        self.assertEqual(csv_rows[0]["client_name"], "Client Export")
+        self.assertEqual(csv_rows[0]["mission_name"], "Export Audit")
+        self.assertEqual(csv_rows[0]["action"], "reports.generated")
+        self.assertEqual(csv_rows[0]["metadata"], "report_count=3")
 
 
 if __name__ == "__main__":

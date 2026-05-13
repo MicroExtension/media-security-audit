@@ -83,6 +83,10 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(view.total_findings, 1)
         self.assertEqual(view.high_or_critical_findings, 0)
         self.assertEqual(view.clients[0].mission_count, 1)
+        self.assertEqual(view.clients[0].preparation_priority, "warning")
+        self.assertEqual(view.clients[0].next_action, "Review 1 new finding(s).")
+        self.assertEqual(view.clients[0].next_action_mission_id, mission.id)
+        self.assertEqual(view.clients[0].next_action_mission_name, "External Audit")
         self.assertEqual(view.clients[0].blocked_preparation_count, 0)
         self.assertEqual(view.clients[0].warning_preparation_count, 1)
         self.assertEqual(view.clients[0].ready_preparation_count, 0)
@@ -103,6 +107,7 @@ class WebUiTests(unittest.TestCase):
         store = JsonStore(clean_data_dir("web-ui-dashboard-preparation"))
         client_a = store.create_client(Client(name="Client A"))
         client_b = store.create_client(Client(name="Client B"))
+        client_c = store.create_client(Client(name="Client C"))
         ready_mission = store.create_mission(
             Mission(
                 client_id=client_a.id,
@@ -162,12 +167,19 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(view.preparation_items[1].mission_id, warning_mission.id)
         self.assertEqual(view.preparation_items[2].mission_id, ready_mission.id)
         client_rows = {client.name: client for client in view.clients}
+        self.assertEqual(client_rows["Client A"].preparation_priority, "ready")
+        self.assertEqual(client_rows["Client A"].next_action_mission_id, ready_mission.id)
         self.assertEqual(client_rows["Client A"].blocked_preparation_count, 0)
         self.assertEqual(client_rows["Client A"].warning_preparation_count, 0)
         self.assertEqual(client_rows["Client A"].ready_preparation_count, 1)
+        self.assertEqual(client_rows["Client B"].preparation_priority, "blocked")
+        self.assertEqual(client_rows["Client B"].next_action_mission_id, blocked_mission.id)
         self.assertEqual(client_rows["Client B"].blocked_preparation_count, 1)
         self.assertEqual(client_rows["Client B"].warning_preparation_count, 1)
         self.assertEqual(client_rows["Client B"].ready_preparation_count, 0)
+        self.assertEqual(client_rows["Client C"].preparation_priority, "none")
+        self.assertEqual(client_rows["Client C"].next_action, "Create first mission for this client.")
+        self.assertEqual(client_rows["Client C"].next_action_mission_id, "")
 
     def test_client_view_summarizes_only_client_missions(self) -> None:
         store = JsonStore(clean_data_dir("web-ui-client"))

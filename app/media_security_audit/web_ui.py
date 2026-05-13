@@ -46,6 +46,10 @@ class ClientRow:
     name: str
     reference: str
     mission_count: int
+    preparation_priority: str
+    next_action: str
+    next_action_mission_id: str
+    next_action_mission_name: str
     blocked_preparation_count: int
     warning_preparation_count: int
     ready_preparation_count: int
@@ -477,6 +481,22 @@ def dashboard_preparation_row(
     )
 
 
+def client_priority_action(
+    preparation_rows: list[tuple[int, datetime, str, DashboardPreparationRow]],
+) -> tuple[str, str, str, str]:
+    if not preparation_rows:
+        return "none", "Create first mission for this client.", "", ""
+
+    sorted_rows = sorted(preparation_rows, key=lambda item: (item[0], item[1], item[2]))
+    preparation = sorted_rows[0][3]
+    return (
+        preparation.status,
+        preparation.next_action,
+        preparation.mission_id,
+        preparation.mission_name,
+    )
+
+
 def check_selection_rows(mission: Mission) -> list[CheckSelectionRow]:
     selected = set(mission.selected_checks)
     return [
@@ -531,6 +551,10 @@ def build_dashboard_view(store: JsonStore) -> DashboardView:
 
     mission_rows: list[MissionRow] = []
     preparation_rows: list[tuple[int, datetime, str, DashboardPreparationRow]] = []
+    preparation_rows_by_client: dict[
+        str,
+        list[tuple[int, datetime, str, DashboardPreparationRow]],
+    ] = {}
     total_findings = 0
     high_or_critical = 0
     for mission in missions:
@@ -546,36 +570,44 @@ def build_dashboard_view(store: JsonStore) -> DashboardView:
             mission.client_id,
             {"blocked": 0, "warning": 0, "ready": 0},
         )[preparation.status] += 1
-        preparation_rows.append(
-            (
-                PREPARATION_STATUS_RANK[preparation.status],
-                mission.created_at,
-                mission.id,
-                preparation,
+        preparation_tuple = (
+            PREPARATION_STATUS_RANK[preparation.status],
+            mission.created_at,
+            mission.id,
+            preparation,
+        )
+        preparation_rows.append(preparation_tuple)
+        preparation_rows_by_client.setdefault(mission.client_id, []).append(preparation_tuple)
+
+    client_rows: list[ClientRow] = []
+    for client in clients:
+        priority, next_action, mission_id, mission_name = client_priority_action(
+            preparation_rows_by_client.get(client.id, [])
+        )
+        client_rows.append(
+            ClientRow(
+                id=client.id,
+                name=client.name,
+                reference=client.internal_reference or "",
+                mission_count=mission_counts.get(client.id, 0),
+                preparation_priority=priority,
+                next_action=next_action,
+                next_action_mission_id=mission_id,
+                next_action_mission_name=mission_name,
+                blocked_preparation_count=preparation_counts.get(client.id, {}).get(
+                    "blocked",
+                    0,
+                ),
+                warning_preparation_count=preparation_counts.get(client.id, {}).get(
+                    "warning",
+                    0,
+                ),
+                ready_preparation_count=preparation_counts.get(client.id, {}).get(
+                    "ready",
+                    0,
+                ),
             )
         )
-
-    client_rows = [
-        ClientRow(
-            id=client.id,
-            name=client.name,
-            reference=client.internal_reference or "",
-            mission_count=mission_counts.get(client.id, 0),
-            blocked_preparation_count=preparation_counts.get(client.id, {}).get(
-                "blocked",
-                0,
-            ),
-            warning_preparation_count=preparation_counts.get(client.id, {}).get(
-                "warning",
-                0,
-            ),
-            ready_preparation_count=preparation_counts.get(client.id, {}).get(
-                "ready",
-                0,
-            ),
-        )
-        for client in clients
-    ]
 
     mission_rows.sort(key=lambda item: item.created_at, reverse=True)
     preparation_rows.sort(key=lambda item: (item[0], item[1], item[2]))

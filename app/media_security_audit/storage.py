@@ -24,6 +24,11 @@ from media_security_audit.findings import FindingEngine
 
 ModelT = TypeVar("ModelT", bound=BaseModel)
 
+REVIEW_NOTE_REQUIRED_STATUSES = {
+    FindingStatus.FALSE_POSITIVE,
+    FindingStatus.ACCEPTED_RISK,
+}
+
 
 class JsonStore:
     """Small JSON repository used before SQLite is introduced."""
@@ -149,6 +154,13 @@ class JsonStore:
                 metadata["review_note"] = cleaned_note
             else:
                 metadata.pop("review_note", None)
+        if (
+            status in REVIEW_NOTE_REQUIRED_STATUSES
+            and not metadata.get("review_note", "").strip()
+        ):
+            raise ValueError(
+                "review note is required for false positive or accepted risk status"
+            )
         metadata["reviewed_at"] = utc_now().isoformat()
         updated = finding.model_copy(update={"status": status, "metadata": metadata})
         return self.save_finding(mission_id, updated)

@@ -37,6 +37,7 @@ Implemented so far:
 - web manual finding entry for structured technician observations
 - web manual finding edits with scanner finding protection
 - web counter-test plan for actionable findings
+- finding review requires notes for false positives and accepted risks
 - web mission activity log for traceability
 - web check selection for mission planning
 - web system status page for appliance readiness
@@ -209,6 +210,8 @@ Mission tables show the same preparation status and next action for each
 mission row.
 Mission readiness cards link directly to the relevant setup, scope, check
 selection, findings, or report section when technician action is required.
+Finding review requires a technician note before marking an item as a false
+positive or accepted risk.
 
 ## Deployment
 
@@ -329,6 +332,7 @@ Planned screens:
 - dashboard client priority ordering started
 - mission preparation columns started
 - mission readiness action links started
+- finding review note guardrails started
 - counter-tests
 - system status started
 - settings

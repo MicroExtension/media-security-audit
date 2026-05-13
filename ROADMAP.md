@@ -100,6 +100,7 @@ Current foundation:
 - client activity summary started
 - client mission preparation summary started
 - dashboard mission preparation summary started
+- dashboard finding disposition summary started
 - dashboard client preparation counts started
 - dashboard client priority actions started
 - dashboard client priority ordering started

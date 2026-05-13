@@ -20,6 +20,21 @@
 
 <section class="section">
   <div class="section-title">
+    <h2>Finding Dispositions</h2>
+    <span class="muted">Workspace review status</span>
+  </div>
+  <div class="disposition-grid">
+    {% for item in view.finding_dispositions %}
+    <div class="disposition-item status-{{ item.status }}">
+      <span>{{ item.label }}</span>
+      <strong>{{ item.count }}</strong>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-title">
     <h2>Preparation</h2>
     <span class="muted">
       {{ view.ready_preparation_count }} ready |

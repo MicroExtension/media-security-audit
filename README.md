@@ -61,6 +61,7 @@ Implemented so far:
 - activity log client and mission filters with filtered exports
 - activity log date range filters with filtered exports
 - activity log CSV export for spreadsheet review
+- client detail pages show recent client activity and filtered Activity links
 
 The first implementation target remains a CLI-driven V1 with a local web
 interface that can set up the mission workflow:
@@ -186,6 +187,8 @@ mission page verifies export integrity before showing the package status.
 The Activity page provides a workspace-level event log for operational review
 and export. The log can be filtered by search text, event action, client, and
 mission, plus an inclusive date range.
+Client detail pages show recent activity for the client and link directly to
+the filtered Activity page.
 
 ## Deployment
 
@@ -298,6 +301,7 @@ Planned screens:
 - activity log client and mission filters started
 - activity log date filters started
 - activity log CSV export started
+- client activity summary started
 - counter-tests
 - system status started
 - settings

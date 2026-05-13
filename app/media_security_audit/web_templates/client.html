@@ -25,6 +25,29 @@
 
 <section class="section">
   <div class="section-title">
+    <h2>Recent Activity</h2>
+    <div class="report-links" aria-label="Client activity log">
+      <a href="{{ view.activity_log_url }}">Open Activity</a>
+    </div>
+  </div>
+  <div class="activity-list">
+    {% for event in view.recent_activity_events %}
+    <div class="activity-item">
+      <span class="badge">{{ event.action }}</span>
+      <p>{{ event.summary }}</p>
+      <span class="muted">
+        <a href="/missions/{{ event.mission_id }}">{{ event.mission_name }}</a>
+        | {{ event.created_at }}
+      </span>
+    </div>
+    {% else %}
+    <p class="empty">No activity event recorded for this client.</p>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-title">
     <h2>Missions</h2>
     <span class="muted">Created {{ view.client.created_at }}</span>
   </div>

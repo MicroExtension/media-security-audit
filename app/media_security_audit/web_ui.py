@@ -11,6 +11,7 @@ from media_security_audit.audit_templates import get_audit_template
 from media_security_audit.models import (
     ActivityEvent,
     AuditCheck,
+    Client,
     Finding,
     FindingStatus,
     Mission,
@@ -44,6 +45,15 @@ class ClientRow:
     name: str
     reference: str
     mission_count: int
+
+
+@dataclass(frozen=True)
+class ClientDetail:
+    id: str
+    name: str
+    reference: str
+    notes: str
+    created_at: str
 
 
 @dataclass(frozen=True)
@@ -152,6 +162,17 @@ class DashboardView:
 
 
 @dataclass(frozen=True)
+class ClientView:
+    client: ClientDetail
+    missions: list[MissionRow]
+    total_missions: int
+    total_findings: int
+    high_or_critical_findings: int
+    approved_scope_count: int
+    scope_count: int
+
+
+@dataclass(frozen=True)
 class MissionView:
     mission: MissionRow
     scope: list[ScopeRow]
@@ -213,6 +234,16 @@ def scope_status(item: ScopeItem) -> str:
 
 def client_name_by_id(store: JsonStore) -> dict[str, str]:
     return {client.id: client.name for client in store.list_clients()}
+
+
+def client_detail(client: Client) -> ClientDetail:
+    return ClientDetail(
+        id=client.id,
+        name=client.name,
+        reference=client.internal_reference or "",
+        notes=client.notes or "",
+        created_at=format_datetime(client.created_at),
+    )
 
 
 def mission_row(mission: Mission, findings: list[Finding], client_names: dict[str, str]) -> MissionRow:
@@ -396,6 +427,41 @@ def build_dashboard_view(store: JsonStore) -> DashboardView:
         total_missions=len(mission_rows),
         total_findings=total_findings,
         high_or_critical_findings=high_or_critical,
+    )
+
+
+def build_client_view(store: JsonStore, client_id: str) -> ClientView:
+    client = store.get_client(client_id)
+    client_names = {client.id: client.name}
+    mission_rows: list[MissionRow] = []
+    total_findings = 0
+    high_or_critical = 0
+    approved_scope_count = 0
+    scope_count = 0
+
+    for mission in store.list_missions():
+        if mission.client_id != client.id:
+            continue
+        findings = store.list_findings(mission.id)
+        total_findings += len(findings)
+        high_or_critical += len(
+            [finding for finding in findings if finding.severity.value in {"critical", "high"}]
+        )
+        approved_scope_count += len(
+            [item for item in mission.scope if item.approved and not item.excluded]
+        )
+        scope_count += len(mission.scope)
+        mission_rows.append(mission_row(mission, findings, client_names))
+
+    mission_rows.sort(key=lambda item: item.created_at, reverse=True)
+    return ClientView(
+        client=client_detail(client),
+        missions=mission_rows,
+        total_missions=len(mission_rows),
+        total_findings=total_findings,
+        high_or_critical_findings=high_or_critical,
+        approved_scope_count=approved_scope_count,
+        scope_count=scope_count,
     )
 
 

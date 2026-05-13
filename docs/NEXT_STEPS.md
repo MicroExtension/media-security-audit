@@ -299,6 +299,7 @@ Codex action:
 
 Current GUI status:
 - dashboard can show clients and missions
+- client detail pages show client mission history and risk metrics
 - mission pages can show scope, findings, remediation plan, and reports
 - web forms can create clients, missions, and scope items
 - mission setup details can be updated from mission pages

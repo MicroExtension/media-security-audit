@@ -25,7 +25,11 @@ from media_security_audit.models import (  # noqa: E402
 from media_security_audit.storage import JsonStore  # noqa: E402
 from media_security_audit.web_authorization import generate_authorization_brief  # noqa: E402
 from media_security_audit.web_exports import generate_mission_export  # noqa: E402
-from media_security_audit.web_ui import build_dashboard_view, build_mission_view  # noqa: E402
+from media_security_audit.web_ui import (  # noqa: E402
+    build_client_view,
+    build_dashboard_view,
+    build_mission_view,
+)
 
 
 def clean_data_dir(name: str) -> Path:
@@ -82,6 +86,59 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(view.missions[0].client_name, "Client X")
         self.assertEqual(view.missions[0].approved_scope_count, 1)
         self.assertEqual(view.missions[0].audit_template_title, "")
+
+    def test_client_view_summarizes_only_client_missions(self) -> None:
+        store = JsonStore(clean_data_dir("web-ui-client"))
+        client_a = store.create_client(
+            Client(name="Client A", internal_reference="CA", notes="Priority client")
+        )
+        client_b = store.create_client(Client(name="Client B"))
+        mission_a = store.create_mission(
+            Mission(
+                client_id=client_a.id,
+                name="Client A Audit",
+                audit_type=AuditType.EXTERNAL,
+                authorization_reference="AUTH-A",
+            )
+        )
+        store.add_scope_item(
+            mission_a.id,
+            ScopeItem(
+                type=ScopeType.DOMAIN,
+                value="client-a.example",
+                environment=ScopeEnvironment.EXTERNAL,
+                approved=True,
+            ),
+        )
+        store.add_finding(
+            mission_a.id,
+            Finding(
+                title="High finding",
+                severity=Severity.HIGH,
+                affected_asset="client-a.example",
+                category="manual",
+                source_module="manual",
+                proof="Observed manually.",
+                risk="Risk needs correction.",
+                remediation="Apply correction.",
+                counter_test="Repeat the check.",
+                confidence=0.8,
+            ),
+        )
+        store.create_mission(Mission(client_id=client_b.id, name="Client B Audit"))
+
+        view = build_client_view(store, client_a.id)
+
+        self.assertEqual(view.client.name, "Client A")
+        self.assertEqual(view.client.reference, "CA")
+        self.assertEqual(view.client.notes, "Priority client")
+        self.assertEqual(view.total_missions, 1)
+        self.assertEqual(view.total_findings, 1)
+        self.assertEqual(view.high_or_critical_findings, 1)
+        self.assertEqual(view.approved_scope_count, 1)
+        self.assertEqual(view.scope_count, 1)
+        self.assertEqual([mission.name for mission in view.missions], ["Client A Audit"])
+        self.assertEqual(view.missions[0].client_name, "Client A")
 
     def test_mission_view_orders_scope_findings_and_remediation(self) -> None:
         store = JsonStore(clean_data_dir("web-ui-mission"))

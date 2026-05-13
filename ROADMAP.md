@@ -61,6 +61,7 @@ Success criteria:
 
 Current foundation:
 - dashboard and mission detail views started
+- client detail view started
 - client, mission, and scope creation forms started
 - mission setup update forms started
 - scope review update forms started

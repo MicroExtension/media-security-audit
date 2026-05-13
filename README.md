@@ -26,6 +26,7 @@ Implemented so far:
 - unit tests using safe fixture data only
 - richer reports with executive summary, risk score, scope summary, and remediation plan
 - first local web interface for dashboard, mission setup, review, and reports
+- web client detail page for multi-client review
 - Docker Compose deployment foundation for local Debian/Ubuntu VMs
 - first web workflow forms for clients, missions, and scope
 - first web finding review workflow
@@ -269,6 +270,7 @@ The graphical interface will be a local web UI served by the appliance.
 
 Planned screens:
 - dashboard started
+- client detail page started
 - clients started
 - mission creation started
 - scope management started

@@ -27,6 +27,11 @@ SEVERITY_SCORE: dict[Severity, int] = {
     Severity.INFO: 0,
 }
 
+REVIEWED_DISPOSITION_STATUSES = {
+    FindingStatus.ACCEPTED_RISK,
+    FindingStatus.FALSE_POSITIVE,
+}
+
 
 def active_findings(findings: list[Finding]) -> list[Finding]:
     return [finding for finding in findings if finding.status != FindingStatus.FALSE_POSITIVE]
@@ -41,6 +46,11 @@ def severity_counts(findings: list[Finding]) -> dict[str, int]:
         "low": counts.get("low", 0),
         "info": counts.get("info", 0),
     }
+
+
+def finding_status_counts(findings: list[Finding]) -> dict[str, int]:
+    counts = Counter(finding.status.value for finding in findings)
+    return {status.value: counts.get(status.value, 0) for status in FindingStatus}
 
 
 def sorted_findings(findings: list[Finding]) -> list[Finding]:
@@ -118,6 +128,26 @@ def authorization_summary(mission: Mission) -> dict[str, str]:
     }
 
 
+def finding_review_note(finding: Finding) -> str:
+    return display_value(finding.metadata.get("review_note"))
+
+
+def disposition_notes(findings: list[Finding]) -> list[dict[str, str]]:
+    notes = []
+    for finding in sorted_findings(findings):
+        note = finding_review_note(finding)
+        if finding.status in REVIEWED_DISPOSITION_STATUSES or note != "missing":
+            notes.append(
+                {
+                    "status": finding.status.value,
+                    "asset": finding.affected_asset,
+                    "title": finding.title,
+                    "review_note": note,
+                }
+            )
+    return notes
+
+
 def remediation_plan(findings: list[Finding], limit: int = 10) -> list[dict[str, str]]:
     prioritized = [
         finding
@@ -144,6 +174,8 @@ def build_report_summary(mission: Mission, findings: list[Finding]) -> dict[str,
         "finding_count": len(findings),
         "active_finding_count": len(active),
         "severity_counts": severity_counts(active),
+        "status_counts": finding_status_counts(findings),
+        "disposition_notes": disposition_notes(findings),
         "risk_score": score,
         "risk_level": risk_level(score),
         "executive_summary": executive_summary(findings),
@@ -167,6 +199,8 @@ def render_markdown(mission: Mission, findings: list[Finding]) -> str:
     ordered_findings = sorted_findings(findings)
     summary = build_report_summary(mission, ordered_findings)
     counts = summary["severity_counts"]
+    status_counts = summary["status_counts"]
+    disposition_items = summary["disposition_notes"]
     scope = summary["scope"]
     authorization = summary["authorization"]
     plan = remediation_plan(ordered_findings)
@@ -221,10 +255,31 @@ def render_markdown(mission: Mission, findings: list[Finding]) -> str:
             f"- Low: {counts['low']}",
             f"- Info: {counts['info']}",
             "",
-            "## Remediation Plan",
+            "## Finding Dispositions",
+            "",
+            f"- New: {status_counts['new']}",
+            f"- Confirmed: {status_counts['confirmed']}",
+            f"- False positive: {status_counts['false_positive']}",
+            f"- Accepted risk: {status_counts['accepted_risk']}",
+            f"- Remediated: {status_counts['remediated']}",
+            f"- Counter-test passed: {status_counts['counter_test_passed']}",
+            f"- Counter-test failed: {status_counts['counter_test_failed']}",
             "",
         ]
     )
+
+    if disposition_items:
+        lines.extend(["Disposition notes:", ""])
+        for item in disposition_items:
+            lines.append(
+                f"- `{item['status']}` {item['title']} on "
+                f"`{item['asset']}`: {item['review_note']}"
+            )
+        lines.append("")
+    else:
+        lines.extend(["No reviewed disposition notes were included.", ""])
+
+    lines.extend(["## Remediation Plan", ""])
 
     if plan:
         for index, item in enumerate(plan, start=1):
@@ -275,6 +330,9 @@ def render_markdown(mission: Mission, findings: list[Finding]) -> str:
                 "",
             ]
         )
+        review_note = finding_review_note(finding)
+        if review_note != "missing":
+            lines.extend(["**Review note**", "", review_note, ""])
 
     return "\n".join(lines)
 
@@ -315,16 +373,76 @@ def _render_html_remediation_plan(plan: list[dict[str, str]]) -> str:
 """.strip()
 
 
+def _render_html_disposition_summary(
+    status_counts: dict[str, int],
+    disposition_items: list[dict[str, str]],
+) -> str:
+    note_rows = []
+    for item in disposition_items:
+        note_rows.append(
+            f"""
+<tr>
+  <td>{escape(item["status"])}</td>
+  <td>{escape(item["asset"])}</td>
+  <td>{escape(item["title"])}</td>
+  <td>{escape(item["review_note"])}</td>
+</tr>
+""".strip()
+        )
+
+    notes_html = (
+        f"""
+<h3>Disposition notes</h3>
+<table>
+  <thead>
+    <tr>
+      <th>Status</th>
+      <th>Asset</th>
+      <th>Finding</th>
+      <th>Review note</th>
+    </tr>
+  </thead>
+  <tbody>
+    {"".join(note_rows)}
+  </tbody>
+</table>
+""".strip()
+        if note_rows
+        else "<p>No reviewed disposition notes were included.</p>"
+    )
+
+    return f"""
+<div class="summary">
+  <div class="metric"><span>New</span><strong>{status_counts["new"]}</strong></div>
+  <div class="metric"><span>Confirmed</span><strong>{status_counts["confirmed"]}</strong></div>
+  <div class="metric"><span>False positive</span><strong>{status_counts["false_positive"]}</strong></div>
+  <div class="metric"><span>Accepted risk</span><strong>{status_counts["accepted_risk"]}</strong></div>
+  <div class="metric"><span>Remediated</span><strong>{status_counts["remediated"]}</strong></div>
+  <div class="metric"><span>Counter-test passed</span><strong>{status_counts["counter_test_passed"]}</strong></div>
+  <div class="metric"><span>Counter-test failed</span><strong>{status_counts["counter_test_failed"]}</strong></div>
+</div>
+{notes_html}
+""".strip()
+
+
 def render_html(mission: Mission, findings: list[Finding]) -> str:
     ordered_findings = sorted_findings(findings)
     summary = build_report_summary(mission, ordered_findings)
     counts = summary["severity_counts"]
+    status_counts = summary["status_counts"]
+    disposition_items = summary["disposition_notes"]
     scope = summary["scope"]
     authorization = summary["authorization"]
     plan = remediation_plan(ordered_findings)
     finding_blocks = []
 
     for finding in ordered_findings:
+        review_note = finding_review_note(finding)
+        review_note_html = (
+            f"<dt>Review note</dt><dd>{escape(review_note)}</dd>"
+            if review_note != "missing"
+            else ""
+        )
         finding_blocks.append(
             f"""
 <article class="finding severity-{escape(finding.severity.value)}">
@@ -336,6 +454,7 @@ def render_html(mission: Mission, findings: list[Finding]) -> str:
     <dt>Status</dt><dd>{escape(finding.status.value)}</dd>
     <dt>Confidence</dt><dd>{finding.confidence:.2f}</dd>
     <dt>Sources</dt><dd>{escape(", ".join(finding.sources))}</dd>
+    {review_note_html}
   </dl>
   <h3>Proof</h3>
   <pre>{escape(finding.proof)}</pre>
@@ -432,6 +551,10 @@ def render_html(mission: Mission, findings: list[Finding]) -> str:
   <section>
     <h2>Remediation Plan</h2>
     {_render_html_remediation_plan(plan)}
+  </section>
+  <section>
+    <h2>Finding Dispositions</h2>
+    {_render_html_disposition_summary(status_counts, disposition_items)}
   </section>
   <section>
     <h2>Findings</h2>

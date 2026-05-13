@@ -77,6 +77,7 @@ Current foundation:
 - run monitor started
 - system status page started
 - report generation from mission pages started
+- report finding disposition summary started
 - mission export packages started
 - workspace backup export started
 - workspace inventory diagnostics started

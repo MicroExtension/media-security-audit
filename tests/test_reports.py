@@ -7,7 +7,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "app"))
 
-from media_security_audit.models import ReportFormat  # noqa: E402
+from media_security_audit.models import (  # noqa: E402
+    Finding,
+    FindingStatus,
+    ReportFormat,
+    Severity,
+)
 from media_security_audit.reports import (  # noqa: E402
     build_report_summary,
     render_html,
@@ -62,6 +67,55 @@ class ReportTests(unittest.TestCase):
         self.assertEqual(summary["authorization"]["evidence_retention_days"], "90")
         self.assertEqual(summary["scope"]["approved_targets"], ["domain:example.invalid"])
         self.assertEqual(plan[0]["severity"], "medium")
+
+    def test_reports_include_reviewed_disposition_notes(self) -> None:
+        findings = sample_findings() + [
+            Finding(
+                title="Accepted legacy TLS exception",
+                severity=Severity.LOW,
+                affected_asset="legacy.example.invalid",
+                category="tls",
+                source_module="manual",
+                proof="Legacy endpoint still requires TLS exception.",
+                risk="Residual compatibility risk remains.",
+                remediation="Plan service replacement.",
+                counter_test="Confirm exception is still documented.",
+                confidence=0.8,
+                status=FindingStatus.ACCEPTED_RISK,
+                metadata={"review_note": "Accepted by the client risk owner."},
+            ),
+            Finding(
+                title="False positive web banner",
+                severity=Severity.MEDIUM,
+                affected_asset="https://example.invalid",
+                category="http_headers",
+                source_module="manual",
+                proof="Scanner matched a generic banner.",
+                risk="No exploitable condition was confirmed.",
+                remediation="No remediation required.",
+                counter_test="Repeat manual verification.",
+                confidence=0.7,
+                status=FindingStatus.FALSE_POSITIVE,
+                metadata={"review_note": "Banner belongs to the upstream WAF."},
+            ),
+        ]
+
+        payload = json.loads(render_json(sample_mission(), findings))
+        markdown = render_markdown(sample_mission(), findings)
+        html = render_html(sample_mission(), findings)
+
+        self.assertEqual(payload["summary"]["status_counts"]["accepted_risk"], 1)
+        self.assertEqual(payload["summary"]["status_counts"]["false_positive"], 1)
+        self.assertEqual(payload["summary"]["active_finding_count"], 3)
+        self.assertEqual(len(payload["summary"]["disposition_notes"]), 2)
+        self.assertIn("## Finding Dispositions", markdown)
+        self.assertIn("- Accepted risk: 1", markdown)
+        self.assertIn("Accepted by the client risk owner.", markdown)
+        self.assertIn("Banner belongs to the upstream WAF.", markdown)
+        self.assertIn("**Review note**", markdown)
+        self.assertIn("Finding Dispositions", html)
+        self.assertIn("Review note", html)
+        self.assertIn("Accepted by the client risk owner.", html)
 
     def test_writes_report_file(self) -> None:
         output_dir = Path(__file__).resolve().parents[1] / ".tmp-tests" / "report-output"

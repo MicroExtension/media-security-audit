@@ -325,6 +325,7 @@ Current GUI status:
 - workspace inventory and integrity diagnostics are visible on the System page
 - workspace backups can be generated from the System page
 - reviewed reports can be generated from mission pages
+- reports include finding disposition counts and review notes
 - mission ZIP export packages can be generated from mission pages
 - mission ZIP manifests include client, template, scope, report, and evidence metadata
 - mission ZIP manifests include SHA-256 checksums for packaged files

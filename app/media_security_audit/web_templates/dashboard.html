@@ -18,7 +18,18 @@
   <div class="metric"><span>Ready Prep</span><strong>{{ view.ready_preparation_count }}</strong></div>
 </section>
 
-<section class="section">
+<section class="dashboard-shortcuts" aria-label="Dashboard shortcuts">
+  <a href="#ready-missions">Ready Missions</a>
+  <a href="#review-missions">Review Missions</a>
+  <a href="#blocked-missions">Blocked Missions</a>
+  <a href="#no-mission-clients">No Mission Clients</a>
+  <a href="#blocked-clients">Blocked Clients</a>
+  <a href="#top-risk-clients">Top Risk Clients</a>
+  <a href="#review-backlog-clients">Review Backlog</a>
+  <a href="#preparation">Preparation</a>
+</section>
+
+<section class="section" id="client-priorities">
   <div class="section-title">
     <h2>Client Priorities</h2>
     <span class="muted">Client-level action summary</span>
@@ -33,7 +44,7 @@
   </div>
 </section>
 
-<section class="section">
+<section class="section" id="ready-missions">
   <div class="section-title">
     <h2>Ready Missions</h2>
     <span class="muted">Authorized scope with selected checks</span>
@@ -66,7 +77,7 @@
   </div>
 </section>
 
-<section class="section">
+<section class="section" id="review-missions">
   <div class="section-title">
     <h2>Review Missions</h2>
     <span class="muted">Missions close to ready</span>
@@ -101,7 +112,7 @@
   </div>
 </section>
 
-<section class="section">
+<section class="section" id="blocked-missions">
   <div class="section-title">
     <h2>Blocked Missions</h2>
     <span class="muted">Missions blocked before execution</span>
@@ -136,7 +147,7 @@
   </div>
 </section>
 
-<section class="section">
+<section class="section" id="no-mission-clients">
   <div class="section-title">
     <h2>No Mission Clients</h2>
     <span class="muted">Clients not yet in an audit workflow</span>
@@ -165,7 +176,7 @@
   </div>
 </section>
 
-<section class="section">
+<section class="section" id="blocked-clients">
   <div class="section-title">
     <h2>Blocked Clients</h2>
     <span class="muted">Clients blocked before execution</span>
@@ -205,7 +216,7 @@
   </div>
 </section>
 
-<section class="section">
+<section class="section" id="client-risk-levels">
   <div class="section-title">
     <h2>Client Risk Levels</h2>
     <span class="muted">Client-level portfolio risk</span>
@@ -220,7 +231,7 @@
   </div>
 </section>
 
-<section class="section">
+<section class="section" id="top-risk-clients">
   <div class="section-title">
     <h2>Top Risk Clients</h2>
     <span class="muted">Highest client risk scores</span>
@@ -260,7 +271,7 @@
   </div>
 </section>
 
-<section class="section">
+<section class="section" id="review-backlog-clients">
   <div class="section-title">
     <h2>Review Backlog Clients</h2>
     <span class="muted">Clients with new findings to qualify</span>
@@ -302,7 +313,7 @@
   </div>
 </section>
 
-<section class="section">
+<section class="section" id="finding-dispositions">
   <div class="section-title">
     <h2>Finding Dispositions</h2>
     <span class="muted">Workspace review status</span>
@@ -317,7 +328,7 @@
   </div>
 </section>
 
-<section class="section">
+<section class="section" id="preparation">
   <div class="section-title">
     <h2>Preparation</h2>
     <span class="muted">

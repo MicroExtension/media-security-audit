@@ -69,6 +69,7 @@ Implemented so far:
 - client detail pages show mission preparation status summaries
 - dashboard shows workspace mission preparation status summaries
 - dashboard shows workspace finding disposition counts
+- dashboard shows shortcut links to operational sections
 - dashboard shows client priority summary counts
 - dashboard shows client risk level summary counts
 - dashboard shows ready missions watchlist
@@ -253,6 +254,7 @@ Clients without any mission are also surfaced for onboarding.
 Ready missions are surfaced so technicians can identify authorized work quickly.
 Review missions are surfaced so near-ready work can be finished before execution.
 Blocked missions are surfaced with the exact preparation action needed.
+Dashboard shortcuts link directly to the main operational sections.
 
 ## Deployment
 

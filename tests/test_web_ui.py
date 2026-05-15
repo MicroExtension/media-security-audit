@@ -97,6 +97,10 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(view.clients[0].new_finding_count, 1)
         self.assertEqual(view.clients[0].accepted_risk_count, 0)
         self.assertEqual(view.clients[0].false_positive_count, 0)
+        self.assertEqual(view.clients[0].active_finding_count, 1)
+        self.assertEqual(view.clients[0].high_or_critical_finding_count, 0)
+        self.assertEqual(view.clients[0].risk_score, 10)
+        self.assertEqual(view.clients[0].risk_level, "low")
         self.assertEqual(view.missions[0].client_name, "Client X")
         self.assertEqual(view.missions[0].approved_scope_count, 1)
         self.assertEqual(view.missions[0].audit_template_title, "")
@@ -197,7 +201,7 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(client_rows["Client C"].next_action, "Create first mission for this client.")
         self.assertEqual(client_rows["Client C"].next_action_mission_id, "")
 
-    def test_dashboard_client_rows_include_review_status_counts(self) -> None:
+    def test_dashboard_client_rows_include_review_and_risk_counts(self) -> None:
         store = JsonStore(clean_data_dir("web-ui-client-row-review-counts"))
         client_a = store.create_client(Client(name="Client A"))
         client_b = store.create_client(Client(name="Client B"))
@@ -226,7 +230,7 @@ class WebUiTests(unittest.TestCase):
             mission_a.id,
             Finding(
                 title="Accepted risk",
-                severity=Severity.LOW,
+                severity=Severity.HIGH,
                 affected_asset="accepted.example",
                 category="manual",
                 source_module="manual",
@@ -263,9 +267,17 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(client_rows["Client A"].new_finding_count, 1)
         self.assertEqual(client_rows["Client A"].accepted_risk_count, 1)
         self.assertEqual(client_rows["Client A"].false_positive_count, 0)
+        self.assertEqual(client_rows["Client A"].active_finding_count, 2)
+        self.assertEqual(client_rows["Client A"].high_or_critical_finding_count, 1)
+        self.assertEqual(client_rows["Client A"].risk_score, 28)
+        self.assertEqual(client_rows["Client A"].risk_level, "medium")
         self.assertEqual(client_rows["Client B"].new_finding_count, 0)
         self.assertEqual(client_rows["Client B"].accepted_risk_count, 0)
         self.assertEqual(client_rows["Client B"].false_positive_count, 1)
+        self.assertEqual(client_rows["Client B"].active_finding_count, 0)
+        self.assertEqual(client_rows["Client B"].high_or_critical_finding_count, 0)
+        self.assertEqual(client_rows["Client B"].risk_score, 0)
+        self.assertEqual(client_rows["Client B"].risk_level, "none")
 
     def test_dashboard_view_summarizes_workspace_finding_dispositions(self) -> None:
         store = JsonStore(clean_data_dir("web-ui-dashboard-dispositions"))

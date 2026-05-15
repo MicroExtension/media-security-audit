@@ -71,6 +71,7 @@ Implemented so far:
 - dashboard shows workspace finding disposition counts
 - dashboard client list shows per-client preparation counts
 - dashboard client list shows per-client finding review counts
+- dashboard client list shows per-client risk summaries
 - dashboard client list shows client preparation priority and next action
 - dashboard client list is ordered by preparation priority
 - mission tables show preparation status and next action
@@ -229,6 +230,8 @@ Mission tables include compact review counts for new findings, accepted risks,
 and false positives.
 The dashboard client list also shows compact review counts per customer, so MSP
 technicians can see which client has new, accepted, or false-positive findings.
+It also shows each client's risk score, active finding count, and active
+high/critical count for faster prioritization.
 
 ## Deployment
 

@@ -229,6 +229,7 @@
           <th>Priority</th>
           <th>Reference</th>
           <th>Missions</th>
+          <th>Risk</th>
           <th>Preparation</th>
           <th>Review</th>
           <th>Next Action</th>
@@ -241,6 +242,13 @@
           <td><span class="status status-{{ client.preparation_priority }}">{{ client.preparation_priority }}</span></td>
           <td>{{ client.reference or "-" }}</td>
           <td>{{ client.mission_count }}</td>
+          <td>
+            <span class="risk risk-{{ client.risk_level }}">{{ client.risk_score }}/100</span>
+            <span class="muted block">
+              Active {{ client.active_finding_count }} |
+              High+ {{ client.high_or_critical_finding_count }}
+            </span>
+          </td>
           <td>
             <span class="status status-blocked">Blocked {{ client.blocked_preparation_count }}</span>
             <span class="status status-warning">Review {{ client.warning_preparation_count }}</span>
@@ -261,7 +269,7 @@
           </td>
         </tr>
         {% else %}
-        <tr><td colspan="7" class="empty">No client found.</td></tr>
+        <tr><td colspan="8" class="empty">No client found.</td></tr>
         {% endfor %}
       </tbody>
     </table>

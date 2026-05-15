@@ -71,6 +71,7 @@ Implemented so far:
 - dashboard shows workspace finding disposition counts
 - dashboard shows client priority summary counts
 - dashboard shows client risk level summary counts
+- dashboard shows no-mission clients watchlist
 - dashboard shows blocked clients watchlist
 - dashboard shows top risk clients watchlist
 - dashboard shows review backlog clients watchlist
@@ -245,6 +246,7 @@ The dashboard also highlights top-risk clients with their next action.
 It also highlights clients with new findings still waiting for review.
 Blocked clients are highlighted with the next preparation action before scan
 execution.
+Clients without any mission are also surfaced for onboarding.
 
 ## Deployment
 

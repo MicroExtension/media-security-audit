@@ -251,6 +251,7 @@ class DashboardView:
     preparation_items: list[DashboardPreparationRow]
     client_priority_items: list[ClientPrioritySummaryRow]
     client_risk_items: list[ClientRiskSummaryRow]
+    no_mission_clients: list[ClientRow]
     blocked_clients: list[ClientRow]
     top_risk_clients: list[ClientRow]
     review_backlog_clients: list[ClientRow]
@@ -538,6 +539,16 @@ def client_risk_summary_rows(clients: list[ClientRow]) -> list[ClientRiskSummary
         )
         for level in CLIENT_RISK_LABELS
     ]
+
+
+def no_mission_client_rows(
+    clients: list[ClientRow],
+    limit: int = 5,
+) -> list[ClientRow]:
+    no_mission_clients = [
+        client for client in clients if client.preparation_priority == "none"
+    ]
+    return sorted(no_mission_clients, key=lambda client: client.name.lower())[:limit]
 
 
 def blocked_client_rows(clients: list[ClientRow], limit: int = 5) -> list[ClientRow]:
@@ -863,6 +874,7 @@ def build_dashboard_view(store: JsonStore) -> DashboardView:
         preparation_items=preparation_items,
         client_priority_items=client_priority_summary_rows(client_rows),
         client_risk_items=client_risk_summary_rows(client_rows),
+        no_mission_clients=no_mission_client_rows(client_rows),
         blocked_clients=blocked_client_rows(client_rows),
         top_risk_clients=top_risk_client_rows(client_rows),
         review_backlog_clients=review_backlog_client_rows(client_rows),

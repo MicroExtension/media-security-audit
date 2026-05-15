@@ -73,7 +73,7 @@ Implemented so far:
 - dashboard client list shows per-client finding review counts
 - dashboard client list shows per-client risk summaries
 - dashboard client list shows client preparation priority and next action
-- dashboard client list is ordered by preparation priority
+- dashboard client list is ordered by preparation priority and risk
 - mission tables show preparation status and next action
 - mission tables show compact finding review counts
 - mission readiness cards link directly to the setup sections that need action
@@ -353,7 +353,7 @@ Planned screens:
 - dashboard finding disposition summary started
 - dashboard client preparation counts started
 - dashboard client priority actions started
-- dashboard client priority ordering started
+- dashboard client priority and risk ordering started
 - mission preparation columns started
 - mission row review count badges started
 - mission readiness action links started

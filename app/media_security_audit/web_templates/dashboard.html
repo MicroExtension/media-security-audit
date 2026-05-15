@@ -50,6 +50,46 @@
 
 <section class="section">
   <div class="section-title">
+    <h2>Top Risk Clients</h2>
+    <span class="muted">Highest client risk scores</span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Client</th>
+          <th>Risk</th>
+          <th>Active</th>
+          <th>High+</th>
+          <th>Next Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for client in view.top_risk_clients %}
+        <tr>
+          <td><a href="/clients/{{ client.id }}">{{ client.name }}</a></td>
+          <td><span class="risk risk-{{ client.risk_level }}">{{ client.risk_score }}/100</span></td>
+          <td>{{ client.active_finding_count }}</td>
+          <td>{{ client.high_or_critical_finding_count }}</td>
+          <td>
+            {{ client.next_action }}
+            {% if client.next_action_mission_id %}
+            <span class="muted block">
+              <a href="/missions/{{ client.next_action_mission_id }}">{{ client.next_action_mission_name }}</a>
+            </span>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" class="empty">No client risk found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-title">
     <h2>Finding Dispositions</h2>
     <span class="muted">Workspace review status</span>
   </div>

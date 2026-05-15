@@ -227,6 +227,11 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(client_rows["Client C"].preparation_priority, "none")
         self.assertEqual(client_rows["Client C"].next_action, "Create first mission for this client.")
         self.assertEqual(client_rows["Client C"].next_action_mission_id, "")
+        self.assertEqual([client.name for client in view.no_mission_clients], ["Client C"])
+        self.assertEqual(
+            view.no_mission_clients[0].next_action,
+            "Create first mission for this client.",
+        )
         self.assertEqual([client.name for client in view.blocked_clients], ["Client B"])
         self.assertEqual(view.blocked_clients[0].next_action_mission_id, blocked_mission.id)
 

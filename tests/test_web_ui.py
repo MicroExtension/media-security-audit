@@ -206,6 +206,14 @@ class WebUiTests(unittest.TestCase):
             [ready_mission.id],
         )
         self.assertEqual(view.ready_missions[0].client_name, "Client A")
+        self.assertEqual(
+            [item.mission_id for item in view.review_missions],
+            [warning_mission.id],
+        )
+        self.assertEqual(
+            view.review_missions[0].next_action,
+            "Review 1 new finding(s).",
+        )
         self.assertEqual(view.preparation_items[0].mission_id, blocked_mission.id)
         self.assertEqual(view.preparation_items[0].client_name, "Client B")
         self.assertEqual(

@@ -73,6 +73,7 @@ Implemented so far:
 - dashboard client list shows client preparation priority and next action
 - dashboard client list is ordered by preparation priority
 - mission tables show preparation status and next action
+- mission tables show compact finding review counts
 - mission readiness cards link directly to the setup sections that need action
 
 The first implementation target remains a CLI-driven V1 with a local web
@@ -223,6 +224,8 @@ technician can spot unreviewed or accepted items quickly.
 The dashboard also shows workspace-wide disposition counts to identify review
 backlog without opening each mission.
 Client detail pages show the same disposition counts scoped to one customer.
+Mission tables include compact review counts for new findings, accepted risks,
+and false positives.
 
 ## Deployment
 
@@ -346,6 +349,7 @@ Planned screens:
 - dashboard client priority actions started
 - dashboard client priority ordering started
 - mission preparation columns started
+- mission row review count badges started
 - mission readiness action links started
 - finding review note guardrails started
 - counter-tests

@@ -99,6 +99,9 @@ class MissionRow:
     scope_count: int
     approved_scope_count: int
     finding_count: int
+    new_finding_count: int
+    accepted_risk_count: int
+    false_positive_count: int
     risk_score: int
     risk_level: str
     severity_counts: dict[str, int]
@@ -384,6 +387,7 @@ def mission_preparation_summary(
 def mission_row(mission: Mission, findings: list[Finding], client_names: dict[str, str]) -> MissionRow:
     summary = build_report_summary(mission, findings)
     active_counts = summary["severity_counts"]
+    status_counts = finding_status_counts(findings)
     approved_scope_count = len([item for item in mission.scope if item.approved and not item.excluded])
     audit_template = get_audit_template(mission.audit_template_id)
     preparation = mission_preparation_summary(mission, findings)
@@ -414,6 +418,9 @@ def mission_row(mission: Mission, findings: list[Finding], client_names: dict[st
         scope_count=len(mission.scope),
         approved_scope_count=approved_scope_count,
         finding_count=len(findings),
+        new_finding_count=status_counts["new"],
+        accepted_risk_count=status_counts["accepted_risk"],
+        false_positive_count=status_counts["false_positive"],
         risk_score=int(summary["risk_score"]),
         risk_level=str(summary["risk_level"]),
         severity_counts=dict(active_counts),

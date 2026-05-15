@@ -35,6 +35,21 @@
 
 <section class="section">
   <div class="section-title">
+    <h2>Client Risk Levels</h2>
+    <span class="muted">Client-level portfolio risk</span>
+  </div>
+  <div class="disposition-grid">
+    {% for item in view.client_risk_items %}
+    <div class="disposition-item risk-{{ item.level }}">
+      <span>{{ item.label }}</span>
+      <strong>{{ item.count }}</strong>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-title">
     <h2>Finding Dispositions</h2>
     <span class="muted">Workspace review status</span>
   </div>

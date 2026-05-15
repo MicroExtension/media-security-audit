@@ -103,6 +103,7 @@ Current foundation:
 - dashboard mission preparation summary started
 - dashboard finding disposition summary started
 - dashboard client priority summary started
+- dashboard client risk level summary started
 - dashboard client preparation counts started
 - dashboard client finding review counts started
 - dashboard client risk summary started

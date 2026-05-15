@@ -71,6 +71,7 @@ Implemented so far:
 - dashboard shows workspace finding disposition counts
 - dashboard shows client priority summary counts
 - dashboard shows client risk level summary counts
+- dashboard shows top risk clients watchlist
 - dashboard client list shows per-client preparation counts
 - dashboard client list shows per-client finding review counts
 - dashboard client list shows per-client risk summaries
@@ -238,6 +239,7 @@ The dashboard includes client priority summary counts, so the team can see how
 many customers are blocked, ready, awaiting review, or still without a mission.
 It also includes client risk level summary counts for portfolio-level risk
 review.
+The dashboard also highlights top-risk clients with their next action.
 
 ## Deployment
 

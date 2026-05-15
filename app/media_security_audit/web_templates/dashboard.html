@@ -230,6 +230,7 @@
           <th>Reference</th>
           <th>Missions</th>
           <th>Preparation</th>
+          <th>Review</th>
           <th>Next Action</th>
         </tr>
       </thead>
@@ -246,6 +247,11 @@
             <span class="status status-ready">Ready {{ client.ready_preparation_count }}</span>
           </td>
           <td>
+            <span class="status status-new">New {{ client.new_finding_count }}</span>
+            <span class="status status-accepted_risk">Accepted {{ client.accepted_risk_count }}</span>
+            <span class="status status-false_positive">FP {{ client.false_positive_count }}</span>
+          </td>
+          <td>
             {{ client.next_action }}
             {% if client.next_action_mission_id %}
             <span class="muted block">
@@ -255,7 +261,7 @@
           </td>
         </tr>
         {% else %}
-        <tr><td colspan="6" class="empty">No client found.</td></tr>
+        <tr><td colspan="7" class="empty">No client found.</td></tr>
         {% endfor %}
       </tbody>
     </table>

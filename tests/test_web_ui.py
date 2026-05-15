@@ -94,6 +94,9 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(view.clients[0].blocked_preparation_count, 0)
         self.assertEqual(view.clients[0].warning_preparation_count, 1)
         self.assertEqual(view.clients[0].ready_preparation_count, 0)
+        self.assertEqual(view.clients[0].new_finding_count, 1)
+        self.assertEqual(view.clients[0].accepted_risk_count, 0)
+        self.assertEqual(view.clients[0].false_positive_count, 0)
         self.assertEqual(view.missions[0].client_name, "Client X")
         self.assertEqual(view.missions[0].approved_scope_count, 1)
         self.assertEqual(view.missions[0].audit_template_title, "")
@@ -193,6 +196,76 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(client_rows["Client C"].preparation_priority, "none")
         self.assertEqual(client_rows["Client C"].next_action, "Create first mission for this client.")
         self.assertEqual(client_rows["Client C"].next_action_mission_id, "")
+
+    def test_dashboard_client_rows_include_review_status_counts(self) -> None:
+        store = JsonStore(clean_data_dir("web-ui-client-row-review-counts"))
+        client_a = store.create_client(Client(name="Client A"))
+        client_b = store.create_client(Client(name="Client B"))
+        mission_a = store.create_mission(
+            Mission(client_id=client_a.id, name="Client A Review Audit")
+        )
+        mission_b = store.create_mission(
+            Mission(client_id=client_b.id, name="Client B Review Audit")
+        )
+        store.add_finding(
+            mission_a.id,
+            Finding(
+                title="New finding",
+                severity=Severity.LOW,
+                affected_asset="new.example",
+                category="manual",
+                source_module="manual",
+                proof="Observed manually.",
+                risk="Risk needs review.",
+                remediation="Apply correction.",
+                counter_test="Repeat the check.",
+                confidence=0.8,
+            ),
+        )
+        store.add_finding(
+            mission_a.id,
+            Finding(
+                title="Accepted risk",
+                severity=Severity.LOW,
+                affected_asset="accepted.example",
+                category="manual",
+                source_module="manual",
+                proof="Observed manually.",
+                risk="Risk accepted by owner.",
+                remediation="Track exception.",
+                counter_test="Confirm exception remains documented.",
+                confidence=0.8,
+                status=FindingStatus.ACCEPTED_RISK,
+                metadata={"review_note": "Accepted by owner."},
+            ),
+        )
+        store.add_finding(
+            mission_b.id,
+            Finding(
+                title="False positive",
+                severity=Severity.MEDIUM,
+                affected_asset="false-positive.example",
+                category="manual",
+                source_module="manual",
+                proof="Observed manually.",
+                risk="No confirmed risk.",
+                remediation="No remediation required.",
+                counter_test="Repeat manual verification.",
+                confidence=0.8,
+                status=FindingStatus.FALSE_POSITIVE,
+                metadata={"review_note": "Verified as benign."},
+            ),
+        )
+
+        view = build_dashboard_view(store)
+        client_rows = {client.name: client for client in view.clients}
+
+        self.assertEqual(client_rows["Client A"].new_finding_count, 1)
+        self.assertEqual(client_rows["Client A"].accepted_risk_count, 1)
+        self.assertEqual(client_rows["Client A"].false_positive_count, 0)
+        self.assertEqual(client_rows["Client B"].new_finding_count, 0)
+        self.assertEqual(client_rows["Client B"].accepted_risk_count, 0)
+        self.assertEqual(client_rows["Client B"].false_positive_count, 1)
 
     def test_dashboard_view_summarizes_workspace_finding_dispositions(self) -> None:
         store = JsonStore(clean_data_dir("web-ui-dashboard-dispositions"))

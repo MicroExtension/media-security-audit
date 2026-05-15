@@ -54,6 +54,9 @@ class ClientRow:
     blocked_preparation_count: int
     warning_preparation_count: int
     ready_preparation_count: int
+    new_finding_count: int
+    accepted_risk_count: int
+    false_positive_count: int
 
 
 @dataclass(frozen=True)
@@ -632,6 +635,10 @@ def build_dashboard_view(store: JsonStore) -> DashboardView:
         client.id: {"blocked": 0, "warning": 0, "ready": 0}
         for client in clients
     }
+    client_review_counts = {
+        client.id: {"new": 0, "accepted_risk": 0, "false_positive": 0}
+        for client in clients
+    }
 
     mission_rows: list[MissionRow] = []
     preparation_rows: list[tuple[int, datetime, str, DashboardPreparationRow]] = []
@@ -645,6 +652,14 @@ def build_dashboard_view(store: JsonStore) -> DashboardView:
     for mission in missions:
         mission_counts[mission.client_id] = mission_counts.get(mission.client_id, 0) + 1
         findings = store.list_findings(mission.id)
+        disposition_counts = finding_status_counts(findings)
+        review_counts = client_review_counts.setdefault(
+            mission.client_id,
+            {"new": 0, "accepted_risk": 0, "false_positive": 0},
+        )
+        review_counts["new"] += disposition_counts["new"]
+        review_counts["accepted_risk"] += disposition_counts["accepted_risk"]
+        review_counts["false_positive"] += disposition_counts["false_positive"]
         all_findings.extend(findings)
         total_findings += len(findings)
         high_or_critical += len(
@@ -690,6 +705,15 @@ def build_dashboard_view(store: JsonStore) -> DashboardView:
                 ),
                 ready_preparation_count=preparation_counts.get(client.id, {}).get(
                     "ready",
+                    0,
+                ),
+                new_finding_count=client_review_counts.get(client.id, {}).get("new", 0),
+                accepted_risk_count=client_review_counts.get(client.id, {}).get(
+                    "accepted_risk",
+                    0,
+                ),
+                false_positive_count=client_review_counts.get(client.id, {}).get(
+                    "false_positive",
                     0,
                 ),
             )

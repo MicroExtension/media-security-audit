@@ -345,6 +345,7 @@ Current GUI status:
 - dashboard shows workspace finding disposition counts
 - dashboard shows client priority summary counts
 - dashboard shows client risk level summary counts
+- dashboard shows blocked clients with next preparation actions
 - dashboard shows top-risk clients with next actions
 - dashboard shows clients with new findings waiting for review
 - dashboard client list shows per-client preparation counts

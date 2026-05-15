@@ -214,6 +214,14 @@ class WebUiTests(unittest.TestCase):
             view.review_missions[0].next_action,
             "Review 1 new finding(s).",
         )
+        self.assertEqual(
+            [item.mission_id for item in view.blocked_missions],
+            [blocked_mission.id],
+        )
+        self.assertEqual(
+            view.blocked_missions[0].next_action,
+            "Add written authorization reference.",
+        )
         self.assertEqual(view.preparation_items[0].mission_id, blocked_mission.id)
         self.assertEqual(view.preparation_items[0].client_name, "Client B")
         self.assertEqual(

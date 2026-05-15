@@ -20,9 +20,12 @@ from media_security_audit.models import (
     ScopeItem,
 )
 from media_security_audit.reports import (
+    active_findings,
     build_report_summary,
     finding_status_counts,
     remediation_plan,
+    risk_level,
+    risk_score,
     sorted_findings,
 )
 from media_security_audit.remediation_library import RemediationEntry, filter_remediations
@@ -57,6 +60,10 @@ class ClientRow:
     new_finding_count: int
     accepted_risk_count: int
     false_positive_count: int
+    active_finding_count: int
+    high_or_critical_finding_count: int
+    risk_score: int
+    risk_level: str
 
 
 @dataclass(frozen=True)
@@ -639,6 +646,7 @@ def build_dashboard_view(store: JsonStore) -> DashboardView:
         client.id: {"new": 0, "accepted_risk": 0, "false_positive": 0}
         for client in clients
     }
+    client_findings: dict[str, list[Finding]] = {client.id: [] for client in clients}
 
     mission_rows: list[MissionRow] = []
     preparation_rows: list[tuple[int, datetime, str, DashboardPreparationRow]] = []
@@ -653,6 +661,7 @@ def build_dashboard_view(store: JsonStore) -> DashboardView:
         mission_counts[mission.client_id] = mission_counts.get(mission.client_id, 0) + 1
         findings = store.list_findings(mission.id)
         disposition_counts = finding_status_counts(findings)
+        client_findings.setdefault(mission.client_id, []).extend(findings)
         review_counts = client_review_counts.setdefault(
             mission.client_id,
             {"new": 0, "accepted_risk": 0, "false_positive": 0},
@@ -685,6 +694,9 @@ def build_dashboard_view(store: JsonStore) -> DashboardView:
         priority, next_action, mission_id, mission_name = client_priority_action(
             preparation_rows_by_client.get(client.id, [])
         )
+        findings = client_findings.get(client.id, [])
+        active_client_findings = active_findings(findings)
+        client_risk_score = risk_score(findings)
         client_rows.append(
             ClientRow(
                 id=client.id,
@@ -716,6 +728,16 @@ def build_dashboard_view(store: JsonStore) -> DashboardView:
                     "false_positive",
                     0,
                 ),
+                active_finding_count=len(active_client_findings),
+                high_or_critical_finding_count=len(
+                    [
+                        finding
+                        for finding in active_client_findings
+                        if finding.severity.value in {"critical", "high"}
+                    ]
+                ),
+                risk_score=client_risk_score,
+                risk_level=risk_level(client_risk_score),
             )
         )
     client_rows.sort(key=client_priority_sort_key)

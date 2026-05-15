@@ -97,6 +97,9 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(view.missions[0].client_name, "Client X")
         self.assertEqual(view.missions[0].approved_scope_count, 1)
         self.assertEqual(view.missions[0].audit_template_title, "")
+        self.assertEqual(view.missions[0].new_finding_count, 1)
+        self.assertEqual(view.missions[0].accepted_risk_count, 0)
+        self.assertEqual(view.missions[0].false_positive_count, 0)
         self.assertEqual(view.missions[0].preparation_status, "warning")
         self.assertEqual(view.missions[0].preparation_next_action, "Review 1 new finding(s).")
         self.assertEqual(view.blocked_preparation_count, 0)
@@ -324,6 +327,9 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(view.scope_count, 1)
         self.assertEqual([mission.name for mission in view.missions], ["Client A Audit"])
         self.assertEqual(view.missions[0].client_name, "Client A")
+        self.assertEqual(view.missions[0].new_finding_count, 1)
+        self.assertEqual(view.missions[0].accepted_risk_count, 0)
+        self.assertEqual(view.missions[0].false_positive_count, 0)
         dispositions = {item.status: item.count for item in view.finding_dispositions}
         self.assertEqual(dispositions["new"], 1)
         self.assertEqual(dispositions["accepted_risk"], 0)
@@ -657,6 +663,72 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(dispositions["false_positive"].count, 1)
         self.assertEqual(dispositions["confirmed"].count, 0)
         self.assertEqual(dispositions["counter_test_failed"].label, "Counter-test failed")
+
+    def test_mission_rows_include_review_status_counts(self) -> None:
+        store = JsonStore(clean_data_dir("web-ui-mission-row-review-counts"))
+        client = store.create_client(Client(name="Client Review Counts"))
+        mission = store.create_mission(
+            Mission(client_id=client.id, name="Review Count Audit")
+        )
+        store.add_finding(
+            mission.id,
+            Finding(
+                title="New finding",
+                severity=Severity.LOW,
+                affected_asset="new.example",
+                category="manual",
+                source_module="manual",
+                proof="Observed manually.",
+                risk="Risk needs review.",
+                remediation="Apply correction.",
+                counter_test="Repeat the check.",
+                confidence=0.8,
+            ),
+        )
+        store.add_finding(
+            mission.id,
+            Finding(
+                title="Accepted risk",
+                severity=Severity.LOW,
+                affected_asset="accepted.example",
+                category="manual",
+                source_module="manual",
+                proof="Observed manually.",
+                risk="Risk accepted by owner.",
+                remediation="Track exception.",
+                counter_test="Confirm exception remains documented.",
+                confidence=0.8,
+                status=FindingStatus.ACCEPTED_RISK,
+                metadata={"review_note": "Accepted by owner."},
+            ),
+        )
+        store.add_finding(
+            mission.id,
+            Finding(
+                title="False positive",
+                severity=Severity.MEDIUM,
+                affected_asset="false-positive.example",
+                category="manual",
+                source_module="manual",
+                proof="Observed manually.",
+                risk="No confirmed risk.",
+                remediation="No remediation required.",
+                counter_test="Repeat manual verification.",
+                confidence=0.8,
+                status=FindingStatus.FALSE_POSITIVE,
+                metadata={"review_note": "Verified as benign."},
+            ),
+        )
+
+        dashboard = build_dashboard_view(store)
+        client_view = build_client_view(store, client.id)
+
+        self.assertEqual(dashboard.missions[0].new_finding_count, 1)
+        self.assertEqual(dashboard.missions[0].accepted_risk_count, 1)
+        self.assertEqual(dashboard.missions[0].false_positive_count, 1)
+        self.assertEqual(client_view.missions[0].new_finding_count, 1)
+        self.assertEqual(client_view.missions[0].accepted_risk_count, 1)
+        self.assertEqual(client_view.missions[0].false_positive_count, 1)
 
     def test_mission_view_readiness_items_include_action_targets(self) -> None:
         store = JsonStore(clean_data_dir("web-ui-readiness-actions"))

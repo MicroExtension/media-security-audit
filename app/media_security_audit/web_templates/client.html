@@ -132,7 +132,14 @@
             <span class="muted block">{{ mission.preparation_next_action }}</span>
           </td>
           <td>{{ mission.approved_scope_count }}/{{ mission.scope_count }}</td>
-          <td>{{ mission.finding_count }}</td>
+          <td>
+            {{ mission.finding_count }}
+            <span class="muted block">
+              New {{ mission.new_finding_count }} |
+              Accepted {{ mission.accepted_risk_count }} |
+              FP {{ mission.false_positive_count }}
+            </span>
+          </td>
           <td><span class="risk risk-{{ mission.risk_level }}">{{ mission.risk_score }}/100</span></td>
           <td>{{ mission.created_at }}</td>
         </tr>

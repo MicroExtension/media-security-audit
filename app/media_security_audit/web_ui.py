@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections import Counter
 from dataclasses import dataclass
 from datetime import date, datetime
 from html import escape
@@ -210,6 +211,13 @@ class DashboardPreparationRow:
 
 
 @dataclass(frozen=True)
+class ClientPrioritySummaryRow:
+    status: str
+    label: str
+    count: int
+
+
+@dataclass(frozen=True)
 class CheckSelectionRow:
     value: str
     label: str
@@ -234,6 +242,7 @@ class DashboardView:
     clients: list[ClientRow]
     missions: list[MissionRow]
     preparation_items: list[DashboardPreparationRow]
+    client_priority_items: list[ClientPrioritySummaryRow]
     finding_dispositions: list[FindingDispositionRow]
     total_clients: int
     total_missions: int
@@ -308,6 +317,12 @@ CHECK_DESCRIPTIONS: dict[AuditCheck, str] = {
 
 PREPARATION_STATUS_RANK = {"blocked": 0, "warning": 1, "ready": 2}
 CLIENT_PRIORITY_RANK = {"blocked": 0, "warning": 1, "ready": 2, "none": 3}
+CLIENT_PRIORITY_LABELS = {
+    "blocked": "Blocked",
+    "warning": "Review",
+    "ready": "Ready",
+    "none": "No mission",
+}
 
 FINDING_DISPOSITION_LABELS = {
     "new": "New",
@@ -478,6 +493,20 @@ def finding_disposition_rows(findings: list[Finding]) -> list[FindingDisposition
             count=counts[status],
         )
         for status in FINDING_DISPOSITION_LABELS
+    ]
+
+
+def client_priority_summary_rows(
+    clients: list[ClientRow],
+) -> list[ClientPrioritySummaryRow]:
+    counts = Counter(client.preparation_priority for client in clients)
+    return [
+        ClientPrioritySummaryRow(
+            status=status,
+            label=CLIENT_PRIORITY_LABELS[status],
+            count=counts.get(status, 0),
+        )
+        for status in CLIENT_PRIORITY_LABELS
     ]
 
 
@@ -756,6 +785,7 @@ def build_dashboard_view(store: JsonStore) -> DashboardView:
         clients=client_rows,
         missions=mission_rows,
         preparation_items=preparation_items,
+        client_priority_items=client_priority_summary_rows(client_rows),
         finding_dispositions=finding_disposition_rows(all_findings),
         total_clients=len(client_rows),
         total_missions=len(mission_rows),

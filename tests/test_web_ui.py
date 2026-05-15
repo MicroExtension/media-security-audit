@@ -63,6 +63,18 @@ class WebUiTests(unittest.TestCase):
             self.assertIn(f'href="#{anchor}"', template)
             self.assertIn(f'id="{anchor}"', template)
 
+        for counter in [
+            "view.ready_missions|length",
+            "view.review_missions|length",
+            "view.blocked_missions|length",
+            "view.no_mission_clients|length",
+            "view.blocked_clients|length",
+            "view.top_risk_clients|length",
+            "view.review_backlog_clients|length",
+            "view.preparation_items|length",
+        ]:
+            self.assertIn(f"{{{{ {counter} }}}}", template)
+
     def test_dashboard_view_summarizes_clients_missions_and_findings(self) -> None:
         store = JsonStore(clean_data_dir("web-ui-dashboard"))
         client = store.create_client(Client(name="Client X", internal_reference="CX"))

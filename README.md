@@ -78,6 +78,7 @@ Implemented so far:
 - dashboard shows no-mission clients watchlist
 - dashboard shows blocked clients watchlist
 - dashboard shows top risk clients watchlist
+- dashboard shortcut links show operational section counts
 - dashboard shows review backlog clients watchlist
 - dashboard client list shows per-client preparation counts
 - dashboard client list shows per-client finding review counts

@@ -88,6 +88,7 @@ Current foundation:
 - audit template library started
 - template-assisted mission creation started
 - mission template guidance started
+- dashboard shortcut count badges started
 - template guidance in authorization briefs started
 - enriched mission export manifest started
 - mission export checksum manifest started

@@ -65,6 +65,7 @@ Implemented so far:
 - activity log date range filters with filtered exports
 - activity log CSV export for spreadsheet review
 - client detail pages show recent client activity and filtered Activity links
+- client detail pages show finding disposition counts
 - client detail pages show mission preparation status summaries
 - dashboard shows workspace mission preparation status summaries
 - dashboard shows workspace finding disposition counts
@@ -221,6 +222,7 @@ Mission pages show the same disposition counts before report generation, so a
 technician can spot unreviewed or accepted items quickly.
 The dashboard also shows workspace-wide disposition counts to identify review
 backlog without opening each mission.
+Client detail pages show the same disposition counts scoped to one customer.
 
 ## Deployment
 
@@ -336,6 +338,7 @@ Planned screens:
 - activity log date filters started
 - activity log CSV export started
 - client activity summary started
+- client finding disposition summary started
 - client mission preparation summary started
 - dashboard mission preparation summary started
 - dashboard finding disposition summary started

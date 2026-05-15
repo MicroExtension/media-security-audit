@@ -98,6 +98,7 @@ Current foundation:
 - activity log date filters started
 - activity log CSV export started
 - client activity summary started
+- client finding disposition summary started
 - client mission preparation summary started
 - dashboard mission preparation summary started
 - dashboard finding disposition summary started

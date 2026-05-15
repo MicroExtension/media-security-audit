@@ -338,6 +338,7 @@ Current GUI status:
 - Activity log exports include CSV for spreadsheet review
 - client detail pages show recent client activity and link to the filtered
   Activity page
+- client detail pages show finding disposition counts
 - client detail pages show mission preparation status for missing
   authorization, scope, checks, and finding review
 - dashboard shows workspace mission preparation status across clients

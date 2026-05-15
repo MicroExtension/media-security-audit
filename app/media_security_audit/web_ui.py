@@ -581,9 +581,15 @@ def client_priority_action(
     )
 
 
-def client_priority_sort_key(client: ClientRow) -> tuple[int, int, int, int, str]:
+def client_priority_sort_key(
+    client: ClientRow,
+) -> tuple[int, int, int, int, int, int, int, int, str]:
     return (
         CLIENT_PRIORITY_RANK.get(client.preparation_priority, 99),
+        -client.risk_score,
+        -client.high_or_critical_finding_count,
+        -client.active_finding_count,
+        -client.new_finding_count,
         -client.blocked_preparation_count,
         -client.warning_preparation_count,
         -client.ready_preparation_count,

@@ -279,6 +279,73 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(client_rows["Client B"].risk_score, 0)
         self.assertEqual(client_rows["Client B"].risk_level, "none")
 
+    def test_dashboard_client_rows_sort_equal_priority_by_risk(self) -> None:
+        store = JsonStore(clean_data_dir("web-ui-client-row-risk-ordering"))
+        low_client = store.create_client(Client(name="Low Risk Client"))
+        high_client = store.create_client(Client(name="High Risk Client"))
+        low_mission = store.create_mission(
+            Mission(
+                client_id=low_client.id,
+                name="Low Risk Audit",
+                authorization_reference="AUTH-LOW",
+            )
+        )
+        high_mission = store.create_mission(
+            Mission(
+                client_id=high_client.id,
+                name="High Risk Audit",
+                authorization_reference="AUTH-HIGH",
+            )
+        )
+        store.add_scope_item(
+            low_mission.id,
+            ScopeItem(type=ScopeType.DOMAIN, value="low.example", approved=True),
+        )
+        store.add_scope_item(
+            high_mission.id,
+            ScopeItem(type=ScopeType.DOMAIN, value="high.example", approved=True),
+        )
+        store.add_finding(
+            low_mission.id,
+            Finding(
+                title="Low risk finding",
+                severity=Severity.LOW,
+                affected_asset="low.example",
+                category="manual",
+                source_module="manual",
+                proof="Observed manually.",
+                risk="Risk needs review.",
+                remediation="Apply correction.",
+                counter_test="Repeat the check.",
+                confidence=0.8,
+            ),
+        )
+        store.add_finding(
+            high_mission.id,
+            Finding(
+                title="High risk finding",
+                severity=Severity.HIGH,
+                affected_asset="high.example",
+                category="manual",
+                source_module="manual",
+                proof="Observed manually.",
+                risk="Risk needs review.",
+                remediation="Apply correction.",
+                counter_test="Repeat the check.",
+                confidence=0.8,
+            ),
+        )
+
+        view = build_dashboard_view(store)
+
+        self.assertEqual(
+            [client.name for client in view.clients],
+            ["High Risk Client", "Low Risk Client"],
+        )
+        self.assertEqual(view.clients[0].preparation_priority, "warning")
+        self.assertEqual(view.clients[0].risk_score, 25)
+        self.assertEqual(view.clients[1].risk_score, 3)
+
     def test_dashboard_view_summarizes_workspace_finding_dispositions(self) -> None:
         store = JsonStore(clean_data_dir("web-ui-dashboard-dispositions"))
         client = store.create_client(Client(name="Client Dispositions"))

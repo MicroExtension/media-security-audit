@@ -107,6 +107,7 @@ Current foundation:
 - dashboard client risk summary started
 - dashboard client priority actions started
 - dashboard client priority ordering started
+- dashboard client risk ordering started
 - mission preparation columns started
 - mission row review count badges started
 - mission readiness action links started

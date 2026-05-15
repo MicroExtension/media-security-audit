@@ -347,7 +347,7 @@ Current GUI status:
 - dashboard client list shows per-client finding review counts
 - dashboard client list shows per-client risk summaries
 - dashboard client list shows each client's priority and next action
-- dashboard client list is ordered by preparation priority
+- dashboard client list is ordered by preparation priority and risk
 - dashboard and client mission tables show preparation status and next action
 - dashboard and client mission tables show compact finding review counts
 - mission readiness cards link to the setup section that needs action

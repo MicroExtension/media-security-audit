@@ -347,6 +347,7 @@ Current GUI status:
 - dashboard shows client risk level summary counts
 - dashboard shows ready missions for authorized work
 - dashboard shows review missions close to ready
+- dashboard shows blocked missions with next preparation actions
 - dashboard shows clients without any mission
 - dashboard shows blocked clients with next preparation actions
 - dashboard shows top-risk clients with next actions

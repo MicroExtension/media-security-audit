@@ -112,6 +112,13 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(view.blocked_preparation_count, 0)
         self.assertEqual(view.warning_preparation_count, 1)
         self.assertEqual(view.ready_preparation_count, 0)
+        priority_counts = {
+            item.status: item.count for item in view.client_priority_items
+        }
+        self.assertEqual(priority_counts["blocked"], 0)
+        self.assertEqual(priority_counts["warning"], 1)
+        self.assertEqual(priority_counts["ready"], 0)
+        self.assertEqual(priority_counts["none"], 0)
         self.assertEqual(view.preparation_items[0].client_name, "Client X")
         self.assertEqual(view.preparation_items[0].status, "warning")
         self.assertEqual(
@@ -170,6 +177,13 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(view.blocked_preparation_count, 1)
         self.assertEqual(view.warning_preparation_count, 1)
         self.assertEqual(view.ready_preparation_count, 1)
+        priority_counts = {item.status: item for item in view.client_priority_items}
+        self.assertEqual(priority_counts["blocked"].label, "Blocked")
+        self.assertEqual(priority_counts["blocked"].count, 1)
+        self.assertEqual(priority_counts["warning"].count, 0)
+        self.assertEqual(priority_counts["ready"].count, 1)
+        self.assertEqual(priority_counts["none"].label, "No mission")
+        self.assertEqual(priority_counts["none"].count, 1)
         self.assertEqual(
             [item.status for item in view.preparation_items],
             ["blocked", "warning", "ready"],

@@ -238,7 +238,8 @@ tr:last-child td {
 
 .status-false_positive,
 .status-accepted_risk,
-.status-new {
+.status-new,
+.status-none {
   background: #eef3f7;
   color: #344054;
 }

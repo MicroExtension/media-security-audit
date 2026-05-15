@@ -69,6 +69,7 @@ Implemented so far:
 - client detail pages show mission preparation status summaries
 - dashboard shows workspace mission preparation status summaries
 - dashboard shows workspace finding disposition counts
+- dashboard shows client priority summary counts
 - dashboard client list shows per-client preparation counts
 - dashboard client list shows per-client finding review counts
 - dashboard client list shows per-client risk summaries
@@ -232,6 +233,8 @@ The dashboard client list also shows compact review counts per customer, so MSP
 technicians can see which client has new, accepted, or false-positive findings.
 It also shows each client's risk score, active finding count, and active
 high/critical count for faster prioritization.
+The dashboard includes client priority summary counts, so the team can see how
+many customers are blocked, ready, awaiting review, or still without a mission.
 
 ## Deployment
 

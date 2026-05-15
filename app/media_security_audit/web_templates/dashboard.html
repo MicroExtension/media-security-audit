@@ -19,14 +19,14 @@
 </section>
 
 <section class="dashboard-shortcuts" aria-label="Dashboard shortcuts">
-  <a href="#ready-missions">Ready Missions</a>
-  <a href="#review-missions">Review Missions</a>
-  <a href="#blocked-missions">Blocked Missions</a>
-  <a href="#no-mission-clients">No Mission Clients</a>
-  <a href="#blocked-clients">Blocked Clients</a>
-  <a href="#top-risk-clients">Top Risk Clients</a>
-  <a href="#review-backlog-clients">Review Backlog</a>
-  <a href="#preparation">Preparation</a>
+  <a href="#ready-missions">Ready Missions <span>{{ view.ready_missions|length }}</span></a>
+  <a href="#review-missions">Review Missions <span>{{ view.review_missions|length }}</span></a>
+  <a href="#blocked-missions">Blocked Missions <span>{{ view.blocked_missions|length }}</span></a>
+  <a href="#no-mission-clients">No Mission Clients <span>{{ view.no_mission_clients|length }}</span></a>
+  <a href="#blocked-clients">Blocked Clients <span>{{ view.blocked_clients|length }}</span></a>
+  <a href="#top-risk-clients">Top Risk Clients <span>{{ view.top_risk_clients|length }}</span></a>
+  <a href="#review-backlog-clients">Review Backlog <span>{{ view.review_backlog_clients|length }}</span></a>
+  <a href="#preparation">Preparation <span>{{ view.preparation_items|length }}</span></a>
 </section>
 
 <section class="section" id="client-priorities">

@@ -128,12 +128,15 @@ a:hover {
 }
 
 .dashboard-shortcuts a {
+  align-items: center;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 6px;
   color: var(--text);
+  display: flex;
   font-size: 13px;
   font-weight: 700;
+  gap: 8px;
   padding: 8px 10px;
   text-decoration: none;
 }
@@ -141,6 +144,17 @@ a:hover {
 .dashboard-shortcuts a:hover {
   border-color: var(--blue);
   color: var(--blue);
+}
+
+.dashboard-shortcuts span {
+  background: #eef3f7;
+  border-radius: 999px;
+  color: #344054;
+  font-size: 12px;
+  line-height: 1;
+  min-width: 18px;
+  padding: 4px 6px;
+  text-align: center;
 }
 
 .section {

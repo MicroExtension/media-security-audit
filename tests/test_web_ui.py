@@ -119,6 +119,12 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(priority_counts["warning"], 1)
         self.assertEqual(priority_counts["ready"], 0)
         self.assertEqual(priority_counts["none"], 0)
+        risk_counts = {item.level: item.count for item in view.client_risk_items}
+        self.assertEqual(risk_counts["critical"], 0)
+        self.assertEqual(risk_counts["high"], 0)
+        self.assertEqual(risk_counts["medium"], 0)
+        self.assertEqual(risk_counts["low"], 1)
+        self.assertEqual(risk_counts["none"], 0)
         self.assertEqual(view.preparation_items[0].client_name, "Client X")
         self.assertEqual(view.preparation_items[0].status, "warning")
         self.assertEqual(
@@ -184,6 +190,13 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(priority_counts["ready"].count, 1)
         self.assertEqual(priority_counts["none"].label, "No mission")
         self.assertEqual(priority_counts["none"].count, 1)
+        risk_counts = {item.level: item for item in view.client_risk_items}
+        self.assertEqual(risk_counts["critical"].count, 0)
+        self.assertEqual(risk_counts["high"].count, 0)
+        self.assertEqual(risk_counts["medium"].count, 0)
+        self.assertEqual(risk_counts["low"].label, "Low")
+        self.assertEqual(risk_counts["low"].count, 1)
+        self.assertEqual(risk_counts["none"].count, 2)
         self.assertEqual(
             [item.status for item in view.preparation_items],
             ["blocked", "warning", "ready"],

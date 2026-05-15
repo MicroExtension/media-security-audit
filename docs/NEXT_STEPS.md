@@ -344,6 +344,7 @@ Current GUI status:
 - dashboard shows workspace mission preparation status across clients
 - dashboard shows workspace finding disposition counts
 - dashboard shows client priority summary counts
+- dashboard shows client risk level summary counts
 - dashboard client list shows per-client preparation counts
 - dashboard client list shows per-client finding review counts
 - dashboard client list shows per-client risk summaries

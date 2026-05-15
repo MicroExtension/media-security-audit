@@ -218,6 +218,13 @@ class ClientPrioritySummaryRow:
 
 
 @dataclass(frozen=True)
+class ClientRiskSummaryRow:
+    level: str
+    label: str
+    count: int
+
+
+@dataclass(frozen=True)
 class CheckSelectionRow:
     value: str
     label: str
@@ -243,6 +250,7 @@ class DashboardView:
     missions: list[MissionRow]
     preparation_items: list[DashboardPreparationRow]
     client_priority_items: list[ClientPrioritySummaryRow]
+    client_risk_items: list[ClientRiskSummaryRow]
     finding_dispositions: list[FindingDispositionRow]
     total_clients: int
     total_missions: int
@@ -322,6 +330,13 @@ CLIENT_PRIORITY_LABELS = {
     "warning": "Review",
     "ready": "Ready",
     "none": "No mission",
+}
+CLIENT_RISK_LABELS = {
+    "critical": "Critical",
+    "high": "High",
+    "medium": "Medium",
+    "low": "Low",
+    "none": "None",
 }
 
 FINDING_DISPOSITION_LABELS = {
@@ -507,6 +522,18 @@ def client_priority_summary_rows(
             count=counts.get(status, 0),
         )
         for status in CLIENT_PRIORITY_LABELS
+    ]
+
+
+def client_risk_summary_rows(clients: list[ClientRow]) -> list[ClientRiskSummaryRow]:
+    counts = Counter(client.risk_level for client in clients)
+    return [
+        ClientRiskSummaryRow(
+            level=level,
+            label=CLIENT_RISK_LABELS[level],
+            count=counts.get(level, 0),
+        )
+        for level in CLIENT_RISK_LABELS
     ]
 
 
@@ -786,6 +813,7 @@ def build_dashboard_view(store: JsonStore) -> DashboardView:
         missions=mission_rows,
         preparation_items=preparation_items,
         client_priority_items=client_priority_summary_rows(client_rows),
+        client_risk_items=client_risk_summary_rows(client_rows),
         finding_dispositions=finding_disposition_rows(all_findings),
         total_clients=len(client_rows),
         total_missions=len(mission_rows),

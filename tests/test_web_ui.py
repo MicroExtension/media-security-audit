@@ -306,6 +306,10 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(client_rows["Client B"].risk_score, 0)
         self.assertEqual(client_rows["Client B"].risk_level, "none")
         self.assertEqual([client.name for client in view.top_risk_clients], ["Client A"])
+        self.assertEqual(
+            [client.name for client in view.review_backlog_clients],
+            ["Client A"],
+        )
 
     def test_dashboard_client_rows_sort_equal_priority_by_risk(self) -> None:
         store = JsonStore(clean_data_dir("web-ui-client-row-risk-ordering"))
@@ -375,6 +379,10 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(view.clients[1].risk_score, 3)
         self.assertEqual(
             [client.name for client in view.top_risk_clients],
+            ["High Risk Client", "Low Risk Client"],
+        )
+        self.assertEqual(
+            [client.name for client in view.review_backlog_clients],
             ["High Risk Client", "Low Risk Client"],
         )
 

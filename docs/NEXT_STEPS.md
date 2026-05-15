@@ -346,6 +346,7 @@ Current GUI status:
 - dashboard shows client priority summary counts
 - dashboard shows client risk level summary counts
 - dashboard shows top-risk clients with next actions
+- dashboard shows clients with new findings waiting for review
 - dashboard client list shows per-client preparation counts
 - dashboard client list shows per-client finding review counts
 - dashboard client list shows per-client risk summaries

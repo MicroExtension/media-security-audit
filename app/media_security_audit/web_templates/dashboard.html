@@ -90,6 +90,48 @@
 
 <section class="section">
   <div class="section-title">
+    <h2>Review Backlog Clients</h2>
+    <span class="muted">Clients with new findings to qualify</span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Client</th>
+          <th>New</th>
+          <th>Accepted</th>
+          <th>FP</th>
+          <th>Risk</th>
+          <th>Next Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for client in view.review_backlog_clients %}
+        <tr>
+          <td><a href="/clients/{{ client.id }}">{{ client.name }}</a></td>
+          <td>{{ client.new_finding_count }}</td>
+          <td>{{ client.accepted_risk_count }}</td>
+          <td>{{ client.false_positive_count }}</td>
+          <td><span class="risk risk-{{ client.risk_level }}">{{ client.risk_score }}/100</span></td>
+          <td>
+            {{ client.next_action }}
+            {% if client.next_action_mission_id %}
+            <span class="muted block">
+              <a href="/missions/{{ client.next_action_mission_id }}">{{ client.next_action_mission_name }}</a>
+            </span>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="empty">No client review backlog found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-title">
     <h2>Finding Dispositions</h2>
     <span class="muted">Workspace review status</span>
   </div>

@@ -120,6 +120,29 @@ a:hover {
   margin-top: 4px;
 }
 
+.dashboard-shortcuts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: -10px 0 24px;
+}
+
+.dashboard-shortcuts a {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  padding: 8px 10px;
+  text-decoration: none;
+}
+
+.dashboard-shortcuts a:hover {
+  border-color: var(--blue);
+  color: var(--blue);
+}
+
 .section {
   margin: 28px 0;
 }

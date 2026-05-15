@@ -40,6 +40,29 @@ def clean_data_dir(name: str) -> Path:
 
 
 class WebUiTests(unittest.TestCase):
+    def test_dashboard_template_exposes_shortcut_anchors(self) -> None:
+        template_path = (
+            Path(__file__).resolve().parents[1]
+            / "app"
+            / "media_security_audit"
+            / "web_templates"
+            / "dashboard.html"
+        )
+        template = template_path.read_text(encoding="utf-8")
+
+        for anchor in [
+            "ready-missions",
+            "review-missions",
+            "blocked-missions",
+            "no-mission-clients",
+            "blocked-clients",
+            "top-risk-clients",
+            "review-backlog-clients",
+            "preparation",
+        ]:
+            self.assertIn(f'href="#{anchor}"', template)
+            self.assertIn(f'id="{anchor}"', template)
+
     def test_dashboard_view_summarizes_clients_missions_and_findings(self) -> None:
         store = JsonStore(clean_data_dir("web-ui-dashboard"))
         client = store.create_client(Client(name="Client X", internal_reference="CX"))

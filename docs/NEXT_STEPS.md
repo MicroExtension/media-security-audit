@@ -343,6 +343,7 @@ Current GUI status:
   authorization, scope, checks, and finding review
 - dashboard shows workspace mission preparation status across clients
 - dashboard shows workspace finding disposition counts
+- dashboard shows shortcut links to operational sections
 - dashboard shows client priority summary counts
 - dashboard shows client risk level summary counts
 - dashboard shows ready missions for authorized work

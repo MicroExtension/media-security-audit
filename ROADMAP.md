@@ -102,6 +102,7 @@ Current foundation:
 - client mission preparation summary started
 - dashboard mission preparation summary started
 - dashboard finding disposition summary started
+- dashboard shortcut links started
 - dashboard client priority summary started
 - dashboard client risk level summary started
 - dashboard ready missions watchlist started

@@ -71,6 +71,7 @@ Implemented so far:
 - dashboard shows workspace finding disposition counts
 - dashboard shows client priority summary counts
 - dashboard shows client risk level summary counts
+- dashboard shows blocked clients watchlist
 - dashboard shows top risk clients watchlist
 - dashboard shows review backlog clients watchlist
 - dashboard client list shows per-client preparation counts
@@ -242,6 +243,8 @@ It also includes client risk level summary counts for portfolio-level risk
 review.
 The dashboard also highlights top-risk clients with their next action.
 It also highlights clients with new findings still waiting for review.
+Blocked clients are highlighted with the next preparation action before scan
+execution.
 
 ## Deployment
 

@@ -35,6 +35,46 @@
 
 <section class="section">
   <div class="section-title">
+    <h2>Blocked Clients</h2>
+    <span class="muted">Clients blocked before execution</span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Client</th>
+          <th>Blocked</th>
+          <th>Review</th>
+          <th>Ready</th>
+          <th>Next Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for client in view.blocked_clients %}
+        <tr>
+          <td><a href="/clients/{{ client.id }}">{{ client.name }}</a></td>
+          <td>{{ client.blocked_preparation_count }}</td>
+          <td>{{ client.warning_preparation_count }}</td>
+          <td>{{ client.ready_preparation_count }}</td>
+          <td>
+            {{ client.next_action }}
+            {% if client.next_action_mission_id %}
+            <span class="muted block">
+              <a href="/missions/{{ client.next_action_mission_id }}">{{ client.next_action_mission_name }}</a>
+            </span>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" class="empty">No blocked client found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-title">
     <h2>Client Risk Levels</h2>
     <span class="muted">Client-level portfolio risk</span>
   </div>

@@ -227,6 +227,8 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(client_rows["Client C"].preparation_priority, "none")
         self.assertEqual(client_rows["Client C"].next_action, "Create first mission for this client.")
         self.assertEqual(client_rows["Client C"].next_action_mission_id, "")
+        self.assertEqual([client.name for client in view.blocked_clients], ["Client B"])
+        self.assertEqual(view.blocked_clients[0].next_action_mission_id, blocked_mission.id)
 
     def test_dashboard_client_rows_include_review_and_risk_counts(self) -> None:
         store = JsonStore(clean_data_dir("web-ui-client-row-review-counts"))

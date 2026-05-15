@@ -68,6 +68,41 @@
 
 <section class="section">
   <div class="section-title">
+    <h2>Review Missions</h2>
+    <span class="muted">Missions close to ready</span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Mission</th>
+          <th>Client</th>
+          <th>Next Action</th>
+          <th>Authorization</th>
+          <th>Scope</th>
+          <th>Checks</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in view.review_missions %}
+        <tr>
+          <td><a href="/missions/{{ item.mission_id }}">{{ item.mission_name }}</a></td>
+          <td><a href="/clients/{{ item.client_id }}">{{ item.client_name }}</a></td>
+          <td>{{ item.next_action }}</td>
+          <td><span class="status status-{{ item.authorization_status }}">{{ item.authorization_status }}</span></td>
+          <td><span class="status status-{{ item.scope_status }}">{{ item.scope_status }}</span></td>
+          <td><span class="status status-{{ item.check_status }}">{{ item.check_status }}</span></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="empty">No review mission found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-title">
     <h2>No Mission Clients</h2>
     <span class="muted">Clients not yet in an audit workflow</span>
   </div>

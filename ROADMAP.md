@@ -105,6 +105,7 @@ Current foundation:
 - dashboard client priority summary started
 - dashboard client risk level summary started
 - dashboard top risk clients watchlist started
+- dashboard review backlog clients watchlist started
 - dashboard client preparation counts started
 - dashboard client finding review counts started
 - dashboard client risk summary started

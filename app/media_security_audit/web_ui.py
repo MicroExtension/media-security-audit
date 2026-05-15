@@ -249,6 +249,7 @@ class DashboardView:
     clients: list[ClientRow]
     missions: list[MissionRow]
     preparation_items: list[DashboardPreparationRow]
+    ready_missions: list[DashboardPreparationRow]
     client_priority_items: list[ClientPrioritySummaryRow]
     client_risk_items: list[ClientRiskSummaryRow]
     no_mission_clients: list[ClientRow]
@@ -539,6 +540,13 @@ def client_risk_summary_rows(clients: list[ClientRow]) -> list[ClientRiskSummary
         )
         for level in CLIENT_RISK_LABELS
     ]
+
+
+def ready_mission_rows(
+    preparation_items: list[DashboardPreparationRow],
+    limit: int = 5,
+) -> list[DashboardPreparationRow]:
+    return [item for item in preparation_items if item.status == "ready"][:limit]
 
 
 def no_mission_client_rows(
@@ -872,6 +880,7 @@ def build_dashboard_view(store: JsonStore) -> DashboardView:
         clients=client_rows,
         missions=mission_rows,
         preparation_items=preparation_items,
+        ready_missions=ready_mission_rows(preparation_items),
         client_priority_items=client_priority_summary_rows(client_rows),
         client_risk_items=client_risk_summary_rows(client_rows),
         no_mission_clients=no_mission_client_rows(client_rows),

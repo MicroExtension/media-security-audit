@@ -104,6 +104,7 @@ Current foundation:
 - dashboard finding disposition summary started
 - dashboard client priority summary started
 - dashboard client risk level summary started
+- dashboard ready missions watchlist started
 - dashboard no-mission clients watchlist started
 - dashboard blocked clients watchlist started
 - dashboard top risk clients watchlist started

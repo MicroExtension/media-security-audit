@@ -237,6 +237,7 @@ class ClientView:
     missions: list[MissionRow]
     recent_activity_events: list[ClientActivityEventRow]
     preparation_items: list[ClientPreparationRow]
+    finding_dispositions: list[FindingDispositionRow]
     activity_log_url: str
     blocked_preparation_count: int
     warning_preparation_count: int
@@ -726,9 +727,11 @@ def build_client_view(store: JsonStore, client_id: str) -> ClientView:
     high_or_critical = 0
     approved_scope_count = 0
     scope_count = 0
+    all_findings: list[Finding] = []
 
     for mission in client_missions:
         findings = store.list_findings(mission.id)
+        all_findings.extend(findings)
         total_findings += len(findings)
         high_or_critical += len(
             [finding for finding in findings if finding.severity.value in {"critical", "high"}]
@@ -762,6 +765,7 @@ def build_client_view(store: JsonStore, client_id: str) -> ClientView:
         missions=mission_rows,
         recent_activity_events=[row for _, _, row in activity_rows[:10]],
         preparation_items=preparation_items,
+        finding_dispositions=finding_disposition_rows(all_findings),
         activity_log_url=client_activity_log_url(client.id),
         blocked_preparation_count=len(
             [item for item in preparation_items if item.status == "blocked"]

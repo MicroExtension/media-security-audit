@@ -70,6 +70,7 @@ Implemented so far:
 - dashboard shows workspace mission preparation status summaries
 - dashboard shows workspace finding disposition counts
 - dashboard client list shows per-client preparation counts
+- dashboard client list shows per-client finding review counts
 - dashboard client list shows client preparation priority and next action
 - dashboard client list is ordered by preparation priority
 - mission tables show preparation status and next action
@@ -226,6 +227,8 @@ backlog without opening each mission.
 Client detail pages show the same disposition counts scoped to one customer.
 Mission tables include compact review counts for new findings, accepted risks,
 and false positives.
+The dashboard client list also shows compact review counts per customer, so MSP
+technicians can see which client has new, accepted, or false-positive findings.
 
 ## Deployment
 

@@ -92,6 +92,7 @@ Current foundation:
 - dashboard watchlist action links started
 - dashboard mission row action links started
 - client preparation action links started
+- mission page shortcut links started
 - template guidance in authorization briefs started
 - enriched mission export manifest started
 - mission export checksum manifest started

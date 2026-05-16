@@ -82,6 +82,7 @@ Implemented so far:
 - dashboard watchlists link next actions to mission sections
 - dashboard mission rows link preparation actions to mission sections
 - client pages link preparation actions to mission sections
+- mission pages show shortcut links to workflow sections
 - dashboard shows review backlog clients watchlist
 - dashboard client list shows per-client preparation counts
 - dashboard client list shows per-client finding review counts

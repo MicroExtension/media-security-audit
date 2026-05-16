@@ -80,6 +80,21 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("client.next_action_href", template)
         self.assertIn("mission.preparation_action_href", template)
 
+    def test_client_template_exposes_preparation_action_links(self) -> None:
+        template_path = (
+            Path(__file__).resolve().parents[1]
+            / "app"
+            / "media_security_audit"
+            / "web_templates"
+            / "client.html"
+        )
+        template = template_path.read_text(encoding="utf-8")
+
+        self.assertIn("item.next_action_href", template)
+        self.assertIn("item.next_action_label", template)
+        self.assertIn("mission.preparation_action_href", template)
+        self.assertIn("mission.preparation_action_label", template)
+
     def test_dashboard_view_summarizes_clients_missions_and_findings(self) -> None:
         store = JsonStore(clean_data_dir("web-ui-dashboard"))
         client = store.create_client(Client(name="Client X", internal_reference="CX"))
@@ -824,6 +839,17 @@ class WebUiTests(unittest.TestCase):
         warning = view.preparation_items[1]
         self.assertEqual(warning.warning_count, 1)
         self.assertEqual(warning.next_action, "Review 1 new finding(s).")
+        self.assertEqual(warning.next_action_label, "Review Findings")
+        self.assertEqual(
+            warning.next_action_href,
+            f"/missions/{warning.mission_id}#findings",
+        )
+        ready = view.preparation_items[2]
+        self.assertEqual(ready.next_action_label, "Open Reports")
+        self.assertEqual(
+            ready.next_action_href,
+            f"/missions/{ready.mission_id}#reports",
+        )
 
     def test_mission_view_orders_scope_findings_and_remediation(self) -> None:
         store = JsonStore(clean_data_dir("web-ui-mission"))

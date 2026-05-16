@@ -65,7 +65,12 @@
         <tr>
           <td><a href="/missions/{{ item.mission_id }}">{{ item.mission_name }}</a></td>
           <td><span class="status status-{{ item.status }}">{{ item.status }}</span></td>
-          <td>{{ item.next_action }}</td>
+          <td>
+            {{ item.next_action }}
+            <span class="muted block">
+              <a class="table-action" href="{{ item.next_action_href }}">{{ item.next_action_label }}</a>
+            </span>
+          </td>
           <td><span class="status status-{{ item.authorization_status }}">{{ item.authorization_status }}</span></td>
           <td><span class="status status-{{ item.scope_status }}">{{ item.scope_status }}</span></td>
           <td><span class="status status-{{ item.check_status }}">{{ item.check_status }}</span></td>
@@ -130,6 +135,9 @@
           <td>
             <span class="status status-{{ mission.preparation_status }}">{{ mission.preparation_status }}</span>
             <span class="muted block">{{ mission.preparation_next_action }}</span>
+            <span class="muted block">
+              <a class="table-action" href="{{ mission.preparation_action_href }}">{{ mission.preparation_action_label }}</a>
+            </span>
           </td>
           <td>{{ mission.approved_scope_count }}/{{ mission.scope_count }}</td>
           <td>

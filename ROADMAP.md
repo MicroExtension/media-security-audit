@@ -94,6 +94,7 @@ Current foundation:
 - client preparation action links started
 - mission page shortcut links started
 - client page shortcut links started
+- mission context links started
 - template guidance in authorization briefs started
 - enriched mission export manifest started
 - mission export checksum manifest started

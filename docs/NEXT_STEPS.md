@@ -105,6 +105,7 @@ Codex action:
 - prepare report templates for future branding
 - keep dashboard shortcuts tied to existing operational section counts
 - keep dashboard action links anchored to the right mission workflow sections
+- keep mission table preparation actions aligned with the same workflow anchors
 
 ## Step 2.2 - Nmap Dry-Run Planning
 

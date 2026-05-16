@@ -103,6 +103,8 @@ class MissionRow:
     status: str
     preparation_status: str
     preparation_next_action: str
+    preparation_action_label: str
+    preparation_action_href: str
     authorization_present: bool
     authorization_reference: str
     authorization_contact: str
@@ -473,6 +475,8 @@ def mission_row(mission: Mission, findings: list[Finding], client_names: dict[st
         status=mission.status.value,
         preparation_status=preparation.status,
         preparation_next_action=preparation.next_action,
+        preparation_action_label=preparation.next_action_label,
+        preparation_action_href=f"/missions/{mission.id}#{preparation.next_action_anchor}",
         authorization_present=mission.is_authorized,
         authorization_reference=mission.authorization_reference or "",
         authorization_contact=mission.authorization_contact or "",

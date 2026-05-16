@@ -78,6 +78,7 @@ class WebUiTests(unittest.TestCase):
         self.assertIn('id="new-mission"', template)
         self.assertIn("item.next_action_href", template)
         self.assertIn("client.next_action_href", template)
+        self.assertIn("mission.preparation_action_href", template)
 
     def test_dashboard_view_summarizes_clients_missions_and_findings(self) -> None:
         store = JsonStore(clean_data_dir("web-ui-dashboard"))
@@ -153,6 +154,11 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(view.missions[0].false_positive_count, 0)
         self.assertEqual(view.missions[0].preparation_status, "warning")
         self.assertEqual(view.missions[0].preparation_next_action, "Review 1 new finding(s).")
+        self.assertEqual(view.missions[0].preparation_action_label, "Review Findings")
+        self.assertEqual(
+            view.missions[0].preparation_action_href,
+            f"/missions/{mission.id}#findings",
+        )
         self.assertEqual(view.blocked_preparation_count, 0)
         self.assertEqual(view.warning_preparation_count, 1)
         self.assertEqual(view.ready_preparation_count, 0)
@@ -255,6 +261,17 @@ class WebUiTests(unittest.TestCase):
             [ready_mission.id],
         )
         self.assertEqual(view.ready_missions[0].client_name, "Client A")
+        mission_rows = {mission.name: mission for mission in view.missions}
+        self.assertEqual(mission_rows["Ready Audit"].preparation_action_label, "Open Reports")
+        self.assertEqual(
+            mission_rows["Ready Audit"].preparation_action_href,
+            f"/missions/{ready_mission.id}#reports",
+        )
+        self.assertEqual(mission_rows["Blocked Audit"].preparation_action_label, "Open Setup")
+        self.assertEqual(
+            mission_rows["Blocked Audit"].preparation_action_href,
+            f"/missions/{blocked_mission.id}#mission-setup",
+        )
         self.assertEqual(view.ready_missions[0].next_action_label, "Open Reports")
         self.assertEqual(
             view.ready_missions[0].next_action_href,

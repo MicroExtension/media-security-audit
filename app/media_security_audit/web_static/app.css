@@ -120,14 +120,16 @@ a:hover {
   margin-top: 4px;
 }
 
-.dashboard-shortcuts {
+.dashboard-shortcuts,
+.page-shortcuts {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   margin: -10px 0 24px;
 }
 
-.dashboard-shortcuts a {
+.dashboard-shortcuts a,
+.page-shortcuts a {
   align-items: center;
   background: var(--surface);
   border: 1px solid var(--border);
@@ -141,12 +143,14 @@ a:hover {
   text-decoration: none;
 }
 
-.dashboard-shortcuts a:hover {
+.dashboard-shortcuts a:hover,
+.page-shortcuts a:hover {
   border-color: var(--blue);
   color: var(--blue);
 }
 
-.dashboard-shortcuts span {
+.dashboard-shortcuts span,
+.page-shortcuts span {
   background: #eef3f7;
   border-radius: 999px;
   color: #344054;

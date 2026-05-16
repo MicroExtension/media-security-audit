@@ -24,7 +24,20 @@
   <div class="metric"><span>Authorization</span><strong>{{ "yes" if view.mission.authorization_present else "no" }}</strong></div>
 </section>
 
-<section class="section">
+<section class="page-shortcuts" aria-label="Mission shortcuts">
+  <a href="#mission-readiness">Readiness <span>{{ view.readiness_items|length }}</span></a>
+  <a href="#scan-plan">Scan Plan <span>{{ view.scan_plans|length }}</span></a>
+  <a href="#run-monitor">Runs <span>{{ view.scan_runs|length }}</span></a>
+  <a href="#check-selection">Checks <span>{{ view.check_selection|length }}</span></a>
+  <a href="#mission-setup">Setup <span>{{ "ok" if view.mission.authorization_present else "todo" }}</span></a>
+  <a href="#reports">Reports <span>{{ view.reports|length }}</span></a>
+  <a href="#activity">Activity <span>{{ view.activity_events|length }}</span></a>
+  <a href="#scope">Scope <span>{{ view.scope|length }}</span></a>
+  <a href="#counter-test">Counter-test <span>{{ view.counter_test_items|length }}</span></a>
+  <a href="#findings">Findings <span>{{ view.findings|length }}</span></a>
+</section>
+
+<section class="section" id="mission-readiness">
   <div class="section-title">
     <h2>Mission Readiness</h2>
   </div>
@@ -82,7 +95,7 @@
 </section>
 {% endif %}
 
-<section class="section">
+<section class="section" id="scan-plan">
   <div class="section-title">
     <h2>Scan Plan Preview</h2>
     <span class="muted">CLI execution only</span>
@@ -107,7 +120,7 @@
   </div>
 </section>
 
-<section class="section">
+<section class="section" id="run-monitor">
   <div class="section-title">
     <h2>Run Monitor</h2>
     <span class="muted">CLI executions only</span>
@@ -282,7 +295,7 @@
   </div>
 </section>
 
-<section class="section">
+<section class="section" id="activity">
   <div class="section-title">
     <h2>Activity</h2>
   </div>
@@ -407,7 +420,7 @@
   </div>
 </section>
 
-<section class="section">
+<section class="section" id="counter-test">
   <div class="section-title">
     <h2>Counter-test Plan</h2>
   </div>

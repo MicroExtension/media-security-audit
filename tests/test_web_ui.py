@@ -95,6 +95,44 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("mission.preparation_action_href", template)
         self.assertIn("mission.preparation_action_label", template)
 
+    def test_mission_template_exposes_shortcut_anchors(self) -> None:
+        template_path = (
+            Path(__file__).resolve().parents[1]
+            / "app"
+            / "media_security_audit"
+            / "web_templates"
+            / "mission.html"
+        )
+        template = template_path.read_text(encoding="utf-8")
+
+        for anchor in [
+            "mission-readiness",
+            "scan-plan",
+            "run-monitor",
+            "check-selection",
+            "mission-setup",
+            "reports",
+            "activity",
+            "scope",
+            "counter-test",
+            "findings",
+        ]:
+            self.assertIn(f'href="#{anchor}"', template)
+            self.assertIn(f'id="{anchor}"', template)
+
+        for counter in [
+            "view.readiness_items|length",
+            "view.scan_plans|length",
+            "view.scan_runs|length",
+            "view.check_selection|length",
+            "view.reports|length",
+            "view.activity_events|length",
+            "view.scope|length",
+            "view.counter_test_items|length",
+            "view.findings|length",
+        ]:
+            self.assertIn(f"{{{{ {counter} }}}}", template)
+
     def test_dashboard_view_summarizes_clients_missions_and_findings(self) -> None:
         store = JsonStore(clean_data_dir("web-ui-dashboard"))
         client = store.create_client(Client(name="Client X", internal_reference="CX"))

@@ -90,6 +90,7 @@ Current foundation:
 - mission template guidance started
 - dashboard shortcut count badges started
 - dashboard watchlist action links started
+- dashboard mission row action links started
 - template guidance in authorization briefs started
 - enriched mission export manifest started
 - mission export checksum manifest started

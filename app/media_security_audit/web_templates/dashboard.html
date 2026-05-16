@@ -516,6 +516,9 @@
           <td>
             <span class="status status-{{ mission.preparation_status }}">{{ mission.preparation_status }}</span>
             <span class="muted block">{{ mission.preparation_next_action }}</span>
+            <span class="muted block">
+              <a class="table-action" href="{{ mission.preparation_action_href }}">{{ mission.preparation_action_label }}</a>
+            </span>
           </td>
           <td>{{ mission.approved_scope_count }}/{{ mission.scope_count }}</td>
           <td>

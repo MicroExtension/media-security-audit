@@ -80,6 +80,7 @@ Implemented so far:
 - dashboard shows top risk clients watchlist
 - dashboard shortcut links show operational section counts
 - dashboard watchlists link next actions to mission sections
+- dashboard mission rows link preparation actions to mission sections
 - dashboard shows review backlog clients watchlist
 - dashboard client list shows per-client preparation counts
 - dashboard client list shows per-client finding review counts

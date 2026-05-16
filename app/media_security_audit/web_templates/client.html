@@ -17,6 +17,13 @@
   <div class="metric"><span>Blocked prep</span><strong>{{ view.blocked_preparation_count }}</strong></div>
 </section>
 
+<section class="page-shortcuts" aria-label="Client shortcuts">
+  <a href="#client-dispositions">Dispositions <span>{{ view.finding_dispositions|length }}</span></a>
+  <a href="#client-preparation">Preparation <span>{{ view.preparation_items|length }}</span></a>
+  <a href="#client-activity">Activity <span>{{ view.recent_activity_events|length }}</span></a>
+  <a href="#client-missions">Missions <span>{{ view.missions|length }}</span></a>
+</section>
+
 {% if view.client.notes %}
 <section class="callout">
   <h2>Notes</h2>
@@ -24,7 +31,7 @@
 </section>
 {% endif %}
 
-<section class="section">
+<section class="section" id="client-dispositions">
   <div class="section-title">
     <h2>Finding Dispositions</h2>
     <span class="muted">Client review status</span>
@@ -39,7 +46,7 @@
   </div>
 </section>
 
-<section class="section">
+<section class="section" id="client-preparation">
   <div class="section-title">
     <h2>Preparation</h2>
     <span class="muted">
@@ -83,7 +90,7 @@
   </div>
 </section>
 
-<section class="section">
+<section class="section" id="client-activity">
   <div class="section-title">
     <h2>Recent Activity</h2>
     <div class="report-links" aria-label="Client activity log">
@@ -106,7 +113,7 @@
   </div>
 </section>
 
-<section class="section">
+<section class="section" id="client-missions">
   <div class="section-title">
     <h2>Missions</h2>
     <span class="muted">Created {{ view.client.created_at }}</span>

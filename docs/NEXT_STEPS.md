@@ -108,6 +108,7 @@ Codex action:
 - keep mission table preparation actions aligned with the same workflow anchors
 - keep client preparation tables aligned with the same mission workflow anchors
 - keep mission detail shortcuts aligned with stable workflow section anchors
+- keep client detail shortcuts aligned with stable client workflow anchors
 
 ## Step 2.2 - Nmap Dry-Run Planning
 

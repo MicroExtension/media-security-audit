@@ -95,6 +95,23 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("mission.preparation_action_href", template)
         self.assertIn("mission.preparation_action_label", template)
 
+        for anchor in [
+            "client-dispositions",
+            "client-preparation",
+            "client-activity",
+            "client-missions",
+        ]:
+            self.assertIn(f'href="#{anchor}"', template)
+            self.assertIn(f'id="{anchor}"', template)
+
+        for counter in [
+            "view.finding_dispositions|length",
+            "view.preparation_items|length",
+            "view.recent_activity_events|length",
+            "view.missions|length",
+        ]:
+            self.assertIn(f"{{{{ {counter} }}}}", template)
+
     def test_mission_template_exposes_shortcut_anchors(self) -> None:
         template_path = (
             Path(__file__).resolve().parents[1]

@@ -150,6 +150,9 @@ class WebUiTests(unittest.TestCase):
         ]:
             self.assertIn(f"{{{{ {counter} }}}}", template)
 
+        self.assertIn('href="/clients/{{ view.mission.client_id }}"', template)
+        self.assertIn('href="{{ view.activity_log_url }}"', template)
+
     def test_dashboard_view_summarizes_clients_missions_and_findings(self) -> None:
         store = JsonStore(clean_data_dir("web-ui-dashboard"))
         client = store.create_client(Client(name="Client X", internal_reference="CX"))
@@ -946,6 +949,7 @@ class WebUiTests(unittest.TestCase):
         view = build_mission_view(store, mission.id)
 
         self.assertEqual(view.mission.client_name, "Client Y")
+        self.assertEqual(view.activity_log_url, f"/activity?mission_id={mission.id}")
         self.assertEqual(view.mission.audit_template_id, "tpl_internal_hygiene")
         self.assertEqual(view.mission.audit_template_title, "Internal Network Hygiene")
         self.assertIsNotNone(view.template_guidance)

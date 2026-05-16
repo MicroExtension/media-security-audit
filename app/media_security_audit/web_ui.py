@@ -299,6 +299,7 @@ class ClientView:
 @dataclass(frozen=True)
 class MissionView:
     mission: MissionRow
+    activity_log_url: str
     scope: list[ScopeRow]
     findings: list[FindingRow]
     finding_dispositions: list[FindingDispositionRow]
@@ -697,6 +698,10 @@ def client_activity_log_url(client_id: str) -> str:
     return f"/activity?{urlencode({'client_id': client_id})}"
 
 
+def mission_activity_log_url(mission_id: str) -> str:
+    return f"/activity?{urlencode({'mission_id': mission_id})}"
+
+
 def client_preparation_row(mission: Mission, findings: list[Finding]) -> ClientPreparationRow:
     preparation = mission_preparation_summary(mission, findings)
 
@@ -1057,6 +1062,7 @@ def build_mission_view(
 
     return MissionView(
         mission=mission_row(mission, findings, client_name_by_id(store)),
+        activity_log_url=mission_activity_log_url(mission.id),
         scope=[scope_row(item) for item in mission.scope],
         findings=[finding_row(finding) for finding in sorted_findings(findings)],
         finding_dispositions=finding_disposition_rows(findings),

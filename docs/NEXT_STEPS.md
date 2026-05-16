@@ -104,6 +104,7 @@ Codex action:
 - keep report output deterministic
 - prepare report templates for future branding
 - keep dashboard shortcuts tied to existing operational section counts
+- keep dashboard action links anchored to the right mission workflow sections
 
 ## Step 2.2 - Nmap Dry-Run Planning
 

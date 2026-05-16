@@ -55,6 +55,7 @@
         <tr>
           <th>Mission</th>
           <th>Client</th>
+          <th>Action</th>
           <th>Authorization</th>
           <th>Scope</th>
           <th>Checks</th>
@@ -65,12 +66,13 @@
         <tr>
           <td><a href="/missions/{{ item.mission_id }}">{{ item.mission_name }}</a></td>
           <td><a href="/clients/{{ item.client_id }}">{{ item.client_name }}</a></td>
+          <td><a class="table-action" href="{{ item.next_action_href }}">{{ item.next_action_label }}</a></td>
           <td><span class="status status-{{ item.authorization_status }}">{{ item.authorization_status }}</span></td>
           <td><span class="status status-{{ item.scope_status }}">{{ item.scope_status }}</span></td>
           <td><span class="status status-{{ item.check_status }}">{{ item.check_status }}</span></td>
         </tr>
         {% else %}
-        <tr><td colspan="5" class="empty">No ready mission found.</td></tr>
+        <tr><td colspan="6" class="empty">No ready mission found.</td></tr>
         {% endfor %}
       </tbody>
     </table>
@@ -89,6 +91,7 @@
           <th>Mission</th>
           <th>Client</th>
           <th>Next Action</th>
+          <th>Action</th>
           <th>Authorization</th>
           <th>Scope</th>
           <th>Checks</th>
@@ -100,12 +103,13 @@
           <td><a href="/missions/{{ item.mission_id }}">{{ item.mission_name }}</a></td>
           <td><a href="/clients/{{ item.client_id }}">{{ item.client_name }}</a></td>
           <td>{{ item.next_action }}</td>
+          <td><a class="table-action" href="{{ item.next_action_href }}">{{ item.next_action_label }}</a></td>
           <td><span class="status status-{{ item.authorization_status }}">{{ item.authorization_status }}</span></td>
           <td><span class="status status-{{ item.scope_status }}">{{ item.scope_status }}</span></td>
           <td><span class="status status-{{ item.check_status }}">{{ item.check_status }}</span></td>
         </tr>
         {% else %}
-        <tr><td colspan="6" class="empty">No review mission found.</td></tr>
+        <tr><td colspan="7" class="empty">No review mission found.</td></tr>
         {% endfor %}
       </tbody>
     </table>
@@ -124,6 +128,7 @@
           <th>Mission</th>
           <th>Client</th>
           <th>Next Action</th>
+          <th>Action</th>
           <th>Authorization</th>
           <th>Scope</th>
           <th>Checks</th>
@@ -135,12 +140,13 @@
           <td><a href="/missions/{{ item.mission_id }}">{{ item.mission_name }}</a></td>
           <td><a href="/clients/{{ item.client_id }}">{{ item.client_name }}</a></td>
           <td>{{ item.next_action }}</td>
+          <td><a class="table-action" href="{{ item.next_action_href }}">{{ item.next_action_label }}</a></td>
           <td><span class="status status-{{ item.authorization_status }}">{{ item.authorization_status }}</span></td>
           <td><span class="status status-{{ item.scope_status }}">{{ item.scope_status }}</span></td>
           <td><span class="status status-{{ item.check_status }}">{{ item.check_status }}</span></td>
         </tr>
         {% else %}
-        <tr><td colspan="6" class="empty">No blocked mission found.</td></tr>
+        <tr><td colspan="7" class="empty">No blocked mission found.</td></tr>
         {% endfor %}
       </tbody>
     </table>
@@ -166,7 +172,12 @@
         <tr>
           <td><a href="/clients/{{ client.id }}">{{ client.name }}</a></td>
           <td>{{ client.reference or "-" }}</td>
-          <td>{{ client.next_action }}</td>
+          <td>
+            {{ client.next_action }}
+            <span class="muted block">
+              <a class="table-action" href="{{ client.next_action_href }}">{{ client.next_action_label }}</a>
+            </span>
+          </td>
         </tr>
         {% else %}
         <tr><td colspan="3" class="empty">No client without mission found.</td></tr>
@@ -201,6 +212,9 @@
           <td>{{ client.ready_preparation_count }}</td>
           <td>
             {{ client.next_action }}
+            <span class="muted block">
+              <a class="table-action" href="{{ client.next_action_href }}">{{ client.next_action_label }}</a>
+            </span>
             {% if client.next_action_mission_id %}
             <span class="muted block">
               <a href="/missions/{{ client.next_action_mission_id }}">{{ client.next_action_mission_name }}</a>
@@ -256,6 +270,9 @@
           <td>{{ client.high_or_critical_finding_count }}</td>
           <td>
             {{ client.next_action }}
+            <span class="muted block">
+              <a class="table-action" href="{{ client.next_action_href }}">{{ client.next_action_label }}</a>
+            </span>
             {% if client.next_action_mission_id %}
             <span class="muted block">
               <a href="/missions/{{ client.next_action_mission_id }}">{{ client.next_action_mission_name }}</a>
@@ -298,6 +315,9 @@
           <td><span class="risk risk-{{ client.risk_level }}">{{ client.risk_score }}/100</span></td>
           <td>
             {{ client.next_action }}
+            <span class="muted block">
+              <a class="table-action" href="{{ client.next_action_href }}">{{ client.next_action_label }}</a>
+            </span>
             {% if client.next_action_mission_id %}
             <span class="muted block">
               <a href="/missions/{{ client.next_action_mission_id }}">{{ client.next_action_mission_name }}</a>
@@ -356,7 +376,12 @@
           <td><a href="/missions/{{ item.mission_id }}">{{ item.mission_name }}</a></td>
           <td><a href="/clients/{{ item.client_id }}">{{ item.client_name }}</a></td>
           <td><span class="status status-{{ item.status }}">{{ item.status }}</span></td>
-          <td>{{ item.next_action }}</td>
+          <td>
+            {{ item.next_action }}
+            <span class="muted block">
+              <a class="table-action" href="{{ item.next_action_href }}">{{ item.next_action_label }}</a>
+            </span>
+          </td>
           <td><span class="status status-{{ item.authorization_status }}">{{ item.authorization_status }}</span></td>
           <td><span class="status status-{{ item.scope_status }}">{{ item.scope_status }}</span></td>
           <td><span class="status status-{{ item.check_status }}">{{ item.check_status }}</span></td>
@@ -370,7 +395,7 @@
 </section>
 
 <section class="section form-layout">
-  <form class="form-panel" method="post" action="/clients">
+  <form class="form-panel" id="new-client" method="post" action="/clients">
     <input type="hidden" name="_csrf" value="{{ form_token }}">
     <div class="section-title">
       <h2>New Client</h2>
@@ -394,7 +419,7 @@
     </div>
   </form>
 
-  <form class="form-panel" method="post" action="/missions">
+  <form class="form-panel" id="new-mission" method="post" action="/missions">
     <input type="hidden" name="_csrf" value="{{ form_token }}">
     <div class="section-title">
       <h2>New Mission</h2>
@@ -556,6 +581,9 @@
           </td>
           <td>
             {{ client.next_action }}
+            <span class="muted block">
+              <a class="table-action" href="{{ client.next_action_href }}">{{ client.next_action_label }}</a>
+            </span>
             {% if client.next_action_mission_id %}
             <span class="muted block">
               <a href="/missions/{{ client.next_action_mission_id }}">{{ client.next_action_mission_name }}</a>

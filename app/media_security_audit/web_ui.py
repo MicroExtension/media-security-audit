@@ -53,6 +53,8 @@ class ClientRow:
     mission_count: int
     preparation_priority: str
     next_action: str
+    next_action_label: str
+    next_action_href: str
     next_action_mission_id: str
     next_action_mission_name: str
     blocked_preparation_count: int
@@ -80,6 +82,8 @@ class ClientDetail:
 class MissionPreparationSummary:
     status: str
     next_action: str
+    next_action_label: str
+    next_action_anchor: str
     authorization_status: str
     scope_status: str
     check_status: str
@@ -190,6 +194,8 @@ class ClientPreparationRow:
     mission_name: str
     status: str
     next_action: str
+    next_action_label: str
+    next_action_href: str
     authorization_status: str
     scope_status: str
     check_status: str
@@ -205,6 +211,8 @@ class DashboardPreparationRow:
     mission_name: str
     status: str
     next_action: str
+    next_action_label: str
+    next_action_href: str
     authorization_status: str
     scope_status: str
     check_status: str
@@ -413,16 +421,31 @@ def mission_preparation_summary(
     if blocked_actions:
         status = "blocked"
         next_action = blocked_actions[0]
+        if not mission.is_authorized:
+            next_action_label = "Open Setup"
+            next_action_anchor = "mission-setup"
+        elif approved_scope_count == 0:
+            next_action_label = "Review Scope"
+            next_action_anchor = "scope"
+        else:
+            next_action_label = "Select Checks"
+            next_action_anchor = "check-selection"
     elif warning_actions:
         status = "warning"
         next_action = warning_actions[0]
+        next_action_label = "Review Findings"
+        next_action_anchor = "findings"
     else:
         status = "ready"
         next_action = "Ready for guarded CLI execution or reporting."
+        next_action_label = "Open Reports"
+        next_action_anchor = "reports"
 
     return MissionPreparationSummary(
         status=status,
         next_action=next_action,
+        next_action_label=next_action_label,
+        next_action_anchor=next_action_anchor,
         authorization_status="ready" if mission.is_authorized else "missing",
         scope_status="ready" if approved_scope_count else "missing",
         check_status="ready" if mission.selected_checks else "missing",
@@ -678,6 +701,8 @@ def client_preparation_row(mission: Mission, findings: list[Finding]) -> ClientP
         mission_name=mission.name,
         status=preparation.status,
         next_action=preparation.next_action,
+        next_action_label=preparation.next_action_label,
+        next_action_href=f"/missions/{mission.id}#{preparation.next_action_anchor}",
         authorization_status=preparation.authorization_status,
         scope_status=preparation.scope_status,
         check_status=preparation.check_status,
@@ -699,6 +724,8 @@ def dashboard_preparation_row(
         mission_name=preparation.mission_name,
         status=preparation.status,
         next_action=preparation.next_action,
+        next_action_label=preparation.next_action_label,
+        next_action_href=preparation.next_action_href,
         authorization_status=preparation.authorization_status,
         scope_status=preparation.scope_status,
         check_status=preparation.check_status,
@@ -707,9 +734,16 @@ def dashboard_preparation_row(
 
 def client_priority_action(
     preparation_rows: list[tuple[int, datetime, str, DashboardPreparationRow]],
-) -> tuple[str, str, str, str]:
+) -> tuple[str, str, str, str, str, str]:
     if not preparation_rows:
-        return "none", "Create first mission for this client.", "", ""
+        return (
+            "none",
+            "Create first mission for this client.",
+            "",
+            "",
+            "Create Mission",
+            "#new-mission",
+        )
 
     sorted_rows = sorted(preparation_rows, key=lambda item: (item[0], item[1], item[2]))
     preparation = sorted_rows[0][3]
@@ -718,6 +752,8 @@ def client_priority_action(
         preparation.next_action,
         preparation.mission_id,
         preparation.mission_name,
+        preparation.next_action_label,
+        preparation.next_action_href,
     )
 
 
@@ -837,7 +873,14 @@ def build_dashboard_view(store: JsonStore) -> DashboardView:
 
     client_rows: list[ClientRow] = []
     for client in clients:
-        priority, next_action, mission_id, mission_name = client_priority_action(
+        (
+            priority,
+            next_action,
+            mission_id,
+            mission_name,
+            next_action_label,
+            next_action_href,
+        ) = client_priority_action(
             preparation_rows_by_client.get(client.id, [])
         )
         findings = client_findings.get(client.id, [])
@@ -851,6 +894,8 @@ def build_dashboard_view(store: JsonStore) -> DashboardView:
                 mission_count=mission_counts.get(client.id, 0),
                 preparation_priority=priority,
                 next_action=next_action,
+                next_action_label=next_action_label,
+                next_action_href=next_action_href,
                 next_action_mission_id=mission_id,
                 next_action_mission_name=mission_name,
                 blocked_preparation_count=preparation_counts.get(client.id, {}).get(

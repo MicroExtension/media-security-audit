@@ -75,6 +75,10 @@ class WebUiTests(unittest.TestCase):
         ]:
             self.assertIn(f"{{{{ {counter} }}}}", template)
 
+        self.assertIn('id="new-mission"', template)
+        self.assertIn("item.next_action_href", template)
+        self.assertIn("client.next_action_href", template)
+
     def test_dashboard_view_summarizes_clients_missions_and_findings(self) -> None:
         store = JsonStore(clean_data_dir("web-ui-dashboard"))
         client = store.create_client(Client(name="Client X", internal_reference="CX"))
@@ -124,6 +128,11 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(view.clients[0].mission_count, 1)
         self.assertEqual(view.clients[0].preparation_priority, "warning")
         self.assertEqual(view.clients[0].next_action, "Review 1 new finding(s).")
+        self.assertEqual(view.clients[0].next_action_label, "Review Findings")
+        self.assertEqual(
+            view.clients[0].next_action_href,
+            f"/missions/{mission.id}#findings",
+        )
         self.assertEqual(view.clients[0].next_action_mission_id, mission.id)
         self.assertEqual(view.clients[0].next_action_mission_name, "External Audit")
         self.assertEqual(view.clients[0].blocked_preparation_count, 0)
@@ -165,6 +174,11 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(
             view.preparation_items[0].next_action,
             "Review 1 new finding(s).",
+        )
+        self.assertEqual(view.preparation_items[0].next_action_label, "Review Findings")
+        self.assertEqual(
+            view.preparation_items[0].next_action_href,
+            f"/missions/{mission.id}#findings",
         )
 
     def test_dashboard_view_builds_workspace_preparation_summary(self) -> None:
@@ -241,6 +255,11 @@ class WebUiTests(unittest.TestCase):
             [ready_mission.id],
         )
         self.assertEqual(view.ready_missions[0].client_name, "Client A")
+        self.assertEqual(view.ready_missions[0].next_action_label, "Open Reports")
+        self.assertEqual(
+            view.ready_missions[0].next_action_href,
+            f"/missions/{ready_mission.id}#reports",
+        )
         self.assertEqual(
             [item.mission_id for item in view.review_missions],
             [warning_mission.id],
@@ -256,6 +275,11 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(
             view.blocked_missions[0].next_action,
             "Add written authorization reference.",
+        )
+        self.assertEqual(view.blocked_missions[0].next_action_label, "Open Setup")
+        self.assertEqual(
+            view.blocked_missions[0].next_action_href,
+            f"/missions/{blocked_mission.id}#mission-setup",
         )
         self.assertEqual(view.preparation_items[0].mission_id, blocked_mission.id)
         self.assertEqual(view.preparation_items[0].client_name, "Client B")
@@ -282,6 +306,8 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(client_rows["Client B"].ready_preparation_count, 0)
         self.assertEqual(client_rows["Client C"].preparation_priority, "none")
         self.assertEqual(client_rows["Client C"].next_action, "Create first mission for this client.")
+        self.assertEqual(client_rows["Client C"].next_action_label, "Create Mission")
+        self.assertEqual(client_rows["Client C"].next_action_href, "#new-mission")
         self.assertEqual(client_rows["Client C"].next_action_mission_id, "")
         self.assertEqual([client.name for client in view.no_mission_clients], ["Client C"])
         self.assertEqual(
@@ -290,6 +316,51 @@ class WebUiTests(unittest.TestCase):
         )
         self.assertEqual([client.name for client in view.blocked_clients], ["Client B"])
         self.assertEqual(view.blocked_clients[0].next_action_mission_id, blocked_mission.id)
+
+    def test_dashboard_action_links_target_preparation_sections(self) -> None:
+        store = JsonStore(clean_data_dir("web-ui-dashboard-action-links"))
+        client = store.create_client(Client(name="Client Action Links"))
+        scope_mission = store.create_mission(
+            Mission(
+                client_id=client.id,
+                name="Needs Scope",
+                authorization_reference="AUTH-SCOPE",
+            )
+        )
+        checks_mission = store.create_mission(
+            Mission(
+                client_id=client.id,
+                name="Needs Checks",
+                authorization_reference="AUTH-CHECKS",
+                selected_checks=[],
+            )
+        )
+        store.add_scope_item(
+            checks_mission.id,
+            ScopeItem(type=ScopeType.IP, value="192.0.2.55", approved=True),
+        )
+
+        view = build_dashboard_view(store)
+        items = {item.mission_name: item for item in view.preparation_items}
+
+        self.assertEqual(
+            items["Needs Scope"].next_action,
+            "Approve at least one scope target.",
+        )
+        self.assertEqual(items["Needs Scope"].next_action_label, "Review Scope")
+        self.assertEqual(
+            items["Needs Scope"].next_action_href,
+            f"/missions/{scope_mission.id}#scope",
+        )
+        self.assertEqual(
+            items["Needs Checks"].next_action,
+            "Select audit checks for planning.",
+        )
+        self.assertEqual(items["Needs Checks"].next_action_label, "Select Checks")
+        self.assertEqual(
+            items["Needs Checks"].next_action_href,
+            f"/missions/{checks_mission.id}#check-selection",
+        )
 
     def test_dashboard_client_rows_include_review_and_risk_counts(self) -> None:
         store = JsonStore(clean_data_dir("web-ui-client-row-review-counts"))
@@ -728,6 +799,11 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(blocked.check_status, "missing")
         self.assertEqual(blocked.blocked_count, 3)
         self.assertEqual(blocked.next_action, "Add written authorization reference.")
+        self.assertEqual(blocked.next_action_label, "Open Setup")
+        self.assertEqual(
+            blocked.next_action_href,
+            f"/missions/{blocked.mission_id}#mission-setup",
+        )
         warning = view.preparation_items[1]
         self.assertEqual(warning.warning_count, 1)
         self.assertEqual(warning.next_action, "Review 1 new finding(s).")

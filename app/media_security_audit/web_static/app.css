@@ -699,6 +699,12 @@ textarea:focus {
   text-decoration: none;
 }
 
+.table-action {
+  display: inline-flex;
+  font-weight: 700;
+  margin-top: 4px;
+}
+
 .remediation-list {
   background: var(--surface);
   border: 1px solid var(--border);

@@ -93,6 +93,7 @@ Implemented so far:
 - system status pages expose shortcuts for auth, storage, inventory, backup, and tools
 - top navigation marks the active workspace area
 - shared layout exposes a keyboard skip link to main content
+- shared web styles expose visible keyboard focus states
 - dashboard shows review backlog clients watchlist
 - dashboard client list shows per-client preparation counts
 - dashboard client list shows per-client finding review counts

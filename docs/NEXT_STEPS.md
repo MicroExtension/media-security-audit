@@ -119,6 +119,7 @@ Codex action:
 - keep top navigation active states aligned with stable route groups
 - keep shared accessibility helpers available across all web pages
 - keep visible keyboard focus styles consistent across links, buttons, and forms
+- keep shared navigation, alert, and footer landmarks accessible
 
 ## Step 2.2 - Nmap Dry-Run Planning
 

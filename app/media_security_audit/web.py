@@ -63,6 +63,7 @@ from media_security_audit.web_forms import (
     validate_form_token,
 )
 from media_security_audit.web_exports import generate_mission_export, mission_export_file
+from media_security_audit.web_health import build_health_status, health_status_code
 from media_security_audit.web_reports import generate_web_reports, generated_report_file
 from media_security_audit.web_system import build_system_status
 
@@ -116,7 +117,7 @@ def create_web_app(
 ):
     try:
         from fastapi import Depends, FastAPI, HTTPException, Request
-        from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, Response
+        from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse, Response
         from fastapi.security import HTTPBasic, HTTPBasicCredentials
         from fastapi.staticfiles import StaticFiles
     except ModuleNotFoundError as error:
@@ -625,8 +626,9 @@ def create_web_app(
         return HTMLResponse(render_html(mission, findings))
 
     @app.get("/healthz")
-    def healthz() -> dict[str, str]:
-        return {"status": "ok"}
+    def healthz() -> JSONResponse:
+        payload = build_health_status(data_dir, reports_dir)
+        return JSONResponse(content=payload, status_code=health_status_code(payload))
 
     @app.get("/missions", dependencies=protected)
     def missions_redirect() -> RedirectResponse:

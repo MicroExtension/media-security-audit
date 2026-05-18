@@ -100,6 +100,7 @@ Implemented so far:
 - web forms expose accessible names across operational pages
 - grouped checkbox controls expose explicit form legends
 - required form fields show consistent visual indicators
+- healthcheck reports persistent storage readiness for deployments
 - dashboard shows review backlog clients watchlist
 - dashboard client list shows per-client preparation counts
 - dashboard client list shows per-client finding review counts

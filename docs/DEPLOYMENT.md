@@ -10,6 +10,7 @@ Recommended first target:
 - Docker Compose for runtime packaging
 - local web UI on port `8080`
 - persistent local folders for data, evidence, runs, and reports
+- local `/healthz` endpoint for Docker and VM readiness monitoring
 
 ## Hosting Model
 
@@ -23,6 +24,10 @@ GitHub private repo -> local VM -> Docker Compose -> local web UI
 
 Do not expose the UI directly to the public internet. If remote access is
 required, use VPN, bastion access, or another controlled administration path.
+
+The `/healthz` endpoint is intentionally unauthenticated and only returns
+coarse service and storage readiness statuses. It does not expose customer data
+or absolute filesystem paths.
 
 ## VM Baseline
 

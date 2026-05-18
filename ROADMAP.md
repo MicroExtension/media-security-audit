@@ -110,6 +110,7 @@ Current foundation:
 - accessible form labels started
 - accessible form field groups started
 - required field indicators started
+- deployment healthcheck detail started
 - template guidance in authorization briefs started
 - enriched mission export manifest started
 - mission export checksum manifest started
@@ -167,6 +168,7 @@ Current foundation:
 - persistent `data`, `runs`, `reports`, and `evidence` folders defined
 - deployment guide started in `docs/DEPLOYMENT.md`
 - external tool availability status started in the web UI
+- deployment healthcheck reports storage readiness
 - mission ZIP export package started
 - workspace backup ZIP export started
 - workspace integrity diagnostics started
@@ -201,6 +203,7 @@ Success criteria:
 - data, evidence, and reports persist across restarts
 - backup/export is available
 - external tool status is visible in the UI
+- deployment healthcheck reports coarse storage readiness
 
 ## Future MSP Differentiators
 

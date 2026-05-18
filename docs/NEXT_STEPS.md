@@ -125,6 +125,7 @@ Codex action:
 - keep form accessible names aligned with their workflow action
 - keep grouped checkbox controls associated with explicit legends
 - keep required form fields visibly marked in operational workflows
+- keep deployment healthchecks coarse and free of sensitive customer data
 
 ## Step 2.2 - Nmap Dry-Run Planning
 
@@ -284,6 +285,8 @@ firewall or VPN.
 
 Docker deployments now also require `MEDIA_AUDIT_WEB_PASSWORD` in `.env`.
 Keep `MEDIA_AUDIT_REQUIRE_AUTH=true` for customer VMs.
+The unauthenticated `/healthz` endpoint only reports coarse service and storage
+readiness and is intended for local Docker/VM health monitoring.
 
 ## Step 6 - Build The GUI
 

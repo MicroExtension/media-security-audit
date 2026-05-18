@@ -12,6 +12,7 @@ from media_security_audit import __version__
 from media_security_audit.deployment_preflight import (
     build_deployment_preflight,
     format_deployment_preflight,
+    format_deployment_preflight_json,
     preflight_exit_code,
 )
 from media_security_audit.models import (
@@ -530,10 +531,16 @@ try:
     def preflight(
         data_dir: Path = typer.Option(Path("data"), "--data-dir"),
         reports_dir: Path = typer.Option(Path("reports"), "--reports-dir"),
+        output_format: str = typer.Option("text", "--format"),
     ) -> None:
         """Check local deployment readiness without running scans."""
+        if output_format not in {"text", "json"}:
+            raise typer.BadParameter("--format must be text or json")
         result = build_deployment_preflight(data_dir=data_dir, reports_dir=reports_dir)
-        typer.echo(format_deployment_preflight(result))
+        if output_format == "json":
+            typer.echo(format_deployment_preflight_json(result))
+        else:
+            typer.echo(format_deployment_preflight(result))
         exit_code = preflight_exit_code(result)
         if exit_code:
             raise typer.Exit(code=exit_code)
@@ -799,6 +806,7 @@ except ModuleNotFoundError:
         )
         preflight_parser.add_argument("--data-dir", type=Path, default=Path("data"))
         preflight_parser.add_argument("--reports-dir", type=Path, default=Path("reports"))
+        preflight_parser.add_argument("--format", choices=["text", "json"], default="text")
 
         client_parser = subparsers.add_parser("client", help="Manage clients.")
         client_subparsers = client_parser.add_subparsers(dest="client_command")
@@ -950,7 +958,10 @@ except ModuleNotFoundError:
                     data_dir=args.data_dir,
                     reports_dir=args.reports_dir,
                 )
-                print(format_deployment_preflight(result))
+                if args.format == "json":
+                    print(format_deployment_preflight_json(result))
+                else:
+                    print(format_deployment_preflight(result))
                 exit_code = preflight_exit_code(result)
                 if exit_code:
                     raise SystemExit(exit_code)

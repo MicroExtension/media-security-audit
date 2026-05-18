@@ -102,6 +102,7 @@ Implemented so far:
 - required form fields show consistent visual indicators
 - healthcheck reports persistent storage readiness for deployments
 - CLI preflight reports local deployment readiness without running scans
+- CLI preflight supports JSON output for automation
 - dashboard shows review backlog clients watchlist
 - dashboard client list shows per-client preparation counts
 - dashboard client list shows per-client finding review counts
@@ -302,6 +303,7 @@ Local deployment preflight:
 
 ```bash
 media-audit preflight --data-dir data --reports-dir reports
+media-audit preflight --data-dir data --reports-dir reports --format json
 ```
 
 Default URL:

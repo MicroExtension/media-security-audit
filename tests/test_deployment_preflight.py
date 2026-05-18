@@ -1,4 +1,5 @@
 from pathlib import Path
+import json
 import shutil
 import unittest
 
@@ -9,6 +10,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "app"))
 from media_security_audit.deployment_preflight import (  # noqa: E402
     build_deployment_preflight,
     format_deployment_preflight,
+    format_deployment_preflight_json,
     preflight_exit_code,
 )
 from media_security_audit.web_auth import WebAuthSettings  # noqa: E402
@@ -104,6 +106,31 @@ class DeploymentPreflightTests(unittest.TestCase):
         self.assertEqual(preflight_exit_code(preflight), 0)
         self.assertTrue(any(item.category == "auth" for item in preflight.items))
         self.assertTrue(any(item.status == "missing" for item in preflight.items))
+
+    def test_preflight_formats_json_for_automation(self) -> None:
+        root = clean_dir("deployment-preflight-json")
+        data_dir = root / "data"
+        reports_dir = root / "reports"
+        data_dir.mkdir(parents=True)
+        reports_dir.mkdir()
+
+        preflight = build_deployment_preflight(
+            data_dir=data_dir,
+            reports_dir=reports_dir,
+            auth_settings=WebAuthSettings(
+                enabled=True,
+                username="operator",
+                password="long-secure-password",
+            ),
+            tool_resolver=lambda command: f"/usr/bin/{command}",
+        )
+
+        payload = json.loads(format_deployment_preflight_json(preflight))
+
+        self.assertEqual(payload["status"], "ready")
+        self.assertEqual(payload["items"][0]["category"], "auth")
+        self.assertEqual(payload["items"][0]["status"], "ready")
+        self.assertNotIn(str(data_dir), json.dumps(payload))
 
 
 if __name__ == "__main__":

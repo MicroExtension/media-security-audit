@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import shutil
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -105,8 +106,27 @@ def preflight_exit_code(preflight: DeploymentPreflight) -> int:
     return 1 if preflight.status == "blocked" else 0
 
 
+def deployment_preflight_payload(preflight: DeploymentPreflight) -> dict[str, object]:
+    return {
+        "status": preflight.status,
+        "items": [
+            {
+                "category": item.category,
+                "label": item.label,
+                "status": item.status,
+                "detail": item.detail,
+            }
+            for item in preflight.items
+        ],
+    }
+
+
 def format_deployment_preflight(preflight: DeploymentPreflight) -> str:
     lines = [f"Deployment preflight: {preflight.status}"]
     for item in preflight.items:
         lines.append(f"[{item.status}] {item.category}: {item.label} - {item.detail}")
     return "\n".join(lines)
+
+
+def format_deployment_preflight_json(preflight: DeploymentPreflight) -> str:
+    return json.dumps(deployment_preflight_payload(preflight), indent=2, sort_keys=True)

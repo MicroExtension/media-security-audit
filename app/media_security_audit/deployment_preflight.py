@@ -102,8 +102,12 @@ def overall_status(items: list[PreflightItem]) -> str:
     return "ready"
 
 
-def preflight_exit_code(preflight: DeploymentPreflight) -> int:
-    return 1 if preflight.status == "blocked" else 0
+def preflight_exit_code(preflight: DeploymentPreflight, strict: bool = False) -> int:
+    if preflight.status == "blocked":
+        return 1
+    if strict and preflight.status == "warning":
+        return 1
+    return 0
 
 
 def deployment_preflight_payload(preflight: DeploymentPreflight) -> dict[str, object]:

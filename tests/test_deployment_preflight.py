@@ -104,6 +104,7 @@ class DeploymentPreflightTests(unittest.TestCase):
 
         self.assertEqual(preflight.status, "warning")
         self.assertEqual(preflight_exit_code(preflight), 0)
+        self.assertEqual(preflight_exit_code(preflight, strict=True), 1)
         self.assertTrue(any(item.category == "auth" for item in preflight.items))
         self.assertTrue(any(item.status == "missing" for item in preflight.items))
 

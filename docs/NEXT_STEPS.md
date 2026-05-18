@@ -128,6 +128,7 @@ Codex action:
 - keep deployment healthchecks coarse and free of sensitive customer data
 - keep deployment preflight checks non-destructive and scanner-free
 - keep deployment preflight JSON output stable for automation
+- keep deployment preflight strict mode opt-in for install gates
 
 ## Step 2.2 - Nmap Dry-Run Planning
 
@@ -294,6 +295,7 @@ customer use to verify storage, web authentication settings, inventory, and
 external tool availability without running scans.
 Use `--format json` when the result must be consumed by an install script or
 monitoring wrapper.
+Use `--strict` when warnings should fail an install gate.
 
 ## Step 6 - Build The GUI
 

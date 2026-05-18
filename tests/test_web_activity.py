@@ -43,6 +43,9 @@ class WebActivityTests(unittest.TestCase):
 
         self.assertIn('href="{{ row.client_url }}"', template)
         self.assertIn('href="{{ row.mission_url }}"', template)
+        self.assertIn("{% if view.has_filters %}", template)
+        self.assertIn("view.active_filters", template)
+        self.assertIn('href="{{ view.clear_filters_url }}"', template)
 
     def test_builds_activity_log_view_across_missions(self) -> None:
         store = JsonStore(clean_dir("web-activity-view"))
@@ -79,6 +82,9 @@ class WebActivityTests(unittest.TestCase):
         self.assertEqual(view.query, "")
         self.assertEqual(view.date_from_filter, "")
         self.assertEqual(view.date_to_filter, "")
+        self.assertFalse(view.has_filters)
+        self.assertEqual(view.active_filters, [])
+        self.assertEqual(view.clear_filters_url, "/activity")
         self.assertEqual(view.actions, ["mission.created", "scope.added"])
         self.assertEqual([option.label for option in view.clients], ["Client A", "Client B"])
         self.assertEqual(
@@ -189,6 +195,15 @@ class WebActivityTests(unittest.TestCase):
         self.assertEqual(view.visible_events, 1)
         self.assertEqual(view.client_filter, client_b.id)
         self.assertEqual(view.mission_filter, mission_b.id)
+        self.assertTrue(view.has_filters)
+        self.assertEqual(
+            [(item.label, item.value, item.url) for item in view.active_filters],
+            [
+                ("Client", "Client B", f"/clients/{client_b.id}"),
+                ("Mission", "Client B / Audit B", f"/missions/{mission_b.id}"),
+            ],
+        )
+        self.assertEqual(view.clear_filters_url, "/activity")
         self.assertEqual(
             view.export_links[0].url,
             f"/activity/export/json?client_id={client_b.id}&mission_id={mission_b.id}",

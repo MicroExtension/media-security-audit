@@ -17,6 +17,35 @@ def clean_data_dir(name: str) -> Path:
 
 
 class WebSystemTests(unittest.TestCase):
+    def test_system_template_exposes_shortcut_anchors(self) -> None:
+        template_path = (
+            Path(__file__).resolve().parents[1]
+            / "app"
+            / "media_security_audit"
+            / "web_templates"
+            / "system.html"
+        )
+        template = template_path.read_text(encoding="utf-8")
+
+        for anchor in [
+            "system-auth",
+            "system-storage",
+            "system-inventory",
+            "system-backup",
+            "system-tools",
+        ]:
+            self.assertIn(f'href="#{anchor}"', template)
+            self.assertIn(f'id="{anchor}"', template)
+
+        for counter in [
+            "view.auth.status",
+            "view.paths | length",
+            "view.inventory.status",
+            '"ready" if view.workspace_backup else "none"',
+            "view.tools | length",
+        ]:
+            self.assertIn(f"{{{{ {counter} }}}}", template)
+
     def test_builds_local_system_status_without_running_tools(self) -> None:
         data_dir = clean_data_dir("web-system-status")
         reports_dir = data_dir / "reports"

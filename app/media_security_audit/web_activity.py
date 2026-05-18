@@ -41,6 +41,8 @@ class ActivityLogRow:
     id: str
     client_id: str
     mission_id: str
+    client_url: str
+    mission_url: str
     mission_name: str
     client_name: str
     action: str
@@ -106,6 +108,8 @@ def build_activity_log_view(
                     id=event.id,
                     client_id=mission.client_id,
                     mission_id=mission.id,
+                    client_url=f"/clients/{mission.client_id}",
+                    mission_url=f"/missions/{mission.id}",
                     mission_name=mission.name,
                     client_name=client_names.get(mission.client_id, mission.client_id),
                     action=event.action,

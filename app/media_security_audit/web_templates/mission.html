@@ -167,7 +167,7 @@
     <h2>Check Selection</h2>
     <span class="muted">Planning only</span>
   </div>
-  <form class="form-panel" method="post" action="/missions/{{ view.mission.id }}/checks">
+  <form class="form-panel" method="post" action="/missions/{{ view.mission.id }}/checks" aria-label="Update mission check selection">
     <input type="hidden" name="_csrf" value="{{ form_token }}">
     <div class="check-selection-grid">
       {% for check in view.check_selection %}
@@ -190,7 +190,7 @@
   <div class="section-title">
     <h2>Mission Setup</h2>
   </div>
-  <form class="form-panel" method="post" action="/missions/{{ view.mission.id }}/details">
+  <form class="form-panel" method="post" action="/missions/{{ view.mission.id }}/details" aria-label="Update mission setup">
     <input type="hidden" name="_csrf" value="{{ form_token }}">
     <div class="field-grid">
       <label>
@@ -253,7 +253,7 @@
     <h2>Reports</h2>
   </div>
   <div class="report-panel">
-    <form method="post" action="/missions/{{ view.mission.id }}/authorization-brief">
+    <form method="post" action="/missions/{{ view.mission.id }}/authorization-brief" aria-label="Generate authorization brief">
       <input type="hidden" name="_csrf" value="{{ form_token }}">
       <button class="button secondary-button" type="submit">Generate Authorization Brief</button>
     </form>
@@ -267,7 +267,7 @@
     </div>
   </div>
   <div class="report-panel">
-    <form method="post" action="/missions/{{ view.mission.id }}/reports">
+    <form method="post" action="/missions/{{ view.mission.id }}/reports" aria-label="Generate mission reports">
       <input type="hidden" name="_csrf" value="{{ form_token }}">
       <button class="button" type="submit">Generate Reports</button>
     </form>
@@ -281,7 +281,7 @@
     </div>
   </div>
   <div class="export-panel">
-    <form method="post" action="/missions/{{ view.mission.id }}/export">
+    <form method="post" action="/missions/{{ view.mission.id }}/export" aria-label="Generate mission export package">
       <input type="hidden" name="_csrf" value="{{ form_token }}">
       <button class="button secondary-button" type="submit">Generate Package</button>
     </form>
@@ -320,7 +320,7 @@
     <div class="section-title">
       <h2>Scope</h2>
     </div>
-    <form class="form-panel compact-form" method="post" action="/missions/{{ view.mission.id }}/scope">
+    <form class="form-panel compact-form" method="post" action="/missions/{{ view.mission.id }}/scope" aria-label="Add mission scope item">
       <input type="hidden" name="_csrf" value="{{ form_token }}">
       <div class="field-grid">
         <label>
@@ -358,7 +358,7 @@
     </form>
     <div class="scope-list">
       {% for item in view.scope %}
-      <form class="scope-card" method="post" action="/missions/{{ view.mission.id }}/scope/{{ item.id }}">
+      <form class="scope-card" method="post" action="/missions/{{ view.mission.id }}/scope/{{ item.id }}" aria-label="Update scope item {{ item.value }}">
         <input type="hidden" name="_csrf" value="{{ form_token }}">
         <div class="scope-card-head">
           <code>{{ item.value }}</code>
@@ -460,7 +460,7 @@
     </div>
     {% endfor %}
   </div>
-  <form class="form-panel compact-form" method="post" action="/missions/{{ view.mission.id }}/findings">
+  <form class="form-panel compact-form" method="post" action="/missions/{{ view.mission.id }}/findings" aria-label="Add manual finding">
     <input type="hidden" name="_csrf" value="{{ form_token }}">
     <div class="field-grid">
       <label class="span-2">
@@ -545,7 +545,7 @@
         {% endif %}
       </dl>
       {% if finding.source_module == "manual" %}
-      <form class="finding-edit-form" method="post" action="/missions/{{ view.mission.id }}/findings/{{ finding.id }}/details">
+      <form class="finding-edit-form" method="post" action="/missions/{{ view.mission.id }}/findings/{{ finding.id }}/details" aria-label="Update finding {{ finding.title }}">
         <input type="hidden" name="_csrf" value="{{ form_token }}">
         <div class="field-grid">
           <label class="span-2">
@@ -594,7 +594,7 @@
         </div>
       </form>
       {% endif %}
-      <form class="review-form" method="post" action="/missions/{{ view.mission.id }}/findings/{{ finding.id }}/status">
+      <form class="review-form" method="post" action="/missions/{{ view.mission.id }}/findings/{{ finding.id }}/status" aria-label="Review finding {{ finding.title }}">
         <input type="hidden" name="_csrf" value="{{ form_token }}">
         <label>
           <span>Status</span>

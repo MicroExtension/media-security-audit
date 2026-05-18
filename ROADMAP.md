@@ -107,6 +107,7 @@ Current foundation:
 - shared layout accessibility landmarks started
 - accessible table captions started
 - in-page anchor target context started
+- accessible form labels started
 - template guidance in authorization briefs started
 - enriched mission export manifest started
 - mission export checksum manifest started

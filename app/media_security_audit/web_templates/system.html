@@ -124,7 +124,7 @@
     <span class="muted">Data and generated reports</span>
   </div>
   <div class="report-panel">
-    <form method="post" action="/system/backup">
+    <form method="post" action="/system/backup" aria-label="Generate workspace backup">
       <input type="hidden" name="_csrf" value="{{ form_token }}">
       <button class="button secondary-button" type="submit">Generate Backup</button>
     </form>

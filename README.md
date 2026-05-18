@@ -97,6 +97,7 @@ Implemented so far:
 - shared layout exposes accessible navigation, alert, and footer landmarks
 - web tables expose screen-reader captions on operational pages
 - in-page shortcut targets keep scroll spacing and visible target context
+- web forms expose accessible names across operational pages
 - dashboard shows review backlog clients watchlist
 - dashboard client list shows per-client preparation counts
 - dashboard client list shows per-client finding review counts

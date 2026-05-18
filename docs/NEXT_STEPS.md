@@ -121,6 +121,7 @@ Codex action:
 - keep visible keyboard focus styles consistent across links, buttons, and forms
 - keep shared navigation, alert, and footer landmarks accessible
 - keep operational table captions aligned with their section meaning
+- keep in-page shortcut targets visually clear without changing page data
 
 ## Step 2.2 - Nmap Dry-Run Planning
 

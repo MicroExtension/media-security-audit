@@ -106,6 +106,7 @@ Current foundation:
 - visible keyboard focus styles started
 - shared layout accessibility landmarks started
 - accessible table captions started
+- in-page anchor target context started
 - template guidance in authorization briefs started
 - enriched mission export manifest started
 - mission export checksum manifest started

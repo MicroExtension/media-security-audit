@@ -81,6 +81,21 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("button:focus-visible", css)
         self.assertIn("textarea:focus-visible", css)
 
+    def test_global_styles_expose_anchor_target_context(self) -> None:
+        css_path = (
+            Path(__file__).resolve().parents[1]
+            / "app"
+            / "media_security_audit"
+            / "web_static"
+            / "app.css"
+        )
+        css = css_path.read_text(encoding="utf-8")
+
+        self.assertIn("scroll-margin-top", css)
+        self.assertIn(".section:target", css)
+        self.assertIn(".report-links:target", css)
+        self.assertIn("outline-offset", css)
+
     def test_table_templates_expose_accessible_captions(self) -> None:
         template_dir = (
             Path(__file__).resolve().parents[1]

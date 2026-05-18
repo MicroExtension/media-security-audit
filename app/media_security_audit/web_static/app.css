@@ -103,6 +103,16 @@ textarea:focus-visible {
   padding: 28px;
 }
 
+[id] {
+  scroll-margin-top: 76px;
+}
+
+.section:target,
+.report-links:target {
+  outline: 3px solid rgba(21, 94, 239, .22);
+  outline-offset: 6px;
+}
+
 .footer {
   border-top: 1px solid var(--border);
   color: var(--muted);

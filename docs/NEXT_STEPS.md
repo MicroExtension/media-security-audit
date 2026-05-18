@@ -124,6 +124,7 @@ Codex action:
 - keep in-page shortcut targets visually clear without changing page data
 - keep form accessible names aligned with their workflow action
 - keep grouped checkbox controls associated with explicit legends
+- keep required form fields visibly marked in operational workflows
 
 ## Step 2.2 - Nmap Dry-Run Planning
 

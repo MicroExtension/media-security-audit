@@ -82,6 +82,21 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("button:focus-visible", css)
         self.assertIn("textarea:focus-visible", css)
 
+    def test_global_styles_mark_required_fields(self) -> None:
+        css_path = (
+            Path(__file__).resolve().parents[1]
+            / "app"
+            / "media_security_audit"
+            / "web_static"
+            / "app.css"
+        )
+        css = css_path.read_text(encoding="utf-8")
+
+        self.assertIn("label:has(input[required])", css)
+        self.assertIn("label:has(select[required])", css)
+        self.assertIn("label:has(textarea[required])", css)
+        self.assertIn('content: " *";', css)
+
     def test_global_styles_expose_anchor_target_context(self) -> None:
         css_path = (
             Path(__file__).resolve().parents[1]

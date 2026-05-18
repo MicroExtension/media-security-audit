@@ -99,6 +99,7 @@ Implemented so far:
 - in-page shortcut targets keep scroll spacing and visible target context
 - web forms expose accessible names across operational pages
 - grouped checkbox controls expose explicit form legends
+- required form fields show consistent visual indicators
 - dashboard shows review backlog clients watchlist
 - dashboard client list shows per-client preparation counts
 - dashboard client list shows per-client finding review counts

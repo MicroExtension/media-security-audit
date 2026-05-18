@@ -14,6 +14,23 @@ from media_security_audit.web_audit_templates import build_audit_template_librar
 
 
 class AuditTemplateTests(unittest.TestCase):
+    def test_template_page_exposes_shortcut_anchors(self) -> None:
+        template_path = (
+            Path(__file__).resolve().parents[1]
+            / "app"
+            / "media_security_audit"
+            / "web_templates"
+            / "audit_templates.html"
+        )
+        template = template_path.read_text(encoding="utf-8")
+
+        for anchor in ["template-filters", "template-library"]:
+            self.assertIn(f'href="#{anchor}"', template)
+            self.assertIn(f'id="{anchor}"', template)
+
+        for counter in ["view.audit_types | length", "view.total_count"]:
+            self.assertIn(f"{{{{ {counter} }}}}", template)
+
     def test_builtin_templates_are_structured_for_repeatable_audits(self) -> None:
         templates = list_audit_templates()
         ids = [template.id for template in templates]

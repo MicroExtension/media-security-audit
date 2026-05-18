@@ -114,6 +114,7 @@ Codex action:
 - keep activity filter summaries readable and linked to their context pages
 - keep activity page shortcuts aligned with filters, events, and exports
 - keep remediation library shortcuts aligned with filters, entries, and exports
+- keep audit template shortcuts aligned with filters and template lists
 
 ## Step 2.2 - Nmap Dry-Run Planning
 

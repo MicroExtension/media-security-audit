@@ -110,6 +110,7 @@ Codex action:
 - keep mission detail shortcuts aligned with stable workflow section anchors
 - keep client detail shortcuts aligned with stable client workflow anchors
 - keep mission context links aligned with client and activity filters
+- keep activity log context links aligned with client and mission routes
 
 ## Step 2.2 - Nmap Dry-Run Planning
 

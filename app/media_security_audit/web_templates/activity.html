@@ -101,8 +101,8 @@
         {% for row in view.rows %}
         <tr>
           <td>{{ row.created_at }}</td>
-          <td>{{ row.client_name }}</td>
-          <td><a href="/missions/{{ row.mission_id }}">{{ row.mission_name }}</a></td>
+          <td><a href="{{ row.client_url }}">{{ row.client_name }}</a></td>
+          <td><a href="{{ row.mission_url }}">{{ row.mission_name }}</a></td>
           <td><span class="badge">{{ row.action }}</span></td>
           <td>{{ row.summary }}</td>
           <td>{{ row.metadata_summary }}</td>

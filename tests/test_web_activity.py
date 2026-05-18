@@ -31,6 +31,19 @@ def clean_dir(name: str) -> Path:
 
 
 class WebActivityTests(unittest.TestCase):
+    def test_activity_template_links_rows_to_client_and_mission(self) -> None:
+        template_path = (
+            Path(__file__).resolve().parents[1]
+            / "app"
+            / "media_security_audit"
+            / "web_templates"
+            / "activity.html"
+        )
+        template = template_path.read_text(encoding="utf-8")
+
+        self.assertIn('href="{{ row.client_url }}"', template)
+        self.assertIn('href="{{ row.mission_url }}"', template)
+
     def test_builds_activity_log_view_across_missions(self) -> None:
         store = JsonStore(clean_dir("web-activity-view"))
         client_a = store.create_client(Client(name="Client A"))
@@ -80,7 +93,9 @@ class WebActivityTests(unittest.TestCase):
         self.assertEqual(view.export_links[3].url, "/activity/export/csv")
         self.assertEqual([row.id for row in view.rows], [second.id, first.id])
         self.assertEqual(view.rows[0].client_name, "Client B")
+        self.assertEqual(view.rows[0].client_url, f"/clients/{client_b.id}")
         self.assertEqual(view.rows[0].mission_name, "Audit B")
+        self.assertEqual(view.rows[0].mission_url, f"/missions/{mission_b.id}")
         self.assertEqual(view.rows[0].metadata_summary, "scope_id=scope_1")
 
     def test_filters_activity_log_by_query_and_action(self) -> None:

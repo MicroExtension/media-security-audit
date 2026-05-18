@@ -169,17 +169,20 @@
   </div>
   <form class="form-panel" method="post" action="/missions/{{ view.mission.id }}/checks" aria-label="Update mission check selection">
     <input type="hidden" name="_csrf" value="{{ form_token }}">
-    <div class="check-selection-grid">
-      {% for check in view.check_selection %}
-      <label class="check-selection-option">
-        <input type="checkbox" name="check_{{ check.value }}" {% if check.selected %}checked{% endif %}>
-        <span>
-          <strong>{{ check.label }}</strong>
-          <small>{{ check.description }}</small>
-        </span>
-      </label>
-      {% endfor %}
-    </div>
+    <fieldset class="field-group">
+      <legend>Audit Checks</legend>
+      <div class="check-selection-grid">
+        {% for check in view.check_selection %}
+        <label class="check-selection-option">
+          <input type="checkbox" name="check_{{ check.value }}" {% if check.selected %}checked{% endif %}>
+          <span>
+            <strong>{{ check.label }}</strong>
+            <small>{{ check.description }}</small>
+          </span>
+        </label>
+        {% endfor %}
+      </div>
+    </fieldset>
     <div class="form-actions">
       <button class="button secondary-button" type="submit">Update Checks</button>
     </div>
@@ -348,10 +351,13 @@
           <textarea name="notes" rows="2"></textarea>
         </label>
       </div>
-      <div class="check-row">
-        <label><input type="checkbox" name="approved"> Approved</label>
-        <label><input type="checkbox" name="excluded"> Excluded</label>
-      </div>
+      <fieldset class="field-group">
+        <legend>Scope Status</legend>
+        <div class="check-row">
+          <label><input type="checkbox" name="approved"> Approved</label>
+          <label><input type="checkbox" name="excluded"> Excluded</label>
+        </div>
+      </fieldset>
       <div class="form-actions">
         <button class="button" type="submit">Add Scope</button>
       </div>
@@ -391,10 +397,13 @@
           </label>
         </div>
         <div class="scope-card-actions">
-          <div class="check-row">
-            <label><input type="checkbox" name="approved" {% if item.status == "approved" %}checked{% endif %}> Approved</label>
-            <label><input type="checkbox" name="excluded" {% if item.status == "excluded" %}checked{% endif %}> Excluded</label>
-          </div>
+          <fieldset class="field-group">
+            <legend>Scope Status</legend>
+            <div class="check-row">
+              <label><input type="checkbox" name="approved" {% if item.status == "approved" %}checked{% endif %}> Approved</label>
+              <label><input type="checkbox" name="excluded" {% if item.status == "excluded" %}checked{% endif %}> Excluded</label>
+            </div>
+          </fieldset>
           <button class="button secondary-button" type="submit">Update Scope</button>
         </div>
       </form>

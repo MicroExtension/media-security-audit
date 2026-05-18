@@ -493,6 +493,21 @@ a.filter-chip:hover {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.field-group {
+  border: 0;
+  margin: 0;
+  min-width: 0;
+  padding: 0;
+}
+
+.field-group legend {
+  color: #344054;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  padding: 0;
+}
+
 .field-grid label,
 .check-row label {
   color: #344054;
@@ -536,6 +551,10 @@ textarea:focus {
   flex-wrap: wrap;
   gap: 16px;
   margin-top: 12px;
+}
+
+.field-group .check-row {
+  margin-top: 0;
 }
 
 .check-row label {

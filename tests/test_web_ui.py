@@ -140,6 +140,31 @@ class WebUiTests(unittest.TestCase):
             for form_tag in re.findall(r"<form\b[^>]*>", template):
                 self.assertIn("aria-label=", form_tag, f"{path.name}: {form_tag}")
 
+    def test_mission_template_groups_checkbox_controls(self) -> None:
+        template_path = (
+            Path(__file__).resolve().parents[1]
+            / "app"
+            / "media_security_audit"
+            / "web_templates"
+            / "mission.html"
+        )
+        css_path = (
+            Path(__file__).resolve().parents[1]
+            / "app"
+            / "media_security_audit"
+            / "web_static"
+            / "app.css"
+        )
+        template = template_path.read_text(encoding="utf-8")
+        css = css_path.read_text(encoding="utf-8")
+
+        self.assertIn("<fieldset class=\"field-group\">", template)
+        self.assertIn("<legend>Audit Checks</legend>", template)
+        self.assertIn("<legend>Scope Status</legend>", template)
+        self.assertEqual(template.count("<fieldset"), template.count("</fieldset>"))
+        self.assertIn(".field-group", css)
+        self.assertIn(".field-group legend", css)
+
     def test_dashboard_template_exposes_shortcut_anchors(self) -> None:
         template_path = (
             Path(__file__).resolve().parents[1]

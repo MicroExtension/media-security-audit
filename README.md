@@ -98,6 +98,7 @@ Implemented so far:
 - web tables expose screen-reader captions on operational pages
 - in-page shortcut targets keep scroll spacing and visible target context
 - web forms expose accessible names across operational pages
+- grouped checkbox controls expose explicit form legends
 - dashboard shows review backlog clients watchlist
 - dashboard client list shows per-client preparation counts
 - dashboard client list shows per-client finding review counts

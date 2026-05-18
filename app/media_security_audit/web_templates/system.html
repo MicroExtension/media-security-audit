@@ -31,7 +31,15 @@
   </div>
 </section>
 
-<section class="section">
+<section class="page-shortcuts" aria-label="System shortcuts">
+  <a href="#system-auth">Auth <span>{{ view.auth.status }}</span></a>
+  <a href="#system-storage">Storage <span>{{ view.paths | length }}</span></a>
+  <a href="#system-inventory">Inventory <span>{{ view.inventory.status }}</span></a>
+  <a href="#system-backup">Backup <span>{{ "ready" if view.workspace_backup else "none" }}</span></a>
+  <a href="#system-tools">Tools <span>{{ view.tools | length }}</span></a>
+</section>
+
+<section class="section" id="system-auth">
   <div class="section-title">
     <h2>Web Authentication</h2>
   </div>
@@ -44,7 +52,7 @@
   </div>
 </section>
 
-<section class="section">
+<section class="section" id="system-storage">
   <div class="section-title">
     <h2>Storage</h2>
   </div>
@@ -73,7 +81,7 @@
   </div>
 </section>
 
-<section class="section">
+<section class="section" id="system-inventory">
   <div class="section-title">
     <h2>Workspace Inventory</h2>
     <span class="muted">Read-only diagnostics</span>
@@ -108,7 +116,7 @@
   </div>
 </section>
 
-<section class="section">
+<section class="section" id="system-backup">
   <div class="section-title">
     <h2>Workspace Backup</h2>
     <span class="muted">Data and generated reports</span>
@@ -129,7 +137,7 @@
   </div>
 </section>
 
-<section class="section">
+<section class="section" id="system-tools">
   <div class="section-title">
     <h2>External Tools</h2>
     <span class="muted">Availability only</span>

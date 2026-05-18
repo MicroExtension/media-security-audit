@@ -85,6 +85,17 @@ Alternative for a technician-owned lab VM: set `MEDIA_AUDIT_UID` and
 `MEDIA_AUDIT_GID` in `.env` to the output of `id -u` and `id -g`, then keep the
 folders owned by that technician account.
 
+Run a local preflight before customer use:
+
+```bash
+docker compose run --rm media-audit preflight \
+  --data-dir /var/lib/media-audit/data \
+  --reports-dir /var/lib/media-audit/reports
+```
+
+The preflight checks local storage, web authentication settings, workspace
+inventory, and tool availability. It does not execute scanners.
+
 Build and start the service:
 
 ```bash

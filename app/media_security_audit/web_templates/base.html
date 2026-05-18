@@ -12,7 +12,7 @@
     <a class="brand" href="/">MEDIA Security Audit</a>
     {% set current_path = request.url.path %}
     {% set dashboard_active = current_path == "/" or current_path.startswith("/clients") or current_path.startswith("/missions") %}
-    <nav class="topnav">
+    <nav class="topnav" aria-label="Primary navigation">
       <a href="/" class="{{ 'active' if dashboard_active else '' }}" {% if dashboard_active %}aria-current="page"{% endif %}>Dashboard</a>
       <a href="/activity" class="{{ 'active' if current_path.startswith('/activity') else '' }}" {% if current_path.startswith('/activity') %}aria-current="page"{% endif %}>Activity</a>
       <a href="/templates" class="{{ 'active' if current_path.startswith('/templates') else '' }}" {% if current_path.startswith('/templates') %}aria-current="page"{% endif %}>Templates</a>
@@ -22,14 +22,14 @@
   </header>
   <main class="shell" id="main-content" tabindex="-1">
     {% if message %}
-    <div class="alert alert-success">{{ message }}</div>
+    <div class="alert alert-success" role="status" aria-live="polite">{{ message }}</div>
     {% endif %}
     {% if error %}
-    <div class="alert alert-error">{{ error }}</div>
+    <div class="alert alert-error" role="alert">{{ error }}</div>
     {% endif %}
     {% block content %}{% endblock %}
   </main>
-  <footer class="footer">
+  <footer class="footer" aria-label="Workspace metadata">
     <span>Data: {{ data_dir }}</span>
   </footer>
 </body>

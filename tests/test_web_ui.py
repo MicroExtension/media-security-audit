@@ -57,6 +57,11 @@ class WebUiTests(unittest.TestCase):
         self.assertIn('href="#main-content"', template)
         self.assertIn('id="main-content"', template)
         self.assertIn('tabindex="-1"', template)
+        self.assertIn('aria-label="Primary navigation"', template)
+        self.assertIn('role="status"', template)
+        self.assertIn('aria-live="polite"', template)
+        self.assertIn('role="alert"', template)
+        self.assertIn('aria-label="Workspace metadata"', template)
 
         for prefix in ["/activity", "/templates", "/remediations", "/system"]:
             self.assertIn(f"current_path.startswith('{prefix}')", template)

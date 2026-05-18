@@ -111,6 +111,7 @@ Current foundation:
 - accessible form field groups started
 - required field indicators started
 - deployment healthcheck detail started
+- deployment preflight CLI started
 - template guidance in authorization briefs started
 - enriched mission export manifest started
 - mission export checksum manifest started
@@ -169,6 +170,7 @@ Current foundation:
 - deployment guide started in `docs/DEPLOYMENT.md`
 - external tool availability status started in the web UI
 - deployment healthcheck reports storage readiness
+- deployment preflight CLI reports local readiness
 - mission ZIP export package started
 - workspace backup ZIP export started
 - workspace integrity diagnostics started
@@ -204,6 +206,7 @@ Success criteria:
 - backup/export is available
 - external tool status is visible in the UI
 - deployment healthcheck reports coarse storage readiness
+- deployment preflight can be run before customer use
 
 ## Future MSP Differentiators
 

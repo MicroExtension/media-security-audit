@@ -101,6 +101,7 @@ Implemented so far:
 - grouped checkbox controls expose explicit form legends
 - required form fields show consistent visual indicators
 - healthcheck reports persistent storage readiness for deployments
+- CLI preflight reports local deployment readiness without running scans
 - dashboard shows review backlog clients watchlist
 - dashboard client list shows per-client preparation counts
 - dashboard client list shows per-client finding review counts
@@ -295,6 +296,12 @@ Local Docker launch:
 ```bash
 cp .env.example .env
 docker compose up -d --build
+```
+
+Local deployment preflight:
+
+```bash
+media-audit preflight --data-dir data --reports-dir reports
 ```
 
 Default URL:

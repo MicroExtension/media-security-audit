@@ -9,6 +9,11 @@ from pathlib import Path
 from pydantic import ValidationError
 
 from media_security_audit import __version__
+from media_security_audit.deployment_preflight import (
+    build_deployment_preflight,
+    format_deployment_preflight,
+    preflight_exit_code,
+)
 from media_security_audit.models import (
     AuditCheck,
     AuditType,
@@ -521,6 +526,18 @@ try:
             typer.echo(f"error: {error}", err=True)
             raise typer.Exit(code=2) from error
 
+    @app.command("preflight")
+    def preflight(
+        data_dir: Path = typer.Option(Path("data"), "--data-dir"),
+        reports_dir: Path = typer.Option(Path("reports"), "--reports-dir"),
+    ) -> None:
+        """Check local deployment readiness without running scans."""
+        result = build_deployment_preflight(data_dir=data_dir, reports_dir=reports_dir)
+        typer.echo(format_deployment_preflight(result))
+        exit_code = preflight_exit_code(result)
+        if exit_code:
+            raise typer.Exit(code=exit_code)
+
     @client_app.command("create")
     def client_create(
         name: str = typer.Option(..., "--name"),
@@ -776,6 +793,13 @@ except ModuleNotFoundError:
         web_parser.add_argument("--host", default="127.0.0.1")
         web_parser.add_argument("--port", type=int, default=8080)
 
+        preflight_parser = subparsers.add_parser(
+            "preflight",
+            help="Check local deployment readiness without running scans.",
+        )
+        preflight_parser.add_argument("--data-dir", type=Path, default=Path("data"))
+        preflight_parser.add_argument("--reports-dir", type=Path, default=Path("reports"))
+
         client_parser = subparsers.add_parser("client", help="Manage clients.")
         client_subparsers = client_parser.add_subparsers(dest="client_command")
         client_create_parser = client_subparsers.add_parser("create", help="Create a client.")
@@ -919,6 +943,17 @@ except ModuleNotFoundError:
                     host=args.host,
                     port=args.port,
                 )
+                return
+
+            if args.command == "preflight":
+                result = build_deployment_preflight(
+                    data_dir=args.data_dir,
+                    reports_dir=args.reports_dir,
+                )
+                print(format_deployment_preflight(result))
+                exit_code = preflight_exit_code(result)
+                if exit_code:
+                    raise SystemExit(exit_code)
                 return
 
             if args.command == "client" and args.client_command == "create":

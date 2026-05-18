@@ -27,6 +27,12 @@
   </div>
 </section>
 
+<section class="page-shortcuts" aria-label="Activity shortcuts">
+  <a href="#activity-filters">Filters <span>{{ view.active_filters|length }}</span></a>
+  <a href="#activity-events">Events <span>{{ view.visible_events }}</span></a>
+  <a href="#activity-exports">Exports <span>{{ view.export_links|length }}</span></a>
+</section>
+
 {% if view.has_filters %}
 <section class="callout activity-filter-context">
   <div>
@@ -46,7 +52,7 @@
 </section>
 {% endif %}
 
-<section class="section">
+<section class="section" id="activity-filters">
   <form class="form-panel" method="get" action="/activity">
     <div class="field-grid">
       <label>
@@ -95,10 +101,10 @@
   </form>
 </section>
 
-<section class="section">
+<section class="section" id="activity-events">
   <div class="section-title">
     <h2>Latest Events</h2>
-    <div class="report-links" aria-label="Activity log exports">
+    <div class="report-links" id="activity-exports" aria-label="Activity log exports">
       {% for link in view.export_links %}
       <a href="{{ link.url }}">{{ link.label }}</a>
       {% endfor %}

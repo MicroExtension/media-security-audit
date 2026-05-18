@@ -47,6 +47,17 @@ class WebActivityTests(unittest.TestCase):
         self.assertIn("view.active_filters", template)
         self.assertIn('href="{{ view.clear_filters_url }}"', template)
 
+        for anchor in ["activity-filters", "activity-events", "activity-exports"]:
+            self.assertIn(f'href="#{anchor}"', template)
+            self.assertIn(f'id="{anchor}"', template)
+
+        for counter in [
+            "view.active_filters|length",
+            "view.visible_events",
+            "view.export_links|length",
+        ]:
+            self.assertIn(f"{{{{ {counter} }}}}", template)
+
     def test_builds_activity_log_view_across_missions(self) -> None:
         store = JsonStore(clean_dir("web-activity-view"))
         client_a = store.create_client(Client(name="Client A"))

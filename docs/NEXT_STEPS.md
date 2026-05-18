@@ -118,6 +118,7 @@ Codex action:
 - keep system status shortcuts aligned with auth, storage, inventory, backup, and tools
 - keep top navigation active states aligned with stable route groups
 - keep shared accessibility helpers available across all web pages
+- keep visible keyboard focus styles consistent across links, buttons, and forms
 
 ## Step 2.2 - Nmap Dry-Run Planning
 

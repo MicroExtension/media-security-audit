@@ -61,6 +61,21 @@ class WebUiTests(unittest.TestCase):
         for prefix in ["/activity", "/templates", "/remediations", "/system"]:
             self.assertIn(f"current_path.startswith('{prefix}')", template)
 
+    def test_global_styles_expose_visible_keyboard_focus(self) -> None:
+        css_path = (
+            Path(__file__).resolve().parents[1]
+            / "app"
+            / "media_security_audit"
+            / "web_static"
+            / "app.css"
+        )
+        css = css_path.read_text(encoding="utf-8")
+
+        self.assertIn(":focus-visible", css)
+        self.assertIn("outline-offset", css)
+        self.assertIn("button:focus-visible", css)
+        self.assertIn("textarea:focus-visible", css)
+
     def test_dashboard_template_exposes_shortcut_anchors(self) -> None:
         template_path = (
             Path(__file__).resolve().parents[1]

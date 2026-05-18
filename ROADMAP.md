@@ -98,6 +98,7 @@ Current foundation:
 - activity log context links started
 - activity log active filter summary started
 - activity log page shortcuts started
+- remediation library page shortcuts started
 - template guidance in authorization briefs started
 - enriched mission export manifest started
 - mission export checksum manifest started

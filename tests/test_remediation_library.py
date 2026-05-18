@@ -18,6 +18,31 @@ from media_security_audit.web_remediations import (  # noqa: E402
 
 
 class RemediationLibraryTests(unittest.TestCase):
+    def test_remediation_template_exposes_shortcut_anchors(self) -> None:
+        template_path = (
+            Path(__file__).resolve().parents[1]
+            / "app"
+            / "media_security_audit"
+            / "web_templates"
+            / "remediations.html"
+        )
+        template = template_path.read_text(encoding="utf-8")
+
+        for anchor in [
+            "remediation-filters",
+            "remediation-entries",
+            "remediation-exports",
+        ]:
+            self.assertIn(f'href="#{anchor}"', template)
+            self.assertIn(f'id="{anchor}"', template)
+
+        for counter in [
+            "view.categories | length",
+            "view.total_count",
+            "view.export_links|length",
+        ]:
+            self.assertIn(f"{{{{ {counter} }}}}", template)
+
     def test_builtin_entries_are_structured_for_reports(self) -> None:
         entries = list_remediations()
         ids = [entry.id for entry in entries]

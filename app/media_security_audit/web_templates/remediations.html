@@ -19,7 +19,13 @@
   </div>
 </section>
 
-<section class="section">
+<section class="page-shortcuts" aria-label="Remediation shortcuts">
+  <a href="#remediation-filters">Filters <span>{{ view.categories | length }}</span></a>
+  <a href="#remediation-entries">Entries <span>{{ view.total_count }}</span></a>
+  <a href="#remediation-exports">Exports <span>{{ view.export_links|length }}</span></a>
+</section>
+
+<section class="section" id="remediation-filters">
   <form class="form-panel" method="get" action="/remediations">
     <div class="field-grid">
       <label>
@@ -42,10 +48,10 @@
   </form>
 </section>
 
-<section class="section">
+<section class="section" id="remediation-entries">
   <div class="section-title">
     <h2>Entries</h2>
-    <div class="report-links" aria-label="Remediation library exports">
+    <div class="report-links" id="remediation-exports" aria-label="Remediation library exports">
       {% for link in view.export_links %}
       <a href="{{ link.url }}">{{ link.label }}</a>
       {% endfor %}

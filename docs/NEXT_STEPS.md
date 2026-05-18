@@ -113,6 +113,7 @@ Codex action:
 - keep activity log context links aligned with client and mission routes
 - keep activity filter summaries readable and linked to their context pages
 - keep activity page shortcuts aligned with filters, events, and exports
+- keep remediation library shortcuts aligned with filters, entries, and exports
 
 ## Step 2.2 - Nmap Dry-Run Planning
 

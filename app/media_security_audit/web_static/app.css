@@ -279,6 +279,15 @@ tr:last-child td {
   display: block;
 }
 
+.sr-only {
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
 .muted {
   color: var(--muted);
   font-size: 13px;

@@ -120,6 +120,7 @@ Codex action:
 - keep shared accessibility helpers available across all web pages
 - keep visible keyboard focus styles consistent across links, buttons, and forms
 - keep shared navigation, alert, and footer landmarks accessible
+- keep operational table captions aligned with their section meaning
 
 ## Step 2.2 - Nmap Dry-Run Planning
 

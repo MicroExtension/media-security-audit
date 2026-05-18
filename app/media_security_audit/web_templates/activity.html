@@ -27,6 +27,25 @@
   </div>
 </section>
 
+{% if view.has_filters %}
+<section class="callout activity-filter-context">
+  <div>
+    <h2>Active Filters</h2>
+    <p>{{ view.visible_events }} of {{ view.total_events }} events visible.</p>
+  </div>
+  <div class="filter-chips" aria-label="Active activity filters">
+    {% for filter in view.active_filters %}
+      {% if filter.url %}
+      <a class="filter-chip" href="{{ filter.url }}">{{ filter.label }}: {{ filter.value }}</a>
+      {% else %}
+      <span class="filter-chip">{{ filter.label }}: {{ filter.value }}</span>
+      {% endif %}
+    {% endfor %}
+    <a class="filter-chip clear-filter" href="{{ view.clear_filters_url }}">Clear filters</a>
+  </div>
+</section>
+{% endif %}
+
 <section class="section">
   <form class="form-panel" method="get" action="/activity">
     <div class="field-grid">

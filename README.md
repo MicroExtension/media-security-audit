@@ -86,6 +86,7 @@ Implemented so far:
 - client pages show shortcut links to client workflow sections
 - mission pages expose client and filtered activity context links
 - activity log rows link back to their client and mission context
+- activity log pages summarize active filters with context links
 - dashboard shows review backlog clients watchlist
 - dashboard client list shows per-client preparation counts
 - dashboard client list shows per-client finding review counts

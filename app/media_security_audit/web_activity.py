@@ -37,6 +37,13 @@ class ActivityFilterOption:
 
 
 @dataclass(frozen=True)
+class ActivityActiveFilter:
+    label: str
+    value: str
+    url: str = ""
+
+
+@dataclass(frozen=True)
 class ActivityLogRow:
     id: str
     client_id: str
@@ -70,6 +77,9 @@ class ActivityLogView:
     date_from_filter: str
     date_to_filter: str
     query: str
+    has_filters: bool
+    active_filters: list[ActivityActiveFilter]
+    clear_filters_url: str
     export_links: list[ActivityExportLink]
 
 
@@ -93,6 +103,10 @@ def build_activity_log_view(
     clients = store.list_clients()
     missions = store.list_missions()
     client_names = {client.id: client.name for client in clients}
+    mission_labels = {
+        mission.id: f"{client_names.get(mission.client_id, mission.client_id)} / {mission.name}"
+        for mission in missions
+    }
     query_text = (query or "").strip()
     action_filter = (action or "").strip()
     client_filter = (client_id or "").strip()
@@ -149,6 +163,25 @@ def build_activity_log_view(
         date_from_filter=date_from_filter,
         date_to_filter=date_to_filter,
         query=query_text,
+        has_filters=has_activity_filters(
+            query=query_text,
+            action=action_filter,
+            client_id=client_filter,
+            mission_id=mission_filter,
+            date_from=date_from_filter,
+            date_to=date_to_filter,
+        ),
+        active_filters=active_activity_filters(
+            query=query_text,
+            action=action_filter,
+            client_id=client_filter,
+            mission_id=mission_filter,
+            date_from=date_from_filter,
+            date_to=date_to_filter,
+            client_names=client_names,
+            mission_labels=mission_labels,
+        ),
+        clear_filters_url="/activity",
         export_links=activity_export_links(
             query=query_text,
             action=action_filter,
@@ -158,6 +191,57 @@ def build_activity_log_view(
             date_to=date_to_filter,
         ),
     )
+
+
+def has_activity_filters(
+    query: str = "",
+    action: str = "",
+    client_id: str = "",
+    mission_id: str = "",
+    date_from: str = "",
+    date_to: str = "",
+) -> bool:
+    return any([query, action, client_id, mission_id, date_from, date_to])
+
+
+def active_activity_filters(
+    query: str = "",
+    action: str = "",
+    client_id: str = "",
+    mission_id: str = "",
+    date_from: str = "",
+    date_to: str = "",
+    client_names: dict[str, str] | None = None,
+    mission_labels: dict[str, str] | None = None,
+) -> list[ActivityActiveFilter]:
+    client_names = client_names or {}
+    mission_labels = mission_labels or {}
+    filters: list[ActivityActiveFilter] = []
+    if client_id:
+        filters.append(
+            ActivityActiveFilter(
+                label="Client",
+                value=client_names.get(client_id, client_id),
+                url=f"/clients/{client_id}" if client_id in client_names else "",
+            )
+        )
+    if mission_id:
+        filters.append(
+            ActivityActiveFilter(
+                label="Mission",
+                value=mission_labels.get(mission_id, mission_id),
+                url=f"/missions/{mission_id}" if mission_id in mission_labels else "",
+            )
+        )
+    if action:
+        filters.append(ActivityActiveFilter(label="Action", value=action))
+    if date_from:
+        filters.append(ActivityActiveFilter(label="From", value=date_from))
+    if date_to:
+        filters.append(ActivityActiveFilter(label="To", value=date_to))
+    if query:
+        filters.append(ActivityActiveFilter(label="Search", value=query))
+    return filters
 
 
 def filter_activity_rows(

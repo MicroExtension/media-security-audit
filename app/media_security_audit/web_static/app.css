@@ -517,6 +517,16 @@ a.filter-chip:hover {
   gap: 5px;
 }
 
+.field-grid label:has(input[required]) > span::after,
+.field-grid label:has(select[required]) > span::after,
+.field-grid label:has(textarea[required]) > span::after,
+.review-form label:has(input[required]) > span::after,
+.review-form label:has(select[required]) > span::after,
+.review-form label:has(textarea[required]) > span::after {
+  color: var(--red);
+  content: " *";
+}
+
 .span-2 {
   grid-column: 1 / -1;
 }

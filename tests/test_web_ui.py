@@ -81,6 +81,36 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("button:focus-visible", css)
         self.assertIn("textarea:focus-visible", css)
 
+    def test_table_templates_expose_accessible_captions(self) -> None:
+        template_dir = (
+            Path(__file__).resolve().parents[1]
+            / "app"
+            / "media_security_audit"
+            / "web_templates"
+        )
+        css = (
+            Path(__file__).resolve().parents[1]
+            / "app"
+            / "media_security_audit"
+            / "web_static"
+            / "app.css"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn(".sr-only", css)
+        for filename in [
+            "activity.html",
+            "client.html",
+            "dashboard.html",
+            "mission.html",
+            "system.html",
+        ]:
+            template = (template_dir / filename).read_text(encoding="utf-8")
+            self.assertEqual(
+                template.count("<table>"),
+                template.count('<caption class="sr-only">'),
+                filename,
+            )
+
     def test_dashboard_template_exposes_shortcut_anchors(self) -> None:
         template_path = (
             Path(__file__).resolve().parents[1]

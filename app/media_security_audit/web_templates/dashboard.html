@@ -403,7 +403,7 @@
 </section>
 
 <section class="section form-layout">
-  <form class="form-panel" id="new-client" method="post" action="/clients">
+  <form class="form-panel" id="new-client" method="post" action="/clients" aria-label="Create client">
     <input type="hidden" name="_csrf" value="{{ form_token }}">
     <div class="section-title">
       <h2>New Client</h2>
@@ -427,7 +427,7 @@
     </div>
   </form>
 
-  <form class="form-panel" id="new-mission" method="post" action="/missions">
+  <form class="form-panel" id="new-mission" method="post" action="/missions" aria-label="Create mission">
     <input type="hidden" name="_csrf" value="{{ form_token }}">
     <div class="section-title">
       <h2>New Mission</h2>

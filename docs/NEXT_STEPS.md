@@ -122,6 +122,7 @@ Codex action:
 - keep shared navigation, alert, and footer landmarks accessible
 - keep operational table captions aligned with their section meaning
 - keep in-page shortcut targets visually clear without changing page data
+- keep form accessible names aligned with their workflow action
 
 ## Step 2.2 - Nmap Dry-Run Planning
 

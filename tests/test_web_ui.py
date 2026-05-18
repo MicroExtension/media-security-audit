@@ -1,5 +1,6 @@
 from datetime import date
 from pathlib import Path
+import re
 import shutil
 import unittest
 
@@ -125,6 +126,19 @@ class WebUiTests(unittest.TestCase):
                 template.count('<caption class="sr-only">'),
                 filename,
             )
+
+    def test_form_templates_expose_accessible_names(self) -> None:
+        template_dir = (
+            Path(__file__).resolve().parents[1]
+            / "app"
+            / "media_security_audit"
+            / "web_templates"
+        )
+
+        for path in template_dir.glob("*.html"):
+            template = path.read_text(encoding="utf-8")
+            for form_tag in re.findall(r"<form\b[^>]*>", template):
+                self.assertIn("aria-label=", form_tag, f"{path.name}: {form_tag}")
 
     def test_dashboard_template_exposes_shortcut_anchors(self) -> None:
         template_path = (

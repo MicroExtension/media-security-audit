@@ -91,6 +91,7 @@ Implemented so far:
 - remediation library pages expose shortcuts for filters, entries, and exports
 - audit template pages expose shortcuts for filters and templates
 - system status pages expose shortcuts for auth, storage, inventory, backup, and tools
+- top navigation marks the active workspace area
 - dashboard shows review backlog clients watchlist
 - dashboard client list shows per-client preparation counts
 - dashboard client list shows per-client finding review counts

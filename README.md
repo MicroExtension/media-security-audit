@@ -89,6 +89,7 @@ Implemented so far:
 - activity log pages summarize active filters with context links
 - activity log pages expose shortcuts for filters, events, and exports
 - remediation library pages expose shortcuts for filters, entries, and exports
+- audit template pages expose shortcuts for filters and templates
 - dashboard shows review backlog clients watchlist
 - dashboard client list shows per-client preparation counts
 - dashboard client list shows per-client finding review counts

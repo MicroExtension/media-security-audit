@@ -19,7 +19,12 @@
   </div>
 </section>
 
-<section class="section">
+<section class="page-shortcuts" aria-label="Audit template shortcuts">
+  <a href="#template-filters">Filters <span>{{ view.audit_types | length }}</span></a>
+  <a href="#template-library">Templates <span>{{ view.total_count }}</span></a>
+</section>
+
+<section class="section" id="template-filters">
   <form class="form-panel" method="get" action="/templates">
     <div class="field-grid">
       <label>
@@ -42,7 +47,7 @@
   </form>
 </section>
 
-<section class="section">
+<section class="section" id="template-library">
   <div class="section-title">
     <h2>Templates</h2>
   </div>

@@ -117,6 +117,7 @@ Codex action:
 - keep audit template shortcuts aligned with filters and template lists
 - keep system status shortcuts aligned with auth, storage, inventory, backup, and tools
 - keep top navigation active states aligned with stable route groups
+- keep shared accessibility helpers available across all web pages
 
 ## Step 2.2 - Nmap Dry-Run Planning
 

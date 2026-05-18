@@ -127,6 +127,7 @@ Codex action:
 - keep required form fields visibly marked in operational workflows
 - keep deployment healthchecks coarse and free of sensitive customer data
 - keep deployment preflight checks non-destructive and scanner-free
+- keep deployment preflight JSON output stable for automation
 
 ## Step 2.2 - Nmap Dry-Run Planning
 
@@ -291,6 +292,8 @@ readiness and is intended for local Docker/VM health monitoring.
 Run `media-audit preflight --data-dir data --reports-dir reports` on a VM before
 customer use to verify storage, web authentication settings, inventory, and
 external tool availability without running scans.
+Use `--format json` when the result must be consumed by an install script or
+monitoring wrapper.
 
 ## Step 6 - Build The GUI
 

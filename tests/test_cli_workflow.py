@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import io
+import json
+import os
 import subprocess
 import sys
 import unittest
-from contextlib import redirect_stderr
+from contextlib import redirect_stderr, redirect_stdout
 from datetime import date
 from pathlib import Path
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "app"))
 
@@ -319,6 +322,41 @@ class CliWorkflowTests(unittest.TestCase):
 
         self.assertEqual(error.exception.code, 2)
         self.assertIn("error: mission not found: missing", stderr.getvalue())
+
+    def test_preflight_json_command_is_machine_readable(self) -> None:
+        root_dir = Path(__file__).resolve().parents[1] / ".tmp-tests" / "cli-preflight-json"
+        data_dir = root_dir / "data"
+        reports_dir = root_dir / "reports"
+        data_dir.mkdir(parents=True, exist_ok=True)
+        reports_dir.mkdir(parents=True, exist_ok=True)
+        stdout = io.StringIO()
+
+        with (
+            patch.dict(os.environ, {"MEDIA_AUDIT_REQUIRE_AUTH": "false"}, clear=False),
+            redirect_stdout(stdout),
+        ):
+            app(
+                [
+                    "preflight",
+                    "--data-dir",
+                    str(data_dir),
+                    "--reports-dir",
+                    str(reports_dir),
+                    "--format",
+                    "json",
+                ]
+            )
+
+        payload = json.loads(stdout.getvalue())
+
+        self.assertIn(payload["status"], {"ready", "warning"})
+        self.assertTrue(
+            any(
+                item["category"] == "storage"
+                and item["label"] == "Data directory"
+                for item in payload["items"]
+            )
+        )
 
 
 if __name__ == "__main__":

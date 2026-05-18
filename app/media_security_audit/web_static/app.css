@@ -37,6 +37,20 @@ a:hover {
   text-decoration: underline;
 }
 
+.skip-link {
+  background: var(--accent-strong);
+  color: #ffffff;
+  left: 16px;
+  padding: 9px 12px;
+  position: absolute;
+  top: -48px;
+  z-index: 1000;
+}
+
+.skip-link:focus {
+  top: 10px;
+}
+
 .topbar {
   align-items: center;
   background: var(--surface);

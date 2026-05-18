@@ -102,6 +102,7 @@ Current foundation:
 - audit template page shortcuts started
 - system status page shortcuts started
 - active top navigation started
+- keyboard skip link started
 - template guidance in authorization briefs started
 - enriched mission export manifest started
 - mission export checksum manifest started

@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="/static/app.css">
 </head>
 <body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
   <header class="topbar">
     <a class="brand" href="/">MEDIA Security Audit</a>
     {% set current_path = request.url.path %}
@@ -19,7 +20,7 @@
       <a href="/system" class="{{ 'active' if current_path.startswith('/system') else '' }}" {% if current_path.startswith('/system') %}aria-current="page"{% endif %}>System</a>
     </nav>
   </header>
-  <main class="shell">
+  <main class="shell" id="main-content" tabindex="-1">
     {% if message %}
     <div class="alert alert-success">{{ message }}</div>
     {% endif %}

@@ -101,6 +101,7 @@ Current foundation:
 - remediation library page shortcuts started
 - audit template page shortcuts started
 - system status page shortcuts started
+- active top navigation started
 - template guidance in authorization briefs started
 - enriched mission export manifest started
 - mission export checksum manifest started

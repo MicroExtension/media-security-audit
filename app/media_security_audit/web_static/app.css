@@ -58,6 +58,22 @@ a:hover {
   gap: 14px;
 }
 
+.topnav a {
+  border-bottom: 3px solid transparent;
+  color: var(--muted);
+  padding: 18px 0 15px;
+}
+
+.topnav a:hover {
+  color: var(--accent-strong);
+  text-decoration: none;
+}
+
+.topnav a.active {
+  border-bottom-color: var(--accent);
+  color: var(--text);
+}
+
 .shell {
   margin: 0 auto;
   max-width: 1240px;

@@ -116,6 +116,7 @@ Codex action:
 - keep remediation library shortcuts aligned with filters, entries, and exports
 - keep audit template shortcuts aligned with filters and template lists
 - keep system status shortcuts aligned with auth, storage, inventory, backup, and tools
+- keep top navigation active states aligned with stable route groups
 
 ## Step 2.2 - Nmap Dry-Run Planning
 

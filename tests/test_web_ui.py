@@ -40,6 +40,23 @@ def clean_data_dir(name: str) -> Path:
 
 
 class WebUiTests(unittest.TestCase):
+    def test_base_template_marks_active_top_navigation(self) -> None:
+        template_path = (
+            Path(__file__).resolve().parents[1]
+            / "app"
+            / "media_security_audit"
+            / "web_templates"
+            / "base.html"
+        )
+        template = template_path.read_text(encoding="utf-8")
+
+        self.assertIn("{% set current_path = request.url.path %}", template)
+        self.assertIn("dashboard_active", template)
+        self.assertIn('aria-current="page"', template)
+
+        for prefix in ["/activity", "/templates", "/remediations", "/system"]:
+            self.assertIn(f"current_path.startswith('{prefix}')", template)
+
     def test_dashboard_template_exposes_shortcut_anchors(self) -> None:
         template_path = (
             Path(__file__).resolve().parents[1]

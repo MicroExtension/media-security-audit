@@ -111,6 +111,7 @@ Implemented so far:
 - Debian VM start helper runs strict preflight before service startup
 - Debian VM status helper reports Compose and preflight state without logs
 - Debian VM stop helper requires confirmation and preserves data
+- Debian VM restart helper stops safely, preflights, and starts again
 - Debian VM backup helper archives persistent folders before updates
 - Debian VM backup verification helper validates archives without extraction
 - Debian VM restore preview helper extracts backups away from live data
@@ -323,6 +324,7 @@ bash scripts/debian-vm-preflight.sh
 bash scripts/debian-vm-start.sh
 bash scripts/debian-vm-status.sh
 bash scripts/debian-vm-stop.sh --confirm
+bash scripts/debian-vm-restart.sh --confirm
 bash scripts/debian-vm-backup.sh
 bash scripts/debian-vm-verify-backup.sh reports/backups/media-audit-backup-YYYYMMDDTHHMMSSZ.tgz
 bash scripts/debian-vm-restore-preview.sh reports/backups/media-audit-backup-YYYYMMDDTHHMMSSZ.tgz

@@ -66,6 +66,17 @@ The helper refuses to overwrite an existing `.env`, keeps the UI bound to
 Store the generated password from `.env` in the maintenance password vault
 before customer use.
 
+Rotate the web password during an approved maintenance window:
+
+```bash
+bash scripts/debian-vm-rotate-password.sh --confirm
+```
+
+The rotation helper creates a timestamped `.env` backup, generates a new strong
+`MEDIA_AUDIT_WEB_PASSWORD`, keeps `MEDIA_AUDIT_REQUIRE_AUTH=true`, and does not
+restart the service automatically. Store the updated password from `.env` in
+the maintenance password vault, then restart the service when ready.
+
 Manual alternative:
 
 ```bash

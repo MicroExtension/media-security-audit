@@ -74,6 +74,33 @@ class DeploymentFileTests(unittest.TestCase):
         self.assertNotIn("sudo", script)
         self.assertNotIn("nmap", script)
 
+    def test_debian_vm_rotate_password_script_is_explicit_and_auth_preserving(self) -> None:
+        script = (ROOT / "scripts" / "debian-vm-rotate-password.sh").read_text(encoding="utf-8")
+
+        self.assertIn("set -euo pipefail", script)
+        self.assertIn("--confirm", script)
+        self.assertIn("explicit --confirm is required", script)
+        self.assertIn('[[ -f ".env" ]]', script)
+        self.assertIn('[[ -w ".env" ]]', script)
+        self.assertIn("secrets.token_urlsafe(24)", script)
+        self.assertIn('BACKUP=".env.${TIMESTAMP}.bak"', script)
+        self.assertIn('cp -p ".env" "${BACKUP}"', script)
+        self.assertIn("MEDIA_AUDIT_REQUIRE_AUTH", script)
+        self.assertIn("MEDIA_AUDIT_WEB_PASSWORD", script)
+        self.assertIn('upsert("MEDIA_AUDIT_REQUIRE_AUTH", "true")', script)
+        self.assertIn("chmod 600", script)
+        self.assertIn("maintenance password vault", script)
+        self.assertIn("scripts/debian-vm-restart.sh --confirm", script)
+        self.assertNotIn('echo "${PASSWORD}"', script)
+        self.assertNotIn("docker compose up", script)
+        self.assertNotIn("docker compose restart", script)
+        self.assertNotIn("docker compose down", script)
+        self.assertNotIn("docker compose logs", script)
+        self.assertNotIn("rm -rf", script)
+        self.assertNotIn("apt-get", script)
+        self.assertNotIn("sudo", script)
+        self.assertNotIn("nmap", script)
+
     def test_debian_vm_preflight_script_is_safe_and_scanner_free(self) -> None:
         script = (ROOT / "scripts" / "debian-vm-preflight.sh").read_text(encoding="utf-8")
 

@@ -120,6 +120,7 @@ Current foundation:
 - Debian VM backup helper script started
 - Debian VM backup verification helper script started
 - Debian VM restore preview helper script started
+- Debian VM diagnostics helper script started
 - Debian VM update helper script started
 - template guidance in authorization briefs started
 - enriched mission export manifest started
@@ -188,6 +189,7 @@ Current foundation:
 - Debian VM backup helper archives persistent folders before updates
 - Debian VM backup verification helper validates backup archives without restore
 - Debian VM restore preview helper extracts backups away from live data
+- Debian VM diagnostics helper writes support reports without application logs
 - Debian VM update helper backs up and preflights before restart
 - mission ZIP export package started
 - workspace backup ZIP export started
@@ -233,6 +235,7 @@ Success criteria:
 - Debian VM deployment has a guarded local backup helper script
 - Debian VM backups can be verified before an update is trusted
 - Debian VM backups can be preview-extracted without replacing live data
+- Debian VM diagnostics can be collected without bundling customer files or logs
 - Debian VM updates are guarded by backup, fast-forward pull, and strict preflight
 
 ## Future MSP Differentiators

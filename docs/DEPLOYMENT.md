@@ -305,6 +305,20 @@ Restore previews are written under `reports/restore-previews` by default. The
 helper refuses to extract directly over `data`, `runs`, `reports`, or
 `evidence`.
 
+## Diagnostics
+
+Generate a local support report when troubleshooting a VM:
+
+```bash
+bash scripts/debian-vm-diagnostics.sh
+```
+
+Diagnostics are written to `reports/support` by default. Set
+`MEDIA_AUDIT_SUPPORT_DIR=/path/to/support` to write them elsewhere. The helper
+collects Git state, Docker Compose status, persistent folder sizes, and
+deployment preflight JSON. It does not include application logs or customer
+file contents by default.
+
 ## Current Limitations
 
 - The web UI does not execute scans yet.

@@ -130,6 +130,25 @@ class DeploymentFileTests(unittest.TestCase):
         self.assertNotIn("sudo", script)
         self.assertNotIn("nmap", script)
 
+    def test_debian_vm_diagnostics_script_avoids_customer_data_and_logs(self) -> None:
+        script = (ROOT / "scripts" / "debian-vm-diagnostics.sh").read_text(encoding="utf-8")
+
+        self.assertIn("set -euo pipefail", script)
+        self.assertIn("MEDIA_AUDIT_SUPPORT_DIR", script)
+        self.assertIn("reports/support", script)
+        self.assertIn("git status --short --untracked-files=no", script)
+        self.assertIn("docker compose config --quiet", script)
+        self.assertIn("docker compose ps", script)
+        self.assertIn("docker compose run --rm media-audit preflight", script)
+        self.assertIn("--format json", script)
+        self.assertIn("data runs reports evidence", script)
+        self.assertIn("should not contain customer data or application logs", script)
+        self.assertNotIn("docker compose logs", script)
+        self.assertNotIn("tar -czf", script)
+        self.assertNotIn("apt-get", script)
+        self.assertNotIn("sudo", script)
+        self.assertNotIn("nmap", script)
+
 
 if __name__ == "__main__":
     unittest.main()

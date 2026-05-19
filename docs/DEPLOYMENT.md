@@ -131,6 +131,15 @@ The status helper reports `.env` readiness, Docker Compose configuration,
 service status, and deployment preflight JSON. It does not collect application
 logs or customer file contents.
 
+Stop the local service for maintenance:
+
+```bash
+bash scripts/debian-vm-stop.sh --confirm
+```
+
+The stop helper uses `docker compose stop media-audit`. It does not remove
+containers, images, volumes, or persistent folders.
+
 Default local URL:
 
 ```text

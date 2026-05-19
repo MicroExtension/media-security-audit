@@ -133,6 +133,7 @@ Codex action:
 - keep deployment preflight strict mode opt-in for install gates
 - keep Debian VM env initialization local-only and non-overwriting
 - keep Debian VM password rotation explicit and auth-preserving
+- keep Debian VM security review secret-free and scanner-free
 - keep Debian VM service startup guarded by strict preflight
 - keep Debian VM status checks log-free and scanner-free
 - keep Debian VM stop helpers explicit and data-preserving
@@ -315,6 +316,9 @@ Use `bash scripts/debian-vm-init-env.sh` on a fresh VM to create a local-only
 `.env` with authentication enabled and a generated web password.
 Use `bash scripts/debian-vm-rotate-password.sh --confirm` to rotate
 `MEDIA_AUDIT_WEB_PASSWORD`, back up `.env`, and keep authentication enabled.
+Use `bash scripts/debian-vm-security-review.sh` before customer handoff to
+check `.env` permissions, authentication, LAN binding, and Compose config
+without printing secrets or collecting logs.
 Use `bash scripts/debian-vm-preflight.sh` after `.env` is configured to validate
 Docker Compose, persistent folders, image build, and strict preflight before
 starting the service.

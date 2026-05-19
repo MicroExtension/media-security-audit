@@ -77,6 +77,16 @@ The rotation helper creates a timestamped `.env` backup, generates a new strong
 restart the service automatically. Store the updated password from `.env` in
 the maintenance password vault, then restart the service when ready.
 
+Review the VM security posture before customer handoff:
+
+```bash
+bash scripts/debian-vm-security-review.sh
+```
+
+The review helper checks `.env` permissions, authentication settings, password
+presence, LAN binding, and Docker Compose configuration. It does not print
+secrets, collect application logs, start services, or run scanners.
+
 Manual alternative:
 
 ```bash

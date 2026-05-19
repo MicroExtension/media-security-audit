@@ -349,7 +349,10 @@ class CliWorkflowTests(unittest.TestCase):
 
         payload = json.loads(stdout.getvalue())
 
+        self.assertEqual(payload["schema_version"], 1)
         self.assertIn(payload["status"], {"ready", "warning"})
+        self.assertIn("ready", payload["summary"])
+        self.assertIn("missing", payload["summary"])
         self.assertTrue(
             any(
                 item["category"] == "storage"

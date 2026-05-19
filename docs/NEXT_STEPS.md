@@ -128,6 +128,7 @@ Codex action:
 - keep deployment healthchecks coarse and free of sensitive customer data
 - keep deployment preflight checks non-destructive and scanner-free
 - keep deployment preflight JSON output stable for automation
+- keep deployment preflight JSON schema versioned for install scripts
 - keep deployment preflight strict mode opt-in for install gates
 
 ## Step 2.2 - Nmap Dry-Run Planning

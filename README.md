@@ -103,6 +103,7 @@ Implemented so far:
 - healthcheck reports persistent storage readiness for deployments
 - CLI preflight reports local deployment readiness without running scans
 - CLI preflight supports JSON output for automation
+- CLI preflight JSON output includes a schema version and status summary
 - CLI preflight strict mode can fail automation on warnings
 - dashboard shows review backlog clients watchlist
 - dashboard client list shows per-client preparation counts

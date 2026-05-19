@@ -12,6 +12,9 @@ from media_security_audit.web_auth import WebAuthSettings, web_auth_settings_fro
 from media_security_audit.web_system import build_system_status
 
 
+PREFLIGHT_SCHEMA_VERSION = 1
+
+
 @dataclass(frozen=True)
 class PreflightItem:
     category: str
@@ -110,9 +113,19 @@ def preflight_exit_code(preflight: DeploymentPreflight, strict: bool = False) ->
     return 0
 
 
+def preflight_summary(preflight: DeploymentPreflight) -> dict[str, int]:
+    statuses = ("ready", "warning", "missing", "blocked")
+    return {
+        status: sum(1 for item in preflight.items if item.status == status)
+        for status in statuses
+    }
+
+
 def deployment_preflight_payload(preflight: DeploymentPreflight) -> dict[str, object]:
     return {
+        "schema_version": PREFLIGHT_SCHEMA_VERSION,
         "status": preflight.status,
+        "summary": preflight_summary(preflight),
         "items": [
             {
                 "category": item.category,

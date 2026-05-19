@@ -140,6 +140,15 @@ bash scripts/debian-vm-stop.sh --confirm
 The stop helper uses `docker compose stop media-audit`. It does not remove
 containers, images, volumes, or persistent folders.
 
+Restart the local service after approved maintenance:
+
+```bash
+bash scripts/debian-vm-restart.sh --confirm
+```
+
+The restart helper calls the guarded stop helper, then starts the service
+through the strict preflight start helper.
+
 Default local URL:
 
 ```text

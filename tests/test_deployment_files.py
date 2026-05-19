@@ -136,6 +136,28 @@ class DeploymentFileTests(unittest.TestCase):
         self.assertNotIn("sudo", script)
         self.assertNotIn("nmap", script)
 
+    def test_debian_vm_restart_script_is_guarded_and_reuses_safe_helpers(self) -> None:
+        script = (ROOT / "scripts" / "debian-vm-restart.sh").read_text(encoding="utf-8")
+
+        self.assertIn("set -euo pipefail", script)
+        self.assertIn("--confirm", script)
+        self.assertIn("explicit --confirm is required", script)
+        self.assertIn("bash scripts/debian-vm-stop.sh --confirm", script)
+        self.assertIn("bash scripts/debian-vm-start.sh", script)
+        self.assertIn("without removing persistent data", script)
+        self.assertIn("strict preflight", script)
+        self.assertLess(
+            script.index("bash scripts/debian-vm-stop.sh --confirm"),
+            script.index("bash scripts/debian-vm-start.sh"),
+        )
+        self.assertNotIn("docker compose down", script)
+        self.assertNotIn("docker compose rm", script)
+        self.assertNotIn("--volumes", script)
+        self.assertNotIn("rm -rf", script)
+        self.assertNotIn("apt-get", script)
+        self.assertNotIn("sudo", script)
+        self.assertNotIn("nmap", script)
+
     def test_debian_vm_backup_script_is_local_and_guarded(self) -> None:
         script = (ROOT / "scripts" / "debian-vm-backup.sh").read_text(encoding="utf-8")
 

@@ -135,6 +135,7 @@ Codex action:
 - keep Debian VM service startup guarded by strict preflight
 - keep Debian VM status checks log-free and scanner-free
 - keep Debian VM stop helpers explicit and data-preserving
+- keep Debian VM restart helpers explicit, data-preserving, and preflighted
 - keep Debian VM helper scripts preflight-only and scanner-free
 - keep Debian VM backup helpers local-only and update-safe
 - keep Debian VM backup verification read-only and restore-free
@@ -319,6 +320,8 @@ Use `bash scripts/debian-vm-status.sh` for a quick log-free status check of
 `.env`, Docker Compose, service state, and deployment preflight JSON.
 Use `bash scripts/debian-vm-stop.sh --confirm` to stop the service without
 removing containers, volumes, or persistent folders.
+Use `bash scripts/debian-vm-restart.sh --confirm` after approved maintenance to
+stop without removing data and start again through strict preflight.
 Use `bash scripts/debian-vm-backup.sh` before customer-impacting updates to
 archive `data`, `runs`, `reports`, and `evidence` without starting services or
 running scanners.

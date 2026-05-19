@@ -159,6 +159,30 @@ class DeploymentFileTests(unittest.TestCase):
         self.assertNotIn("apt-get", script)
         self.assertNotIn("nmap", script)
 
+    def test_debian_vm_handoff_report_uses_safe_reviews_only(self) -> None:
+        script = (ROOT / "scripts" / "debian-vm-handoff-report.sh").read_text(encoding="utf-8")
+
+        self.assertIn("set -euo pipefail", script)
+        self.assertIn("MEDIA_AUDIT_HANDOFF_DIR", script)
+        self.assertIn("reports/handoff", script)
+        self.assertIn("media-audit-handoff-", script)
+        self.assertIn("bash scripts/debian-vm-security-review.sh", script)
+        self.assertIn("bash scripts/debian-vm-status.sh", script)
+        self.assertIn("customer authorization", script)
+        self.assertIn("MEDIA_AUDIT_REQUIRE_AUTH remains enabled", script)
+        self.assertIn("firewall or VPN", script)
+        self.assertIn("maintenance password vault", script)
+        self.assertIn("review before sharing", script)
+        self.assertIn("excludes application logs and customer file contents", script)
+        self.assertNotIn('cat ".env"', script)
+        self.assertNotIn("docker compose logs", script)
+        self.assertNotIn("docker compose up", script)
+        self.assertNotIn("docker compose build", script)
+        self.assertNotIn("rm -rf", script)
+        self.assertNotIn("apt-get", script)
+        self.assertNotIn("sudo", script)
+        self.assertNotIn("nmap", script)
+
     def test_debian_vm_preflight_script_is_safe_and_scanner_free(self) -> None:
         script = (ROOT / "scripts" / "debian-vm-preflight.sh").read_text(encoding="utf-8")
 

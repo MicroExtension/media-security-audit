@@ -183,6 +183,16 @@ MEDIA_AUDIT_BIND=0.0.0.0
 MEDIA_AUDIT_PORT=8080
 ```
 
+Generate a firewall plan before exposing the UI:
+
+```bash
+bash scripts/debian-vm-firewall-plan.sh --admin-cidr 192.0.2.0/24
+```
+
+The firewall plan helper prints example UFW commands for technician review
+only. It does not apply firewall rules, start services, collect logs, or run
+scanners. Replace `192.0.2.0/24` with the approved administration subnet.
+
 Then restart:
 
 ```bash

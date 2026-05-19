@@ -342,8 +342,14 @@ docker compose run --rm media-audit \
 Pull the latest approved version and rebuild:
 
 ```bash
+bash scripts/debian-vm-update-plan.sh
 bash scripts/debian-vm-update.sh
 ```
+
+The update plan helper is read-only. It checks the current branch, tracked
+changes, `.env`, authentication, and local backup readiness, then prints the
+reviewed commands for the technician. It does not pull code, build images,
+restart services, collect logs, or run scanners.
 
 The update helper requires the VM clone to be on `main` with no tracked local
 changes. It creates a backup first, pulls with `git pull --ff-only`, rebuilds

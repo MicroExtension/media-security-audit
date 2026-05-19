@@ -121,6 +121,7 @@ Implemented so far:
 - Debian VM restore preview helper extracts backups away from live data
 - Debian VM diagnostics helper writes support reports without app logs
 - Debian VM support bundle helper packages diagnostics only
+- Debian VM update plan helper checks readiness without applying updates
 - Debian VM update helper backs up, pulls, preflights, and restarts safely
 - dashboard shows review backlog clients watchlist
 - dashboard client list shows per-client preparation counts
@@ -339,6 +340,7 @@ bash scripts/debian-vm-verify-backup.sh reports/backups/media-audit-backup-YYYYM
 bash scripts/debian-vm-restore-preview.sh reports/backups/media-audit-backup-YYYYMMDDTHHMMSSZ.tgz
 bash scripts/debian-vm-diagnostics.sh
 bash scripts/debian-vm-support-bundle.sh
+bash scripts/debian-vm-update-plan.sh
 bash scripts/debian-vm-update.sh
 ```
 

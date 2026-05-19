@@ -58,6 +58,7 @@ class DeploymentPreflightTests(unittest.TestCase):
         self.assertIn("Deployment preflight: ready", output)
         self.assertIn("[ready] auth: Web authentication", output)
         self.assertIn("[ready] storage: Data directory", output)
+        self.assertNotIn("Action:", output)
 
     def test_preflight_blocks_when_storage_is_invalid(self) -> None:
         root = clean_dir("deployment-preflight-blocked")
@@ -109,6 +110,9 @@ class DeploymentPreflightTests(unittest.TestCase):
         self.assertGreaterEqual(preflight_summary(preflight)["missing"], 1)
         self.assertTrue(any(item.category == "auth" for item in preflight.items))
         self.assertTrue(any(item.status == "missing" for item in preflight.items))
+        output = format_deployment_preflight(preflight)
+        self.assertIn("Action: Enable MEDIA_AUDIT_REQUIRE_AUTH=true", output)
+        self.assertIn("Action: Install nmap", output)
 
     def test_preflight_formats_json_for_automation(self) -> None:
         root = clean_dir("deployment-preflight-json")
@@ -137,6 +141,7 @@ class DeploymentPreflightTests(unittest.TestCase):
         self.assertGreaterEqual(payload["summary"]["ready"], 1)
         self.assertEqual(payload["items"][0]["category"], "auth")
         self.assertEqual(payload["items"][0]["status"], "ready")
+        self.assertEqual(payload["items"][0]["action"], "No action required.")
         self.assertNotIn(str(data_dir), json.dumps(payload))
 
 

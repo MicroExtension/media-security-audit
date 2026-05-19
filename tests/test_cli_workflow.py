@@ -353,6 +353,7 @@ class CliWorkflowTests(unittest.TestCase):
         self.assertIn(payload["status"], {"ready", "warning"})
         self.assertIn("ready", payload["summary"])
         self.assertIn("missing", payload["summary"])
+        self.assertTrue(all("action" in item for item in payload["items"]))
         self.assertTrue(
             any(
                 item["category"] == "storage"

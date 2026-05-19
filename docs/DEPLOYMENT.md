@@ -124,9 +124,12 @@ bash scripts/debian-vm-start.sh
 Check service status:
 
 ```bash
-docker compose ps
-docker compose logs -f media-audit
+bash scripts/debian-vm-status.sh
 ```
+
+The status helper reports `.env` readiness, Docker Compose configuration,
+service status, and deployment preflight JSON. It does not collect application
+logs or customer file contents.
 
 Default local URL:
 

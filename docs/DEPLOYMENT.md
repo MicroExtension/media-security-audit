@@ -295,6 +295,15 @@ bash scripts/debian-vm-verify-backup.sh reports/backups/media-audit-backup-YYYYM
 
 Add `--verbose` to print the archive listing. The verification helper does not
 extract or restore data.
+To inspect the contents in a separate folder without replacing live data:
+
+```bash
+bash scripts/debian-vm-restore-preview.sh reports/backups/media-audit-backup-YYYYMMDDTHHMMSSZ.tgz
+```
+
+Restore previews are written under `reports/restore-previews` by default. The
+helper refuses to extract directly over `data`, `runs`, `reports`, or
+`evidence`.
 
 ## Current Limitations
 

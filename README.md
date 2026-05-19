@@ -109,6 +109,7 @@ Implemented so far:
 - Debian VM preflight helper checks Compose readiness before service startup
 - Debian VM backup helper archives persistent folders before updates
 - Debian VM backup verification helper validates archives without extraction
+- Debian VM restore preview helper extracts backups away from live data
 - Debian VM update helper backs up, pulls, preflights, and restarts safely
 - dashboard shows review backlog clients watchlist
 - dashboard client list shows per-client preparation counts
@@ -315,6 +316,7 @@ media-audit preflight --data-dir data --reports-dir reports --strict
 bash scripts/debian-vm-preflight.sh
 bash scripts/debian-vm-backup.sh
 bash scripts/debian-vm-verify-backup.sh reports/backups/media-audit-backup-YYYYMMDDTHHMMSSZ.tgz
+bash scripts/debian-vm-restore-preview.sh reports/backups/media-audit-backup-YYYYMMDDTHHMMSSZ.tgz
 bash scripts/debian-vm-update.sh
 ```
 

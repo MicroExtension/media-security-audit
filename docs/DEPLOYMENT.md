@@ -193,6 +193,17 @@ The firewall plan helper prints example UFW commands for technician review
 only. It does not apply firewall rules, start services, collect logs, or run
 scanners. Replace `192.0.2.0/24` with the approved administration subnet.
 
+Generate a handoff report before customer use:
+
+```bash
+bash scripts/debian-vm-handoff-report.sh
+```
+
+Handoff reports are written to `reports/handoff` by default. Set
+`MEDIA_AUDIT_HANDOFF_DIR=/path/to/handoff` to write them elsewhere. The helper
+runs the security review and deployment status helpers, then records technician
+review reminders without collecting application logs or customer file contents.
+
 Then restart:
 
 ```bash

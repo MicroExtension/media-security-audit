@@ -83,6 +83,22 @@ class DeploymentFileTests(unittest.TestCase):
         self.assertNotIn("sudo", script)
         self.assertNotIn("nmap", script)
 
+    def test_debian_vm_update_script_is_guarded_and_preflighted(self) -> None:
+        script = (ROOT / "scripts" / "debian-vm-update.sh").read_text(encoding="utf-8")
+
+        self.assertIn("set -euo pipefail", script)
+        self.assertIn("git status --porcelain --untracked-files=no", script)
+        self.assertIn('[[ "${CURRENT_BRANCH}" == "main" ]]', script)
+        self.assertIn("bash scripts/debian-vm-backup.sh", script)
+        self.assertIn("git pull --ff-only", script)
+        self.assertIn("docker compose build media-audit", script)
+        self.assertIn("docker compose run --rm media-audit preflight", script)
+        self.assertIn("--strict", script)
+        self.assertIn("docker compose up -d", script)
+        self.assertNotIn("apt-get", script)
+        self.assertNotIn("sudo", script)
+        self.assertNotIn("nmap", script)
+
 
 if __name__ == "__main__":
     unittest.main()

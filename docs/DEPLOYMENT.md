@@ -272,9 +272,12 @@ docker compose run --rm media-audit \
 Pull the latest approved version and rebuild:
 
 ```bash
-git pull --ff-only
-docker compose up -d --build
+bash scripts/debian-vm-update.sh
 ```
+
+The update helper requires the VM clone to be on `main` with no tracked local
+changes. It creates a backup first, pulls with `git pull --ff-only`, rebuilds
+the image, runs strict preflight, and only then restarts Docker Compose.
 
 Back up persistent folders before customer-impacting updates:
 

@@ -532,6 +532,7 @@ try:
         data_dir: Path = typer.Option(Path("data"), "--data-dir"),
         reports_dir: Path = typer.Option(Path("reports"), "--reports-dir"),
         output_format: str = typer.Option("text", "--format"),
+        strict: bool = typer.Option(False, "--strict"),
     ) -> None:
         """Check local deployment readiness without running scans."""
         if output_format not in {"text", "json"}:
@@ -541,7 +542,7 @@ try:
             typer.echo(format_deployment_preflight_json(result))
         else:
             typer.echo(format_deployment_preflight(result))
-        exit_code = preflight_exit_code(result)
+        exit_code = preflight_exit_code(result, strict=strict)
         if exit_code:
             raise typer.Exit(code=exit_code)
 
@@ -807,6 +808,7 @@ except ModuleNotFoundError:
         preflight_parser.add_argument("--data-dir", type=Path, default=Path("data"))
         preflight_parser.add_argument("--reports-dir", type=Path, default=Path("reports"))
         preflight_parser.add_argument("--format", choices=["text", "json"], default="text")
+        preflight_parser.add_argument("--strict", action="store_true")
 
         client_parser = subparsers.add_parser("client", help="Manage clients.")
         client_subparsers = client_parser.add_subparsers(dest="client_command")
@@ -962,7 +964,7 @@ except ModuleNotFoundError:
                     print(format_deployment_preflight_json(result))
                 else:
                     print(format_deployment_preflight(result))
-                exit_code = preflight_exit_code(result)
+                exit_code = preflight_exit_code(result, strict=args.strict)
                 if exit_code:
                     raise SystemExit(exit_code)
                 return

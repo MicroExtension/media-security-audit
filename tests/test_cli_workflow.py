@@ -358,6 +358,33 @@ class CliWorkflowTests(unittest.TestCase):
             )
         )
 
+    def test_preflight_strict_returns_error_on_warning(self) -> None:
+        root_dir = Path(__file__).resolve().parents[1] / ".tmp-tests" / "cli-preflight-strict"
+        data_dir = root_dir / "data"
+        reports_dir = root_dir / "reports"
+        data_dir.mkdir(parents=True, exist_ok=True)
+        reports_dir.mkdir(parents=True, exist_ok=True)
+        stdout = io.StringIO()
+
+        with (
+            patch.dict(os.environ, {"MEDIA_AUDIT_REQUIRE_AUTH": "false"}, clear=False),
+            redirect_stdout(stdout),
+            self.assertRaises(SystemExit) as error,
+        ):
+            app(
+                [
+                    "preflight",
+                    "--data-dir",
+                    str(data_dir),
+                    "--reports-dir",
+                    str(reports_dir),
+                    "--strict",
+                ]
+            )
+
+        self.assertEqual(error.exception.code, 1)
+        self.assertIn("Deployment preflight: warning", stdout.getvalue())
+
 
 if __name__ == "__main__":
     unittest.main()

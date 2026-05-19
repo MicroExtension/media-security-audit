@@ -97,6 +97,7 @@ The preflight checks local storage, web authentication settings, workspace
 inventory, and tool availability. It does not execute scanners.
 Use `--format json` when an install script or monitoring wrapper needs a
 machine-readable result.
+Use `--strict` when warnings should fail a pre-production install gate.
 
 Build and start the service:
 

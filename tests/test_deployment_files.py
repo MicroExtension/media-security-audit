@@ -56,6 +56,24 @@ class DeploymentFileTests(unittest.TestCase):
         self.assertIn("MEDIA_AUDIT_WEB_PASSWORD", compose)
         self.assertIn("Set MEDIA_AUDIT_WEB_PASSWORD in .env before starting", compose)
 
+    def test_debian_vm_init_env_script_generates_local_only_auth_config(self) -> None:
+        script = (ROOT / "scripts" / "debian-vm-init-env.sh").read_text(encoding="utf-8")
+
+        self.assertIn("set -euo pipefail", script)
+        self.assertIn("python3", script)
+        self.assertIn("secrets.token_urlsafe(24)", script)
+        self.assertIn('[[ ! -e ".env" ]]', script)
+        self.assertIn("MEDIA_AUDIT_BIND=127.0.0.1", script)
+        self.assertIn("MEDIA_AUDIT_REQUIRE_AUTH=true", script)
+        self.assertIn("MEDIA_AUDIT_WEB_USERNAME=admin", script)
+        self.assertIn("MEDIA_AUDIT_WEB_PASSWORD=${PASSWORD}", script)
+        self.assertIn("chmod 600", script)
+        self.assertIn("maintenance password vault", script)
+        self.assertNotIn("MEDIA_AUDIT_BIND=0.0.0.0", script.splitlines())
+        self.assertNotIn("apt-get", script)
+        self.assertNotIn("sudo", script)
+        self.assertNotIn("nmap", script)
+
     def test_debian_vm_preflight_script_is_safe_and_scanner_free(self) -> None:
         script = (ROOT / "scripts" / "debian-vm-preflight.sh").read_text(encoding="utf-8")
 

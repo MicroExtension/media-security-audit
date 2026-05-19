@@ -106,6 +106,7 @@ Implemented so far:
 - CLI preflight JSON output includes a schema version and status summary
 - CLI preflight items include remediation actions for install technicians
 - CLI preflight strict mode can fail automation on warnings
+- Debian VM preflight helper checks Compose readiness before service startup
 - dashboard shows review backlog clients watchlist
 - dashboard client list shows per-client preparation counts
 - dashboard client list shows per-client finding review counts
@@ -308,6 +309,7 @@ Local deployment preflight:
 media-audit preflight --data-dir data --reports-dir reports
 media-audit preflight --data-dir data --reports-dir reports --format json
 media-audit preflight --data-dir data --reports-dir reports --strict
+bash scripts/debian-vm-preflight.sh
 ```
 
 Default URL:

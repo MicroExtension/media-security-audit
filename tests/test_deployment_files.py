@@ -51,6 +51,19 @@ class DeploymentFileTests(unittest.TestCase):
         self.assertIn("MEDIA_AUDIT_WEB_PASSWORD", compose)
         self.assertIn("Set MEDIA_AUDIT_WEB_PASSWORD in .env before starting", compose)
 
+    def test_debian_vm_preflight_script_is_safe_and_scanner_free(self) -> None:
+        script = (ROOT / "scripts" / "debian-vm-preflight.sh").read_text(encoding="utf-8")
+
+        self.assertIn("set -euo pipefail", script)
+        self.assertIn("MEDIA_AUDIT_WEB_PASSWORD", script)
+        self.assertIn("docker compose config --quiet", script)
+        self.assertIn("docker compose build media-audit", script)
+        self.assertIn("docker compose run --rm media-audit preflight", script)
+        self.assertIn("--strict", script)
+        self.assertNotIn("apt-get", script)
+        self.assertNotIn("sudo", script)
+        self.assertNotIn("nmap", script)
+
 
 if __name__ == "__main__":
     unittest.main()

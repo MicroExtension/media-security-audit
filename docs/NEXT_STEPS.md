@@ -131,6 +131,7 @@ Codex action:
 - keep deployment preflight JSON schema versioned for install scripts
 - keep deployment preflight action hints short and technician-focused
 - keep deployment preflight strict mode opt-in for install gates
+- keep Debian VM helper scripts preflight-only and scanner-free
 
 ## Step 2.2 - Nmap Dry-Run Planning
 
@@ -298,6 +299,9 @@ external tool availability without running scans.
 Use `--format json` when the result must be consumed by an install script or
 monitoring wrapper.
 Use `--strict` when warnings should fail an install gate.
+Use `bash scripts/debian-vm-preflight.sh` after `.env` is configured to validate
+Docker Compose, persistent folders, image build, and strict preflight before
+starting the service.
 
 ## Step 6 - Build The GUI
 

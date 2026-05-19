@@ -87,6 +87,22 @@ class DeploymentFileTests(unittest.TestCase):
         self.assertNotIn("sudo", script)
         self.assertNotIn("nmap", script)
 
+    def test_debian_vm_start_script_requires_preflight_before_up(self) -> None:
+        script = (ROOT / "scripts" / "debian-vm-start.sh").read_text(encoding="utf-8")
+
+        self.assertIn("set -euo pipefail", script)
+        self.assertIn("MEDIA_AUDIT_WEB_PASSWORD", script)
+        self.assertIn("bash scripts/debian-vm-preflight.sh", script)
+        self.assertIn("docker compose up -d", script)
+        self.assertIn("docker compose ps", script)
+        self.assertLess(
+            script.index("bash scripts/debian-vm-preflight.sh"),
+            script.index("docker compose up -d"),
+        )
+        self.assertNotIn("apt-get", script)
+        self.assertNotIn("sudo", script)
+        self.assertNotIn("nmap", script)
+
     def test_debian_vm_backup_script_is_local_and_guarded(self) -> None:
         script = (ROOT / "scripts" / "debian-vm-backup.sh").read_text(encoding="utf-8")
 

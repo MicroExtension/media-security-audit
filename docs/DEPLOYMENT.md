@@ -347,6 +347,17 @@ collects Git state, Docker Compose status, persistent folder sizes, and
 deployment preflight JSON. It does not include application logs or customer
 file contents by default.
 
+Create a shareable support bundle after generating diagnostics:
+
+```bash
+bash scripts/debian-vm-support-bundle.sh
+```
+
+Support bundles are written to `reports/support` by default. Set
+`MEDIA_AUDIT_SUPPORT_BUNDLE_DIR=/path/to/support-bundles` to write them
+elsewhere. The helper generates a fresh diagnostics report and archives only
+that report; review the bundle before sharing it outside the customer site.
+
 ## Current Limitations
 
 - The web UI does not execute scans yet.

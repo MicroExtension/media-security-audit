@@ -119,6 +119,7 @@ Current foundation:
 - Debian VM env initialization helper script started
 - Debian VM preflight helper script started
 - Debian VM start helper script started
+- Debian VM status helper script started
 - Debian VM backup helper script started
 - Debian VM backup verification helper script started
 - Debian VM restore preview helper script started
@@ -190,6 +191,7 @@ Current foundation:
 - Debian VM env helper creates local-only authenticated `.env` files
 - Debian VM preflight helper validates Compose and strict preflight before startup
 - Debian VM start helper starts service only after strict preflight
+- Debian VM status helper reports Compose and preflight state without logs
 - Debian VM backup helper archives persistent folders before updates
 - Debian VM backup verification helper validates backup archives without restore
 - Debian VM restore preview helper extracts backups away from live data
@@ -238,6 +240,7 @@ Success criteria:
 - Debian VM first install can generate a guarded local `.env`
 - Debian VM deployment has a guarded pre-start helper script
 - Debian VM service startup is guarded by strict preflight
+- Debian VM status can be checked without collecting logs or customer content
 - Debian VM deployment has a guarded local backup helper script
 - Debian VM backups can be verified before an update is trusted
 - Debian VM backups can be preview-extracted without replacing live data

@@ -103,6 +103,22 @@ class DeploymentFileTests(unittest.TestCase):
         self.assertNotIn("sudo", script)
         self.assertNotIn("nmap", script)
 
+    def test_debian_vm_status_script_is_read_only_and_log_free(self) -> None:
+        script = (ROOT / "scripts" / "debian-vm-status.sh").read_text(encoding="utf-8")
+
+        self.assertIn("set -euo pipefail", script)
+        self.assertIn("MEDIA_AUDIT_WEB_PASSWORD", script)
+        self.assertIn("docker compose config --quiet", script)
+        self.assertIn("docker compose ps", script)
+        self.assertIn("docker compose run --rm media-audit preflight", script)
+        self.assertIn("--format json", script)
+        self.assertNotIn("docker compose logs", script)
+        self.assertNotIn("docker compose up", script)
+        self.assertNotIn("docker compose build", script)
+        self.assertNotIn("apt-get", script)
+        self.assertNotIn("sudo", script)
+        self.assertNotIn("nmap", script)
+
     def test_debian_vm_backup_script_is_local_and_guarded(self) -> None:
         script = (ROOT / "scripts" / "debian-vm-backup.sh").read_text(encoding="utf-8")
 

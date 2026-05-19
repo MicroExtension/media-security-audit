@@ -54,19 +54,26 @@ git clone https://github.com/MicroExtension/media-security-audit.git
 cd media-security-audit
 ```
 
-Copy the environment template:
+Generate the first local environment file:
+
+```bash
+bash scripts/debian-vm-init-env.sh
+```
+
+The helper refuses to overwrite an existing `.env`, keeps the UI bound to
+`127.0.0.1`, enables authentication, generates a strong
+`MEDIA_AUDIT_WEB_PASSWORD`, and restricts file permissions to the current user.
+Store the generated password from `.env` in the maintenance password vault
+before customer use.
+
+Manual alternative:
 
 ```bash
 cp .env.example .env
-```
-
-Set a strong web password in `.env` before the first start:
-
-```bash
 python3 -c "import secrets; print(secrets.token_urlsafe(24))"
 ```
 
-Edit `.env`:
+Then edit `.env`:
 
 ```text
 MEDIA_AUDIT_REQUIRE_AUTH=true

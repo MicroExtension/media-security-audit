@@ -116,6 +116,7 @@ Current foundation:
 - deployment preflight JSON schema summary started
 - deployment preflight remediation actions started
 - deployment preflight strict mode started
+- Debian VM env initialization helper script started
 - Debian VM preflight helper script started
 - Debian VM backup helper script started
 - Debian VM backup verification helper script started
@@ -185,6 +186,7 @@ Current foundation:
 - deployment preflight JSON output exposes schema version and status counts
 - deployment preflight items include technician remediation actions
 - deployment preflight strict mode supports install gates
+- Debian VM env helper creates local-only authenticated `.env` files
 - Debian VM preflight helper validates Compose and strict preflight before startup
 - Debian VM backup helper archives persistent folders before updates
 - Debian VM backup verification helper validates backup archives without restore
@@ -231,6 +233,7 @@ Success criteria:
 - deployment preflight JSON schema stays stable for install automation
 - deployment preflight explains the next action for warning and blocked checks
 - deployment preflight can fail on warnings when strict mode is requested
+- Debian VM first install can generate a guarded local `.env`
 - Debian VM deployment has a guarded pre-start helper script
 - Debian VM deployment has a guarded local backup helper script
 - Debian VM backups can be verified before an update is trusted

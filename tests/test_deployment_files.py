@@ -114,6 +114,22 @@ class DeploymentFileTests(unittest.TestCase):
         self.assertNotIn("sudo", script)
         self.assertNotIn("nmap", script)
 
+    def test_debian_vm_restore_preview_script_does_not_replace_live_data(self) -> None:
+        script = (ROOT / "scripts" / "debian-vm-restore-preview.sh").read_text(encoding="utf-8")
+
+        self.assertIn("set -euo pipefail", script)
+        self.assertIn("debian-vm-verify-backup.sh", script)
+        self.assertIn("reports/restore-previews", script)
+        self.assertIn("refusing to extract preview over live", script)
+        self.assertIn("tar -xzf", script)
+        self.assertIn('-C "${PREVIEW_ROOT}"', script)
+        self.assertIn("does not replace live data folders", script)
+        self.assertNotIn("rm -rf", script)
+        self.assertNotIn("docker compose up", script)
+        self.assertNotIn("apt-get", script)
+        self.assertNotIn("sudo", script)
+        self.assertNotIn("nmap", script)
+
 
 if __name__ == "__main__":
     unittest.main()

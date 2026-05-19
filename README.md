@@ -107,6 +107,7 @@ Implemented so far:
 - CLI preflight items include remediation actions for install technicians
 - CLI preflight strict mode can fail automation on warnings
 - Debian VM env helper creates local-only authenticated `.env` files
+- Debian VM password rotation helper backs up `.env` and keeps authentication enabled
 - Debian VM preflight helper checks Compose readiness before service startup
 - Debian VM start helper runs strict preflight before service startup
 - Debian VM status helper reports Compose and preflight state without logs
@@ -321,6 +322,7 @@ media-audit preflight --data-dir data --reports-dir reports
 media-audit preflight --data-dir data --reports-dir reports --format json
 media-audit preflight --data-dir data --reports-dir reports --strict
 bash scripts/debian-vm-init-env.sh
+bash scripts/debian-vm-rotate-password.sh --confirm
 bash scripts/debian-vm-preflight.sh
 bash scripts/debian-vm-start.sh
 bash scripts/debian-vm-status.sh

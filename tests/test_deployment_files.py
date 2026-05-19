@@ -99,6 +99,21 @@ class DeploymentFileTests(unittest.TestCase):
         self.assertNotIn("sudo", script)
         self.assertNotIn("nmap", script)
 
+    def test_debian_vm_backup_verify_script_is_read_only(self) -> None:
+        script = (ROOT / "scripts" / "debian-vm-verify-backup.sh").read_text(encoding="utf-8")
+
+        self.assertIn("set -euo pipefail", script)
+        self.assertIn("tar -tzf", script)
+        self.assertIn("data runs reports evidence", script)
+        self.assertIn("--verbose", script)
+        self.assertIn("does not extract or restore data", script)
+        self.assertNotIn("tar -x", script)
+        self.assertNotIn("rm -rf", script)
+        self.assertNotIn("docker compose up", script)
+        self.assertNotIn("apt-get", script)
+        self.assertNotIn("sudo", script)
+        self.assertNotIn("nmap", script)
+
 
 if __name__ == "__main__":
     unittest.main()

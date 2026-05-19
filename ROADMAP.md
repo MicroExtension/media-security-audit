@@ -118,6 +118,7 @@ Current foundation:
 - deployment preflight strict mode started
 - Debian VM preflight helper script started
 - Debian VM backup helper script started
+- Debian VM backup verification helper script started
 - Debian VM update helper script started
 - template guidance in authorization briefs started
 - enriched mission export manifest started
@@ -184,6 +185,7 @@ Current foundation:
 - deployment preflight strict mode supports install gates
 - Debian VM preflight helper validates Compose and strict preflight before startup
 - Debian VM backup helper archives persistent folders before updates
+- Debian VM backup verification helper validates backup archives without restore
 - Debian VM update helper backs up and preflights before restart
 - mission ZIP export package started
 - workspace backup ZIP export started
@@ -227,6 +229,7 @@ Success criteria:
 - deployment preflight can fail on warnings when strict mode is requested
 - Debian VM deployment has a guarded pre-start helper script
 - Debian VM deployment has a guarded local backup helper script
+- Debian VM backups can be verified before an update is trusted
 - Debian VM updates are guarded by backup, fast-forward pull, and strict preflight
 
 ## Future MSP Differentiators

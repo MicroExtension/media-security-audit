@@ -287,6 +287,14 @@ bash scripts/debian-vm-backup.sh
 
 Backups are written to `reports/backups` by default. Set
 `MEDIA_AUDIT_BACKUP_DIR=/path/to/backups` to write archives elsewhere.
+Verify an archive before relying on it:
+
+```bash
+bash scripts/debian-vm-verify-backup.sh reports/backups/media-audit-backup-YYYYMMDDTHHMMSSZ.tgz
+```
+
+Add `--verbose` to print the archive listing. The verification helper does not
+extract or restore data.
 
 ## Current Limitations
 

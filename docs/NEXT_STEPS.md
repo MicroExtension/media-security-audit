@@ -132,6 +132,7 @@ Codex action:
 - keep deployment preflight action hints short and technician-focused
 - keep deployment preflight strict mode opt-in for install gates
 - keep Debian VM helper scripts preflight-only and scanner-free
+- keep Debian VM backup helpers local-only and update-safe
 
 ## Step 2.2 - Nmap Dry-Run Planning
 
@@ -302,6 +303,9 @@ Use `--strict` when warnings should fail an install gate.
 Use `bash scripts/debian-vm-preflight.sh` after `.env` is configured to validate
 Docker Compose, persistent folders, image build, and strict preflight before
 starting the service.
+Use `bash scripts/debian-vm-backup.sh` before customer-impacting updates to
+archive `data`, `runs`, `reports`, and `evidence` without starting services or
+running scanners.
 
 ## Step 6 - Build The GUI
 

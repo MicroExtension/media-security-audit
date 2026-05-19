@@ -279,8 +279,11 @@ docker compose up -d --build
 Back up persistent folders before customer-impacting updates:
 
 ```bash
-tar -czf media-audit-backup.tgz data runs reports evidence
+bash scripts/debian-vm-backup.sh
 ```
+
+Backups are written to `reports/backups` by default. Set
+`MEDIA_AUDIT_BACKUP_DIR=/path/to/backups` to write archives elsewhere.
 
 ## Current Limitations
 

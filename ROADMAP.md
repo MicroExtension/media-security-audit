@@ -117,6 +117,7 @@ Current foundation:
 - deployment preflight remediation actions started
 - deployment preflight strict mode started
 - Debian VM preflight helper script started
+- Debian VM backup helper script started
 - template guidance in authorization briefs started
 - enriched mission export manifest started
 - mission export checksum manifest started
@@ -181,6 +182,7 @@ Current foundation:
 - deployment preflight items include technician remediation actions
 - deployment preflight strict mode supports install gates
 - Debian VM preflight helper validates Compose and strict preflight before startup
+- Debian VM backup helper archives persistent folders before updates
 - mission ZIP export package started
 - workspace backup ZIP export started
 - workspace integrity diagnostics started
@@ -222,6 +224,7 @@ Success criteria:
 - deployment preflight explains the next action for warning and blocked checks
 - deployment preflight can fail on warnings when strict mode is requested
 - Debian VM deployment has a guarded pre-start helper script
+- Debian VM deployment has a guarded local backup helper script
 
 ## Future MSP Differentiators
 

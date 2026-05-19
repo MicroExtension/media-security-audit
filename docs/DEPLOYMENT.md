@@ -204,6 +204,17 @@ Handoff reports are written to `reports/handoff` by default. Set
 runs the security review and deployment status helpers, then records technician
 review reminders without collecting application logs or customer file contents.
 
+Create a shareable handoff bundle:
+
+```bash
+bash scripts/debian-vm-handoff-bundle.sh
+```
+
+Handoff bundles are written to `reports/handoff` by default. Set
+`MEDIA_AUDIT_HANDOFF_BUNDLE_DIR=/path/to/handoff-bundles` to write them
+elsewhere. The helper generates a fresh handoff report and archives only that
+report; review the bundle before sharing it outside the customer site.
+
 Then restart:
 
 ```bash

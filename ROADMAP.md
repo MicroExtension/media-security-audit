@@ -121,6 +121,7 @@ Current foundation:
 - Debian VM security review helper script started
 - Debian VM firewall plan helper script started
 - Debian VM handoff report helper script started
+- Debian VM handoff bundle helper script started
 - Debian VM preflight helper script started
 - Debian VM start helper script started
 - Debian VM status helper script started
@@ -201,6 +202,7 @@ Current foundation:
 - Debian VM security review helper checks auth, bind, permissions, and Compose
 - Debian VM firewall plan helper prints LAN access rules without applying them
 - Debian VM handoff report helper summarizes safe readiness checks
+- Debian VM handoff bundle helper packages the handoff report only
 - Debian VM preflight helper validates Compose and strict preflight before startup
 - Debian VM start helper starts service only after strict preflight
 - Debian VM status helper reports Compose and preflight state without logs
@@ -258,6 +260,7 @@ Success criteria:
 - Debian VM security review can flag LAN/auth issues without secrets or logs
 - Debian VM LAN firewall planning is explicit and requires technician review
 - Debian VM handoff reports summarize readiness without logs or customer files
+- Debian VM handoff bundles contain handoff reports only and require review
 - Debian VM deployment has a guarded pre-start helper script
 - Debian VM service startup is guarded by strict preflight
 - Debian VM status can be checked without collecting logs or customer content

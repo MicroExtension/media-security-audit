@@ -12,6 +12,7 @@ from media_security_audit.deployment_preflight import (  # noqa: E402
     format_deployment_preflight,
     format_deployment_preflight_json,
     preflight_exit_code,
+    preflight_summary,
 )
 from media_security_audit.web_auth import WebAuthSettings  # noqa: E402
 
@@ -105,6 +106,7 @@ class DeploymentPreflightTests(unittest.TestCase):
         self.assertEqual(preflight.status, "warning")
         self.assertEqual(preflight_exit_code(preflight), 0)
         self.assertEqual(preflight_exit_code(preflight, strict=True), 1)
+        self.assertGreaterEqual(preflight_summary(preflight)["missing"], 1)
         self.assertTrue(any(item.category == "auth" for item in preflight.items))
         self.assertTrue(any(item.status == "missing" for item in preflight.items))
 
@@ -129,6 +131,10 @@ class DeploymentPreflightTests(unittest.TestCase):
         payload = json.loads(format_deployment_preflight_json(preflight))
 
         self.assertEqual(payload["status"], "ready")
+        self.assertEqual(payload["schema_version"], 1)
+        self.assertEqual(payload["summary"]["blocked"], 0)
+        self.assertEqual(payload["summary"]["missing"], 0)
+        self.assertGreaterEqual(payload["summary"]["ready"], 1)
         self.assertEqual(payload["items"][0]["category"], "auth")
         self.assertEqual(payload["items"][0]["status"], "ready")
         self.assertNotIn(str(data_dir), json.dumps(payload))

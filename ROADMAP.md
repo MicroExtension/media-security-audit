@@ -113,6 +113,7 @@ Current foundation:
 - deployment healthcheck detail started
 - deployment preflight CLI started
 - deployment preflight JSON output started
+- deployment preflight JSON schema summary started
 - deployment preflight strict mode started
 - template guidance in authorization briefs started
 - enriched mission export manifest started
@@ -174,6 +175,7 @@ Current foundation:
 - deployment healthcheck reports storage readiness
 - deployment preflight CLI reports local readiness
 - deployment preflight JSON output supports automation
+- deployment preflight JSON output exposes schema version and status counts
 - deployment preflight strict mode supports install gates
 - mission ZIP export package started
 - workspace backup ZIP export started
@@ -212,6 +214,7 @@ Success criteria:
 - deployment healthcheck reports coarse storage readiness
 - deployment preflight can be run before customer use
 - deployment preflight can be consumed by scripts
+- deployment preflight JSON schema stays stable for install automation
 - deployment preflight can fail on warnings when strict mode is requested
 
 ## Future MSP Differentiators

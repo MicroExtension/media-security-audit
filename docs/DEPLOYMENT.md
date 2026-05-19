@@ -93,6 +93,13 @@ docker compose run --rm media-audit preflight \
   --reports-dir /var/lib/media-audit/reports
 ```
 
+For a Debian/Ubuntu VM, the guarded helper performs the Compose validation,
+local folder checks, image build, and strict preflight in one step:
+
+```bash
+bash scripts/debian-vm-preflight.sh
+```
+
 The preflight checks local storage, web authentication settings, workspace
 inventory, and tool availability. It does not execute scanners.
 Use `--format json` when an install script or monitoring wrapper needs a

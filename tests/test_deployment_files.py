@@ -101,6 +101,34 @@ class DeploymentFileTests(unittest.TestCase):
         self.assertNotIn("sudo", script)
         self.assertNotIn("nmap", script)
 
+    def test_debian_vm_security_review_is_secret_free_and_read_only(self) -> None:
+        script = (ROOT / "scripts" / "debian-vm-security-review.sh").read_text(encoding="utf-8")
+
+        self.assertIn("set -euo pipefail", script)
+        self.assertIn("without printing secrets", script)
+        self.assertIn("MEDIA_AUDIT_REQUIRE_AUTH", script)
+        self.assertIn("MEDIA_AUDIT_WEB_PASSWORD", script)
+        self.assertIn("MEDIA_AUDIT_BIND", script)
+        self.assertIn("stat -c '%a'", script)
+        self.assertIn("docker compose config --quiet", script)
+        self.assertIn("0.0.0.0", script)
+        self.assertIn("firewall or VPN", script)
+        self.assertIn("custom bind address requires documented access control", script)
+        self.assertIn("not printed", script)
+        self.assertIn("blocked", script)
+        self.assertIn("warning", script)
+        self.assertNotIn('echo "${WEB_PASSWORD}"', script)
+        self.assertNotIn('printf "%s" "${WEB_PASSWORD}"', script)
+        self.assertNotIn('cat ".env"', script)
+        self.assertNotIn("docker compose up", script)
+        self.assertNotIn("docker compose build", script)
+        self.assertNotIn("docker compose logs", script)
+        self.assertNotIn("docker compose run", script)
+        self.assertNotIn("rm -rf", script)
+        self.assertNotIn("apt-get", script)
+        self.assertNotIn("sudo", script)
+        self.assertNotIn("nmap", script)
+
     def test_debian_vm_preflight_script_is_safe_and_scanner_free(self) -> None:
         script = (ROOT / "scripts" / "debian-vm-preflight.sh").read_text(encoding="utf-8")
 

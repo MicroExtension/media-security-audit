@@ -118,6 +118,7 @@ Current foundation:
 - deployment preflight strict mode started
 - Debian VM env initialization helper script started
 - Debian VM password rotation helper script started
+- Debian VM security review helper script started
 - Debian VM preflight helper script started
 - Debian VM start helper script started
 - Debian VM status helper script started
@@ -194,6 +195,7 @@ Current foundation:
 - deployment preflight strict mode supports install gates
 - Debian VM env helper creates local-only authenticated `.env` files
 - Debian VM password rotation helper backs up `.env` and keeps auth enabled
+- Debian VM security review helper checks auth, bind, permissions, and Compose
 - Debian VM preflight helper validates Compose and strict preflight before startup
 - Debian VM start helper starts service only after strict preflight
 - Debian VM status helper reports Compose and preflight state without logs
@@ -247,6 +249,7 @@ Success criteria:
 - deployment preflight can fail on warnings when strict mode is requested
 - Debian VM first install can generate a guarded local `.env`
 - Debian VM web password rotation is explicit, backed up, and auth-preserving
+- Debian VM security review can flag LAN/auth issues without secrets or logs
 - Debian VM deployment has a guarded pre-start helper script
 - Debian VM service startup is guarded by strict preflight
 - Debian VM status can be checked without collecting logs or customer content

@@ -132,6 +132,7 @@ Codex action:
 - keep deployment preflight action hints short and technician-focused
 - keep deployment preflight strict mode opt-in for install gates
 - keep Debian VM env initialization local-only and non-overwriting
+- keep Debian VM service startup guarded by strict preflight
 - keep Debian VM helper scripts preflight-only and scanner-free
 - keep Debian VM backup helpers local-only and update-safe
 - keep Debian VM backup verification read-only and restore-free
@@ -310,6 +311,8 @@ Use `bash scripts/debian-vm-init-env.sh` on a fresh VM to create a local-only
 Use `bash scripts/debian-vm-preflight.sh` after `.env` is configured to validate
 Docker Compose, persistent folders, image build, and strict preflight before
 starting the service.
+Use `bash scripts/debian-vm-start.sh` to run strict preflight and start Docker
+Compose only if deployment checks pass.
 Use `bash scripts/debian-vm-backup.sh` before customer-impacting updates to
 archive `data`, `runs`, `reports`, and `evidence` without starting services or
 running scanners.

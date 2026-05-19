@@ -115,10 +115,10 @@ machine-readable result. JSON output includes `schema_version`, overall
 item includes a short `action` field for the technician or install script.
 Use `--strict` when warnings should fail a pre-production install gate.
 
-Build and start the service:
+Build and start the service after strict preflight:
 
 ```bash
-docker compose up -d --build
+bash scripts/debian-vm-start.sh
 ```
 
 Check service status:

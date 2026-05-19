@@ -108,6 +108,7 @@ Implemented so far:
 - CLI preflight strict mode can fail automation on warnings
 - Debian VM env helper creates local-only authenticated `.env` files
 - Debian VM preflight helper checks Compose readiness before service startup
+- Debian VM start helper runs strict preflight before service startup
 - Debian VM backup helper archives persistent folders before updates
 - Debian VM backup verification helper validates archives without extraction
 - Debian VM restore preview helper extracts backups away from live data
@@ -306,7 +307,7 @@ Local Docker launch:
 
 ```bash
 bash scripts/debian-vm-init-env.sh
-docker compose up -d --build
+bash scripts/debian-vm-start.sh
 ```
 
 Local deployment preflight:
@@ -317,6 +318,7 @@ media-audit preflight --data-dir data --reports-dir reports --format json
 media-audit preflight --data-dir data --reports-dir reports --strict
 bash scripts/debian-vm-init-env.sh
 bash scripts/debian-vm-preflight.sh
+bash scripts/debian-vm-start.sh
 bash scripts/debian-vm-backup.sh
 bash scripts/debian-vm-verify-backup.sh reports/backups/media-audit-backup-YYYYMMDDTHHMMSSZ.tgz
 bash scripts/debian-vm-restore-preview.sh reports/backups/media-audit-backup-YYYYMMDDTHHMMSSZ.tgz

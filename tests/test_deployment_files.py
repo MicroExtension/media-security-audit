@@ -238,6 +238,27 @@ class DeploymentFileTests(unittest.TestCase):
         self.assertNotIn("sudo", script)
         self.assertNotIn("nmap", script)
 
+    def test_debian_vm_support_bundle_packages_diagnostics_only(self) -> None:
+        script = (ROOT / "scripts" / "debian-vm-support-bundle.sh").read_text(encoding="utf-8")
+
+        self.assertIn("set -euo pipefail", script)
+        self.assertIn("MEDIA_AUDIT_SUPPORT_DIR", script)
+        self.assertIn("MEDIA_AUDIT_SUPPORT_BUNDLE_DIR", script)
+        self.assertIn("bash scripts/debian-vm-diagnostics.sh", script)
+        self.assertIn("media-audit-diagnostics-*.txt", script)
+        self.assertIn("media-audit-support-", script)
+        self.assertIn('tar -czf "${BUNDLE}" -C "${SUPPORT_DIR}" "${REPORT_NAME}"', script)
+        self.assertIn("review before sharing", script)
+        self.assertIn("not customer folders or application logs", script)
+        self.assertNotIn("docker compose logs", script)
+        self.assertNotIn("docker compose up", script)
+        self.assertNotIn("docker compose build", script)
+        self.assertNotIn("tar -czf \"${BUNDLE}\" -C \"${ROOT_DIR}\"", script)
+        self.assertNotIn("rm -rf", script)
+        self.assertNotIn("apt-get", script)
+        self.assertNotIn("sudo", script)
+        self.assertNotIn("nmap", script)
+
 
 if __name__ == "__main__":
     unittest.main()

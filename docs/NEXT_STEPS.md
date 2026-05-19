@@ -141,6 +141,7 @@ Codex action:
 - keep Debian VM backup verification read-only and restore-free
 - keep Debian VM restore previews isolated from live data folders
 - keep Debian VM diagnostics free of customer file contents and app logs
+- keep Debian VM support bundles limited to diagnostics reports
 - keep Debian VM update helpers guarded by backup and strict preflight
 
 ## Step 2.2 - Nmap Dry-Run Planning
@@ -332,6 +333,8 @@ into `reports/restore-previews` for inspection without replacing live folders.
 Use `bash scripts/debian-vm-diagnostics.sh` when support needs VM state; it
 writes Git, Compose, folder-size, and preflight information under
 `reports/support` without application logs or customer file contents.
+Use `bash scripts/debian-vm-support-bundle.sh` to generate a fresh diagnostics
+report and package only that report for support review.
 Use `bash scripts/debian-vm-update.sh` for approved updates on `main`; it backs
 up first, requires a clean tracked worktree, pulls with `--ff-only`, rebuilds,
 runs strict preflight, then restarts Docker Compose.

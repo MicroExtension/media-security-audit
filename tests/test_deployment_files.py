@@ -6,6 +6,11 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class DeploymentFileTests(unittest.TestCase):
+    def test_shell_scripts_are_forced_to_lf_line_endings(self) -> None:
+        attributes = (ROOT / ".gitattributes").read_text(encoding="utf-8")
+
+        self.assertIn("*.sh text eol=lf", attributes)
+
     def test_dockerfile_uses_non_root_user_and_local_web_command(self) -> None:
         dockerfile = (ROOT / "Dockerfile").read_text(encoding="utf-8")
 
@@ -60,6 +65,20 @@ class DeploymentFileTests(unittest.TestCase):
         self.assertIn("docker compose build media-audit", script)
         self.assertIn("docker compose run --rm media-audit preflight", script)
         self.assertIn("--strict", script)
+        self.assertNotIn("apt-get", script)
+        self.assertNotIn("sudo", script)
+        self.assertNotIn("nmap", script)
+
+    def test_debian_vm_backup_script_is_local_and_guarded(self) -> None:
+        script = (ROOT / "scripts" / "debian-vm-backup.sh").read_text(encoding="utf-8")
+
+        self.assertIn("set -euo pipefail", script)
+        self.assertIn("MEDIA_AUDIT_BACKUP_DIR", script)
+        self.assertIn("reports/backups", script)
+        self.assertIn("--exclude='./reports/backups'", script)
+        self.assertIn("data runs reports evidence", script)
+        self.assertIn("media-audit-backup-", script)
+        self.assertNotIn("docker compose up", script)
         self.assertNotIn("apt-get", script)
         self.assertNotIn("sudo", script)
         self.assertNotIn("nmap", script)

@@ -129,6 +129,36 @@ class DeploymentFileTests(unittest.TestCase):
         self.assertNotIn("sudo", script)
         self.assertNotIn("nmap", script)
 
+    def test_debian_vm_firewall_plan_is_plan_only(self) -> None:
+        script = (ROOT / "scripts" / "debian-vm-firewall-plan.sh").read_text(encoding="utf-8")
+
+        self.assertIn("set -euo pipefail", script)
+        self.assertIn("--admin-cidr", script)
+        self.assertIn("firewall plan only; no command is executed", script)
+        self.assertIn("MEDIA_AUDIT_BIND", script)
+        self.assertIn("MEDIA_AUDIT_PORT", script)
+        self.assertIn("MEDIA_AUDIT_REQUIRE_AUTH remains true", script)
+        self.assertIn("ufw allow from ${ADMIN_CIDR}", script)
+        self.assertIn("to any port ${PORT} proto tcp", script)
+        self.assertIn("ufw status numbered", script)
+        self.assertIn("not executed", script)
+        self.assertIn("customer authorization", script)
+        self.assertIn("bash scripts/debian-vm-security-review.sh", script)
+        self.assertIn("bash scripts/debian-vm-restart.sh --confirm", script)
+        self.assertNotIn("\nsudo ", script)
+        self.assertNotIn("\nufw ", script)
+        self.assertNotIn("ufw --force", script)
+        self.assertNotIn("ufw enable", script)
+        self.assertNotIn("iptables", script)
+        self.assertNotIn("nft ", script)
+        self.assertNotIn("docker compose up", script)
+        self.assertNotIn("docker compose build", script)
+        self.assertNotIn("docker compose logs", script)
+        self.assertNotIn("docker compose run", script)
+        self.assertNotIn("rm -rf", script)
+        self.assertNotIn("apt-get", script)
+        self.assertNotIn("nmap", script)
+
     def test_debian_vm_preflight_script_is_safe_and_scanner_free(self) -> None:
         script = (ROOT / "scripts" / "debian-vm-preflight.sh").read_text(encoding="utf-8")
 

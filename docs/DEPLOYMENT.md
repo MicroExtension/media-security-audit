@@ -376,6 +376,16 @@ bash scripts/debian-vm-backup.sh
 
 Backups are written to `reports/backups` by default. Set
 `MEDIA_AUDIT_BACKUP_DIR=/path/to/backups` to write archives elsewhere.
+List local backups and their sidecar manifest status:
+
+```bash
+bash scripts/debian-vm-backup-inventory.sh
+bash scripts/debian-vm-backup-inventory.sh --verify-manifests
+```
+
+The inventory helper is read-only. It does not delete backups, extract
+archives, restore data, collect logs, or run scanners.
+
 Verify an archive before relying on it:
 
 ```bash

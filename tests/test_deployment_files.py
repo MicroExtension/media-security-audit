@@ -304,6 +304,33 @@ class DeploymentFileTests(unittest.TestCase):
         self.assertNotIn("sudo", script)
         self.assertNotIn("nmap", script)
 
+    def test_debian_vm_backup_inventory_script_is_read_only(self) -> None:
+        script = (ROOT / "scripts" / "debian-vm-backup-inventory.sh").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn("set -euo pipefail", script)
+        self.assertIn("MEDIA_AUDIT_BACKUP_DIR", script)
+        self.assertIn("reports/backups", script)
+        self.assertIn("backup inventory is read-only", script)
+        self.assertIn("media-audit-backup-*.tgz", script)
+        self.assertIn("--verify-manifests", script)
+        self.assertIn("debian-vm-verify-backup-manifest.sh", script)
+        self.assertIn('MANIFEST_STATUS="missing"', script)
+        self.assertIn('MANIFEST_STATUS="present"', script)
+        self.assertIn('MANIFEST_STATUS="verified"', script)
+        self.assertIn('MANIFEST_STATUS="failed"', script)
+        self.assertIn("does not delete backups, extract archives, or restore data", script)
+        self.assertNotIn("tar -x", script)
+        self.assertNotIn("docker compose up", script)
+        self.assertNotIn("docker compose build", script)
+        self.assertNotIn("docker compose run", script)
+        self.assertNotIn("docker compose logs", script)
+        self.assertNotIn("rm -rf", script)
+        self.assertNotIn("apt-get", script)
+        self.assertNotIn("sudo", script)
+        self.assertNotIn("nmap", script)
+
     def test_debian_vm_update_script_is_guarded_and_preflighted(self) -> None:
         script = (ROOT / "scripts" / "debian-vm-update.sh").read_text(encoding="utf-8")
 

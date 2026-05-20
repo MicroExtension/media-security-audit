@@ -128,6 +128,7 @@ Current foundation:
 - Debian VM stop helper script started
 - Debian VM restart helper script started
 - Debian VM backup helper script started
+- Debian VM backup inventory helper script started
 - Debian VM backup verification helper script started
 - Debian VM backup manifest helper script started
 - Debian VM backup manifest verification helper script started
@@ -211,6 +212,7 @@ Current foundation:
 - Debian VM stop helper requires confirmation and preserves data
 - Debian VM restart helper reuses safe stop and strict start helpers
 - Debian VM backup helper archives persistent folders before updates
+- Debian VM backup inventory helper lists archives and manifest status
 - Debian VM backup verification helper validates backup archives without restore
 - Debian VM backup manifest helper writes sidecar SHA-256 metadata
 - Debian VM backup manifest verification helper checks sidecar integrity
@@ -271,6 +273,7 @@ Success criteria:
 - Debian VM service stop is explicit and preserves persistent data
 - Debian VM service restart is explicit, data-preserving, and preflighted
 - Debian VM deployment has a guarded local backup helper script
+- Debian VM backup inventory is read-only and manifest-aware
 - Debian VM backups can be verified before an update is trusted
 - Debian VM backup manifests record size and SHA-256 without extraction
 - Debian VM backup manifests can be rechecked against copied archives

@@ -150,7 +150,7 @@ Codex action:
 - keep Debian VM diagnostics free of customer file contents and app logs
 - keep Debian VM support bundles limited to diagnostics reports
 - keep Debian VM update planning read-only and maintenance-window focused
-- keep Debian VM update helpers guarded by backup and strict preflight
+- keep Debian VM update helpers guarded by backup, manifest verification, and strict preflight
 
 ## Step 2.2 - Nmap Dry-Run Planning
 
@@ -364,8 +364,9 @@ Use `bash scripts/debian-vm-update-plan.sh` before approved maintenance to
 check branch, tracked changes, `.env`, and backup readiness without applying
 updates.
 Use `bash scripts/debian-vm-update.sh` for approved updates on `main`; it backs
-up first, requires a clean tracked worktree, pulls with `--ff-only`, rebuilds,
-runs strict preflight, then restarts Docker Compose.
+up first, writes and verifies a sidecar manifest, requires a clean tracked
+worktree, pulls with `--ff-only`, rebuilds, runs strict preflight, then restarts
+Docker Compose.
 
 ## Step 6 - Build The GUI
 

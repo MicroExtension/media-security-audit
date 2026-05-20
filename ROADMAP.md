@@ -218,7 +218,7 @@ Current foundation:
 - Debian VM diagnostics helper writes support reports without application logs
 - Debian VM support bundle helper packages diagnostics only
 - Debian VM update plan helper checks readiness without applying updates
-- Debian VM update helper backs up and preflights before restart
+- Debian VM update helper backs up, verifies a manifest, and preflights before restart
 - mission ZIP export package started
 - workspace backup ZIP export started
 - workspace integrity diagnostics started
@@ -278,7 +278,7 @@ Success criteria:
 - Debian VM diagnostics can be collected without bundling customer files or logs
 - Debian VM support bundles contain diagnostics only and require review before sharing
 - Debian VM update planning is read-only before approved maintenance
-- Debian VM updates are guarded by backup, fast-forward pull, and strict preflight
+- Debian VM updates are guarded by backup, manifest verification, fast-forward pull, and strict preflight
 
 ## Future MSP Differentiators
 

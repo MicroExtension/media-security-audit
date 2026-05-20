@@ -358,13 +358,15 @@ bash scripts/debian-vm-update.sh
 ```
 
 The update plan helper is read-only. It checks the current branch, tracked
-changes, `.env`, authentication, and local backup readiness, then prints the
-reviewed commands for the technician. It does not pull code, build images,
-restart services, collect logs, or run scanners.
+changes, `.env`, authentication, local backup readiness, and whether the latest
+backup has a sidecar manifest, then prints the reviewed commands for the
+technician. It does not pull code, build images, restart services, collect
+logs, or run scanners.
 
 The update helper requires the VM clone to be on `main` with no tracked local
-changes. It creates a backup first, pulls with `git pull --ff-only`, rebuilds
-the image, runs strict preflight, and only then restarts Docker Compose.
+changes. It creates a backup first, writes and verifies a sidecar manifest,
+pulls with `git pull --ff-only`, rebuilds the image, runs strict preflight, and
+only then restarts Docker Compose.
 
 Back up persistent folders before customer-impacting updates:
 

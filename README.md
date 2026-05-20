@@ -125,7 +125,7 @@ Implemented so far:
 - Debian VM diagnostics helper writes support reports without app logs
 - Debian VM support bundle helper packages diagnostics only
 - Debian VM update plan helper checks readiness without applying updates
-- Debian VM update helper backs up, pulls, preflights, and restarts safely
+- Debian VM update helper backs up, verifies a manifest, pulls, preflights, and restarts safely
 - dashboard shows review backlog clients watchlist
 - dashboard client list shows per-client preparation counts
 - dashboard client list shows per-client finding review counts

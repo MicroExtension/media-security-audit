@@ -80,6 +80,11 @@ if [[ -d "${BACKUP_DIR}" ]]; then
   )"
   if [[ -n "${LATEST_BACKUP}" ]]; then
     record ready "Local backup" "latest backup candidate: ${LATEST_BACKUP}"
+    if [[ -f "${LATEST_BACKUP}.manifest.txt" ]]; then
+      record ready "Backup manifest" "sidecar manifest found for latest backup"
+    else
+      record warning "Backup manifest" "create and verify a sidecar manifest before updating"
+    fi
   else
     record warning "Local backup" "no local backup archive found in ${BACKUP_DIR}"
   fi
@@ -91,11 +96,13 @@ printf '\n'
 cat <<'PLAN'
 Next reviewed commands, not executed by this helper:
   bash scripts/debian-vm-backup.sh
+  bash scripts/debian-vm-backup-manifest.sh reports/backups/media-audit-backup-YYYYMMDDTHHMMSSZ.tgz
+  bash scripts/debian-vm-verify-backup-manifest.sh reports/backups/media-audit-backup-YYYYMMDDTHHMMSSZ.tgz
   bash scripts/debian-vm-update.sh
 
 Review before update:
 - Confirm a maintenance window is approved.
-- Confirm the previous backup was verified when required.
+- Confirm the latest backup archive and manifest were verified when required.
 - Confirm the VM has update internet access or use the future offline package process.
 PLAN
 

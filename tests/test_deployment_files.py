@@ -206,6 +206,32 @@ class DeploymentFileTests(unittest.TestCase):
         self.assertNotIn("sudo", script)
         self.assertNotIn("nmap", script)
 
+    def test_debian_vm_maintenance_report_uses_safe_reviews_only(self) -> None:
+        script = (ROOT / "scripts" / "debian-vm-maintenance-report.sh").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn("set -euo pipefail", script)
+        self.assertIn("MEDIA_AUDIT_MAINTENANCE_DIR", script)
+        self.assertIn("reports/maintenance", script)
+        self.assertIn("media-audit-maintenance-", script)
+        self.assertIn("bash scripts/debian-vm-security-review.sh", script)
+        self.assertIn("bash scripts/debian-vm-backup-inventory.sh --verify-manifests", script)
+        self.assertIn("bash scripts/debian-vm-update-plan.sh", script)
+        self.assertIn("maintenance window", script)
+        self.assertIn("backup archive and manifest verification", script)
+        self.assertIn("review before sharing", script)
+        self.assertIn("excludes application logs and customer file contents", script)
+        self.assertNotIn("docker compose logs", script)
+        self.assertNotIn("docker compose up", script)
+        self.assertNotIn("docker compose build", script)
+        self.assertNotIn("docker compose run", script)
+        self.assertNotIn("tar -x", script)
+        self.assertNotIn("rm -rf", script)
+        self.assertNotIn("apt-get", script)
+        self.assertNotIn("sudo", script)
+        self.assertNotIn("nmap", script)
+
     def test_debian_vm_preflight_script_is_safe_and_scanner_free(self) -> None:
         script = (ROOT / "scripts" / "debian-vm-preflight.sh").read_text(encoding="utf-8")
 

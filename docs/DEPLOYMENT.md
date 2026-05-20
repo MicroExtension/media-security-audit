@@ -215,6 +215,18 @@ Handoff bundles are written to `reports/handoff` by default. Set
 elsewhere. The helper generates a fresh handoff report and archives only that
 report; review the bundle before sharing it outside the customer site.
 
+Generate a pre-maintenance report before an approved change:
+
+```bash
+bash scripts/debian-vm-maintenance-report.sh
+```
+
+Maintenance reports are written to `reports/maintenance` by default. Set
+`MEDIA_AUDIT_MAINTENANCE_DIR=/path/to/maintenance` to write them elsewhere.
+The helper runs the security review, backup inventory with manifest
+verification, and update plan helpers. It does not start services, collect
+application logs, extract backups, restore data, or run scanners.
+
 Then restart:
 
 ```bash

@@ -362,6 +362,27 @@ class DeploymentFileTests(unittest.TestCase):
         self.assertNotIn("sudo", script)
         self.assertNotIn("nmap", script)
 
+    def test_debian_vm_backup_manifest_writes_sidecar_checksum_only(self) -> None:
+        script = (ROOT / "scripts" / "debian-vm-backup-manifest.sh").read_text(encoding="utf-8")
+
+        self.assertIn("set -euo pipefail", script)
+        self.assertIn("debian-vm-verify-backup.sh", script)
+        self.assertIn("sha256sum", script)
+        self.assertIn("stat -c '%s'", script)
+        self.assertIn('MANIFEST="${ARCHIVE}.manifest.txt"', script)
+        self.assertIn("verification=passed", script)
+        self.assertIn("does not extract or restore data", script)
+        self.assertIn("review the manifest with the backup", script)
+        self.assertNotIn("tar -x", script)
+        self.assertNotIn("docker compose up", script)
+        self.assertNotIn("docker compose build", script)
+        self.assertNotIn("docker compose run", script)
+        self.assertNotIn("docker compose logs", script)
+        self.assertNotIn("rm -rf", script)
+        self.assertNotIn("apt-get", script)
+        self.assertNotIn("sudo", script)
+        self.assertNotIn("nmap", script)
+
     def test_debian_vm_restore_preview_script_does_not_replace_live_data(self) -> None:
         script = (ROOT / "scripts" / "debian-vm-restore-preview.sh").read_text(encoding="utf-8")
 

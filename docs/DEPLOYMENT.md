@@ -382,6 +382,17 @@ bash scripts/debian-vm-verify-backup.sh reports/backups/media-audit-backup-YYYYM
 
 Add `--verbose` to print the archive listing. The verification helper does not
 extract or restore data.
+
+Generate a sidecar manifest before copying a backup archive:
+
+```bash
+bash scripts/debian-vm-backup-manifest.sh reports/backups/media-audit-backup-YYYYMMDDTHHMMSSZ.tgz
+```
+
+The manifest helper verifies the archive first, then writes
+`<backup.tgz>.manifest.txt` with archive name, size, SHA-256, and verification
+status. It does not extract or restore data.
+
 To inspect the contents in a separate folder without replacing live data:
 
 ```bash

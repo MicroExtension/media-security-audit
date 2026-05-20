@@ -120,6 +120,7 @@ Implemented so far:
 - Debian VM backup helper archives persistent folders before updates
 - Debian VM backup verification helper validates archives without extraction
 - Debian VM backup manifest helper writes sidecar SHA-256 metadata
+- Debian VM backup manifest verification helper checks sidecar integrity
 - Debian VM restore preview helper extracts backups away from live data
 - Debian VM diagnostics helper writes support reports without app logs
 - Debian VM support bundle helper packages diagnostics only
@@ -341,6 +342,7 @@ bash scripts/debian-vm-restart.sh --confirm
 bash scripts/debian-vm-backup.sh
 bash scripts/debian-vm-verify-backup.sh reports/backups/media-audit-backup-YYYYMMDDTHHMMSSZ.tgz
 bash scripts/debian-vm-backup-manifest.sh reports/backups/media-audit-backup-YYYYMMDDTHHMMSSZ.tgz
+bash scripts/debian-vm-verify-backup-manifest.sh reports/backups/media-audit-backup-YYYYMMDDTHHMMSSZ.tgz
 bash scripts/debian-vm-restore-preview.sh reports/backups/media-audit-backup-YYYYMMDDTHHMMSSZ.tgz
 bash scripts/debian-vm-diagnostics.sh
 bash scripts/debian-vm-support-bundle.sh

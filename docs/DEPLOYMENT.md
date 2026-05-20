@@ -393,6 +393,15 @@ The manifest helper verifies the archive first, then writes
 `<backup.tgz>.manifest.txt` with archive name, size, SHA-256, and verification
 status. It does not extract or restore data.
 
+Verify the sidecar manifest before relying on a copied backup:
+
+```bash
+bash scripts/debian-vm-verify-backup-manifest.sh reports/backups/media-audit-backup-YYYYMMDDTHHMMSSZ.tgz
+```
+
+The manifest verification helper compares the manifest archive name, size,
+SHA-256, and verification flag against the backup without extracting data.
+
 To inspect the contents in a separate folder without replacing live data:
 
 ```bash

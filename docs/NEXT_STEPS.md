@@ -144,6 +144,7 @@ Codex action:
 - keep Debian VM helper scripts preflight-only and scanner-free
 - keep Debian VM backup helpers local-only and update-safe
 - keep Debian VM backup verification read-only and restore-free
+- keep Debian VM backup manifests checksum-only and restore-free
 - keep Debian VM restore previews isolated from live data folders
 - keep Debian VM diagnostics free of customer file contents and app logs
 - keep Debian VM support bundles limited to diagnostics reports
@@ -347,6 +348,8 @@ archive `data`, `runs`, `reports`, and `evidence` without starting services or
 running scanners.
 Use `bash scripts/debian-vm-verify-backup.sh <backup.tgz>` to confirm a backup
 archive can be listed and includes all persistent folders before trusting it.
+Use `bash scripts/debian-vm-backup-manifest.sh <backup.tgz>` to write a sidecar
+manifest with backup size and SHA-256 metadata without extracting data.
 Use `bash scripts/debian-vm-restore-preview.sh <backup.tgz>` to extract a backup
 into `reports/restore-previews` for inspection without replacing live folders.
 Use `bash scripts/debian-vm-diagnostics.sh` when support needs VM state; it

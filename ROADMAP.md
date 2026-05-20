@@ -129,6 +129,7 @@ Current foundation:
 - Debian VM restart helper script started
 - Debian VM backup helper script started
 - Debian VM backup verification helper script started
+- Debian VM backup manifest helper script started
 - Debian VM restore preview helper script started
 - Debian VM diagnostics helper script started
 - Debian VM support bundle helper script started
@@ -210,6 +211,7 @@ Current foundation:
 - Debian VM restart helper reuses safe stop and strict start helpers
 - Debian VM backup helper archives persistent folders before updates
 - Debian VM backup verification helper validates backup archives without restore
+- Debian VM backup manifest helper writes sidecar SHA-256 metadata
 - Debian VM restore preview helper extracts backups away from live data
 - Debian VM diagnostics helper writes support reports without application logs
 - Debian VM support bundle helper packages diagnostics only
@@ -268,6 +270,7 @@ Success criteria:
 - Debian VM service restart is explicit, data-preserving, and preflighted
 - Debian VM deployment has a guarded local backup helper script
 - Debian VM backups can be verified before an update is trusted
+- Debian VM backup manifests record size and SHA-256 without extraction
 - Debian VM backups can be preview-extracted without replacing live data
 - Debian VM diagnostics can be collected without bundling customer files or logs
 - Debian VM support bundles contain diagnostics only and require review before sharing

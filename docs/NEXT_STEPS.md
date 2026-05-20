@@ -143,6 +143,7 @@ Codex action:
 - keep Debian VM restart helpers explicit, data-preserving, and preflighted
 - keep Debian VM helper scripts preflight-only and scanner-free
 - keep Debian VM backup helpers local-only and update-safe
+- keep Debian VM backup inventory read-only and restore-free
 - keep Debian VM backup verification read-only and restore-free
 - keep Debian VM backup manifests checksum-only and restore-free
 - keep Debian VM backup manifest verification checksum-only and restore-free
@@ -347,6 +348,9 @@ stop without removing data and start again through strict preflight.
 Use `bash scripts/debian-vm-backup.sh` before customer-impacting updates to
 archive `data`, `runs`, `reports`, and `evidence` without starting services or
 running scanners.
+Use `bash scripts/debian-vm-backup-inventory.sh --verify-manifests` to list
+local backups and confirm sidecar manifest status without deleting or restoring
+anything.
 Use `bash scripts/debian-vm-verify-backup.sh <backup.tgz>` to confirm a backup
 archive can be listed and includes all persistent folders before trusting it.
 Use `bash scripts/debian-vm-backup-manifest.sh <backup.tgz>` to write a sidecar

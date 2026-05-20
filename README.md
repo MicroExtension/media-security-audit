@@ -118,6 +118,7 @@ Implemented so far:
 - Debian VM stop helper requires confirmation and preserves data
 - Debian VM restart helper stops safely, preflights, and starts again
 - Debian VM backup helper archives persistent folders before updates
+- Debian VM backup inventory helper lists archives and manifest status
 - Debian VM backup verification helper validates archives without extraction
 - Debian VM backup manifest helper writes sidecar SHA-256 metadata
 - Debian VM backup manifest verification helper checks sidecar integrity
@@ -340,6 +341,7 @@ bash scripts/debian-vm-status.sh
 bash scripts/debian-vm-stop.sh --confirm
 bash scripts/debian-vm-restart.sh --confirm
 bash scripts/debian-vm-backup.sh
+bash scripts/debian-vm-backup-inventory.sh --verify-manifests
 bash scripts/debian-vm-verify-backup.sh reports/backups/media-audit-backup-YYYYMMDDTHHMMSSZ.tgz
 bash scripts/debian-vm-backup-manifest.sh reports/backups/media-audit-backup-YYYYMMDDTHHMMSSZ.tgz
 bash scripts/debian-vm-verify-backup-manifest.sh reports/backups/media-audit-backup-YYYYMMDDTHHMMSSZ.tgz

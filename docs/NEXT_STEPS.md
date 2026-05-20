@@ -136,6 +136,7 @@ Codex action:
 - keep Debian VM security review secret-free and scanner-free
 - keep Debian VM firewall planning read-only and technician-reviewed
 - keep Debian VM handoff reports log-free and customer-data-free
+- keep Debian VM handoff bundles limited to handoff reports
 - keep Debian VM service startup guarded by strict preflight
 - keep Debian VM status checks log-free and scanner-free
 - keep Debian VM stop helpers explicit and data-preserving
@@ -328,6 +329,8 @@ them.
 Use `bash scripts/debian-vm-handoff-report.sh` before customer handoff to write
 a local readiness report under `reports/handoff` without collecting logs or
 customer file contents.
+Use `bash scripts/debian-vm-handoff-bundle.sh` to generate a fresh handoff
+report and package only that report for handoff review.
 Use `bash scripts/debian-vm-preflight.sh` after `.env` is configured to validate
 Docker Compose, persistent folders, image build, and strict preflight before
 starting the service.

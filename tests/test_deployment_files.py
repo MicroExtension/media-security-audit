@@ -232,6 +232,32 @@ class DeploymentFileTests(unittest.TestCase):
         self.assertNotIn("sudo", script)
         self.assertNotIn("nmap", script)
 
+    def test_debian_vm_maintenance_bundle_packages_maintenance_report_only(self) -> None:
+        script = (ROOT / "scripts" / "debian-vm-maintenance-bundle.sh").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn("set -euo pipefail", script)
+        self.assertIn("MEDIA_AUDIT_MAINTENANCE_DIR", script)
+        self.assertIn("MEDIA_AUDIT_MAINTENANCE_BUNDLE_DIR", script)
+        self.assertIn("bash scripts/debian-vm-maintenance-report.sh", script)
+        self.assertIn("media-audit-maintenance-*.txt", script)
+        self.assertIn("media-audit-maintenance-", script)
+        self.assertIn('tar -czf "${BUNDLE}" -C "${MAINTENANCE_DIR}" "${REPORT_NAME}"', script)
+        self.assertIn("review before sharing", script)
+        self.assertIn("maintenance report only", script)
+        self.assertIn("not customer folders or application logs", script)
+        self.assertNotIn("docker compose logs", script)
+        self.assertNotIn("docker compose up", script)
+        self.assertNotIn("docker compose build", script)
+        self.assertNotIn("docker compose run", script)
+        self.assertNotIn("tar -czf \"${BUNDLE}\" -C \"${ROOT_DIR}\"", script)
+        self.assertNotIn("tar -x", script)
+        self.assertNotIn("rm -rf", script)
+        self.assertNotIn("apt-get", script)
+        self.assertNotIn("sudo", script)
+        self.assertNotIn("nmap", script)
+
     def test_debian_vm_preflight_script_is_safe_and_scanner_free(self) -> None:
         script = (ROOT / "scripts" / "debian-vm-preflight.sh").read_text(encoding="utf-8")
 

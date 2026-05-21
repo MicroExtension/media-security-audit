@@ -227,6 +227,17 @@ The helper runs the security review, backup inventory with manifest
 verification, and update plan helpers. It does not start services, collect
 application logs, extract backups, restore data, or run scanners.
 
+Create a shareable maintenance bundle:
+
+```bash
+bash scripts/debian-vm-maintenance-bundle.sh
+```
+
+Maintenance bundles are written to `reports/maintenance` by default. Set
+`MEDIA_AUDIT_MAINTENANCE_BUNDLE_DIR=/path/to/maintenance-bundles` to write them
+elsewhere. The helper generates a fresh maintenance report and archives only
+that report; review the bundle before sharing it outside the customer site.
+
 Then restart:
 
 ```bash

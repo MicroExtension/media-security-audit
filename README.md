@@ -113,6 +113,7 @@ Implemented so far:
 - Debian VM handoff report helper summarizes safe readiness checks
 - Debian VM handoff bundle helper packages the handoff report only
 - Debian VM maintenance report helper aggregates safe pre-maintenance checks
+- Debian VM maintenance bundle helper packages the maintenance report only
 - Debian VM preflight helper checks Compose readiness before service startup
 - Debian VM start helper runs strict preflight before service startup
 - Debian VM status helper reports Compose and preflight state without logs
@@ -337,6 +338,7 @@ bash scripts/debian-vm-firewall-plan.sh --admin-cidr 192.0.2.0/24
 bash scripts/debian-vm-handoff-report.sh
 bash scripts/debian-vm-handoff-bundle.sh
 bash scripts/debian-vm-maintenance-report.sh
+bash scripts/debian-vm-maintenance-bundle.sh
 bash scripts/debian-vm-preflight.sh
 bash scripts/debian-vm-start.sh
 bash scripts/debian-vm-status.sh

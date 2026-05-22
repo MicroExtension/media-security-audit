@@ -512,6 +512,45 @@ class DeploymentFileTests(unittest.TestCase):
         self.assertNotIn("sudo", script)
         self.assertNotIn("nmap", script)
 
+    def test_debian_vm_offline_update_plan_is_read_only(self) -> None:
+        script = (ROOT / "scripts" / "debian-vm-offline-update-plan.sh").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn("set -euo pipefail", script)
+        self.assertIn("planning offline update only; no update command is executed", script)
+        self.assertIn("--package", script)
+        self.assertIn("--manifest", script)
+        self.assertIn("git status --porcelain --untracked-files=no", script)
+        self.assertIn('[[ "${CURRENT_BRANCH}" == "main" ]]', script)
+        self.assertIn("MEDIA_AUDIT_WEB_PASSWORD", script)
+        self.assertIn("MEDIA_AUDIT_REQUIRE_AUTH", script)
+        self.assertIn("MEDIA_AUDIT_BACKUP_DIR", script)
+        self.assertIn("media-audit-backup-*.tgz", script)
+        self.assertIn("sha256sum", script)
+        self.assertIn("stat -c '%s'", script)
+        self.assertIn("manifest SHA-256 matches package", script)
+        self.assertIn("manifest size matches package", script)
+        self.assertIn("Offline package application is not implemented yet", script)
+        self.assertIn("bash scripts/debian-vm-backup.sh", script)
+        self.assertIn("bash scripts/debian-vm-verify-backup-manifest.sh", script)
+        self.assertIn("bash scripts/debian-vm-preflight.sh", script)
+        self.assertIn("bash scripts/debian-vm-restart.sh --confirm", script)
+        self.assertIn("not executed by this helper", script)
+        self.assertIn("maintenance window", script)
+        self.assertIn("blocked", script)
+        self.assertIn("warning", script)
+        self.assertNotIn("git pull", script)
+        self.assertNotIn("docker compose build", script)
+        self.assertNotIn("docker compose up", script)
+        self.assertNotIn("docker compose run", script)
+        self.assertNotIn("docker compose logs", script)
+        self.assertNotIn("tar -x", script)
+        self.assertNotIn("rm -rf", script)
+        self.assertNotIn("apt-get", script)
+        self.assertNotIn("sudo", script)
+        self.assertNotIn("nmap", script)
+
     def test_debian_vm_backup_verify_script_is_read_only(self) -> None:
         script = (ROOT / "scripts" / "debian-vm-verify-backup.sh").read_text(encoding="utf-8")
 

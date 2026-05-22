@@ -155,6 +155,7 @@ Codex action:
 - keep Debian VM diagnostics free of customer file contents and app logs while recording bundle inventory status
 - keep Debian VM support bundles limited to diagnostics reports and sidecar manifests
 - keep Debian VM update planning read-only and maintenance-window focused
+- keep Debian VM offline update planning package-verification-only until apply workflow is designed
 - keep Debian VM update helpers guarded by backup, manifest verification, and strict preflight
 
 ## Step 2.2 - Nmap Dry-Run Planning
@@ -301,7 +302,7 @@ Owner action later:
 Codex action:
 - prepare Dockerfile and docker-compose.yml after the web UI foundation: done
 - keep deployment documentation in `docs/DEPLOYMENT.md`
-- document offline update process later
+- keep offline update planning read-only until package application is designed
 
 Current deployment recommendation:
 
@@ -384,6 +385,10 @@ sidecar manifest before sharing the bundle.
 Use `bash scripts/debian-vm-update-plan.sh` before approved maintenance to
 check branch, tracked changes, `.env`, and backup readiness without applying
 updates.
+Use `bash scripts/debian-vm-offline-update-plan.sh --package <package.tgz>`
+before offline maintenance to check branch, tracked changes, `.env`, backup
+readiness, and optional package manifest metadata without applying or
+extracting the package.
 Use `bash scripts/debian-vm-update.sh` for approved updates on `main`; it backs
 up first, writes and verifies a sidecar manifest, requires a clean tracked
 worktree, pulls with `--ff-only`, rebuilds, runs strict preflight, then restarts

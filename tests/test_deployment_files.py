@@ -270,6 +270,32 @@ class DeploymentFileTests(unittest.TestCase):
         self.assertNotIn("sudo", script)
         self.assertNotIn("nmap", script)
 
+    def test_debian_vm_bundle_manifest_verify_script_is_checksum_only(self) -> None:
+        script = (ROOT / "scripts" / "debian-vm-verify-bundle-manifest.sh").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn("set -euo pipefail", script)
+        self.assertIn('MANIFEST="${2:-${BUNDLE}.manifest.txt}"', script)
+        self.assertIn("manifest_value", script)
+        self.assertIn("sha256sum", script)
+        self.assertIn("stat -c '%s'", script)
+        self.assertIn("basename", script)
+        self.assertIn("source_report", script)
+        self.assertIn("contents", script)
+        self.assertIn("handoff_report_only|maintenance_report_only|diagnostics_report_only", script)
+        self.assertIn("bundle manifest verified", script)
+        self.assertIn("does not extract or restore data", script)
+        self.assertNotIn("tar -x", script)
+        self.assertNotIn("docker compose up", script)
+        self.assertNotIn("docker compose build", script)
+        self.assertNotIn("docker compose run", script)
+        self.assertNotIn("docker compose logs", script)
+        self.assertNotIn("rm -rf", script)
+        self.assertNotIn("apt-get", script)
+        self.assertNotIn("sudo", script)
+        self.assertNotIn("nmap", script)
+
     def test_debian_vm_preflight_script_is_safe_and_scanner_free(self) -> None:
         script = (ROOT / "scripts" / "debian-vm-preflight.sh").read_text(encoding="utf-8")
 

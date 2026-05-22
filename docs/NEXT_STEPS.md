@@ -152,7 +152,7 @@ Codex action:
 - keep Debian VM backup manifests checksum-only and restore-free
 - keep Debian VM backup manifest verification checksum-only and restore-free
 - keep Debian VM restore previews isolated from live data folders
-- keep Debian VM diagnostics free of customer file contents and app logs
+- keep Debian VM diagnostics free of customer file contents and app logs while recording bundle inventory status
 - keep Debian VM support bundles limited to diagnostics reports and sidecar manifests
 - keep Debian VM update planning read-only and maintenance-window focused
 - keep Debian VM update helpers guarded by backup, manifest verification, and strict preflight
@@ -376,8 +376,8 @@ the sidecar manifest still matches the archive before copying or restoring.
 Use `bash scripts/debian-vm-restore-preview.sh <backup.tgz>` to extract a backup
 into `reports/restore-previews` for inspection without replacing live folders.
 Use `bash scripts/debian-vm-diagnostics.sh` when support needs VM state; it
-writes Git, Compose, folder-size, and preflight information under
-`reports/support` without application logs or customer file contents.
+writes Git, Compose, folder-size, preflight, and bundle inventory information
+under `reports/support` without application logs or customer file contents.
 Use `bash scripts/debian-vm-support-bundle.sh` to generate a fresh diagnostics
 report and package only that report for support review. Review the generated
 sidecar manifest before sharing the bundle.

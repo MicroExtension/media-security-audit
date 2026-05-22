@@ -65,6 +65,15 @@ info "writing VM diagnostics report ${REPORT}"
     --data-dir /var/lib/media-audit/data \
     --reports-dir /var/lib/media-audit/reports \
     --format json 2>/dev/null || echo '{"status":"blocked","detail":"preflight command failed"}'
+  echo
+
+  echo "## Bundle Inventory"
+  if bash scripts/debian-vm-bundle-inventory.sh --verify-manifests; then
+    echo "bundle_inventory_exit=0"
+  else
+    STATUS=$?
+    echo "bundle_inventory_exit=${STATUS}"
+  fi
 } >"${REPORT}"
 
 info "diagnostics report ready: ${REPORT}"

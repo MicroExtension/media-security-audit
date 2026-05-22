@@ -551,6 +551,37 @@ class DeploymentFileTests(unittest.TestCase):
         self.assertNotIn("sudo", script)
         self.assertNotIn("nmap", script)
 
+    def test_debian_vm_offline_update_package_is_source_only(self) -> None:
+        script = (ROOT / "scripts" / "debian-vm-offline-update-package.sh").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn("set -euo pipefail", script)
+        self.assertIn("MEDIA_AUDIT_OFFLINE_UPDATE_DIR", script)
+        self.assertIn("dist/offline-updates", script)
+        self.assertIn('[[ "${CURRENT_BRANCH}" == "main" ]]', script)
+        self.assertIn("git status --porcelain --untracked-files=no", script)
+        self.assertIn("git archive", script)
+        self.assertIn("--format=tar.gz", script)
+        self.assertIn("--prefix", script)
+        self.assertIn("--output", script)
+        self.assertIn("sha256sum", script)
+        self.assertIn("stat -c '%s'", script)
+        self.assertIn('PACKAGE_MANIFEST="${PACKAGE}.manifest.txt"', script)
+        self.assertIn("source_branch=${CURRENT_BRANCH}", script)
+        self.assertIn("source_commit=${CURRENT_COMMIT}", script)
+        self.assertIn("contents=git_tracked_source_only", script)
+        self.assertIn("excludes=data,runs,reports,evidence,.env,.git", script)
+        self.assertIn("application=not_implemented", script)
+        self.assertIn("review package and manifest", script)
+        self.assertNotIn("git pull", script)
+        self.assertNotIn("docker compose", script)
+        self.assertNotIn("tar -x", script)
+        self.assertNotIn("rm -rf", script)
+        self.assertNotIn("apt-get", script)
+        self.assertNotIn("sudo", script)
+        self.assertNotIn("nmap", script)
+
     def test_debian_vm_backup_verify_script_is_read_only(self) -> None:
         script = (ROOT / "scripts" / "debian-vm-verify-backup.sh").read_text(encoding="utf-8")
 

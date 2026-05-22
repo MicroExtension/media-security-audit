@@ -78,6 +78,7 @@ Decide:
 - offline installation requirement
 - update mechanism
 - offline update package approval process
+- offline update package signing requirement
 - backup location
 - admin password reset process
 

@@ -77,6 +77,7 @@ Decide:
 - VMware first or Hyper-V first
 - offline installation requirement
 - update mechanism
+- offline update package approval process
 - backup location
 - admin password reset process
 

@@ -405,6 +405,7 @@ Pull the latest approved version and rebuild:
 
 ```bash
 bash scripts/debian-vm-update-plan.sh
+bash scripts/debian-vm-offline-update-plan.sh --package media-audit-offline-update-YYYYMMDDTHHMMSSZ.tgz
 bash scripts/debian-vm-update.sh
 ```
 
@@ -413,6 +414,13 @@ changes, `.env`, authentication, local backup readiness, and whether the latest
 backup has a sidecar manifest, then prints the reviewed commands for the
 technician. It does not pull code, build images, restart services, collect
 logs, or run scanners.
+
+The offline update plan helper is also read-only. It checks the current branch,
+tracked changes, `.env`, authentication, local backup readiness, and an optional
+offline package sidecar manifest. When a package is provided, it compares the
+manifest SHA-256 and size against the package without extracting or applying it.
+It does not pull code, build images, restart services, collect logs, or run
+scanners.
 
 The update helper requires the VM clone to be on `main` with no tracked local
 changes. It creates a backup first, writes and verifies a sidecar manifest,
@@ -513,5 +521,5 @@ bash scripts/debian-vm-verify-bundle-manifest.sh reports/support/media-audit-sup
 - The web UI does not execute scans yet.
 - Full user management is not implemented yet.
 - Docker image signing is not implemented yet.
-- Offline update packaging is not implemented yet.
+- Offline update application packaging is not implemented yet.
 - OVA and VHDX packaging are future targets.

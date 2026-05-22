@@ -406,6 +406,7 @@ Pull the latest approved version and rebuild:
 ```bash
 bash scripts/debian-vm-update-plan.sh
 bash scripts/debian-vm-offline-update-package.sh
+bash scripts/debian-vm-verify-offline-update-package.sh media-audit-offline-update-YYYYMMDDTHHMMSSZ.tgz
 bash scripts/debian-vm-offline-update-plan.sh --package media-audit-offline-update-YYYYMMDDTHHMMSSZ.tgz
 bash scripts/debian-vm-update.sh
 ```
@@ -422,6 +423,16 @@ on `main`. It creates a source-only package from tracked Git files with
 excludes local customer folders such as `data`, `runs`, `reports`, `evidence`,
 `.env`, and `.git`. It does not apply updates, extract archives, build images,
 restart services, collect logs, or run scanners.
+
+Verify the offline update package manifest before copying it to a customer VM:
+
+```bash
+bash scripts/debian-vm-verify-offline-update-package.sh dist/offline-updates/media-audit-offline-update-YYYYMMDDTHHMMSSZ.tgz
+```
+
+The verification helper checks package name, source metadata, size, SHA-256,
+source-only contents marker, exclusions marker, and application status without
+extracting or applying the package.
 
 The offline update plan helper is also read-only. It checks the current branch,
 tracked changes, `.env`, authentication, local backup readiness, and an optional

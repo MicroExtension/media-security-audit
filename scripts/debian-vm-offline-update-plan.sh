@@ -191,6 +191,7 @@ Next reviewed commands, not executed by this helper:
   bash scripts/debian-vm-backup.sh
   bash scripts/debian-vm-backup-manifest.sh reports/backups/media-audit-backup-YYYYMMDDTHHMMSSZ.tgz
   bash scripts/debian-vm-verify-backup-manifest.sh reports/backups/media-audit-backup-YYYYMMDDTHHMMSSZ.tgz
+  bash scripts/debian-vm-verify-offline-update-package.sh media-audit-offline-update-YYYYMMDDTHHMMSSZ.tgz
   # Copy the verified offline update package and manifest to the VM.
   # Offline package application is not implemented yet.
   bash scripts/debian-vm-preflight.sh

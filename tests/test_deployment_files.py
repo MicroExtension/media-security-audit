@@ -296,6 +296,39 @@ class DeploymentFileTests(unittest.TestCase):
         self.assertNotIn("sudo", script)
         self.assertNotIn("nmap", script)
 
+    def test_debian_vm_bundle_inventory_script_is_read_only(self) -> None:
+        script = (ROOT / "scripts" / "debian-vm-bundle-inventory.sh").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn("set -euo pipefail", script)
+        self.assertIn("MEDIA_AUDIT_HANDOFF_BUNDLE_DIR", script)
+        self.assertIn("MEDIA_AUDIT_MAINTENANCE_BUNDLE_DIR", script)
+        self.assertIn("MEDIA_AUDIT_SUPPORT_BUNDLE_DIR", script)
+        self.assertIn("reports/handoff", script)
+        self.assertIn("reports/maintenance", script)
+        self.assertIn("reports/support", script)
+        self.assertIn("bundle inventory is read-only", script)
+        self.assertIn("media-audit-handoff-*.tgz", script)
+        self.assertIn("media-audit-maintenance-*.tgz", script)
+        self.assertIn("media-audit-support-*.tgz", script)
+        self.assertIn("--verify-manifests", script)
+        self.assertIn("debian-vm-verify-bundle-manifest.sh", script)
+        self.assertIn('manifest_status="missing"', script)
+        self.assertIn('manifest_status="present"', script)
+        self.assertIn('manifest_status="verified"', script)
+        self.assertIn('manifest_status="failed"', script)
+        self.assertIn("does not delete bundles, extract archives", script)
+        self.assertNotIn("tar -x", script)
+        self.assertNotIn("docker compose up", script)
+        self.assertNotIn("docker compose build", script)
+        self.assertNotIn("docker compose run", script)
+        self.assertNotIn("docker compose logs", script)
+        self.assertNotIn("rm -rf", script)
+        self.assertNotIn("apt-get", script)
+        self.assertNotIn("sudo", script)
+        self.assertNotIn("nmap", script)
+
     def test_debian_vm_preflight_script_is_safe_and_scanner_free(self) -> None:
         script = (ROOT / "scripts" / "debian-vm-preflight.sh").read_text(encoding="utf-8")
 

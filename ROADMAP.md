@@ -211,6 +211,7 @@ Current foundation:
 - Debian VM maintenance report helper aggregates safe pre-maintenance checks
 - Debian VM maintenance bundle helper packages the maintenance report only with a manifest
 - Debian VM bundle manifest verification helper checks copied bundle integrity
+- Debian VM bundle inventory helper lists shareable bundle manifest status
 - Debian VM preflight helper validates Compose and strict preflight before startup
 - Debian VM start helper starts service only after strict preflight
 - Debian VM status helper reports Compose and preflight state without logs
@@ -275,6 +276,7 @@ Success criteria:
 - Debian VM maintenance reports summarize readiness without logs or restore
 - Debian VM maintenance bundles contain maintenance reports and manifests only
 - Debian VM bundle manifest verification is checksum-only and restore-free
+- Debian VM bundle inventory is read-only and manifest-aware
 - Debian VM deployment has a guarded pre-start helper script
 - Debian VM service startup is guarded by strict preflight
 - Debian VM status can be checked without collecting logs or customer content

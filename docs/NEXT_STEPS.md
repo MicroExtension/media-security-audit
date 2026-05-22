@@ -136,9 +136,9 @@ Codex action:
 - keep Debian VM security review secret-free and scanner-free
 - keep Debian VM firewall planning read-only and technician-reviewed
 - keep Debian VM handoff reports log-free and customer-data-free
-- keep Debian VM handoff bundles limited to handoff reports
+- keep Debian VM handoff bundles limited to handoff reports and sidecar manifests
 - keep Debian VM maintenance reports log-free and restore-free
-- keep Debian VM maintenance bundles limited to maintenance reports
+- keep Debian VM maintenance bundles limited to maintenance reports and sidecar manifests
 - keep Debian VM service startup guarded by strict preflight
 - keep Debian VM status checks log-free and scanner-free
 - keep Debian VM stop helpers explicit and data-preserving
@@ -151,7 +151,7 @@ Codex action:
 - keep Debian VM backup manifest verification checksum-only and restore-free
 - keep Debian VM restore previews isolated from live data folders
 - keep Debian VM diagnostics free of customer file contents and app logs
-- keep Debian VM support bundles limited to diagnostics reports
+- keep Debian VM support bundles limited to diagnostics reports and sidecar manifests
 - keep Debian VM update planning read-only and maintenance-window focused
 - keep Debian VM update helpers guarded by backup, manifest verification, and strict preflight
 
@@ -335,12 +335,14 @@ Use `bash scripts/debian-vm-handoff-report.sh` before customer handoff to write
 a local readiness report under `reports/handoff` without collecting logs or
 customer file contents.
 Use `bash scripts/debian-vm-handoff-bundle.sh` to generate a fresh handoff
-report and package only that report for handoff review.
+report and package only that report for handoff review. Review the generated
+sidecar manifest before sharing the bundle.
 Use `bash scripts/debian-vm-maintenance-report.sh` before approved maintenance
 to collect security review, backup inventory, and update plan output without
 starting services, extracting backups, or collecting logs.
 Use `bash scripts/debian-vm-maintenance-bundle.sh` to generate a fresh
-maintenance report and package only that report for review.
+maintenance report and package only that report for review. Review the
+generated sidecar manifest before sharing the bundle.
 Use `bash scripts/debian-vm-preflight.sh` after `.env` is configured to validate
 Docker Compose, persistent folders, image build, and strict preflight before
 starting the service.
@@ -370,7 +372,8 @@ Use `bash scripts/debian-vm-diagnostics.sh` when support needs VM state; it
 writes Git, Compose, folder-size, and preflight information under
 `reports/support` without application logs or customer file contents.
 Use `bash scripts/debian-vm-support-bundle.sh` to generate a fresh diagnostics
-report and package only that report for support review.
+report and package only that report for support review. Review the generated
+sidecar manifest before sharing the bundle.
 Use `bash scripts/debian-vm-update-plan.sh` before approved maintenance to
 check branch, tracked changes, `.env`, and backup readiness without applying
 updates.

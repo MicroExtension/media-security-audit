@@ -111,9 +111,9 @@ Implemented so far:
 - Debian VM security review helper checks auth, bind, permissions, and Compose
 - Debian VM firewall plan helper prints LAN access rules without applying them
 - Debian VM handoff report helper summarizes safe readiness checks
-- Debian VM handoff bundle helper packages the handoff report only
+- Debian VM handoff bundle helper packages the handoff report only with a sidecar manifest
 - Debian VM maintenance report helper aggregates safe pre-maintenance checks
-- Debian VM maintenance bundle helper packages the maintenance report only
+- Debian VM maintenance bundle helper packages the maintenance report only with a sidecar manifest
 - Debian VM preflight helper checks Compose readiness before service startup
 - Debian VM start helper runs strict preflight before service startup
 - Debian VM status helper reports Compose and preflight state without logs
@@ -126,7 +126,7 @@ Implemented so far:
 - Debian VM backup manifest verification helper checks sidecar integrity
 - Debian VM restore preview helper extracts backups away from live data
 - Debian VM diagnostics helper writes support reports without app logs
-- Debian VM support bundle helper packages diagnostics only
+- Debian VM support bundle helper packages diagnostics only with a sidecar manifest
 - Debian VM update plan helper checks readiness without applying updates
 - Debian VM update helper backs up, verifies a manifest, pulls, preflights, and restarts safely
 - dashboard shows review backlog clients watchlist

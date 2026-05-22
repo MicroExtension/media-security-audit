@@ -213,7 +213,9 @@ bash scripts/debian-vm-handoff-bundle.sh
 Handoff bundles are written to `reports/handoff` by default. Set
 `MEDIA_AUDIT_HANDOFF_BUNDLE_DIR=/path/to/handoff-bundles` to write them
 elsewhere. The helper generates a fresh handoff report and archives only that
-report; review the bundle before sharing it outside the customer site.
+report. It also writes `<bundle.tgz>.manifest.txt` with the bundle name, size,
+SHA-256, and source report; review both files before sharing them outside the
+customer site.
 
 Generate a pre-maintenance report before an approved change:
 
@@ -236,7 +238,9 @@ bash scripts/debian-vm-maintenance-bundle.sh
 Maintenance bundles are written to `reports/maintenance` by default. Set
 `MEDIA_AUDIT_MAINTENANCE_BUNDLE_DIR=/path/to/maintenance-bundles` to write them
 elsewhere. The helper generates a fresh maintenance report and archives only
-that report; review the bundle before sharing it outside the customer site.
+that report. It also writes `<bundle.tgz>.manifest.txt` with the bundle name,
+size, SHA-256, and source report; review both files before sharing them outside
+the customer site.
 
 Then restart:
 
@@ -470,7 +474,9 @@ bash scripts/debian-vm-support-bundle.sh
 Support bundles are written to `reports/support` by default. Set
 `MEDIA_AUDIT_SUPPORT_BUNDLE_DIR=/path/to/support-bundles` to write them
 elsewhere. The helper generates a fresh diagnostics report and archives only
-that report; review the bundle before sharing it outside the customer site.
+that report. It also writes `<bundle.tgz>.manifest.txt` with the bundle name,
+size, SHA-256, and source report; review both files before sharing them outside
+the customer site.
 
 ## Current Limitations
 

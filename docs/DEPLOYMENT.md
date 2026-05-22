@@ -254,6 +254,16 @@ Verify the maintenance bundle manifest after copying the bundle:
 bash scripts/debian-vm-verify-bundle-manifest.sh reports/maintenance/media-audit-maintenance-YYYYMMDDTHHMMSSZ.tgz
 ```
 
+List all local shareable bundles and manifest status:
+
+```bash
+bash scripts/debian-vm-bundle-inventory.sh
+bash scripts/debian-vm-bundle-inventory.sh --verify-manifests
+```
+
+The bundle inventory helper is read-only. It does not delete bundles, extract
+archives, restore data, collect logs, or run scanners.
+
 Then restart:
 
 ```bash

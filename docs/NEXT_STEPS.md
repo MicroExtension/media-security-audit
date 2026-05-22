@@ -303,6 +303,7 @@ Codex action:
 - prepare Dockerfile and docker-compose.yml after the web UI foundation: done
 - keep deployment documentation in `docs/DEPLOYMENT.md`
 - keep offline update planning read-only until package application is designed
+- keep offline update packages source-only and manifest-backed
 
 Current deployment recommendation:
 
@@ -385,6 +386,8 @@ sidecar manifest before sharing the bundle.
 Use `bash scripts/debian-vm-update-plan.sh` before approved maintenance to
 check branch, tracked changes, `.env`, and backup readiness without applying
 updates.
+Use `bash scripts/debian-vm-offline-update-package.sh` from a clean `main`
+maintainer repository to create a source-only offline package and manifest.
 Use `bash scripts/debian-vm-offline-update-plan.sh --package <package.tgz>`
 before offline maintenance to check branch, tracked changes, `.env`, backup
 readiness, and optional package manifest metadata without applying or

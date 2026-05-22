@@ -130,6 +130,7 @@ Implemented so far:
 - Debian VM diagnostics helper records bundle inventory checks without app logs
 - Debian VM support bundle helper packages diagnostics only with a sidecar manifest
 - Debian VM update plan helper checks readiness without applying updates
+- Debian VM offline update package helper creates source-only packages with manifests
 - Debian VM offline update plan helper checks package readiness without applying updates
 - Debian VM update helper backs up, verifies a manifest, pulls, preflights, and restarts safely
 - dashboard shows review backlog clients watchlist
@@ -358,6 +359,7 @@ bash scripts/debian-vm-restore-preview.sh reports/backups/media-audit-backup-YYY
 bash scripts/debian-vm-diagnostics.sh
 bash scripts/debian-vm-support-bundle.sh
 bash scripts/debian-vm-update-plan.sh
+bash scripts/debian-vm-offline-update-package.sh
 bash scripts/debian-vm-offline-update-plan.sh --package media-audit-offline-update-YYYYMMDDTHHMMSSZ.tgz
 bash scripts/debian-vm-update.sh
 ```

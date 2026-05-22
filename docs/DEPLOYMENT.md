@@ -217,6 +217,12 @@ report. It also writes `<bundle.tgz>.manifest.txt` with the bundle name, size,
 SHA-256, and source report; review both files before sharing them outside the
 customer site.
 
+Verify the handoff bundle manifest after copying the bundle:
+
+```bash
+bash scripts/debian-vm-verify-bundle-manifest.sh reports/handoff/media-audit-handoff-YYYYMMDDTHHMMSSZ.tgz
+```
+
 Generate a pre-maintenance report before an approved change:
 
 ```bash
@@ -241,6 +247,12 @@ elsewhere. The helper generates a fresh maintenance report and archives only
 that report. It also writes `<bundle.tgz>.manifest.txt` with the bundle name,
 size, SHA-256, and source report; review both files before sharing them outside
 the customer site.
+
+Verify the maintenance bundle manifest after copying the bundle:
+
+```bash
+bash scripts/debian-vm-verify-bundle-manifest.sh reports/maintenance/media-audit-maintenance-YYYYMMDDTHHMMSSZ.tgz
+```
 
 Then restart:
 
@@ -477,6 +489,12 @@ elsewhere. The helper generates a fresh diagnostics report and archives only
 that report. It also writes `<bundle.tgz>.manifest.txt` with the bundle name,
 size, SHA-256, and source report; review both files before sharing them outside
 the customer site.
+
+Verify the support bundle manifest after copying the bundle:
+
+```bash
+bash scripts/debian-vm-verify-bundle-manifest.sh reports/support/media-audit-support-YYYYMMDDTHHMMSSZ.tgz
+```
 
 ## Current Limitations
 

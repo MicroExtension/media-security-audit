@@ -139,6 +139,7 @@ Codex action:
 - keep Debian VM handoff bundles limited to handoff reports and sidecar manifests
 - keep Debian VM maintenance reports log-free and restore-free
 - keep Debian VM maintenance bundles limited to maintenance reports and sidecar manifests
+- keep Debian VM bundle manifest verification checksum-only and restore-free
 - keep Debian VM service startup guarded by strict preflight
 - keep Debian VM status checks log-free and scanner-free
 - keep Debian VM stop helpers explicit and data-preserving
@@ -343,6 +344,8 @@ starting services, extracting backups, or collecting logs.
 Use `bash scripts/debian-vm-maintenance-bundle.sh` to generate a fresh
 maintenance report and package only that report for review. Review the
 generated sidecar manifest before sharing the bundle.
+Use `bash scripts/debian-vm-verify-bundle-manifest.sh <bundle.tgz>` to confirm
+handoff, maintenance, or support bundle integrity after copying.
 Use `bash scripts/debian-vm-preflight.sh` after `.env` is configured to validate
 Docker Compose, persistent folders, image build, and strict preflight before
 starting the service.

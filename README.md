@@ -114,6 +114,7 @@ Implemented so far:
 - Debian VM handoff bundle helper packages the handoff report only with a sidecar manifest
 - Debian VM maintenance report helper aggregates safe pre-maintenance checks
 - Debian VM maintenance bundle helper packages the maintenance report only with a sidecar manifest
+- Debian VM bundle manifest verification helper checks handoff, maintenance, and support bundle integrity
 - Debian VM preflight helper checks Compose readiness before service startup
 - Debian VM start helper runs strict preflight before service startup
 - Debian VM status helper reports Compose and preflight state without logs
@@ -339,6 +340,7 @@ bash scripts/debian-vm-handoff-report.sh
 bash scripts/debian-vm-handoff-bundle.sh
 bash scripts/debian-vm-maintenance-report.sh
 bash scripts/debian-vm-maintenance-bundle.sh
+bash scripts/debian-vm-verify-bundle-manifest.sh reports/maintenance/media-audit-maintenance-YYYYMMDDTHHMMSSZ.tgz
 bash scripts/debian-vm-preflight.sh
 bash scripts/debian-vm-start.sh
 bash scripts/debian-vm-status.sh

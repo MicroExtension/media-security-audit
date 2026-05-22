@@ -232,8 +232,9 @@ bash scripts/debian-vm-maintenance-report.sh
 Maintenance reports are written to `reports/maintenance` by default. Set
 `MEDIA_AUDIT_MAINTENANCE_DIR=/path/to/maintenance` to write them elsewhere.
 The helper runs the security review, backup inventory with manifest
-verification, and update plan helpers. It does not start services, collect
-application logs, extract backups, restore data, or run scanners.
+verification, bundle inventory with manifest verification, and update plan
+helpers. It does not start services, collect application logs, extract backups,
+restore data, or run scanners.
 
 Create a shareable maintenance bundle:
 

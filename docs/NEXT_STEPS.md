@@ -305,6 +305,7 @@ Codex action:
 - keep offline update planning read-only until package application is designed
 - keep offline update packages source-only and manifest-backed
 - keep offline update package verification checksum-only and extraction-free
+- keep offline update package inventory read-only and extraction-free
 
 Current deployment recommendation:
 
@@ -392,6 +393,9 @@ maintainer repository to create a source-only offline package and manifest.
 Use `bash scripts/debian-vm-verify-offline-update-package.sh <package.tgz>` to
 confirm the offline package manifest still matches before copying it to a
 customer VM.
+Use `bash scripts/debian-vm-offline-update-inventory.sh --verify-manifests` to
+list local offline update packages and manifest status without extracting or
+applying packages.
 Use `bash scripts/debian-vm-offline-update-plan.sh --package <package.tgz>`
 before offline maintenance to check branch, tracked changes, `.env`, backup
 readiness, and optional package manifest metadata without applying or

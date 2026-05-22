@@ -407,6 +407,7 @@ Pull the latest approved version and rebuild:
 bash scripts/debian-vm-update-plan.sh
 bash scripts/debian-vm-offline-update-package.sh
 bash scripts/debian-vm-verify-offline-update-package.sh media-audit-offline-update-YYYYMMDDTHHMMSSZ.tgz
+bash scripts/debian-vm-offline-update-inventory.sh --verify-manifests
 bash scripts/debian-vm-offline-update-plan.sh --package media-audit-offline-update-YYYYMMDDTHHMMSSZ.tgz
 bash scripts/debian-vm-update.sh
 ```
@@ -433,6 +434,18 @@ bash scripts/debian-vm-verify-offline-update-package.sh dist/offline-updates/med
 The verification helper checks package name, source metadata, size, SHA-256,
 source-only contents marker, exclusions marker, and application status without
 extracting or applying the package.
+
+List local offline update packages and manifest status:
+
+```bash
+bash scripts/debian-vm-offline-update-inventory.sh
+bash scripts/debian-vm-offline-update-inventory.sh --verify-manifests
+```
+
+The inventory helper is read-only. It lists packages from
+`MEDIA_AUDIT_OFFLINE_UPDATE_DIR` or `dist/offline-updates`, and it can verify
+sidecar manifests without extracting, applying, building, restarting, collecting
+logs, or running scanners.
 
 The offline update plan helper is also read-only. It checks the current branch,
 tracked changes, `.env`, authentication, local backup readiness, and an optional

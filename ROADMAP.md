@@ -207,9 +207,9 @@ Current foundation:
 - Debian VM security review helper checks auth, bind, permissions, and Compose
 - Debian VM firewall plan helper prints LAN access rules without applying them
 - Debian VM handoff report helper summarizes safe readiness checks
-- Debian VM handoff bundle helper packages the handoff report only
+- Debian VM handoff bundle helper packages the handoff report only with a manifest
 - Debian VM maintenance report helper aggregates safe pre-maintenance checks
-- Debian VM maintenance bundle helper packages the maintenance report only
+- Debian VM maintenance bundle helper packages the maintenance report only with a manifest
 - Debian VM preflight helper validates Compose and strict preflight before startup
 - Debian VM start helper starts service only after strict preflight
 - Debian VM status helper reports Compose and preflight state without logs
@@ -222,7 +222,7 @@ Current foundation:
 - Debian VM backup manifest verification helper checks sidecar integrity
 - Debian VM restore preview helper extracts backups away from live data
 - Debian VM diagnostics helper writes support reports without application logs
-- Debian VM support bundle helper packages diagnostics only
+- Debian VM support bundle helper packages diagnostics only with a manifest
 - Debian VM update plan helper checks readiness without applying updates
 - Debian VM update helper backs up, verifies a manifest, and preflights before restart
 - mission ZIP export package started
@@ -270,9 +270,9 @@ Success criteria:
 - Debian VM security review can flag LAN/auth issues without secrets or logs
 - Debian VM LAN firewall planning is explicit and requires technician review
 - Debian VM handoff reports summarize readiness without logs or customer files
-- Debian VM handoff bundles contain handoff reports only and require review
+- Debian VM handoff bundles contain handoff reports and manifests only
 - Debian VM maintenance reports summarize readiness without logs or restore
-- Debian VM maintenance bundles contain maintenance reports only and require review
+- Debian VM maintenance bundles contain maintenance reports and manifests only
 - Debian VM deployment has a guarded pre-start helper script
 - Debian VM service startup is guarded by strict preflight
 - Debian VM status can be checked without collecting logs or customer content
@@ -285,7 +285,7 @@ Success criteria:
 - Debian VM backup manifests can be rechecked against copied archives
 - Debian VM backups can be preview-extracted without replacing live data
 - Debian VM diagnostics can be collected without bundling customer files or logs
-- Debian VM support bundles contain diagnostics only and require review before sharing
+- Debian VM support bundles contain diagnostics reports and manifests only
 - Debian VM update planning is read-only before approved maintenance
 - Debian VM updates are guarded by backup, manifest verification, fast-forward pull, and strict preflight
 

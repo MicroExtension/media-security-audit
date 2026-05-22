@@ -609,6 +609,31 @@ class DeploymentFileTests(unittest.TestCase):
         self.assertNotIn("sudo", script)
         self.assertNotIn("nmap", script)
 
+    def test_debian_vm_offline_update_inventory_is_read_only(self) -> None:
+        script = (ROOT / "scripts" / "debian-vm-offline-update-inventory.sh").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn("set -euo pipefail", script)
+        self.assertIn("--verify-manifests", script)
+        self.assertIn("MEDIA_AUDIT_OFFLINE_UPDATE_DIR", script)
+        self.assertIn("dist/offline-updates", script)
+        self.assertIn("media-audit-offline-update-*.tgz", script)
+        self.assertIn("offline update package inventory is read-only", script)
+        self.assertIn("debian-vm-verify-offline-update-package.sh", script)
+        self.assertIn("offline_update_package=", script)
+        self.assertIn('MANIFEST_STATUS="verified"', script)
+        self.assertIn('MANIFEST_STATUS="failed"', script)
+        self.assertIn('MANIFEST_STATUS="missing"', script)
+        self.assertIn("offline update package inventory complete", script)
+        self.assertNotIn("git pull", script)
+        self.assertNotIn("docker compose", script)
+        self.assertNotIn("tar -x", script)
+        self.assertNotIn("rm -rf", script)
+        self.assertNotIn("apt-get", script)
+        self.assertNotIn("sudo", script)
+        self.assertNotIn("nmap", script)
+
     def test_debian_vm_backup_verify_script_is_read_only(self) -> None:
         script = (ROOT / "scripts" / "debian-vm-verify-backup.sh").read_text(encoding="utf-8")
 

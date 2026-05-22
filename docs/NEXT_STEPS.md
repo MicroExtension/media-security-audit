@@ -135,7 +135,7 @@ Codex action:
 - keep Debian VM password rotation explicit and auth-preserving
 - keep Debian VM security review secret-free and scanner-free
 - keep Debian VM firewall planning read-only and technician-reviewed
-- keep Debian VM handoff reports log-free and customer-data-free
+- keep Debian VM handoff reports log-free, customer-data-free, and bundle-aware
 - keep Debian VM handoff bundles limited to handoff reports and sidecar manifests
 - keep Debian VM maintenance reports log-free and restore-free
 - keep Debian VM maintenance bundles limited to maintenance reports and sidecar manifests
@@ -334,8 +334,8 @@ Use `bash scripts/debian-vm-firewall-plan.sh --admin-cidr <cidr>` before LAN
 exposure to print firewall commands for technician review without applying
 them.
 Use `bash scripts/debian-vm-handoff-report.sh` before customer handoff to write
-a local readiness report under `reports/handoff` without collecting logs or
-customer file contents.
+a local readiness report with bundle inventory under `reports/handoff` without
+collecting logs or customer file contents.
 Use `bash scripts/debian-vm-handoff-bundle.sh` to generate a fresh handoff
 report and package only that report for handoff review. Review the generated
 sidecar manifest before sharing the bundle.

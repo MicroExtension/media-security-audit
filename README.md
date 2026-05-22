@@ -110,7 +110,7 @@ Implemented so far:
 - Debian VM password rotation helper backs up `.env` and keeps authentication enabled
 - Debian VM security review helper checks auth, bind, permissions, and Compose
 - Debian VM firewall plan helper prints LAN access rules without applying them
-- Debian VM handoff report helper summarizes safe readiness checks
+- Debian VM handoff report helper summarizes safe readiness and bundle inventory checks
 - Debian VM handoff bundle helper packages the handoff report only with a sidecar manifest
 - Debian VM maintenance report helper aggregates safe pre-maintenance checks with backup and bundle inventories
 - Debian VM maintenance bundle helper packages the maintenance report only with a sidecar manifest

@@ -127,7 +127,7 @@ Implemented so far:
 - Debian VM backup manifest helper writes sidecar SHA-256 metadata
 - Debian VM backup manifest verification helper checks sidecar integrity
 - Debian VM restore preview helper extracts backups away from live data
-- Debian VM diagnostics helper writes support reports without app logs
+- Debian VM diagnostics helper records bundle inventory checks without app logs
 - Debian VM support bundle helper packages diagnostics only with a sidecar manifest
 - Debian VM update plan helper checks readiness without applying updates
 - Debian VM update helper backs up, verifies a manifest, pulls, preflights, and restarts safely

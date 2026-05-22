@@ -206,7 +206,7 @@ Current foundation:
 - Debian VM password rotation helper backs up `.env` and keeps auth enabled
 - Debian VM security review helper checks auth, bind, permissions, and Compose
 - Debian VM firewall plan helper prints LAN access rules without applying them
-- Debian VM handoff report helper summarizes safe readiness checks
+- Debian VM handoff report helper summarizes safe readiness and bundle inventory checks
 - Debian VM handoff bundle helper packages the handoff report only with a manifest
 - Debian VM maintenance report helper aggregates safe pre-maintenance checks with backup and bundle inventories
 - Debian VM maintenance bundle helper packages the maintenance report only with a manifest
@@ -271,7 +271,7 @@ Success criteria:
 - Debian VM web password rotation is explicit, backed up, and auth-preserving
 - Debian VM security review can flag LAN/auth issues without secrets or logs
 - Debian VM LAN firewall planning is explicit and requires technician review
-- Debian VM handoff reports summarize readiness without logs or customer files
+- Debian VM handoff reports summarize readiness and bundle inventory without logs or customer files
 - Debian VM handoff bundles contain handoff reports and manifests only
 - Debian VM maintenance reports summarize readiness with backup and bundle inventories
 - Debian VM maintenance bundles contain maintenance reports and manifests only

@@ -50,10 +50,21 @@ info "writing VM handoff report ${REPORT}"
   fi
   echo
 
+  echo "## Bundle Inventory"
+  if bash scripts/debian-vm-bundle-inventory.sh --verify-manifests; then
+    echo "bundle_inventory_exit=0"
+  else
+    STATUS=$?
+    echo "bundle_inventory_exit=${STATUS}"
+    EXIT_CODE=1
+  fi
+  echo
+
   echo "## Technician Review"
   echo "- Confirm customer authorization and approved administration subnet."
   echo "- Confirm MEDIA_AUDIT_REQUIRE_AUTH remains enabled."
   echo "- Confirm any LAN exposure is protected by firewall or VPN."
+  echo "- Confirm shareable bundle manifests are verified before handoff."
   echo "- Store the current web password in the maintenance password vault."
   echo "- Review this report before sharing it outside the customer site."
 } >"${REPORT}"

@@ -208,7 +208,7 @@ Current foundation:
 - Debian VM firewall plan helper prints LAN access rules without applying them
 - Debian VM handoff report helper summarizes safe readiness and bundle inventory checks
 - Debian VM handoff bundle helper packages the handoff report only with a manifest
-- Debian VM maintenance report helper aggregates safe pre-maintenance checks with backup, bundle, and offline package inventories
+- Debian VM maintenance report helper aggregates safe pre-maintenance checks with backup, bundle, offline package, and offline preview status
 - Debian VM maintenance bundle helper packages the maintenance report only with a manifest
 - Debian VM bundle manifest verification helper checks copied bundle integrity
 - Debian VM bundle inventory helper lists shareable bundle manifest status
@@ -280,7 +280,7 @@ Success criteria:
 - Debian VM LAN firewall planning is explicit and requires technician review
 - Debian VM handoff reports summarize readiness and bundle inventory without logs or customer files
 - Debian VM handoff bundles contain handoff reports and manifests only
-- Debian VM maintenance reports summarize readiness with backup, bundle, and offline package inventories
+- Debian VM maintenance reports summarize readiness with backup, bundle, offline package, and offline preview status
 - Debian VM maintenance bundles contain maintenance reports and manifests only
 - Debian VM bundle manifest verification is checksum-only and restore-free
 - Debian VM bundle inventory is read-only and manifest-aware

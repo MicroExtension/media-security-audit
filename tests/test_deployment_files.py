@@ -221,6 +221,8 @@ class DeploymentFileTests(unittest.TestCase):
 
         self.assertIn("set -euo pipefail", script)
         self.assertIn("MEDIA_AUDIT_MAINTENANCE_DIR", script)
+        self.assertIn("MEDIA_AUDIT_OFFLINE_UPDATE_PACKAGE", script)
+        self.assertIn("MEDIA_AUDIT_OFFLINE_UPDATE_PREVIEW", script)
         self.assertIn("reports/maintenance", script)
         self.assertIn("media-audit-maintenance-", script)
         self.assertIn("bash scripts/debian-vm-security-review.sh", script)
@@ -230,11 +232,16 @@ class DeploymentFileTests(unittest.TestCase):
             "bash scripts/debian-vm-offline-update-inventory.sh --verify-manifests",
             script,
         )
+        self.assertIn("bash scripts/debian-vm-verify-offline-update-preview.sh", script)
+        self.assertIn("bash scripts/debian-vm-offline-update-plan.sh", script)
         self.assertIn("bash scripts/debian-vm-update-plan.sh", script)
+        self.assertIn("offline_update_preview=not_provided", script)
+        self.assertIn("offline_update_plan_exit=0", script)
         self.assertIn("maintenance window", script)
         self.assertIn("backup archive and manifest verification", script)
         self.assertIn("shareable bundles and manifests", script)
         self.assertIn("offline update packages and manifests", script)
+        self.assertIn("offline update preview manifests", script)
         self.assertIn("review before sharing", script)
         self.assertIn("excludes application logs and customer file contents", script)
         self.assertNotIn("docker compose logs", script)

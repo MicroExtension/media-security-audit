@@ -459,6 +459,8 @@ The preview helper verifies the package manifest first, then extracts into
 `reports/offline-update-previews` or a provided preview folder. It refuses to
 extract over `.git`, `data`, `runs`, `reports`, or `evidence`, and it does not
 apply updates, build images, restart services, collect logs, or run scanners.
+It also writes `preview-manifest.txt` inside the preview folder with package
+size, SHA-256, top-level source folder, and explicit non-application status.
 
 The offline update plan helper is also read-only. It checks the current branch,
 tracked changes, `.env`, authentication, local backup readiness, and an optional

@@ -83,6 +83,15 @@ info "writing VM diagnostics report ${REPORT}"
     STATUS=$?
     echo "offline_update_inventory_exit=${STATUS}"
   fi
+  echo
+
+  echo "## Offline Update Preview Inventory"
+  if bash scripts/debian-vm-offline-update-preview-inventory.sh --verify-manifests; then
+    echo "offline_update_preview_inventory_exit=0"
+  else
+    STATUS=$?
+    echo "offline_update_preview_inventory_exit=${STATUS}"
+  fi
 } >"${REPORT}"
 
 info "diagnostics report ready: ${REPORT}"

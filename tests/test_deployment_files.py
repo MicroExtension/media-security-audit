@@ -232,15 +232,21 @@ class DeploymentFileTests(unittest.TestCase):
             "bash scripts/debian-vm-offline-update-inventory.sh --verify-manifests",
             script,
         )
+        self.assertIn(
+            "bash scripts/debian-vm-offline-update-preview-inventory.sh --verify-manifests",
+            script,
+        )
         self.assertIn("bash scripts/debian-vm-verify-offline-update-preview.sh", script)
         self.assertIn("bash scripts/debian-vm-offline-update-plan.sh", script)
         self.assertIn("bash scripts/debian-vm-update-plan.sh", script)
         self.assertIn("offline_update_preview=not_provided", script)
+        self.assertIn("offline_update_preview_inventory_exit=0", script)
         self.assertIn("offline_update_plan_exit=0", script)
         self.assertIn("maintenance window", script)
         self.assertIn("backup archive and manifest verification", script)
         self.assertIn("shareable bundles and manifests", script)
         self.assertIn("offline update packages and manifests", script)
+        self.assertIn("offline update preview inventory", script)
         self.assertIn("offline update preview manifests", script)
         self.assertIn("review before sharing", script)
         self.assertIn("excludes application logs and customer file contents", script)
@@ -823,6 +829,11 @@ class DeploymentFileTests(unittest.TestCase):
             script,
         )
         self.assertIn("offline_update_inventory_exit=", script)
+        self.assertIn(
+            "bash scripts/debian-vm-offline-update-preview-inventory.sh --verify-manifests",
+            script,
+        )
+        self.assertIn("offline_update_preview_inventory_exit=", script)
         self.assertIn("data runs reports evidence", script)
         self.assertIn("should not contain customer data or application logs", script)
         self.assertNotIn("docker compose logs", script)

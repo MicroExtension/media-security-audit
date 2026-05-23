@@ -527,8 +527,9 @@ bash scripts/debian-vm-diagnostics.sh
 Diagnostics are written to `reports/support` by default. Set
 `MEDIA_AUDIT_SUPPORT_DIR=/path/to/support` to write them elsewhere. The helper
 collects Git state, Docker Compose status, persistent folder sizes, deployment
-preflight JSON, and bundle inventory with manifest verification. It does not
-include application logs or customer file contents by default.
+preflight JSON, bundle inventory with manifest verification, and offline update
+package inventory with manifest verification. It does not include application
+logs or customer file contents by default.
 
 Create a shareable support bundle after generating diagnostics:
 

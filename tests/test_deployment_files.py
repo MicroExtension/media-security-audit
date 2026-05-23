@@ -728,6 +728,11 @@ class DeploymentFileTests(unittest.TestCase):
         self.assertIn("--format json", script)
         self.assertIn("bash scripts/debian-vm-bundle-inventory.sh --verify-manifests", script)
         self.assertIn("bundle_inventory_exit=", script)
+        self.assertIn(
+            "bash scripts/debian-vm-offline-update-inventory.sh --verify-manifests",
+            script,
+        )
+        self.assertIn("offline_update_inventory_exit=", script)
         self.assertIn("data runs reports evidence", script)
         self.assertIn("should not contain customer data or application logs", script)
         self.assertNotIn("docker compose logs", script)

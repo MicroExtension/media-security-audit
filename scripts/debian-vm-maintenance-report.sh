@@ -72,6 +72,16 @@ info "writing VM maintenance report ${REPORT}"
   fi
   echo
 
+  echo "## Offline Update Preview Inventory"
+  if bash scripts/debian-vm-offline-update-preview-inventory.sh --verify-manifests; then
+    echo "offline_update_preview_inventory_exit=0"
+  else
+    STATUS=$?
+    echo "offline_update_preview_inventory_exit=${STATUS}"
+    EXIT_CODE=1
+  fi
+  echo
+
   echo "## Offline Update Preview Verification"
   if [[ -z "${OFFLINE_UPDATE_PREVIEW}" ]]; then
     echo "offline_update_preview=not_provided"
@@ -126,6 +136,7 @@ info "writing VM maintenance report ${REPORT}"
   echo "- Confirm backup archive and manifest verification before updating."
   echo "- Confirm shareable bundles and manifests are verified before handoff."
   echo "- Confirm offline update packages and manifests are verified before offline maintenance."
+  echo "- Confirm offline update preview inventory is reviewed before offline maintenance."
   echo "- Confirm offline update preview manifests are verified before offline maintenance."
   echo "- Confirm any warnings are resolved or documented."
   echo "- Review this report before sharing it outside the customer site."

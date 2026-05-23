@@ -208,7 +208,7 @@ Current foundation:
 - Debian VM firewall plan helper prints LAN access rules without applying them
 - Debian VM handoff report helper summarizes safe readiness and bundle inventory checks
 - Debian VM handoff bundle helper packages the handoff report only with a manifest
-- Debian VM maintenance report helper aggregates safe pre-maintenance checks with backup, bundle, offline package, and offline preview status
+- Debian VM maintenance report helper aggregates safe pre-maintenance checks with backup, bundle, offline package, offline preview inventory, and offline preview status
 - Debian VM maintenance bundle helper packages the maintenance report only with a manifest
 - Debian VM bundle manifest verification helper checks copied bundle integrity
 - Debian VM bundle inventory helper lists shareable bundle manifest status
@@ -223,7 +223,7 @@ Current foundation:
 - Debian VM backup manifest helper writes sidecar SHA-256 metadata
 - Debian VM backup manifest verification helper checks sidecar integrity
 - Debian VM restore preview helper extracts backups away from live data
-- Debian VM diagnostics helper records bundle and offline package inventory checks without application logs
+- Debian VM diagnostics helper records bundle, offline package, and offline preview inventory checks without application logs
 - Debian VM support bundle helper packages diagnostics only with a manifest
 - Debian VM update plan helper checks readiness without applying updates
 - Debian VM offline update package helper creates source-only packages with manifests
@@ -281,7 +281,7 @@ Success criteria:
 - Debian VM LAN firewall planning is explicit and requires technician review
 - Debian VM handoff reports summarize readiness and bundle inventory without logs or customer files
 - Debian VM handoff bundles contain handoff reports and manifests only
-- Debian VM maintenance reports summarize readiness with backup, bundle, offline package, and offline preview status
+- Debian VM maintenance reports summarize readiness with backup, bundle, offline package, offline preview inventory, and offline preview status
 - Debian VM maintenance bundles contain maintenance reports and manifests only
 - Debian VM bundle manifest verification is checksum-only and restore-free
 - Debian VM bundle inventory is read-only and manifest-aware
@@ -296,7 +296,7 @@ Success criteria:
 - Debian VM backup manifests record size and SHA-256 without extraction
 - Debian VM backup manifests can be rechecked against copied archives
 - Debian VM backups can be preview-extracted without replacing live data
-- Debian VM diagnostics can be collected with bundle and offline package inventory status without bundling customer files or logs
+- Debian VM diagnostics can be collected with bundle, offline package, and offline preview inventory status without bundling customer files or logs
 - Debian VM support bundles contain diagnostics reports and manifests only
 - Debian VM update planning is read-only before approved maintenance
 - Debian VM offline update packages can be generated from tracked source only

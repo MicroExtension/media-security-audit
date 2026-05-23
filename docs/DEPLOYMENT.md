@@ -234,10 +234,10 @@ Maintenance reports are written to `reports/maintenance` by default. Set
 `MEDIA_AUDIT_MAINTENANCE_DIR=/path/to/maintenance` to write them elsewhere.
 The helper runs the security review, backup inventory with manifest
 verification, bundle inventory with manifest verification, offline update
-package inventory with manifest verification, optional offline update preview
-verification, and update plan helpers. It does not start services, collect
-application logs, extract backups, restore data, apply packages, or run
-scanners.
+package inventory with manifest verification, offline update preview inventory
+with manifest verification, optional offline update preview verification, and
+update plan helpers. It does not start services, collect application logs,
+extract backups, restore data, apply packages, or run scanners.
 
 To include offline package and preview verification in the maintenance report:
 
@@ -577,9 +577,10 @@ bash scripts/debian-vm-diagnostics.sh
 Diagnostics are written to `reports/support` by default. Set
 `MEDIA_AUDIT_SUPPORT_DIR=/path/to/support` to write them elsewhere. The helper
 collects Git state, Docker Compose status, persistent folder sizes, deployment
-preflight JSON, bundle inventory with manifest verification, and offline update
-package inventory with manifest verification. It does not include application
-logs or customer file contents by default.
+preflight JSON, bundle inventory with manifest verification, offline update
+package inventory with manifest verification, and offline update preview
+inventory with manifest verification. It does not include application logs or
+customer file contents by default.
 
 Create a shareable support bundle after generating diagnostics:
 

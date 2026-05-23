@@ -229,6 +229,7 @@ Current foundation:
 - Debian VM offline update package helper creates source-only packages with manifests
 - Debian VM offline update package verification helper checks sidecar integrity
 - Debian VM offline update package inventory helper lists package manifest status
+- Debian VM offline update preview helper extracts packages away from live code
 - Debian VM offline update plan helper checks package readiness without applying updates
 - Debian VM update helper backs up, verifies a manifest, and preflights before restart
 - mission ZIP export package started
@@ -298,6 +299,7 @@ Success criteria:
 - Debian VM offline update packages can be generated from tracked source only
 - Debian VM offline update package manifests can be rechecked before copying
 - Debian VM offline update package inventory is read-only and manifest-aware
+- Debian VM offline update packages can be preview-extracted away from live code
 - Debian VM offline update planning can verify package metadata without applying updates
 - Debian VM updates are guarded by backup, manifest verification, fast-forward pull, and strict preflight
 

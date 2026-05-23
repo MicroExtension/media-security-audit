@@ -639,6 +639,26 @@ class DeploymentFileTests(unittest.TestCase):
         self.assertNotIn("sudo", script)
         self.assertNotIn("nmap", script)
 
+    def test_debian_vm_offline_update_preview_is_isolated(self) -> None:
+        script = (ROOT / "scripts" / "debian-vm-offline-update-preview.sh").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn("set -euo pipefail", script)
+        self.assertIn("debian-vm-verify-offline-update-package.sh", script)
+        self.assertIn("reports/offline-update-previews", script)
+        self.assertIn("refusing to extract offline update preview over live", script)
+        self.assertIn("tar -xzf", script)
+        self.assertIn('-C "${PREVIEW_ROOT}"', script)
+        self.assertIn("does not apply updates, replace the", script)
+        self.assertIn("inspect this folder manually", script)
+        self.assertNotIn("git pull", script)
+        self.assertNotIn("docker compose", script)
+        self.assertNotIn("rm -rf", script)
+        self.assertNotIn("apt-get", script)
+        self.assertNotIn("sudo", script)
+        self.assertNotIn("nmap", script)
+
     def test_debian_vm_backup_verify_script_is_read_only(self) -> None:
         script = (ROOT / "scripts" / "debian-vm-verify-backup.sh").read_text(encoding="utf-8")
 

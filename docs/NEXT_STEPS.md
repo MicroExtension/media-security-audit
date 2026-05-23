@@ -308,6 +308,7 @@ Codex action:
 - keep offline update package inventory read-only and extraction-free
 - keep offline update previews isolated from live repository and data folders
 - keep offline update preview manifests local, source-focused, and non-application status only
+- keep offline update preview verification read-only and package-metadata focused
 
 Current deployment recommendation:
 
@@ -405,6 +406,9 @@ a verified package under `reports/offline-update-previews` without replacing the
 live repository or data folders. The preview folder includes
 `preview-manifest.txt` with package size, SHA-256, top-level source folder, and
 explicit non-application status for review.
+Use `bash scripts/debian-vm-verify-offline-update-preview.sh <preview-dir>` to
+confirm the preview manifest still matches the source package and extracted
+source folder without extracting or applying anything.
 Use `bash scripts/debian-vm-offline-update-plan.sh --package <package.tgz>`
 before offline maintenance to check branch, tracked changes, `.env`, backup
 readiness, and optional package manifest metadata without applying or

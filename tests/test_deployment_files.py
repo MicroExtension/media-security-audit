@@ -665,6 +665,32 @@ class DeploymentFileTests(unittest.TestCase):
         self.assertNotIn("sudo", script)
         self.assertNotIn("nmap", script)
 
+    def test_debian_vm_verify_offline_update_preview_is_read_only(self) -> None:
+        script = (
+            ROOT / "scripts" / "debian-vm-verify-offline-update-preview.sh"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("set -euo pipefail", script)
+        self.assertIn("does not extract, apply, build", script)
+        self.assertIn("<preview-dir> [--package <package.tgz>]", script)
+        self.assertIn('PREVIEW_MANIFEST="${PREVIEW_ROOT}/preview-manifest.txt"', script)
+        self.assertIn("manifest_value()", script)
+        self.assertIn("canonical_dir()", script)
+        self.assertIn("source_package_sha256", script)
+        self.assertIn("top_level_source", script)
+        self.assertIn("not_implemented", script)
+        self.assertIn("not_performed", script)
+        self.assertIn("stat -c '%s'", script)
+        self.assertIn("sha256sum", script)
+        self.assertIn("offline update preview manifest verified", script)
+        self.assertNotIn("git pull", script)
+        self.assertNotIn("docker compose", script)
+        self.assertNotIn("tar -x", script)
+        self.assertNotIn("rm -rf", script)
+        self.assertNotIn("apt-get", script)
+        self.assertNotIn("sudo", script)
+        self.assertNotIn("nmap", script)
+
     def test_debian_vm_backup_verify_script_is_read_only(self) -> None:
         script = (ROOT / "scripts" / "debian-vm-verify-backup.sh").read_text(encoding="utf-8")
 

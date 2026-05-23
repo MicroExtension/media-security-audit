@@ -236,10 +236,12 @@ The helper runs the security review, backup inventory with manifest
 verification, bundle inventory with manifest verification, offline update
 package inventory with manifest verification, offline update preview inventory
 with manifest verification, optional offline update preview verification, and
-update plan helpers. It does not start services, collect application logs,
-extract backups, restore data, apply packages, or run scanners.
+optional offline apply checklist readiness, and update plan helpers. It does not
+start services, collect application logs, extract backups, restore data, apply
+packages, or run scanners.
 
-To include offline package and preview verification in the maintenance report:
+To include offline package, preview, and apply checklist verification in the
+maintenance report:
 
 ```bash
 MEDIA_AUDIT_OFFLINE_UPDATE_PACKAGE=dist/offline-updates/media-audit-offline-update-YYYYMMDDTHHMMSSZ.tgz \

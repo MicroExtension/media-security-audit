@@ -120,6 +120,21 @@ info "writing VM maintenance report ${REPORT}"
   fi
   echo
 
+  echo "## Offline Update Apply Checklist"
+  if [[ -z "${OFFLINE_UPDATE_PACKAGE}" || -z "${OFFLINE_UPDATE_PREVIEW}" ]]; then
+    echo "offline_update_apply_checklist=not_provided"
+    echo "offline_update_apply_checklist_note=set MEDIA_AUDIT_OFFLINE_UPDATE_PACKAGE and MEDIA_AUDIT_OFFLINE_UPDATE_PREVIEW to include this checklist"
+  else
+    if bash scripts/debian-vm-offline-update-apply-checklist.sh --package "${OFFLINE_UPDATE_PACKAGE}" --preview "${OFFLINE_UPDATE_PREVIEW}"; then
+      echo "offline_update_apply_checklist_exit=0"
+    else
+      STATUS=$?
+      echo "offline_update_apply_checklist_exit=${STATUS}"
+      EXIT_CODE=1
+    fi
+  fi
+  echo
+
   echo "## Online Update Plan"
   if bash scripts/debian-vm-update-plan.sh; then
     echo "update_plan_exit=0"
@@ -138,6 +153,7 @@ info "writing VM maintenance report ${REPORT}"
   echo "- Confirm offline update packages and manifests are verified before offline maintenance."
   echo "- Confirm offline update preview inventory is reviewed before offline maintenance."
   echo "- Confirm offline update preview manifests are verified before offline maintenance."
+  echo "- Confirm offline update apply checklist is reviewed before any future application workflow."
   echo "- Confirm any warnings are resolved or documented."
   echo "- Review this report before sharing it outside the customer site."
 } >"${REPORT}"

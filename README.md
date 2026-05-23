@@ -134,6 +134,7 @@ Implemented so far:
 - Debian VM offline update package verification helper checks sidecar integrity
 - Debian VM offline update package inventory helper lists package manifest status
 - Debian VM offline update preview helper extracts packages away from live code
+- Debian VM offline update preview helper writes local preview manifests
 - Debian VM offline update plan helper checks package readiness without applying updates
 - Debian VM update helper backs up, verifies a manifest, pulls, preflights, and restarts safely
 - dashboard shows review backlog clients watchlist

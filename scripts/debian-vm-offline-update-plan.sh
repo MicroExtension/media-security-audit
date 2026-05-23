@@ -8,6 +8,7 @@ BLOCKED=0
 WARNINGS=0
 PACKAGE=""
 MANIFEST=""
+PREVIEW=""
 
 fail() {
   printf 'error: %s\n' "$1" >&2
@@ -32,7 +33,7 @@ record() {
 
 usage() {
   cat <<'USAGE'
-Usage: bash scripts/debian-vm-offline-update-plan.sh [--package <path>] [--manifest <path>]
+Usage: bash scripts/debian-vm-offline-update-plan.sh [--package <path>] [--manifest <path>] [--preview <dir>]
 
 Plan an offline update before an approved maintenance window.
 
@@ -59,6 +60,15 @@ while [[ "$#" -gt 0 ]]; do
       ;;
     --manifest=*)
       MANIFEST="${1#--manifest=}"
+      shift
+      ;;
+    --preview)
+      [[ "$#" -ge 2 ]] || fail "--preview requires a folder"
+      PREVIEW="$2"
+      shift 2
+      ;;
+    --preview=*)
+      PREVIEW="${1#--preview=}"
       shift
       ;;
     --help|-h)
@@ -185,6 +195,25 @@ else
   fi
 fi
 
+if [[ -z "${PREVIEW}" ]]; then
+  record warning "Offline preview" "no preview folder provided; pass --preview after inspecting a package"
+else
+  if [[ ! -d "${PREVIEW}" ]]; then
+    record blocked "Offline preview" "${PREVIEW} was not found"
+  else
+    PREVIEW_VERIFY_ARGS=("${PREVIEW}")
+    if [[ -n "${PACKAGE}" && -f "${PACKAGE}" ]]; then
+      PREVIEW_VERIFY_ARGS+=("--package" "${PACKAGE}")
+    fi
+
+    if bash scripts/debian-vm-verify-offline-update-preview.sh "${PREVIEW_VERIFY_ARGS[@]}"; then
+      record ready "Offline preview" "preview manifest verified without applying the package"
+    else
+      record blocked "Offline preview" "preview manifest verification failed"
+    fi
+  fi
+fi
+
 printf '\n'
 cat <<'PLAN'
 Next reviewed commands, not executed by this helper:
@@ -192,6 +221,8 @@ Next reviewed commands, not executed by this helper:
   bash scripts/debian-vm-backup-manifest.sh reports/backups/media-audit-backup-YYYYMMDDTHHMMSSZ.tgz
   bash scripts/debian-vm-verify-backup-manifest.sh reports/backups/media-audit-backup-YYYYMMDDTHHMMSSZ.tgz
   bash scripts/debian-vm-verify-offline-update-package.sh media-audit-offline-update-YYYYMMDDTHHMMSSZ.tgz
+  bash scripts/debian-vm-offline-update-preview.sh media-audit-offline-update-YYYYMMDDTHHMMSSZ.tgz
+  bash scripts/debian-vm-verify-offline-update-preview.sh reports/offline-update-previews/<preview-folder>
   # Copy the verified offline update package and manifest to the VM.
   # Offline package application is not implemented yet.
   bash scripts/debian-vm-preflight.sh
@@ -201,6 +232,7 @@ Review before offline update:
 - Confirm a maintenance window is approved.
 - Confirm the latest backup archive and manifest were verified.
 - Confirm the offline package source, checksum, and size are approved.
+- Confirm the offline package preview manifest was verified when available.
 - Confirm the VM remains isolated from customer data export paths.
 PLAN
 

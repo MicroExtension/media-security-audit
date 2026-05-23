@@ -234,9 +234,18 @@ Maintenance reports are written to `reports/maintenance` by default. Set
 `MEDIA_AUDIT_MAINTENANCE_DIR=/path/to/maintenance` to write them elsewhere.
 The helper runs the security review, backup inventory with manifest
 verification, bundle inventory with manifest verification, offline update
-package inventory with manifest verification, and update plan helpers. It does
-not start services, collect application logs, extract backups, restore data,
-apply packages, or run scanners.
+package inventory with manifest verification, optional offline update preview
+verification, and update plan helpers. It does not start services, collect
+application logs, extract backups, restore data, apply packages, or run
+scanners.
+
+To include offline package and preview verification in the maintenance report:
+
+```bash
+MEDIA_AUDIT_OFFLINE_UPDATE_PACKAGE=dist/offline-updates/media-audit-offline-update-YYYYMMDDTHHMMSSZ.tgz \
+MEDIA_AUDIT_OFFLINE_UPDATE_PREVIEW=reports/offline-update-previews/<preview-folder> \
+bash scripts/debian-vm-maintenance-report.sh
+```
 
 Create a shareable maintenance bundle:
 

@@ -420,6 +420,7 @@ bash scripts/debian-vm-verify-offline-update-package.sh media-audit-offline-upda
 bash scripts/debian-vm-offline-update-inventory.sh --verify-manifests
 bash scripts/debian-vm-offline-update-preview.sh media-audit-offline-update-YYYYMMDDTHHMMSSZ.tgz
 bash scripts/debian-vm-verify-offline-update-preview.sh reports/offline-update-previews/<preview-folder>
+bash scripts/debian-vm-offline-update-preview-inventory.sh --verify-manifests
 bash scripts/debian-vm-offline-update-plan.sh --package media-audit-offline-update-YYYYMMDDTHHMMSSZ.tgz --preview reports/offline-update-previews/<preview-folder>
 bash scripts/debian-vm-update.sh
 ```
@@ -482,6 +483,18 @@ The preview verification helper checks `preview-manifest.txt`, the source
 package name, size, SHA-256, top-level extracted source folder, and explicit
 non-application status. It does not extract packages, apply updates, build
 images, restart services, collect logs, or run scanners.
+
+List local offline update previews and manifest status:
+
+```bash
+bash scripts/debian-vm-offline-update-preview-inventory.sh
+bash scripts/debian-vm-offline-update-preview-inventory.sh --verify-manifests
+```
+
+The preview inventory helper is read-only. It lists preview folders from
+`MEDIA_AUDIT_OFFLINE_UPDATE_PREVIEW_DIR` or `reports/offline-update-previews`,
+and it can verify preview manifests without deleting, extracting, applying,
+building, restarting, collecting logs, or running scanners.
 
 The offline update plan helper is also read-only. It checks the current branch,
 tracked changes, `.env`, authentication, local backup readiness, an optional

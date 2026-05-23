@@ -576,6 +576,32 @@ class DeploymentFileTests(unittest.TestCase):
         self.assertNotIn("sudo", script)
         self.assertNotIn("nmap", script)
 
+    def test_debian_vm_offline_update_apply_checklist_is_read_only(self) -> None:
+        script = (
+            ROOT / "scripts" / "debian-vm-offline-update-apply-checklist.sh"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("set -euo pipefail", script)
+        self.assertIn("--package <package.tgz> --preview <preview-dir>", script)
+        self.assertIn("does not apply packages, extract archives, replace files", script)
+        self.assertIn("debian-vm-verify-offline-update-package.sh", script)
+        self.assertIn("debian-vm-verify-offline-update-preview.sh", script)
+        self.assertIn("debian-vm-offline-update-plan.sh", script)
+        self.assertIn("package_verification=ready", script)
+        self.assertIn("preview_verification=ready", script)
+        self.assertIn("offline_update_plan=reviewed", script)
+        self.assertIn("application=not_implemented", script)
+        self.assertIn("live_replacement=not_performed", script)
+        self.assertIn("service_restart=not_performed", script)
+        self.assertIn("scanner_execution=not_performed", script)
+        self.assertNotIn("git pull", script)
+        self.assertNotIn("docker compose", script)
+        self.assertNotIn("tar -x", script)
+        self.assertNotIn("rm -rf", script)
+        self.assertNotIn("apt-get", script)
+        self.assertNotIn("sudo", script)
+        self.assertNotIn("nmap", script)
+
     def test_debian_vm_offline_update_package_is_source_only(self) -> None:
         script = (ROOT / "scripts" / "debian-vm-offline-update-package.sh").read_text(
             encoding="utf-8"

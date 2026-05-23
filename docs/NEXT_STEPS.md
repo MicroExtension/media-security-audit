@@ -311,6 +311,7 @@ Codex action:
 - keep offline update preview verification read-only and package-metadata focused
 - keep offline update preview inventory read-only and manifest-aware
 - keep offline update planning connected to preview verification without applying packages
+- keep offline update apply readiness read-only until package application is designed
 
 Current deployment recommendation:
 
@@ -421,6 +422,10 @@ Use `bash scripts/debian-vm-offline-update-plan.sh --package <package.tgz> --pre
 before offline maintenance to check branch, tracked changes, `.env`, backup
 readiness, package metadata, and preview verification without applying or
 extracting the package.
+Use `bash scripts/debian-vm-offline-update-apply-checklist.sh --package <package.tgz> --preview <preview-dir>`
+to record the final read-only prerequisites for a future offline application
+workflow. It verifies package and preview metadata, runs the offline plan, and
+still records `application=not_implemented`.
 Use `bash scripts/debian-vm-update.sh` for approved updates on `main`; it backs
 up first, writes and verifies a sidecar manifest, requires a clean tracked
 worktree, pulls with `--ff-only`, rebuilds, runs strict preflight, then restarts

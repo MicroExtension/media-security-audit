@@ -226,10 +226,15 @@ class DeploymentFileTests(unittest.TestCase):
         self.assertIn("bash scripts/debian-vm-security-review.sh", script)
         self.assertIn("bash scripts/debian-vm-backup-inventory.sh --verify-manifests", script)
         self.assertIn("bash scripts/debian-vm-bundle-inventory.sh --verify-manifests", script)
+        self.assertIn(
+            "bash scripts/debian-vm-offline-update-inventory.sh --verify-manifests",
+            script,
+        )
         self.assertIn("bash scripts/debian-vm-update-plan.sh", script)
         self.assertIn("maintenance window", script)
         self.assertIn("backup archive and manifest verification", script)
         self.assertIn("shareable bundles and manifests", script)
+        self.assertIn("offline update packages and manifests", script)
         self.assertIn("review before sharing", script)
         self.assertIn("excludes application logs and customer file contents", script)
         self.assertNotIn("docker compose logs", script)

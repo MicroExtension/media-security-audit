@@ -60,6 +60,16 @@ info "writing VM maintenance report ${REPORT}"
   fi
   echo
 
+  echo "## Offline Update Package Inventory"
+  if bash scripts/debian-vm-offline-update-inventory.sh --verify-manifests; then
+    echo "offline_update_inventory_exit=0"
+  else
+    STATUS=$?
+    echo "offline_update_inventory_exit=${STATUS}"
+    EXIT_CODE=1
+  fi
+  echo
+
   echo "## Update Plan"
   if bash scripts/debian-vm-update-plan.sh; then
     echo "update_plan_exit=0"
@@ -75,6 +85,7 @@ info "writing VM maintenance report ${REPORT}"
   echo "- Confirm customer authorization and internal change reference."
   echo "- Confirm backup archive and manifest verification before updating."
   echo "- Confirm shareable bundles and manifests are verified before handoff."
+  echo "- Confirm offline update packages and manifests are verified before offline maintenance."
   echo "- Confirm any warnings are resolved or documented."
   echo "- Review this report before sharing it outside the customer site."
 } >"${REPORT}"

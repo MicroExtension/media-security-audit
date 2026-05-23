@@ -232,7 +232,7 @@ Current foundation:
 - Debian VM offline update preview helper extracts packages away from live code
 - Debian VM offline update preview helper writes local preview manifests
 - Debian VM offline update preview verification helper checks local preview manifests
-- Debian VM offline update plan helper checks package readiness without applying updates
+- Debian VM offline update plan helper checks package and preview readiness without applying updates
 - Debian VM update helper backs up, verifies a manifest, and preflights before restart
 - mission ZIP export package started
 - workspace backup ZIP export started
@@ -304,7 +304,7 @@ Success criteria:
 - Debian VM offline update packages can be preview-extracted away from live code
 - Debian VM offline update previews record package metadata and non-application status
 - Debian VM offline update preview manifests can be verified against package metadata
-- Debian VM offline update planning can verify package metadata without applying updates
+- Debian VM offline update planning can verify package and preview metadata without applying updates
 - Debian VM updates are guarded by backup, manifest verification, fast-forward pull, and strict preflight
 
 ## Future MSP Differentiators

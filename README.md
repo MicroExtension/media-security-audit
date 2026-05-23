@@ -138,6 +138,7 @@ Implemented so far:
 - Debian VM offline update preview verification helper checks local preview manifests
 - Debian VM offline update preview inventory helper lists preview manifest status
 - Debian VM offline update plan helper checks package and preview readiness without applying updates
+- Debian VM offline update apply checklist helper records final read-only prerequisites
 - Debian VM update helper backs up, verifies a manifest, pulls, preflights, and restarts safely
 - dashboard shows review backlog clients watchlist
 - dashboard client list shows per-client preparation counts
@@ -372,6 +373,7 @@ bash scripts/debian-vm-offline-update-preview.sh media-audit-offline-update-YYYY
 bash scripts/debian-vm-verify-offline-update-preview.sh reports/offline-update-previews/<preview-folder>
 bash scripts/debian-vm-offline-update-preview-inventory.sh --verify-manifests
 bash scripts/debian-vm-offline-update-plan.sh --package media-audit-offline-update-YYYYMMDDTHHMMSSZ.tgz --preview reports/offline-update-previews/<preview-folder>
+bash scripts/debian-vm-offline-update-apply-checklist.sh --package media-audit-offline-update-YYYYMMDDTHHMMSSZ.tgz --preview reports/offline-update-previews/<preview-folder>
 bash scripts/debian-vm-update.sh
 ```
 

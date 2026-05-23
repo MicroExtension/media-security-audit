@@ -234,6 +234,7 @@ Current foundation:
 - Debian VM offline update preview verification helper checks local preview manifests
 - Debian VM offline update preview inventory helper lists preview manifest status
 - Debian VM offline update plan helper checks package and preview readiness without applying updates
+- Debian VM offline update apply checklist helper records final read-only prerequisites
 - Debian VM update helper backs up, verifies a manifest, and preflights before restart
 - mission ZIP export package started
 - workspace backup ZIP export started
@@ -307,6 +308,7 @@ Success criteria:
 - Debian VM offline update preview manifests can be verified against package metadata
 - Debian VM offline update preview inventory is read-only and manifest-aware
 - Debian VM offline update planning can verify package and preview metadata without applying updates
+- Debian VM offline update apply readiness can be reviewed without applying packages
 - Debian VM updates are guarded by backup, manifest verification, fast-forward pull, and strict preflight
 
 ## Future MSP Differentiators

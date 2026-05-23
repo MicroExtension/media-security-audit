@@ -422,6 +422,7 @@ bash scripts/debian-vm-offline-update-preview.sh media-audit-offline-update-YYYY
 bash scripts/debian-vm-verify-offline-update-preview.sh reports/offline-update-previews/<preview-folder>
 bash scripts/debian-vm-offline-update-preview-inventory.sh --verify-manifests
 bash scripts/debian-vm-offline-update-plan.sh --package media-audit-offline-update-YYYYMMDDTHHMMSSZ.tgz --preview reports/offline-update-previews/<preview-folder>
+bash scripts/debian-vm-offline-update-apply-checklist.sh --package media-audit-offline-update-YYYYMMDDTHHMMSSZ.tgz --preview reports/offline-update-previews/<preview-folder>
 bash scripts/debian-vm-update.sh
 ```
 
@@ -504,6 +505,18 @@ the package without extracting or applying it. When a preview is provided, it
 verifies the preview manifest against the package metadata and extracted source
 folder. It does not pull code, build images, restart services, collect logs, or
 run scanners.
+
+Build the final read-only checklist for a future offline package application:
+
+```bash
+bash scripts/debian-vm-offline-update-apply-checklist.sh --package dist/offline-updates/media-audit-offline-update-YYYYMMDDTHHMMSSZ.tgz --preview reports/offline-update-previews/<preview-folder>
+```
+
+The apply checklist helper verifies the offline package, verifies the preview,
+runs the offline update plan, and records final technician prerequisites. It
+does not apply packages, extract archives, replace files, build images, restart
+services, collect logs, or run scanners; it records
+`application=not_implemented`.
 
 The update helper requires the VM clone to be on `main` with no tracked local
 changes. It creates a backup first, writes and verifies a sidecar manifest,

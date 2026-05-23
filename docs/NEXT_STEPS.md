@@ -344,8 +344,9 @@ Use `bash scripts/debian-vm-handoff-bundle.sh` to generate a fresh handoff
 report and package only that report for handoff review. Review the generated
 sidecar manifest before sharing the bundle.
 Use `bash scripts/debian-vm-maintenance-report.sh` before approved maintenance
-to collect security review, backup inventory, bundle inventory, and update plan
-output without starting services, extracting backups, or collecting logs.
+to collect security review, backup inventory, bundle inventory, offline update
+package inventory, and update plan output without starting services, extracting
+backups, applying packages, or collecting logs.
 Use `bash scripts/debian-vm-maintenance-bundle.sh` to generate a fresh
 maintenance report and package only that report for review. Review the
 generated sidecar manifest before sharing the bundle.

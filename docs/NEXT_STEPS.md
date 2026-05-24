@@ -479,6 +479,7 @@ Current GUI status:
 - false positive, accepted risk, and counter-test statuses require a review note
 - mission pages show finding disposition counts
 - counter-test plans are visible from mission pages
+- counter-test plan cards can record pass/fail review decisions with notes
 - mission activity events are recorded and visible from mission pages
 - mission authorization details are editable from mission pages
 - authorization briefs can be generated from mission pages

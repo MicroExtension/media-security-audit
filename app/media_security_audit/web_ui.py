@@ -170,6 +170,7 @@ class CounterTestRow:
     affected_asset: str
     remediation: str
     counter_test: str
+    review_note: str
 
 
 @dataclass(frozen=True)
@@ -662,6 +663,7 @@ def counter_test_row(finding: Finding) -> CounterTestRow:
         affected_asset=finding.affected_asset,
         remediation=finding.remediation,
         counter_test=finding.counter_test,
+        review_note=str(finding.metadata.get("review_note", "")),
     )
 
 

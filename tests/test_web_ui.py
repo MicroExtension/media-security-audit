@@ -96,6 +96,8 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("label:has(select[required])", css)
         self.assertIn("label:has(textarea[required])", css)
         self.assertIn('content: " *";', css)
+        self.assertIn(".counter-test-form", css)
+        self.assertIn(".counter-test-actions", css)
 
     def test_global_styles_expose_anchor_target_context(self) -> None:
         css_path = (
@@ -296,6 +298,10 @@ class WebUiTests(unittest.TestCase):
             "Required for false positive, accepted risk, or counter-test status.",
             template,
         )
+        self.assertIn("counter-test-form", template)
+        self.assertIn('name="status" value="counter_test_failed"', template)
+        self.assertIn('name="status" value="counter_test_passed"', template)
+        self.assertIn('name="review_note" value="{{ item.review_note }}" required', template)
 
     def test_dashboard_view_summarizes_clients_missions_and_findings(self) -> None:
         store = JsonStore(clean_data_dir("web-ui-dashboard"))
@@ -1148,6 +1154,7 @@ class WebUiTests(unittest.TestCase):
                 counter_test="Repeat the manual check.",
                 confidence=0.8,
                 status=FindingStatus.CONFIRMED,
+                metadata={"review_note": "Ready for counter-test."},
             ),
         )
         store.add_finding(
@@ -1172,6 +1179,7 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(len(view.counter_test_items), 1)
         self.assertEqual(view.counter_test_items[0].title, "Confirmed finding")
         self.assertEqual(view.counter_test_items[0].status, "confirmed")
+        self.assertEqual(view.counter_test_items[0].review_note, "Ready for counter-test.")
         self.assertEqual(view.findings[0].related_remediations, [])
         self.assertIsNone(view.template_guidance)
 

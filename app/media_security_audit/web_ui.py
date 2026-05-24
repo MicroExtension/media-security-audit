@@ -119,6 +119,9 @@ class MissionRow:
     new_finding_count: int
     accepted_risk_count: int
     false_positive_count: int
+    counter_test_ready_count: int
+    counter_test_passed_count: int
+    counter_test_failed_count: int
     risk_score: int
     risk_level: str
     severity_counts: dict[str, int]
@@ -508,6 +511,9 @@ def mission_row(mission: Mission, findings: list[Finding], client_names: dict[st
         new_finding_count=status_counts["new"],
         accepted_risk_count=status_counts["accepted_risk"],
         false_positive_count=status_counts["false_positive"],
+        counter_test_ready_count=len(counter_test_findings(findings)),
+        counter_test_passed_count=status_counts["counter_test_passed"],
+        counter_test_failed_count=status_counts["counter_test_failed"],
         risk_score=int(summary["risk_score"]),
         risk_level=str(summary["risk_level"]),
         severity_counts=dict(active_counts),

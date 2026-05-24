@@ -173,6 +173,11 @@
               Accepted {{ mission.accepted_risk_count }} |
               FP {{ mission.false_positive_count }}
             </span>
+            <span class="muted block">
+              Retest {{ mission.counter_test_ready_count }} |
+              Passed {{ mission.counter_test_passed_count }} |
+              Failed {{ mission.counter_test_failed_count }}
+            </span>
           </td>
           <td><span class="risk risk-{{ mission.risk_level }}">{{ mission.risk_score }}/100</span></td>
           <td>{{ mission.created_at }}</td>

@@ -222,6 +222,9 @@ class WebUiTests(unittest.TestCase):
             self.assertIn(f"{{{{ {counter} }}}}", template)
 
         self.assertIn('aria-label="Workspace counter-test summary"', template)
+        self.assertIn("mission.counter_test_ready_count", template)
+        self.assertIn("mission.counter_test_passed_count", template)
+        self.assertIn("mission.counter_test_failed_count", template)
         self.assertIn('id="new-mission"', template)
         self.assertIn("item.next_action_href", template)
         self.assertIn("client.next_action_href", template)
@@ -262,6 +265,9 @@ class WebUiTests(unittest.TestCase):
             self.assertIn(f"{{{{ {counter} }}}}", template)
 
         self.assertIn('aria-label="Client counter-test summary"', template)
+        self.assertIn("mission.counter_test_ready_count", template)
+        self.assertIn("mission.counter_test_passed_count", template)
+        self.assertIn("mission.counter_test_failed_count", template)
 
     def test_mission_template_exposes_shortcut_anchors(self) -> None:
         template_path = (
@@ -386,6 +392,9 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(view.missions[0].new_finding_count, 1)
         self.assertEqual(view.missions[0].accepted_risk_count, 0)
         self.assertEqual(view.missions[0].false_positive_count, 0)
+        self.assertEqual(view.missions[0].counter_test_ready_count, 0)
+        self.assertEqual(view.missions[0].counter_test_passed_count, 0)
+        self.assertEqual(view.missions[0].counter_test_failed_count, 0)
         self.assertEqual(view.missions[0].preparation_status, "warning")
         self.assertEqual(view.missions[0].preparation_next_action, "Review 1 new finding(s).")
         self.assertEqual(view.missions[0].preparation_action_label, "Review Findings")
@@ -1416,6 +1425,40 @@ class WebUiTests(unittest.TestCase):
                 metadata={"review_note": "Verified as benign."},
             ),
         )
+        store.add_finding(
+            mission.id,
+            Finding(
+                title="Counter-test passed",
+                severity=Severity.LOW,
+                affected_asset="passed.example",
+                category="manual",
+                source_module="manual",
+                proof="Observed manually.",
+                risk="Risk was corrected.",
+                remediation="No further action.",
+                counter_test="Already passed.",
+                confidence=0.8,
+                status=FindingStatus.COUNTER_TEST_PASSED,
+                metadata={"review_note": "Corrected."},
+            ),
+        )
+        store.add_finding(
+            mission.id,
+            Finding(
+                title="Counter-test failed",
+                severity=Severity.LOW,
+                affected_asset="failed.example",
+                category="manual",
+                source_module="manual",
+                proof="Observed manually.",
+                risk="Risk still appears present.",
+                remediation="Continue remediation.",
+                counter_test="Repeat the check.",
+                confidence=0.8,
+                status=FindingStatus.COUNTER_TEST_FAILED,
+                metadata={"review_note": "Still visible."},
+            ),
+        )
 
         dashboard = build_dashboard_view(store)
         client_view = build_client_view(store, client.id)
@@ -1423,9 +1466,15 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(dashboard.missions[0].new_finding_count, 1)
         self.assertEqual(dashboard.missions[0].accepted_risk_count, 1)
         self.assertEqual(dashboard.missions[0].false_positive_count, 1)
+        self.assertEqual(dashboard.missions[0].counter_test_ready_count, 1)
+        self.assertEqual(dashboard.missions[0].counter_test_passed_count, 1)
+        self.assertEqual(dashboard.missions[0].counter_test_failed_count, 1)
         self.assertEqual(client_view.missions[0].new_finding_count, 1)
         self.assertEqual(client_view.missions[0].accepted_risk_count, 1)
         self.assertEqual(client_view.missions[0].false_positive_count, 1)
+        self.assertEqual(client_view.missions[0].counter_test_ready_count, 1)
+        self.assertEqual(client_view.missions[0].counter_test_passed_count, 1)
+        self.assertEqual(client_view.missions[0].counter_test_failed_count, 1)
 
     def test_mission_view_readiness_items_include_action_targets(self) -> None:
         store = JsonStore(clean_data_dir("web-ui-readiness-actions"))

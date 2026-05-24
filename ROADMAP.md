@@ -74,6 +74,7 @@ Current foundation:
 - counter-test pass/fail review actions started
 - counter-test ready/passed/failed summaries started
 - dashboard and client counter-test summaries started
+- mission table counter-test count badges started
 - mission activity log started
 - check selection UI started
 - structured authorization tracking started
@@ -179,6 +180,7 @@ Current foundation:
 - counter-test pass/fail review actions started
 - counter-test ready/passed/failed summaries started
 - dashboard and client counter-test summaries started
+- mission table counter-test count badges started
 - mission finding disposition summary started
 - mission readiness and safe scan plan previews started
 - scan execution remains CLI-only

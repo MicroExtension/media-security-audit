@@ -20,6 +20,7 @@
 <section class="page-shortcuts" aria-label="Client shortcuts">
   <a href="#client-dispositions">Dispositions <span>{{ view.finding_dispositions|length }}</span></a>
   <a href="#client-counter-tests">Counter-tests <span>{{ view.counter_test_summary|length }}</span></a>
+  <a href="#client-failed-counter-tests">Failed Retests <span>{{ view.failed_counter_test_missions|length }}</span></a>
   <a href="#client-preparation">Preparation <span>{{ view.preparation_items|length }}</span></a>
   <a href="#client-activity">Activity <span>{{ view.recent_activity_events|length }}</span></a>
   <a href="#client-missions">Missions <span>{{ view.missions|length }}</span></a>
@@ -60,6 +61,42 @@
       <small>{{ item.detail }}</small>
     </div>
     {% endfor %}
+  </div>
+</section>
+
+<section class="section" id="client-failed-counter-tests">
+  <div class="section-title">
+    <h2>Failed Counter-tests</h2>
+    <span class="muted">Client missions needing remediation follow-up</span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <caption class="sr-only">Client failed counter-test missions watchlist</caption>
+      <thead>
+        <tr>
+          <th>Mission</th>
+          <th>Failed</th>
+          <th>Retest</th>
+          <th>Passed</th>
+          <th>Risk</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for mission in view.failed_counter_test_missions %}
+        <tr>
+          <td><a href="/missions/{{ mission.id }}">{{ mission.name }}</a></td>
+          <td><span class="status status-counter_test_failed">{{ mission.counter_test_failed_count }}</span></td>
+          <td>{{ mission.counter_test_ready_count }}</td>
+          <td>{{ mission.counter_test_passed_count }}</td>
+          <td><span class="risk risk-{{ mission.risk_level }}">{{ mission.risk_score }}/100</span></td>
+          <td><a class="table-action" href="/missions/{{ mission.id }}#counter-test">Open Counter-tests</a></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="empty">No failed counter-test mission for this client.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
 </section>
 

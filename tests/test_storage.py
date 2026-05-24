@@ -156,7 +156,7 @@ class JsonStoreTests(unittest.TestCase):
             FindingStatus.FALSE_POSITIVE,
         )
 
-    def test_false_positive_and_accepted_risk_require_review_note(self) -> None:
+    def test_review_exception_and_counter_test_statuses_require_review_note(self) -> None:
         data_dir = (
             Path(__file__).resolve().parents[1]
             / ".tmp-tests"
@@ -194,6 +194,19 @@ class JsonStoreTests(unittest.TestCase):
                 finding.id,
                 FindingStatus.ACCEPTED_RISK,
             )
+        with self.assertRaises(ValueError):
+            store.update_finding_status(
+                mission.id,
+                finding.id,
+                FindingStatus.COUNTER_TEST_PASSED,
+                review_note="",
+            )
+        with self.assertRaises(ValueError):
+            store.update_finding_status(
+                mission.id,
+                finding.id,
+                FindingStatus.COUNTER_TEST_FAILED,
+            )
 
         updated = store.update_finding_status(
             mission.id,
@@ -206,6 +219,19 @@ class JsonStoreTests(unittest.TestCase):
         self.assertEqual(
             updated.metadata["review_note"],
             "Accepted by the client owner.",
+        )
+
+        counter_tested = store.update_finding_status(
+            mission.id,
+            finding.id,
+            FindingStatus.COUNTER_TEST_PASSED,
+            review_note="Counter-test evidence reviewed.",
+        )
+
+        self.assertEqual(counter_tested.status, FindingStatus.COUNTER_TEST_PASSED)
+        self.assertEqual(
+            counter_tested.metadata["review_note"],
+            "Counter-test evidence reviewed.",
         )
 
     def test_records_activity_events_for_mission(self) -> None:

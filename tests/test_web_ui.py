@@ -292,6 +292,10 @@ class WebUiTests(unittest.TestCase):
 
         self.assertIn('href="/clients/{{ view.mission.client_id }}"', template)
         self.assertIn('href="{{ view.activity_log_url }}"', template)
+        self.assertIn(
+            "Required for false positive, accepted risk, or counter-test status.",
+            template,
+        )
 
     def test_dashboard_view_summarizes_clients_missions_and_findings(self) -> None:
         store = JsonStore(clean_data_dir("web-ui-dashboard"))

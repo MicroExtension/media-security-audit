@@ -610,6 +610,16 @@ class WebFormTests(unittest.TestCase):
                     "review_note": "",
                 },
             )
+        with self.assertRaises(ValueError):
+            update_finding_status_from_form(
+                store,
+                mission.id,
+                finding.id,
+                {
+                    "status": "counter_test_passed",
+                    "review_note": "",
+                },
+            )
 
         accepted = update_finding_status_from_form(
             store,
@@ -625,6 +635,22 @@ class WebFormTests(unittest.TestCase):
         self.assertEqual(
             accepted.metadata["review_note"],
             "Accepted by the client owner.",
+        )
+
+        counter_tested = update_finding_status_from_form(
+            store,
+            mission.id,
+            finding.id,
+            {
+                "status": "counter_test_failed",
+                "review_note": "Counter-test still shows the issue.",
+            },
+        )
+
+        self.assertEqual(counter_tested.status.value, "counter_test_failed")
+        self.assertEqual(
+            counter_tested.metadata["review_note"],
+            "Counter-test still shows the issue.",
         )
 
         cleared = update_finding_status_from_form(

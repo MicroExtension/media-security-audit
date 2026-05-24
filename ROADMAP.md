@@ -68,7 +68,7 @@ Current foundation:
 - manual finding entry started
 - manual finding edit forms started
 - finding status review started
-- finding review note guardrails started
+- finding review note guardrails cover false positives, accepted risks, and counter-test results
 - mission finding disposition summary started
 - counter-test plan views started
 - mission activity log started
@@ -172,7 +172,7 @@ Current foundation:
 - mission preparation columns started
 - mission row review count badges started
 - mission readiness action links started
-- finding review note guardrails started
+- finding review note guardrails cover false positives, accepted risks, and counter-test results
 - mission finding disposition summary started
 - mission readiness and safe scan plan previews started
 - scan execution remains CLI-only
@@ -261,7 +261,7 @@ Current foundation:
 - dashboard client priority ordering started
 - mission preparation columns started
 - mission readiness action links started
-- finding review note guardrails started
+- finding review note guardrails cover false positives, accepted risks, and counter-test results
 - mission finding disposition summary started
 
 Success criteria:

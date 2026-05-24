@@ -510,10 +510,12 @@ Current GUI status:
 - client detail pages show recent client activity and link to the filtered
   Activity page
 - client detail pages show finding disposition counts
+- client detail pages show counter-test ready, passed, and failed summaries
 - client detail pages show mission preparation status for missing
   authorization, scope, checks, and finding review
 - dashboard shows workspace mission preparation status across clients
 - dashboard shows workspace finding disposition counts
+- dashboard shows workspace counter-test ready, passed, and failed summaries
 - dashboard shows shortcut links to operational sections
 - dashboard shows client priority summary counts
 - dashboard shows client risk level summary counts

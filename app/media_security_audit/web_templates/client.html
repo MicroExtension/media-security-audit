@@ -19,6 +19,7 @@
 
 <section class="page-shortcuts" aria-label="Client shortcuts">
   <a href="#client-dispositions">Dispositions <span>{{ view.finding_dispositions|length }}</span></a>
+  <a href="#client-counter-tests">Counter-tests <span>{{ view.counter_test_summary|length }}</span></a>
   <a href="#client-preparation">Preparation <span>{{ view.preparation_items|length }}</span></a>
   <a href="#client-activity">Activity <span>{{ view.recent_activity_events|length }}</span></a>
   <a href="#client-missions">Missions <span>{{ view.missions|length }}</span></a>
@@ -41,6 +42,22 @@
     <div class="disposition-item status-{{ item.status }}">
       <span>{{ item.label }}</span>
       <strong>{{ item.count }}</strong>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="section" id="client-counter-tests">
+  <div class="section-title">
+    <h2>Counter-tests</h2>
+    <span class="muted">Client retest status</span>
+  </div>
+  <div class="counter-test-summary" aria-label="Client counter-test summary">
+    {% for item in view.counter_test_summary %}
+    <div class="counter-test-summary-item counter-test-summary-{{ item.status }}">
+      <span>{{ item.label }}</span>
+      <strong>{{ item.count }}</strong>
+      <small>{{ item.detail }}</small>
     </div>
     {% endfor %}
   </div>

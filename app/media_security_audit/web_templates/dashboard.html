@@ -26,6 +26,7 @@
   <a href="#blocked-clients">Blocked Clients <span>{{ view.blocked_clients|length }}</span></a>
   <a href="#top-risk-clients">Top Risk Clients <span>{{ view.top_risk_clients|length }}</span></a>
   <a href="#review-backlog-clients">Review Backlog <span>{{ view.review_backlog_clients|length }}</span></a>
+  <a href="#counter-tests">Counter-tests <span>{{ view.counter_test_summary|length }}</span></a>
   <a href="#preparation">Preparation <span>{{ view.preparation_items|length }}</span></a>
 </section>
 
@@ -350,6 +351,22 @@
     <div class="disposition-item status-{{ item.status }}">
       <span>{{ item.label }}</span>
       <strong>{{ item.count }}</strong>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="section" id="counter-tests">
+  <div class="section-title">
+    <h2>Counter-tests</h2>
+    <span class="muted">Workspace retest status</span>
+  </div>
+  <div class="counter-test-summary" aria-label="Workspace counter-test summary">
+    {% for item in view.counter_test_summary %}
+    <div class="counter-test-summary-item counter-test-summary-{{ item.status }}">
+      <span>{{ item.label }}</span>
+      <strong>{{ item.count }}</strong>
+      <small>{{ item.detail }}</small>
     </div>
     {% endfor %}
   </div>

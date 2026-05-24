@@ -41,6 +41,7 @@ Implemented so far:
 - web counter-test plan for actionable findings
 - web counter-test plan can record pass/fail review decisions with notes
 - mission counter-test plan shows ready, passed, and failed summaries
+- dashboard and client pages show counter-test ready, passed, and failed summaries
 - finding review requires notes for false positives, accepted risks, and counter-test results
 - web mission activity log for traceability
 - web check selection for mission planning
@@ -302,6 +303,9 @@ technician can spot unreviewed or accepted items quickly.
 The dashboard also shows workspace-wide disposition counts to identify review
 backlog without opening each mission.
 Client detail pages show the same disposition counts scoped to one customer.
+The dashboard and client detail pages also summarize counter-tests that are
+ready, passed, or failed so retest workload is visible before opening a
+mission.
 Mission tables include compact review counts for new findings, accepted risks,
 and false positives.
 The dashboard client list also shows compact review counts per customer, so MSP
@@ -490,6 +494,7 @@ Planned screens:
 - finding review note guardrails cover false positives, accepted risks, and counter-test results
 - counter-test pass/fail review actions started
 - counter-test ready/passed/failed summaries started
+- dashboard and client counter-test summaries started
 - system status started
 - settings
 

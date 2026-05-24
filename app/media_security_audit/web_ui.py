@@ -278,6 +278,7 @@ class DashboardView:
     top_risk_clients: list[ClientRow]
     review_backlog_clients: list[ClientRow]
     finding_dispositions: list[FindingDispositionRow]
+    counter_test_summary: list[CounterTestSummaryRow]
     total_clients: int
     total_missions: int
     total_findings: int
@@ -294,6 +295,7 @@ class ClientView:
     recent_activity_events: list[ClientActivityEventRow]
     preparation_items: list[ClientPreparationRow]
     finding_dispositions: list[FindingDispositionRow]
+    counter_test_summary: list[CounterTestSummaryRow]
     activity_log_url: str
     blocked_preparation_count: int
     warning_preparation_count: int
@@ -995,6 +997,7 @@ def build_dashboard_view(store: JsonStore) -> DashboardView:
         top_risk_clients=top_risk_client_rows(client_rows),
         review_backlog_clients=review_backlog_client_rows(client_rows),
         finding_dispositions=finding_disposition_rows(all_findings),
+        counter_test_summary=counter_test_summary_rows(all_findings),
         total_clients=len(client_rows),
         total_missions=len(mission_rows),
         total_findings=total_findings,
@@ -1063,6 +1066,7 @@ def build_client_view(store: JsonStore, client_id: str) -> ClientView:
         recent_activity_events=[row for _, _, row in activity_rows[:10]],
         preparation_items=preparation_items,
         finding_dispositions=finding_disposition_rows(all_findings),
+        counter_test_summary=counter_test_summary_rows(all_findings),
         activity_log_url=client_activity_log_url(client.id),
         blocked_preparation_count=len(
             [item for item in preparation_items if item.status == "blocked"]

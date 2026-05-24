@@ -40,6 +40,7 @@ Implemented so far:
 - web manual finding edits with scanner finding protection
 - web counter-test plan for actionable findings
 - web counter-test plan can record pass/fail review decisions with notes
+- mission counter-test plan shows ready, passed, and failed summaries
 - finding review requires notes for false positives, accepted risks, and counter-test results
 - web mission activity log for traceability
 - web check selection for mission planning
@@ -247,8 +248,9 @@ http://127.0.0.1:8080
 The current web interface can create clients, missions, and scope items, review
 findings, add manual findings, update mission setup details, review scope
 approval, edit manual findings, generate stored reports, and preview safe scan
-plans. It also shows a counter-test plan for actionable findings and lets a
-technician record pass/fail review decisions with notes. Scan
+plans. It also shows a counter-test plan for actionable findings, summarizes
+ready/passed/failed counter-test status, and lets a technician record pass/fail
+review decisions with notes. Scan
 execution remains in guarded CLI commands only while the browser workflow is
 being designed. Mission pages include an activity log for web workflow
 traceability and check selection for scan plan previews. The System page shows
@@ -487,6 +489,7 @@ Planned screens:
 - mission readiness action links started
 - finding review note guardrails cover false positives, accepted risks, and counter-test results
 - counter-test pass/fail review actions started
+- counter-test ready/passed/failed summaries started
 - system status started
 - settings
 

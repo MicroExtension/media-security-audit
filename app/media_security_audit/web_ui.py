@@ -174,6 +174,14 @@ class CounterTestRow:
 
 
 @dataclass(frozen=True)
+class CounterTestSummaryRow:
+    status: str
+    label: str
+    count: int
+    detail: str
+
+
+@dataclass(frozen=True)
 class ActivityEventRow:
     id: str
     action: str
@@ -304,6 +312,7 @@ class MissionView:
     scope: list[ScopeRow]
     findings: list[FindingRow]
     finding_dispositions: list[FindingDispositionRow]
+    counter_test_summary: list[CounterTestSummaryRow]
     counter_test_items: list[CounterTestRow]
     activity_events: list[ActivityEventRow]
     check_selection: list[CheckSelectionRow]
@@ -674,6 +683,30 @@ def counter_test_findings(findings: list[Finding]) -> list[Finding]:
         FindingStatus.COUNTER_TEST_FAILED,
     }
     return [finding for finding in sorted_findings(findings) if finding.status in actionable_statuses]
+
+
+def counter_test_summary_rows(findings: list[Finding]) -> list[CounterTestSummaryRow]:
+    status_counts = finding_status_counts(findings)
+    return [
+        CounterTestSummaryRow(
+            status="ready",
+            label="Ready",
+            count=len(counter_test_findings(findings)),
+            detail="Findings awaiting counter-test review.",
+        ),
+        CounterTestSummaryRow(
+            status="passed",
+            label="Passed",
+            count=status_counts[FindingStatus.COUNTER_TEST_PASSED.value],
+            detail="Findings validated as corrected.",
+        ),
+        CounterTestSummaryRow(
+            status="failed",
+            label="Failed",
+            count=status_counts[FindingStatus.COUNTER_TEST_FAILED.value],
+            detail="Findings still needing remediation.",
+        ),
+    ]
 
 
 def activity_event_row(event: ActivityEvent) -> ActivityEventRow:
@@ -1068,6 +1101,7 @@ def build_mission_view(
         scope=[scope_row(item) for item in mission.scope],
         findings=[finding_row(finding) for finding in sorted_findings(findings)],
         finding_dispositions=finding_disposition_rows(findings),
+        counter_test_summary=counter_test_summary_rows(findings),
         counter_test_items=[counter_test_row(finding) for finding in counter_test_findings(findings)],
         activity_events=[activity_event_row(event) for event in activity_events],
         check_selection=check_selection_rows(mission),

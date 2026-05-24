@@ -98,6 +98,8 @@ class WebUiTests(unittest.TestCase):
         self.assertIn('content: " *";', css)
         self.assertIn(".counter-test-form", css)
         self.assertIn(".counter-test-actions", css)
+        self.assertIn(".counter-test-summary", css)
+        self.assertIn(".counter-test-summary-passed", css)
 
     def test_global_styles_expose_anchor_target_context(self) -> None:
         css_path = (
@@ -292,6 +294,8 @@ class WebUiTests(unittest.TestCase):
         ]:
             self.assertIn(f"{{{{ {counter} }}}}", template)
 
+        self.assertIn("view.counter_test_summary", template)
+        self.assertIn('aria-label="Counter-test summary"', template)
         self.assertIn('href="/clients/{{ view.mission.client_id }}"', template)
         self.assertIn('href="{{ view.activity_log_url }}"', template)
         self.assertIn(
@@ -1173,13 +1177,38 @@ class WebUiTests(unittest.TestCase):
                 status=FindingStatus.COUNTER_TEST_PASSED,
             ),
         )
+        store.add_finding(
+            mission.id,
+            Finding(
+                title="Failed finding",
+                severity=Severity.LOW,
+                affected_asset="legacy.client.example",
+                category="manual",
+                source_module="manual",
+                proof="Observed manually.",
+                risk="Risk still appears present.",
+                remediation="Continue the corrective action.",
+                counter_test="Repeat the manual check after remediation.",
+                confidence=0.8,
+                status=FindingStatus.COUNTER_TEST_FAILED,
+                metadata={"review_note": "Issue still visible."},
+            ),
+        )
 
         view = build_mission_view(store, mission.id)
 
-        self.assertEqual(len(view.counter_test_items), 1)
+        summary = {item.status: item for item in view.counter_test_summary}
+        self.assertEqual(summary["ready"].count, 2)
+        self.assertEqual(summary["passed"].count, 1)
+        self.assertEqual(summary["failed"].count, 1)
+        self.assertEqual(summary["failed"].label, "Failed")
+        self.assertIn("needing remediation", summary["failed"].detail)
+        self.assertEqual(len(view.counter_test_items), 2)
         self.assertEqual(view.counter_test_items[0].title, "Confirmed finding")
         self.assertEqual(view.counter_test_items[0].status, "confirmed")
         self.assertEqual(view.counter_test_items[0].review_note, "Ready for counter-test.")
+        self.assertEqual(view.counter_test_items[1].title, "Failed finding")
+        self.assertEqual(view.counter_test_items[1].review_note, "Issue still visible.")
         self.assertEqual(view.findings[0].related_remediations, [])
         self.assertIsNone(view.template_guidance)
 

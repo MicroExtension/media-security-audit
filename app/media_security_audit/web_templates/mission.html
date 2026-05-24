@@ -436,6 +436,15 @@
   <div class="section-title">
     <h2>Counter-test Plan</h2>
   </div>
+  <div class="counter-test-summary" aria-label="Counter-test summary">
+    {% for item in view.counter_test_summary %}
+    <div class="counter-test-summary-item counter-test-summary-{{ item.status }}">
+      <span>{{ item.label }}</span>
+      <strong>{{ item.count }}</strong>
+      <small>{{ item.detail }}</small>
+    </div>
+    {% endfor %}
+  </div>
   <div class="counter-test-list">
     {% for item in view.counter_test_items %}
     <article class="counter-test-card severity-border-{{ item.severity | severity_class }}">

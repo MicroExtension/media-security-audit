@@ -960,6 +960,46 @@ textarea:focus {
   gap: 14px;
 }
 
+.counter-test-summary {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  margin-bottom: 14px;
+}
+
+.counter-test-summary-item {
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  display: grid;
+  gap: 4px;
+  min-height: 98px;
+  padding: 14px;
+}
+
+.counter-test-summary-ready {
+  border-left: 5px solid var(--amber);
+}
+
+.counter-test-summary-passed {
+  border-left: 5px solid var(--green);
+}
+
+.counter-test-summary-failed {
+  border-left: 5px solid var(--red);
+}
+
+.counter-test-summary-item span,
+.counter-test-summary-item small {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.counter-test-summary-item strong {
+  font-size: 26px;
+}
+
 .counter-test-head {
   align-items: start;
   display: flex;

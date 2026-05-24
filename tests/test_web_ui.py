@@ -202,6 +202,7 @@ class WebUiTests(unittest.TestCase):
             "blocked-clients",
             "top-risk-clients",
             "review-backlog-clients",
+            "counter-tests",
             "preparation",
         ]:
             self.assertIn(f'href="#{anchor}"', template)
@@ -215,10 +216,12 @@ class WebUiTests(unittest.TestCase):
             "view.blocked_clients|length",
             "view.top_risk_clients|length",
             "view.review_backlog_clients|length",
+            "view.counter_test_summary|length",
             "view.preparation_items|length",
         ]:
             self.assertIn(f"{{{{ {counter} }}}}", template)
 
+        self.assertIn('aria-label="Workspace counter-test summary"', template)
         self.assertIn('id="new-mission"', template)
         self.assertIn("item.next_action_href", template)
         self.assertIn("client.next_action_href", template)
@@ -241,6 +244,7 @@ class WebUiTests(unittest.TestCase):
 
         for anchor in [
             "client-dispositions",
+            "client-counter-tests",
             "client-preparation",
             "client-activity",
             "client-missions",
@@ -250,11 +254,14 @@ class WebUiTests(unittest.TestCase):
 
         for counter in [
             "view.finding_dispositions|length",
+            "view.counter_test_summary|length",
             "view.preparation_items|length",
             "view.recent_activity_events|length",
             "view.missions|length",
         ]:
             self.assertIn(f"{{{{ {counter} }}}}", template)
+
+        self.assertIn('aria-label="Client counter-test summary"', template)
 
     def test_mission_template_exposes_shortcut_anchors(self) -> None:
         template_path = (
@@ -821,15 +828,53 @@ class WebUiTests(unittest.TestCase):
                 metadata={"review_note": "Accepted by owner."},
             ),
         )
+        store.add_finding(
+            mission_b.id,
+            Finding(
+                title="Counter-test passed",
+                severity=Severity.LOW,
+                affected_asset="passed.example",
+                category="manual",
+                source_module="manual",
+                proof="Observed manually.",
+                risk="Risk was corrected.",
+                remediation="No further action.",
+                counter_test="Already passed.",
+                confidence=0.8,
+                status=FindingStatus.COUNTER_TEST_PASSED,
+                metadata={"review_note": "Counter-test passed."},
+            ),
+        )
+        store.add_finding(
+            mission_b.id,
+            Finding(
+                title="Counter-test failed",
+                severity=Severity.LOW,
+                affected_asset="failed.example",
+                category="manual",
+                source_module="manual",
+                proof="Observed manually.",
+                risk="Risk still appears present.",
+                remediation="Continue the corrective action.",
+                counter_test="Repeat the check.",
+                confidence=0.8,
+                status=FindingStatus.COUNTER_TEST_FAILED,
+                metadata={"review_note": "Counter-test failed."},
+            ),
+        )
 
         view = build_dashboard_view(store)
         dispositions = {item.status: item for item in view.finding_dispositions}
+        counter_tests = {item.status: item for item in view.counter_test_summary}
 
         self.assertEqual(dispositions["new"].label, "New")
         self.assertEqual(dispositions["new"].count, 1)
         self.assertEqual(dispositions["confirmed"].count, 1)
         self.assertEqual(dispositions["accepted_risk"].count, 1)
         self.assertEqual(dispositions["false_positive"].count, 0)
+        self.assertEqual(counter_tests["ready"].count, 2)
+        self.assertEqual(counter_tests["passed"].count, 1)
+        self.assertEqual(counter_tests["failed"].count, 1)
 
     def test_client_view_summarizes_only_client_missions(self) -> None:
         store = JsonStore(clean_data_dir("web-ui-client"))
@@ -953,6 +998,23 @@ class WebUiTests(unittest.TestCase):
             ),
         )
         store.add_finding(
+            mission_a.id,
+            Finding(
+                title="Client A counter-test failed",
+                severity=Severity.LOW,
+                affected_asset="failed-a.example",
+                category="manual",
+                source_module="manual",
+                proof="Observed manually.",
+                risk="Risk still appears present.",
+                remediation="Continue remediation.",
+                counter_test="Repeat the check.",
+                confidence=0.8,
+                status=FindingStatus.COUNTER_TEST_FAILED,
+                metadata={"review_note": "Still visible."},
+            ),
+        )
+        store.add_finding(
             mission_b.id,
             Finding(
                 title="Other client false positive",
@@ -969,14 +1031,35 @@ class WebUiTests(unittest.TestCase):
                 metadata={"review_note": "Verified as benign."},
             ),
         )
+        store.add_finding(
+            mission_b.id,
+            Finding(
+                title="Other client counter-test passed",
+                severity=Severity.LOW,
+                affected_asset="passed-b.example",
+                category="manual",
+                source_module="manual",
+                proof="Observed manually.",
+                risk="Risk was corrected.",
+                remediation="No further action.",
+                counter_test="Already passed.",
+                confidence=0.8,
+                status=FindingStatus.COUNTER_TEST_PASSED,
+                metadata={"review_note": "Corrected."},
+            ),
+        )
 
         view = build_client_view(store, client_a.id)
         dispositions = {item.status: item for item in view.finding_dispositions}
+        counter_tests = {item.status: item for item in view.counter_test_summary}
 
         self.assertEqual(dispositions["new"].label, "New")
         self.assertEqual(dispositions["new"].count, 1)
         self.assertEqual(dispositions["accepted_risk"].count, 1)
         self.assertEqual(dispositions["false_positive"].count, 0)
+        self.assertEqual(counter_tests["ready"].count, 1)
+        self.assertEqual(counter_tests["passed"].count, 0)
+        self.assertEqual(counter_tests["failed"].count, 1)
 
     def test_client_view_builds_preparation_summary_by_client(self) -> None:
         store = JsonStore(clean_data_dir("web-ui-client-preparation"))

@@ -450,6 +450,17 @@
         <dt>Remediation</dt><dd>{{ item.remediation }}</dd>
         <dt>Counter-test</dt><dd><pre>{{ item.counter_test }}</pre></dd>
       </dl>
+      <form class="counter-test-form" method="post" action="/missions/{{ view.mission.id }}/findings/{{ item.id }}/status" aria-label="Record counter-test result for {{ item.title }}">
+        <input type="hidden" name="_csrf" value="{{ form_token }}">
+        <label>
+          <span>Counter-test Note</span>
+          <input name="review_note" value="{{ item.review_note }}" required>
+        </label>
+        <div class="counter-test-actions">
+          <button class="button secondary-button" type="submit" name="status" value="counter_test_failed">Failed</button>
+          <button class="button" type="submit" name="status" value="counter_test_passed">Passed</button>
+        </div>
+      </form>
     </article>
     {% else %}
     <p class="empty">No finding is ready for counter-test.</p>

@@ -27,6 +27,8 @@ ModelT = TypeVar("ModelT", bound=BaseModel)
 REVIEW_NOTE_REQUIRED_STATUSES = {
     FindingStatus.FALSE_POSITIVE,
     FindingStatus.ACCEPTED_RISK,
+    FindingStatus.COUNTER_TEST_PASSED,
+    FindingStatus.COUNTER_TEST_FAILED,
 }
 
 
@@ -159,7 +161,7 @@ class JsonStore:
             and not metadata.get("review_note", "").strip()
         ):
             raise ValueError(
-                "review note is required for false positive or accepted risk status"
+                "review note is required for false positive, accepted risk, or counter-test status"
             )
         metadata["reviewed_at"] = utc_now().isoformat()
         updated = finding.model_copy(update={"status": status, "metadata": metadata})

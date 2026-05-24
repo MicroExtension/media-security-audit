@@ -476,7 +476,7 @@ Current GUI status:
 - manual findings can be added from mission pages
 - manual findings can be edited from mission pages
 - finding status can be reviewed from mission pages
-- false positive and accepted risk statuses require a review note
+- false positive, accepted risk, and counter-test statuses require a review note
 - mission pages show finding disposition counts
 - counter-test plans are visible from mission pages
 - mission activity events are recorded and visible from mission pages

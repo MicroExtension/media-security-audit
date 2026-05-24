@@ -39,7 +39,7 @@ Implemented so far:
 - web manual finding entry for structured technician observations
 - web manual finding edits with scanner finding protection
 - web counter-test plan for actionable findings
-- finding review requires notes for false positives and accepted risks
+- finding review requires notes for false positives, accepted risks, and counter-test results
 - web mission activity log for traceability
 - web check selection for mission planning
 - web system status page for appliance readiness
@@ -290,7 +290,7 @@ mission row.
 Mission readiness cards link directly to the relevant setup, scope, check
 selection, findings, or report section when technician action is required.
 Finding review requires a technician note before marking an item as a false
-positive or accepted risk.
+positive, accepted risk, or counter-test result.
 Reports include finding disposition counts and review notes so accepted risks
 and false positives remain explainable in audit exports.
 Mission pages show the same disposition counts before report generation, so a
@@ -483,7 +483,7 @@ Planned screens:
 - mission preparation columns started
 - mission row review count badges started
 - mission readiness action links started
-- finding review note guardrails started
+- finding review note guardrails cover false positives, accepted risks, and counter-test results
 - counter-tests
 - system status started
 - settings

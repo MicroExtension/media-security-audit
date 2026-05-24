@@ -203,6 +203,7 @@ class WebUiTests(unittest.TestCase):
             "top-risk-clients",
             "review-backlog-clients",
             "counter-tests",
+            "failed-counter-tests",
             "preparation",
         ]:
             self.assertIn(f'href="#{anchor}"', template)
@@ -217,11 +218,15 @@ class WebUiTests(unittest.TestCase):
             "view.top_risk_clients|length",
             "view.review_backlog_clients|length",
             "view.counter_test_summary|length",
+            "view.failed_counter_test_missions|length",
             "view.preparation_items|length",
         ]:
             self.assertIn(f"{{{{ {counter} }}}}", template)
 
         self.assertIn('aria-label="Workspace counter-test summary"', template)
+        self.assertIn("Failed counter-test missions watchlist", template)
+        self.assertIn("mission.counter_test_failed_count", template)
+        self.assertIn("/missions/{{ mission.id }}#counter-test", template)
         self.assertIn("mission.counter_test_ready_count", template)
         self.assertIn("mission.counter_test_passed_count", template)
         self.assertIn("mission.counter_test_failed_count", template)
@@ -248,6 +253,7 @@ class WebUiTests(unittest.TestCase):
         for anchor in [
             "client-dispositions",
             "client-counter-tests",
+            "client-failed-counter-tests",
             "client-preparation",
             "client-activity",
             "client-missions",
@@ -258,6 +264,7 @@ class WebUiTests(unittest.TestCase):
         for counter in [
             "view.finding_dispositions|length",
             "view.counter_test_summary|length",
+            "view.failed_counter_test_missions|length",
             "view.preparation_items|length",
             "view.recent_activity_events|length",
             "view.missions|length",
@@ -265,6 +272,9 @@ class WebUiTests(unittest.TestCase):
             self.assertIn(f"{{{{ {counter} }}}}", template)
 
         self.assertIn('aria-label="Client counter-test summary"', template)
+        self.assertIn("Client failed counter-test missions watchlist", template)
+        self.assertIn("mission.counter_test_failed_count", template)
+        self.assertIn("/missions/{{ mission.id }}#counter-test", template)
         self.assertIn("mission.counter_test_ready_count", template)
         self.assertIn("mission.counter_test_passed_count", template)
         self.assertIn("mission.counter_test_failed_count", template)
@@ -884,6 +894,13 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(counter_tests["ready"].count, 2)
         self.assertEqual(counter_tests["passed"].count, 1)
         self.assertEqual(counter_tests["failed"].count, 1)
+        self.assertEqual(len(view.failed_counter_test_missions), 1)
+        self.assertEqual(
+            view.failed_counter_test_missions[0].name,
+            "Disposition Audit B",
+        )
+        self.assertEqual(view.failed_counter_test_missions[0].counter_test_failed_count, 1)
+        self.assertEqual(view.failed_counter_test_missions[0].counter_test_ready_count, 1)
 
     def test_client_view_summarizes_only_client_missions(self) -> None:
         store = JsonStore(clean_data_dir("web-ui-client"))
@@ -1069,6 +1086,13 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(counter_tests["ready"].count, 1)
         self.assertEqual(counter_tests["passed"].count, 0)
         self.assertEqual(counter_tests["failed"].count, 1)
+        self.assertEqual(len(view.failed_counter_test_missions), 1)
+        self.assertEqual(
+            view.failed_counter_test_missions[0].name,
+            "Client A Audit",
+        )
+        self.assertEqual(view.failed_counter_test_missions[0].counter_test_failed_count, 1)
+        self.assertEqual(view.failed_counter_test_missions[0].counter_test_passed_count, 0)
 
     def test_client_view_builds_preparation_summary_by_client(self) -> None:
         store = JsonStore(clean_data_dir("web-ui-client-preparation"))

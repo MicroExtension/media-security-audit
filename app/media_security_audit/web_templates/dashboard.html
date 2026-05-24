@@ -27,6 +27,7 @@
   <a href="#top-risk-clients">Top Risk Clients <span>{{ view.top_risk_clients|length }}</span></a>
   <a href="#review-backlog-clients">Review Backlog <span>{{ view.review_backlog_clients|length }}</span></a>
   <a href="#counter-tests">Counter-tests <span>{{ view.counter_test_summary|length }}</span></a>
+  <a href="#failed-counter-tests">Failed Retests <span>{{ view.failed_counter_test_missions|length }}</span></a>
   <a href="#preparation">Preparation <span>{{ view.preparation_items|length }}</span></a>
 </section>
 
@@ -369,6 +370,44 @@
       <small>{{ item.detail }}</small>
     </div>
     {% endfor %}
+  </div>
+</section>
+
+<section class="section" id="failed-counter-tests">
+  <div class="section-title">
+    <h2>Failed Counter-tests</h2>
+    <span class="muted">Missions needing remediation follow-up</span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <caption class="sr-only">Failed counter-test missions watchlist</caption>
+      <thead>
+        <tr>
+          <th>Mission</th>
+          <th>Client</th>
+          <th>Failed</th>
+          <th>Retest</th>
+          <th>Passed</th>
+          <th>Risk</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for mission in view.failed_counter_test_missions %}
+        <tr>
+          <td><a href="/missions/{{ mission.id }}">{{ mission.name }}</a></td>
+          <td><a href="/clients/{{ mission.client_id }}">{{ mission.client_name }}</a></td>
+          <td><span class="status status-counter_test_failed">{{ mission.counter_test_failed_count }}</span></td>
+          <td>{{ mission.counter_test_ready_count }}</td>
+          <td>{{ mission.counter_test_passed_count }}</td>
+          <td><span class="risk risk-{{ mission.risk_level }}">{{ mission.risk_score }}/100</span></td>
+          <td><a class="table-action" href="/missions/{{ mission.id }}#counter-test">Open Counter-tests</a></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="empty">No failed counter-test mission found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
 </section>
 

@@ -282,6 +282,7 @@ class DashboardView:
     review_backlog_clients: list[ClientRow]
     finding_dispositions: list[FindingDispositionRow]
     counter_test_summary: list[CounterTestSummaryRow]
+    failed_counter_test_missions: list[MissionRow]
     total_clients: int
     total_missions: int
     total_findings: int
@@ -299,6 +300,7 @@ class ClientView:
     preparation_items: list[ClientPreparationRow]
     finding_dispositions: list[FindingDispositionRow]
     counter_test_summary: list[CounterTestSummaryRow]
+    failed_counter_test_missions: list[MissionRow]
     activity_log_url: str
     blocked_preparation_count: int
     warning_preparation_count: int
@@ -717,6 +719,23 @@ def counter_test_summary_rows(findings: list[Finding]) -> list[CounterTestSummar
     ]
 
 
+def failed_counter_test_mission_rows(missions: list[MissionRow]) -> list[MissionRow]:
+    return sorted(
+        [
+            mission
+            for mission in missions
+            if mission.counter_test_failed_count > 0
+        ],
+        key=lambda mission: (
+            -mission.counter_test_failed_count,
+            -mission.risk_score,
+            -mission.counter_test_ready_count,
+            mission.client_name.lower(),
+            mission.name.lower(),
+        ),
+    )
+
+
 def activity_event_row(event: ActivityEvent) -> ActivityEventRow:
     return ActivityEventRow(
         id=event.id,
@@ -1004,6 +1023,7 @@ def build_dashboard_view(store: JsonStore) -> DashboardView:
         review_backlog_clients=review_backlog_client_rows(client_rows),
         finding_dispositions=finding_disposition_rows(all_findings),
         counter_test_summary=counter_test_summary_rows(all_findings),
+        failed_counter_test_missions=failed_counter_test_mission_rows(mission_rows),
         total_clients=len(client_rows),
         total_missions=len(mission_rows),
         total_findings=total_findings,
@@ -1073,6 +1093,7 @@ def build_client_view(store: JsonStore, client_id: str) -> ClientView:
         preparation_items=preparation_items,
         finding_dispositions=finding_disposition_rows(all_findings),
         counter_test_summary=counter_test_summary_rows(all_findings),
+        failed_counter_test_missions=failed_counter_test_mission_rows(mission_rows),
         activity_log_url=client_activity_log_url(client.id),
         blocked_preparation_count=len(
             [item for item in preparation_items if item.status == "blocked"]

@@ -352,10 +352,11 @@ sidecar manifest before sharing the bundle.
 Use `bash scripts/debian-vm-maintenance-report.sh` before approved maintenance
 to collect security review, backup inventory, bundle inventory, offline update
 package inventory, offline update preview inventory, optional offline preview
-verification, and update plan output without starting services, extracting
-backups, applying packages, or collecting logs. Set `MEDIA_AUDIT_OFFLINE_UPDATE_PACKAGE` and
-`MEDIA_AUDIT_OFFLINE_UPDATE_PREVIEW` when the report should include package and
-preview verification details.
+verification, optional offline apply checklist readiness, and update plan output
+without starting services, extracting backups, applying packages, or collecting
+logs. Set `MEDIA_AUDIT_OFFLINE_UPDATE_PACKAGE` and
+`MEDIA_AUDIT_OFFLINE_UPDATE_PREVIEW` when the report should include package,
+preview, and checklist verification details.
 Use `bash scripts/debian-vm-maintenance-bundle.sh` to generate a fresh
 maintenance report and package only that report for review. Review the
 generated sidecar manifest before sharing the bundle.

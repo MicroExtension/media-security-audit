@@ -72,6 +72,7 @@ Current foundation:
 - mission finding disposition summary started
 - counter-test plan views started
 - counter-test pass/fail review actions started
+- counter-test ready/passed/failed summaries started
 - mission activity log started
 - check selection UI started
 - structured authorization tracking started
@@ -175,6 +176,7 @@ Current foundation:
 - mission readiness action links started
 - finding review note guardrails cover false positives, accepted risks, and counter-test results
 - counter-test pass/fail review actions started
+- counter-test ready/passed/failed summaries started
 - mission finding disposition summary started
 - mission readiness and safe scan plan previews started
 - scan execution remains CLI-only

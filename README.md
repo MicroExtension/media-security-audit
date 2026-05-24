@@ -42,6 +42,7 @@ Implemented so far:
 - web counter-test plan can record pass/fail review decisions with notes
 - mission counter-test plan shows ready, passed, and failed summaries
 - dashboard and client pages show counter-test ready, passed, and failed summaries
+- dashboard and client mission tables show per-mission counter-test counts
 - finding review requires notes for false positives, accepted risks, and counter-test results
 - web mission activity log for traceability
 - web check selection for mission planning
@@ -308,6 +309,8 @@ ready, passed, or failed so retest workload is visible before opening a
 mission.
 Mission tables include compact review counts for new findings, accepted risks,
 and false positives.
+Mission tables also include compact counter-test counts for ready, passed, and
+failed retests.
 The dashboard client list also shows compact review counts per customer, so MSP
 technicians can see which client has new, accepted, or false-positive findings.
 It also shows each client's risk score, active finding count, and active
@@ -495,6 +498,7 @@ Planned screens:
 - counter-test pass/fail review actions started
 - counter-test ready/passed/failed summaries started
 - dashboard and client counter-test summaries started
+- mission table counter-test count badges started
 - system status started
 - settings
 

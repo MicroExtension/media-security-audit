@@ -58,6 +58,10 @@ python -m media_security_audit.cli finding add-sample `
 python -m media_security_audit.cli mission show `
   --mission-id "mission_xxxxx"
 
+python -m media_security_audit.cli mission readiness `
+  --mission-id "mission_xxxxx" `
+  --format json
+
 python -m media_security_audit.cli scan nmap-plan `
   --mission-id "mission_xxxxx"
 
@@ -326,6 +330,15 @@ The consolidated plan command:
 - records `execution=not_executed`
 - never runs scanner commands
 
+The mission readiness command:
+- reports authorization, approved scope, check selection, finding review, and
+  generated report status
+- includes the scan plan summary
+- supports text and JSON output
+- supports strict mode for install or maintenance gates
+- records `execution=not_executed`
+- never runs scanner commands
+
 Owner action:
 - no action required yet
 - later, decide whether this plan should be attached to the customer
@@ -337,6 +350,7 @@ Codex action:
 - use the JSON schema for deployment and technician automation
 - keep mission export packages useful for pre-audit authorization review
 - keep authorization briefs explicit about planned commands and non-execution
+- keep mission readiness output aligned with the same web readiness rules
 
 ## Step 3 - Decide Branding
 
@@ -638,6 +652,7 @@ Current GUI status:
 - failed counter-tests drive mission, dashboard, and client next-action links
 - mission readiness cards link to the setup section that needs action
 - mission readiness and safe scan plan previews are visible from mission pages
+- CLI mission readiness checks are available for technician automation
 - TLS testssl.sh scan plan previews are available when the TLS check is selected
 - SMB scan plan previews are available when the SMB check is selected
 - LDAP scan plan previews are available when the LDAP check is selected

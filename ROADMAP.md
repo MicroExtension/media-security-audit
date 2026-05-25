@@ -180,6 +180,7 @@ Current foundation:
 - mission preparation columns started
 - mission row review count badges started
 - mission readiness action links started
+- CLI mission readiness checks started
 - finding review note guardrails cover false positives, accepted risks, and counter-test results
 - counter-test pass/fail review actions started
 - counter-test ready/passed/failed summaries started
@@ -287,6 +288,7 @@ Current foundation:
 - mission readiness action links started
 - finding review note guardrails cover false positives, accepted risks, and counter-test results
 - mission finding disposition summary started
+- CLI mission readiness JSON and text output started
 
 Success criteria:
 - appliance can run on Debian/Ubuntu

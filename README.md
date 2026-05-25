@@ -162,6 +162,7 @@ Implemented so far:
 - mission tables show preparation status and next action
 - mission tables show compact finding review counts
 - mission readiness cards link directly to the setup sections that need action
+- CLI mission readiness check for technician and automation review
 
 The first implementation target remains a CLI-driven V1 with a local web
 interface that can set up the mission workflow:
@@ -195,6 +196,7 @@ python -m media_security_audit.cli scope add --mission-id "mission_xxxxx" --type
 python -m media_security_audit.cli scope list --mission-id "mission_xxxxx"
 python -m media_security_audit.cli finding add-sample --mission-id "mission_xxxxx"
 python -m media_security_audit.cli mission show --mission-id "mission_xxxxx"
+python -m media_security_audit.cli mission readiness --mission-id "mission_xxxxx" --format json
 python -m media_security_audit.cli scan nmap-plan --mission-id "mission_xxxxx"
 python -m media_security_audit.cli scan http-plan --mission-id "mission_xxxxx"
 python -m media_security_audit.cli scan dns-plan --mission-id "mission_xxxxx" --dkim-selector default
@@ -291,6 +293,18 @@ The mission web page exposes the same plan as JSON and Markdown downloads, and
 mission ZIP packages include both files for authorization and handoff review.
 Authorization briefs also include the selected plan so customer approval can
 cover the intended guarded CLI commands before audit work starts.
+
+Mission readiness can be checked from the CLI before guarded execution:
+
+```powershell
+python -m media_security_audit.cli mission readiness --mission-id "mission_xxxxx"
+python -m media_security_audit.cli mission readiness --mission-id "mission_xxxxx" --format json
+python -m media_security_audit.cli mission readiness --mission-id "mission_xxxxx" --strict
+```
+
+The readiness command reports authorization, approved scope, check selection,
+finding review, generated reports, and scan plan summary without running scans.
+`--strict` returns an error when the mission is blocked or still has warnings.
 
 Local web interface:
 
@@ -512,6 +526,7 @@ media-security-audit/
 - consolidated safe scan planning started
 - scan plan exports started
 - authorization brief scan plan summary started
+- CLI mission readiness check started
 - findings engine started
 - JSON, Markdown, and HTML reports
 
@@ -573,6 +588,7 @@ Planned screens:
 - mission preparation columns started
 - mission row review count badges started
 - mission readiness action links started
+- CLI mission readiness JSON/text check started
 - finding review note guardrails cover false positives, accepted risks, and counter-test results
 - counter-test pass/fail review actions started
 - counter-test ready/passed/failed summaries started

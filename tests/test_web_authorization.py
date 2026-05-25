@@ -79,8 +79,16 @@ class WebAuthorizationTests(unittest.TestCase):
         self.assertIn("External Perimeter Review", markdown)
         self.assertIn("Approved public IP addresses and hostnames", markdown)
         self.assertIn("External exposure summary", markdown)
+        self.assertIn("## Planned Scan Commands", markdown)
+        self.assertIn("Execution: `not_executed`", markdown)
+        self.assertIn("### Nmap", markdown)
+        self.assertIn("nmap -sV", markdown)
+        self.assertIn("TXT client.example", markdown)
         self.assertIn("<h2>Audit Template</h2>", html)
         self.assertIn("External Perimeter Review", html)
+        self.assertIn("<h2>Planned Scan Commands</h2>", html)
+        self.assertIn("not_executed", html)
+        self.assertIn("TXT client.example", html)
         self.assertIn("No scan is executed by this brief.", markdown)
 
     def test_marks_missing_authorization_or_scope_as_not_ready(self) -> None:
@@ -92,6 +100,9 @@ class WebAuthorizationTests(unittest.TestCase):
         self.assertIn("Blocking items: `authorization reference, approved scope`", markdown)
         self.assertIn("Client Draft", markdown)
         self.assertNotIn("## Audit Template", markdown)
+        self.assertIn("## Planned Scan Commands", markdown)
+        self.assertIn("### Nmap", markdown)
+        self.assertIn("Status: `blocked`", markdown)
 
     def test_missing_authorization_brief_has_named_error(self) -> None:
         reports_dir = clean_dir("web-auth-brief-missing")

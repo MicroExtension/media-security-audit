@@ -14,6 +14,7 @@ CHECK_LABELS: dict[AuditCheck, str] = {
     AuditCheck.DNS_MAIL: "DNS/Mail",
     AuditCheck.TLS: "TLS posture",
     AuditCheck.SMB: "SMB basic",
+    AuditCheck.LDAP: "LDAP basic",
 }
 
 

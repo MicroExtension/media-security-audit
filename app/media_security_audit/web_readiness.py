@@ -8,6 +8,7 @@ from pathlib import Path
 from media_security_audit.models import AuditCheck, Finding, FindingStatus, Mission
 from media_security_audit.scanners.dns_mail import approved_dns_domains, dns_mail_query_plan
 from media_security_audit.scanners.http_headers import approved_http_targets
+from media_security_audit.scanners.ldap import LdapCommandBuilder, render_ldap_command
 from media_security_audit.scanners.nmap import NmapCommandBuilder, render_command
 from media_security_audit.scanners.smb import SmbCommandBuilder, render_smb_command
 from media_security_audit.scanners.testssl import TestsslCommandBuilder, render_testssl_command
@@ -54,6 +55,7 @@ def build_scan_plan_previews(mission: Mission) -> list[ScanPlanPreview]:
         AuditCheck.DNS_MAIL: _dns_mail_preview,
         AuditCheck.TLS: _tls_preview,
         AuditCheck.SMB: _smb_preview,
+        AuditCheck.LDAP: _ldap_preview,
     }
     if not mission.selected_checks:
         return [_blocked_plan("Check Selection", "No audit check is selected for this mission.")]
@@ -239,6 +241,24 @@ def _smb_preview(mission: Mission) -> ScanPlanPreview:
         label="SMB",
         status="ready",
         detail=f"{len(rendered)} planned smbclient command(s).",
+        commands=rendered,
+    )
+
+
+def _ldap_preview(mission: Mission) -> ScanPlanPreview:
+    try:
+        commands = LdapCommandBuilder().build_for_scope(mission.scope)
+    except ValueError as error:
+        return _blocked_plan("LDAP", str(error))
+
+    if not commands:
+        return _blocked_plan("LDAP", "No approved LDAP-compatible target.")
+
+    rendered = [render_ldap_command(command) for command in commands]
+    return ScanPlanPreview(
+        label="LDAP",
+        status="ready",
+        detail=f"{len(rendered)} planned ldapsearch command(s).",
         commands=rendered,
     )
 

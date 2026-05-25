@@ -23,11 +23,13 @@ from media_security_audit.cli import (  # noqa: E402
     list_scope,
     plan_dns_mail_audit,
     plan_http_headers_audit,
+    plan_ldap_audit,
     plan_nmap_scan,
     plan_smb_audit,
     plan_tls_audit,
     run_dns_mail_audit,
     run_http_headers_audit,
+    run_ldap_audit,
     run_nmap_scan,
     run_smb_audit,
     run_tls_audit,
@@ -35,6 +37,7 @@ from media_security_audit.cli import (  # noqa: E402
 )
 from media_security_audit.models import AuditType, MissionStatus, ScopeType, Severity  # noqa: E402
 from media_security_audit.scanners.http_headers import HttpHeaderResponse  # noqa: E402
+from media_security_audit.scanners.ldap import LdapExecutor  # noqa: E402
 from media_security_audit.scanners.nmap import NmapExecutor, nmap_output_path  # noqa: E402
 from media_security_audit.scanners.smb import SmbExecutor  # noqa: E402
 from media_security_audit.scanners.testssl import TestsslExecutor, testssl_output_path  # noqa: E402
@@ -218,6 +221,37 @@ class CliWorkflowTests(unittest.TestCase):
         self.assertEqual(len(smb_results), 1)
         self.assertTrue(any(finding.category == "smb" for finding in smb_findings))
 
+        ldap_commands = plan_ldap_audit(mission_id=mission.id, data_dir=data_dir)
+        self.assertEqual(len(ldap_commands), 1)
+        self.assertEqual(ldap_commands[0][0], "ldapsearch")
+        self.assertEqual(ldap_commands[0][4], "ldap://example.invalid")
+
+        ldap_fixture = Path(__file__).parent / "fixtures" / "ldap_rootdse_sample.ldif"
+
+        def ldap_runner(
+            command: list[str],
+            timeout_seconds: int,
+        ) -> subprocess.CompletedProcess[str]:
+            return subprocess.CompletedProcess(
+                command,
+                0,
+                ldap_fixture.read_text(encoding="utf-8"),
+                "",
+            )
+
+        ldap_results, ldap_findings = run_ldap_audit(
+            mission_id=mission.id,
+            data_dir=data_dir,
+            output_dir=root_dir / "evidence",
+            execute=True,
+            executor=LdapExecutor(
+                runner=ldap_runner,
+                executable_lookup=lambda executable: f"/usr/bin/{executable}",
+            ),
+        )
+        self.assertEqual(len(ldap_results), 1)
+        self.assertTrue(any(finding.category == "ldap" for finding in ldap_findings))
+
         fixture = Path(__file__).parent / "fixtures" / "nmap_sample.xml"
 
         def runner(command: list[str], timeout_seconds: int) -> subprocess.CompletedProcess[str]:
@@ -244,7 +278,7 @@ class CliWorkflowTests(unittest.TestCase):
         runs = JsonStore(data_dir).list_scan_runs(mission.id)
         self.assertEqual(
             [run.check.value for run in runs],
-            ["nmap", "smb", "tls", "dns_mail", "http_headers"],
+            ["nmap", "ldap", "smb", "tls", "dns_mail", "http_headers"],
         )
         self.assertTrue(all(run.status.value == "completed" for run in runs))
         self.assertEqual(runs[0].finding_count, 2)
@@ -523,6 +557,75 @@ class CliWorkflowTests(unittest.TestCase):
         self.assertEqual(runs[0].check.value, "smb")
         self.assertEqual(runs[0].status.value, "failed")
         self.assertIn("anonymous listing denied", runs[0].error or "")
+
+    def test_ldap_run_requires_execute_flag(self) -> None:
+        root_dir = Path(__file__).resolve().parents[1] / ".tmp-tests" / "cli-ldap-guard"
+        data_dir = root_dir / "data"
+
+        client = create_client(name="Client X", data_dir=data_dir)
+        mission = create_mission(
+            client_id=client.id,
+            name="Internal audit",
+            audit_type=AuditType.INTERNAL,
+            authorization_reference="signed-order",
+            data_dir=data_dir,
+        )
+        add_scope(
+            mission_id=mission.id,
+            scope_type=ScopeType.HOST,
+            value="dc01.client.local",
+            approved=True,
+            data_dir=data_dir,
+        )
+
+        with self.assertRaises(ValueError) as error:
+            run_ldap_audit(mission_id=mission.id, data_dir=data_dir)
+
+        self.assertIn("without --execute", str(error.exception))
+
+    def test_ldap_run_records_failed_execution(self) -> None:
+        root_dir = Path(__file__).resolve().parents[1] / ".tmp-tests" / "cli-ldap-failed-run"
+        data_dir = root_dir / "data"
+
+        client = create_client(name="Client X", data_dir=data_dir)
+        mission = create_mission(
+            client_id=client.id,
+            name="Internal audit",
+            audit_type=AuditType.INTERNAL,
+            authorization_reference="signed-order",
+            data_dir=data_dir,
+        )
+        add_scope(
+            mission_id=mission.id,
+            scope_type=ScopeType.HOST,
+            value="dc01.client.local",
+            approved=True,
+            data_dir=data_dir,
+        )
+
+        def failing_runner(
+            command: list[str],
+            timeout_seconds: int,
+        ) -> subprocess.CompletedProcess[str]:
+            return subprocess.CompletedProcess(command, 49, "", "invalid credentials")
+
+        with self.assertRaises(RuntimeError):
+            run_ldap_audit(
+                mission_id=mission.id,
+                data_dir=data_dir,
+                execute=True,
+                executor=LdapExecutor(
+                    runner=failing_runner,
+                    executable_lookup=lambda executable: f"/usr/bin/{executable}",
+                ),
+            )
+
+        runs = JsonStore(data_dir).list_scan_runs(mission.id)
+
+        self.assertEqual(len(runs), 1)
+        self.assertEqual(runs[0].check.value, "ldap")
+        self.assertEqual(runs[0].status.value, "failed")
+        self.assertIn("invalid credentials", runs[0].error or "")
 
     def test_missing_mission_error_is_readable(self) -> None:
         data_dir = Path(__file__).resolve().parents[1] / ".tmp-tests" / "cli-errors"

@@ -15,6 +15,7 @@ class DeploymentFileTests(unittest.TestCase):
         dockerfile = (ROOT / "Dockerfile").read_text(encoding="utf-8")
 
         self.assertIn("apt-get install -y --no-install-recommends", dockerfile)
+        self.assertIn("ldap-utils", dockerfile)
         self.assertIn("nmap", dockerfile)
         self.assertIn("smbclient", dockerfile)
         self.assertIn("USER mediaaudit", dockerfile)

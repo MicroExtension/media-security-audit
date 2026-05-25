@@ -285,6 +285,28 @@ Codex action:
 - test SMB behavior with mocked runners
 - do not run `smbclient` from the development environment
 
+## Step 2.8 - LDAP Basic Audit
+
+Status: started.
+
+The LDAP module:
+- uses approved host, IP, or domain scope items only
+- supports `scan ldap-plan` without executing `ldapsearch`
+- requires `scan ldap-run --execute` before running `ldapsearch`
+- performs anonymous RootDSE base-scope checks only
+- rejects credentialed, file-driven, extended, and subtree command shapes
+- parses fixture LDIF output into normalized findings
+- stores findings and evidence on the mission
+
+Owner action:
+- no action required yet
+- later, confirm whether anonymous LDAP RootDSE checks are acceptable by
+  default for internal maintenance audits
+
+Codex action:
+- test LDAP behavior with mocked runners
+- do not run `ldapsearch` from the development environment
+
 ## Step 3 - Decide Branding
 
 Status: not blocking.
@@ -584,6 +606,7 @@ Current GUI status:
 - mission readiness and safe scan plan previews are visible from mission pages
 - TLS testssl.sh scan plan previews are available when the TLS check is selected
 - SMB scan plan previews are available when the SMB check is selected
+- LDAP scan plan previews are available when the LDAP check is selected
 - scan execution remains CLI-only
 
 ## Step 7 - Add Safe Scanner Modules

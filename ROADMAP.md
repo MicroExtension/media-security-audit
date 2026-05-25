@@ -193,6 +193,8 @@ Current foundation:
 - TLS scan plan previews started
 - guarded SMB anonymous listing adapter started
 - SMB scan plan previews started
+- guarded LDAP RootDSE adapter started
+- LDAP scan plan previews started
 
 ## V3 - Portable Appliance
 

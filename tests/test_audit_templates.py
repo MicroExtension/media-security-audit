@@ -63,7 +63,10 @@ class AuditTemplateTests(unittest.TestCase):
         self.assertEqual(view.query, "internal")
         self.assertEqual(view.total_count, 1)
         self.assertEqual(view.templates[0].id, "tpl_internal_hygiene")
-        self.assertEqual(view.templates[0].recommended_checks, ["Nmap services", "SMB basic"])
+        self.assertEqual(
+            view.templates[0].recommended_checks,
+            ["Nmap services", "SMB basic", "LDAP basic"],
+        )
         self.assertIn(AuditCheck.NMAP.value, [check.value for check in AuditCheck])
 
 

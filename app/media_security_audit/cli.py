@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-import json
 from datetime import date
 from pathlib import Path
 
@@ -89,7 +88,9 @@ from media_security_audit.scan_plan_exports import (
 )
 from media_security_audit.storage import JsonStore
 from media_security_audit.web_exports import (
-    MissionExportVerification,
+    format_mission_export_verification_json,
+    format_mission_export_verification_text,
+    mission_export_verification_exit_code,
     mission_export_path,
     verify_mission_export,
 )
@@ -838,75 +839,6 @@ def mission_export_verification_package_path(
     if mission_id:
         return mission_export_path(reports_dir, mission_id)
     raise ValueError("either --mission-id or --package is required")
-
-
-def mission_export_verification_payload(
-    package_path: Path,
-    verification: MissionExportVerification,
-) -> dict[str, object]:
-    return {
-        "schema_version": 1,
-        "package": str(package_path),
-        "status": verification.status,
-        "detail": verification.detail,
-        "execution": "not_executed",
-        "summary": {
-            "checked_files": verification.checked_files,
-            "missing_files": len(verification.missing_files),
-            "mismatched_files": len(verification.mismatched_files),
-            "unexpected_files": len(verification.unexpected_files),
-        },
-        "missing_files": verification.missing_files,
-        "mismatched_files": verification.mismatched_files,
-        "unexpected_files": verification.unexpected_files,
-    }
-
-
-def format_mission_export_verification_json(
-    package_path: Path,
-    verification: MissionExportVerification,
-) -> str:
-    return json.dumps(
-        mission_export_verification_payload(package_path, verification),
-        indent=2,
-        sort_keys=True,
-    )
-
-
-def format_mission_export_verification_text(
-    package_path: Path,
-    verification: MissionExportVerification,
-) -> str:
-    lines = [
-        f"Mission export verification: {verification.status}",
-        f"Package: {package_path}",
-        f"Detail: {verification.detail}",
-        f"Checked files: {verification.checked_files}",
-        f"Missing files: {len(verification.missing_files)}",
-        f"Mismatched files: {len(verification.mismatched_files)}",
-        f"Unexpected files: {len(verification.unexpected_files)}",
-        "Execution: not executed by this command",
-    ]
-    for label, files in (
-        ("Missing file list", verification.missing_files),
-        ("Mismatched file list", verification.mismatched_files),
-        ("Unexpected file list", verification.unexpected_files),
-    ):
-        if files:
-            lines.append(f"{label}:")
-            lines.extend(f"- {name}" for name in files)
-    return "\n".join(lines)
-
-
-def mission_export_verification_exit_code(
-    verification: MissionExportVerification,
-    strict: bool = False,
-) -> int:
-    if verification.status == "failed":
-        return 1
-    if strict and verification.status != "ready":
-        return 1
-    return 0
 
 
 def parse_cli_date(value: str) -> date:

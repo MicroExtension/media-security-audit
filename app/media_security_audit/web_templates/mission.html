@@ -296,9 +296,11 @@
       <input type="hidden" name="_csrf" value="{{ form_token }}">
       <button class="button secondary-button" type="submit">Generate Package</button>
     </form>
-    <div class="report-links">
+    <div class="report-links" aria-label="Mission export package">
       {% if view.mission_export %}
       <a href="/missions/{{ view.mission.id }}/export">zip</a>
+      <a href="/missions/{{ view.mission.id }}/export-verification/markdown">verification md</a>
+      <a href="/missions/{{ view.mission.id }}/export-verification/json">verification json</a>
       <span class="muted">{{ view.mission_export.filename }} | {{ view.mission_export.size_bytes }} bytes</span>
       <span class="badge status-{{ view.mission_export.integrity_status }}">{{ view.mission_export.integrity_status }}</span>
       <span class="muted">{{ view.mission_export.integrity_detail }}</span>

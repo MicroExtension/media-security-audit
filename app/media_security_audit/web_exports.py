@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import json
-from hashlib import sha256
 from dataclasses import dataclass
+from enum import Enum
+from hashlib import sha256
 from pathlib import Path
 from zipfile import ZIP_DEFLATED, BadZipFile, ZipFile
 
@@ -79,6 +80,19 @@ class MissionExportVerification:
     missing_files: list[str]
     mismatched_files: list[str]
     unexpected_files: list[str]
+
+
+class MissionExportVerificationFormat(str, Enum):
+    JSON = "json"
+    MARKDOWN = "markdown"
+
+
+@dataclass(frozen=True)
+class MissionExportVerificationExport:
+    format: MissionExportVerificationFormat
+    filename: str
+    media_type: str
+    content: str
 
 
 def mission_export_path(reports_dir: Path, mission_id: str) -> Path:
@@ -268,6 +282,37 @@ def mission_export_file(reports_dir: Path, mission_id: str) -> Path:
     return path
 
 
+def build_mission_export_verification_export(
+    mission_id: str,
+    reports_dir: Path,
+    export_format: MissionExportVerificationFormat,
+) -> MissionExportVerificationExport:
+    path = mission_export_file(reports_dir, mission_id)
+    verification = verify_mission_export(path)
+    filename = mission_export_verification_export_filename(mission_id, export_format)
+    if export_format is MissionExportVerificationFormat.JSON:
+        return MissionExportVerificationExport(
+            format=export_format,
+            filename=filename,
+            media_type="application/json",
+            content=format_mission_export_verification_json(path, verification),
+        )
+    return MissionExportVerificationExport(
+        format=export_format,
+        filename=filename,
+        media_type="text/markdown; charset=utf-8",
+        content=format_mission_export_verification_markdown(path, verification),
+    )
+
+
+def mission_export_verification_export_filename(
+    mission_id: str,
+    export_format: MissionExportVerificationFormat,
+) -> str:
+    suffix = "json" if export_format is MissionExportVerificationFormat.JSON else "md"
+    return f"{mission_id}-export-verification.{suffix}"
+
+
 def verify_mission_export(path: Path) -> MissionExportVerification:
     try:
         with ZipFile(path) as archive:
@@ -320,6 +365,109 @@ def verify_mission_export(path: Path) -> MissionExportVerification:
         mismatched_files=sorted(set(mismatched_files)),
         unexpected_files=unexpected_files,
     )
+
+
+def mission_export_verification_payload(
+    package_path: Path,
+    verification: MissionExportVerification,
+) -> dict[str, object]:
+    return {
+        "schema_version": 1,
+        "package": str(package_path),
+        "package_name": package_path.name,
+        "status": verification.status,
+        "detail": verification.detail,
+        "execution": "not_executed",
+        "summary": {
+            "checked_files": verification.checked_files,
+            "missing_files": len(verification.missing_files),
+            "mismatched_files": len(verification.mismatched_files),
+            "unexpected_files": len(verification.unexpected_files),
+        },
+        "missing_files": verification.missing_files,
+        "mismatched_files": verification.mismatched_files,
+        "unexpected_files": verification.unexpected_files,
+    }
+
+
+def format_mission_export_verification_json(
+    package_path: Path,
+    verification: MissionExportVerification,
+) -> str:
+    return json.dumps(
+        mission_export_verification_payload(package_path, verification),
+        indent=2,
+        sort_keys=True,
+    )
+
+
+def format_mission_export_verification_markdown(
+    package_path: Path,
+    verification: MissionExportVerification,
+) -> str:
+    lines = [
+        "# Mission Export Verification",
+        "",
+        f"- Package: `{package_path.name}`",
+        f"- Status: `{verification.status}`",
+        f"- Detail: {verification.detail}",
+        f"- Checked files: `{verification.checked_files}`",
+        f"- Missing files: `{len(verification.missing_files)}`",
+        f"- Mismatched files: `{len(verification.mismatched_files)}`",
+        f"- Unexpected files: `{len(verification.unexpected_files)}`",
+        "- Execution: `not_executed`",
+        "",
+    ]
+    issue_groups = [
+        ("Missing Files", verification.missing_files),
+        ("Mismatched Files", verification.mismatched_files),
+        ("Unexpected Files", verification.unexpected_files),
+    ]
+    if any(files for _, files in issue_groups):
+        for title, files in issue_groups:
+            if files:
+                lines.extend([f"## {title}", ""])
+                lines.extend(f"- `{filename}`" for filename in files)
+                lines.append("")
+    else:
+        lines.extend(["## Integrity Issues", "", "No integrity issues detected.", ""])
+    return "\n".join(lines)
+
+
+def format_mission_export_verification_text(
+    package_path: Path,
+    verification: MissionExportVerification,
+) -> str:
+    lines = [
+        f"Mission export verification: {verification.status}",
+        f"Package: {package_path}",
+        f"Detail: {verification.detail}",
+        f"Checked files: {verification.checked_files}",
+        f"Missing files: {len(verification.missing_files)}",
+        f"Mismatched files: {len(verification.mismatched_files)}",
+        f"Unexpected files: {len(verification.unexpected_files)}",
+        "Execution: not executed by this command",
+    ]
+    for label, files in (
+        ("Missing file list", verification.missing_files),
+        ("Mismatched file list", verification.mismatched_files),
+        ("Unexpected file list", verification.unexpected_files),
+    ):
+        if files:
+            lines.append(f"{label}:")
+            lines.extend(f"- {name}" for name in files)
+    return "\n".join(lines)
+
+
+def mission_export_verification_exit_code(
+    verification: MissionExportVerification,
+    strict: bool = False,
+) -> int:
+    if verification.status == "failed":
+        return 1
+    if strict and verification.status != "ready":
+        return 1
+    return 0
 
 
 def export_verification_result(

@@ -321,6 +321,9 @@ class WebUiTests(unittest.TestCase):
         self.assertIn('aria-label="Counter-test summary"', template)
         self.assertIn('href="/clients/{{ view.mission.client_id }}"', template)
         self.assertIn('href="{{ view.activity_log_url }}"', template)
+        self.assertIn('/missions/{{ view.mission.id }}/scan-plan/markdown', template)
+        self.assertIn('/missions/{{ view.mission.id }}/scan-plan/json', template)
+        self.assertIn('aria-label="Scan plan exports"', template)
         self.assertIn(
             "Required for false positive, accepted risk, or counter-test status.",
             template,

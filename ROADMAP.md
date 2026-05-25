@@ -196,6 +196,7 @@ Current foundation:
 - guarded LDAP RootDSE adapter started
 - LDAP scan plan previews started
 - consolidated CLI scan plan summary started
+- scan plan JSON and Markdown exports started
 
 ## V3 - Portable Appliance
 
@@ -268,6 +269,7 @@ Current foundation:
 - enriched mission export manifest started
 - mission export checksum manifest started
 - mission export integrity verification started
+- mission export scan plan files started
 - workspace activity log export started
 - activity log filters started
 - activity log client and mission filters started

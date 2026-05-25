@@ -52,6 +52,7 @@ Implemented so far:
 - web run monitor for CLI scan execution history
 - guarded TLS testssl.sh plan, execution wrapper, and JSON parser
 - guarded SMB anonymous listing plan, execution wrapper, and parser
+- guarded LDAP RootDSE plan, execution wrapper, and parser
 - web mission export package for audit handoff
 - structured authorization details for mission records and reports
 - web authorization brief export for pre-audit approval review
@@ -195,6 +196,7 @@ python -m media_security_audit.cli scan http-plan --mission-id "mission_xxxxx"
 python -m media_security_audit.cli scan dns-plan --mission-id "mission_xxxxx" --dkim-selector default
 python -m media_security_audit.cli scan tls-plan --mission-id "mission_xxxxx"
 python -m media_security_audit.cli scan smb-plan --mission-id "mission_xxxxx"
+python -m media_security_audit.cli scan ldap-plan --mission-id "mission_xxxxx"
 python -m media_security_audit.cli report generate --mission-id "mission_xxxxx"
 python -m media_security_audit.cli web --data-dir data --reports-dir reports --host 127.0.0.1 --port 8080
 ```
@@ -256,6 +258,19 @@ python -m media_security_audit.cli scan smb-run --mission-id "mission_xxxxx" --e
 `smb-run` is blocked unless `--execute` is present, authorization is recorded,
 and scope is approved. It uses anonymous listing only and does not accept
 credentials.
+
+LDAP auditing uses approved host, IP, or domain scope items only and checks
+anonymous RootDSE metadata with `ldapsearch`:
+
+```powershell
+python -m media_security_audit.cli scope add --mission-id "mission_xxxxx" --type host --value "dc01.client.local" --environment internal --approved
+python -m media_security_audit.cli scan ldap-plan --mission-id "mission_xxxxx"
+python -m media_security_audit.cli scan ldap-run --mission-id "mission_xxxxx" --execute
+```
+
+`ldap-run` is blocked unless `--execute` is present, authorization is recorded,
+and scope is approved. It uses anonymous RootDSE base-scope queries only and
+does not accept credentials.
 
 Local web interface:
 
@@ -470,6 +485,7 @@ media-security-audit/
 - DNS and mail audit later
 - TLS audit adapter started
 - basic SMB audit adapter started
+- basic LDAP RootDSE adapter started
 - findings engine started
 - JSON, Markdown, and HTML reports
 

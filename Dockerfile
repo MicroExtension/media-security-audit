@@ -13,6 +13,7 @@ ARG APP_GID=10001
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         ca-certificates \
+        ldap-utils \
         nmap \
         smbclient \
     && rm -rf /var/lib/apt/lists/*

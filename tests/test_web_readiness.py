@@ -141,6 +141,23 @@ class WebReadinessTests(unittest.TestCase):
         self.assertTrue(plans[0].commands[0].startswith("smbclient -L //fs01.client.local"))
         self.assertIn("-N", plans[0].commands[0])
 
+    def test_ldap_scan_plan_preview_is_available_when_selected(self) -> None:
+        mission = Mission(
+            client_id="client_1",
+            name="Audit",
+            scope=[
+                ScopeItem(type=ScopeType.HOST, value="dc01.client.local", approved=True),
+            ],
+            selected_checks=[AuditCheck.LDAP],
+        )
+
+        plans = build_scan_plan_previews(mission)
+
+        self.assertEqual([plan.label for plan in plans], ["LDAP"])
+        self.assertEqual(plans[0].status, "ready")
+        self.assertTrue(plans[0].commands[0].startswith("ldapsearch -x -LLL"))
+        self.assertIn("ldap://dc01.client.local", plans[0].commands[0])
+
     def test_empty_check_selection_blocks_scan_plan_preview(self) -> None:
         mission = Mission(client_id="client_1", name="Audit", selected_checks=[])
 

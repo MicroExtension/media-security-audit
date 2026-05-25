@@ -53,7 +53,7 @@ TOOL_CHECKS: tuple[tuple[str, str, str], ...] = (
     ("testssl.sh", "testssl.sh", "Required for guarded TLS execution."),
     ("Nuclei", "nuclei", "Optional future template checks."),
     ("smbclient", "smbclient", "Required for guarded SMB execution."),
-    ("ldapsearch", "ldapsearch", "Planned for LDAP checks."),
+    ("ldapsearch", "ldapsearch", "Required for guarded LDAP execution."),
 )
 
 

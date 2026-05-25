@@ -1,0 +1,7 @@
+dn:
+namingContexts: DC=client,DC=local
+namingContexts: CN=Configuration,DC=client,DC=local
+supportedLDAPVersion: 3
+supportedLDAPVersion: 2
+supportedSASLMechanisms: GSSAPI
+supportedSASLMechanisms: ANONYMOUS

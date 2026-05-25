@@ -150,6 +150,7 @@ Current foundation:
 - scan plan summaries in authorization briefs started
 - enriched mission export manifest started
 - mission export checksum manifest started
+- web mission export manifest downloads started
 - mission export integrity verification started
 - workspace activity log export started
 - activity log filters started

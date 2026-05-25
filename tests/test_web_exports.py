@@ -23,7 +23,9 @@ from media_security_audit.models import (  # noqa: E402
 from media_security_audit.storage import JsonStore  # noqa: E402
 from media_security_audit.web_authorization import generate_authorization_brief  # noqa: E402
 from media_security_audit.web_exports import (  # noqa: E402
+    MissionExportManifestFormat,
     MissionExportVerificationFormat,
+    build_mission_export_manifest_export,
     build_mission_export_verification_export,
     generate_mission_export,
     list_mission_export,
@@ -177,6 +179,26 @@ class WebExportTests(unittest.TestCase):
         self.assertIn(f"readiness/{mission.id}-readiness.md", names)
         self.assertIn(f"reports/{mission.id}.json", names)
         self.assertIn(f"reports/{mission.id}.html", names)
+
+        manifest_json_export = build_mission_export_manifest_export(
+            mission.id,
+            reports_dir,
+            MissionExportManifestFormat.JSON,
+        )
+        manifest_markdown_export = build_mission_export_manifest_export(
+            mission.id,
+            reports_dir,
+            MissionExportManifestFormat.MARKDOWN,
+        )
+        manifest_payload = json.loads(manifest_json_export.content)
+
+        self.assertEqual(manifest_json_export.filename, f"{mission.id}-export-manifest.json")
+        self.assertEqual(manifest_json_export.media_type, "application/json")
+        self.assertEqual(manifest_payload["mission_id"], mission.id)
+        self.assertEqual(manifest_payload["archive_file_count"], len(names) - 1)
+        self.assertEqual(manifest_markdown_export.filename, f"{mission.id}-export-manifest.md")
+        self.assertIn("# Mission Export Manifest", manifest_markdown_export.content)
+        self.assertIn("- Execution: `not_executed`", manifest_markdown_export.content)
 
         json_export = build_mission_export_verification_export(
             mission.id,

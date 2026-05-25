@@ -95,6 +95,19 @@ class MissionExportVerificationExport:
     content: str
 
 
+class MissionExportManifestFormat(str, Enum):
+    JSON = "json"
+    MARKDOWN = "markdown"
+
+
+@dataclass(frozen=True)
+class MissionExportManifestExport:
+    format: MissionExportManifestFormat
+    filename: str
+    media_type: str
+    content: str
+
+
 def mission_export_path(reports_dir: Path, mission_id: str) -> Path:
     return mission_report_dir(reports_dir, mission_id) / f"{mission_id}-package.zip"
 
@@ -282,6 +295,50 @@ def mission_export_file(reports_dir: Path, mission_id: str) -> Path:
     return path
 
 
+def build_mission_export_manifest_export(
+    mission_id: str,
+    reports_dir: Path,
+    export_format: MissionExportManifestFormat,
+) -> MissionExportManifestExport:
+    path = mission_export_file(reports_dir, mission_id)
+    manifest = read_mission_export_manifest(path)
+    filename = mission_export_manifest_export_filename(mission_id, export_format)
+    if export_format is MissionExportManifestFormat.JSON:
+        return MissionExportManifestExport(
+            format=export_format,
+            filename=filename,
+            media_type="application/json",
+            content=json.dumps(manifest, indent=2, sort_keys=True),
+        )
+    return MissionExportManifestExport(
+        format=export_format,
+        filename=filename,
+        media_type="text/markdown; charset=utf-8",
+        content=format_mission_export_manifest_markdown(manifest),
+    )
+
+
+def mission_export_manifest_export_filename(
+    mission_id: str,
+    export_format: MissionExportManifestFormat,
+) -> str:
+    suffix = "json" if export_format is MissionExportManifestFormat.JSON else "md"
+    return f"{mission_id}-export-manifest.{suffix}"
+
+
+def read_mission_export_manifest(path: Path) -> dict[str, object]:
+    try:
+        with ZipFile(path) as archive:
+            if "manifest.json" not in archive.namelist():
+                raise FileNotFoundError("manifest.json is missing")
+            manifest = json.loads(archive.read("manifest.json").decode("utf-8"))
+    except (BadZipFile, json.JSONDecodeError, OSError, UnicodeDecodeError) as error:
+        raise ValueError(f"mission export manifest cannot be read: {error}") from error
+    if not isinstance(manifest, dict):
+        raise ValueError("mission export manifest must be a JSON object")
+    return manifest
+
+
 def build_mission_export_verification_export(
     mission_id: str,
     reports_dir: Path,
@@ -399,6 +456,51 @@ def format_mission_export_verification_json(
         indent=2,
         sort_keys=True,
     )
+
+
+def format_mission_export_manifest_markdown(manifest: dict[str, object]) -> str:
+    archive_files = manifest.get("archive_files")
+    archive_entries = archive_files if isinstance(archive_files, list) else []
+    lines = [
+        "# Mission Export Manifest",
+        "",
+        f"- Manifest version: `{manifest.get('manifest_version', 'unknown')}`",
+        f"- Generated at: `{manifest.get('generated_at', 'unknown')}`",
+        f"- Mission: `{manifest.get('mission_name', 'unknown')}`",
+        f"- Mission id: `{manifest.get('mission_id', 'unknown')}`",
+        f"- Client: `{manifest.get('client_name', 'unknown')}`",
+        f"- Audit type: `{manifest.get('audit_type', 'unknown')}`",
+        f"- Authorization decision: `{manifest.get('authorization_decision', 'unknown')}`",
+        f"- Finding count: `{manifest.get('finding_count', 0)}`",
+        f"- Report count: `{manifest.get('report_count', 0)}`",
+        f"- Archive file count: `{manifest.get('archive_file_count', len(archive_entries))}`",
+        "- Execution: `not_executed`",
+        "",
+        "## Package Members",
+        "",
+    ]
+    if archive_entries:
+        for entry in archive_entries:
+            if isinstance(entry, dict):
+                path = entry.get("path", "<unknown>")
+                size_bytes = entry.get("size_bytes", "unknown")
+                checksum = entry.get("sha256", "unknown")
+                lines.append(f"- `{path}` ({size_bytes} bytes, sha256 `{checksum}`)")
+    else:
+        lines.append("No packaged files listed.")
+    lines.append("")
+    for title, key in (
+        ("Reports", "reports"),
+        ("Authorization Briefs", "authorization_briefs"),
+        ("Scan Plans", "scan_plans"),
+        ("Readiness Exports", "readiness_exports"),
+    ):
+        values = manifest.get(key)
+        if isinstance(values, list) and values:
+            lines.extend([f"## {title}", ""])
+            lines.extend(f"- `{value}`" for value in values)
+            lines.append("")
+    return "\n".join(lines)
 
 
 def format_mission_export_verification_markdown(

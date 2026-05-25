@@ -68,7 +68,9 @@ from media_security_audit.web_forms import (
     validate_form_token,
 )
 from media_security_audit.web_exports import (
+    MissionExportManifestFormat,
     MissionExportVerificationFormat,
+    build_mission_export_manifest_export,
     build_mission_export_verification_export,
     generate_mission_export,
     mission_export_file,
@@ -653,6 +655,28 @@ def create_web_app(
         except FileNotFoundError as error:
             raise HTTPException(status_code=404, detail=str(error)) from error
         return FileResponse(path)
+
+    @app.get("/missions/{mission_id}/export-manifest/{export_format}", dependencies=protected)
+    def mission_export_manifest_download(
+        mission_id: str,
+        export_format: MissionExportManifestFormat,
+    ) -> Response:
+        try:
+            store.get_mission(mission_id)
+            export = build_mission_export_manifest_export(
+                mission_id,
+                reports_dir,
+                export_format,
+            )
+        except FileNotFoundError as error:
+            raise HTTPException(status_code=404, detail=str(error)) from error
+        except ValueError as error:
+            raise HTTPException(status_code=400, detail=str(error)) from error
+        return Response(
+            content=export.content,
+            media_type=export.media_type,
+            headers={"Content-Disposition": f'attachment; filename="{export.filename}"'},
+        )
 
     @app.get("/missions/{mission_id}/export-verification/{export_format}", dependencies=protected)
     def mission_export_verification_download(

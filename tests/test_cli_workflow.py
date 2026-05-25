@@ -38,13 +38,21 @@ from media_security_audit.cli import (  # noqa: E402
     run_tls_audit,
     show_mission,
 )
-from media_security_audit.models import AuditCheck, AuditType, MissionStatus, ScopeType, Severity  # noqa: E402
+from media_security_audit.models import (  # noqa: E402
+    AuditCheck,
+    AuditType,
+    FindingStatus,
+    MissionStatus,
+    ScopeType,
+    Severity,
+)
 from media_security_audit.scanners.http_headers import HttpHeaderResponse  # noqa: E402
 from media_security_audit.scanners.ldap import LdapExecutor  # noqa: E402
 from media_security_audit.scanners.nmap import NmapExecutor, nmap_output_path  # noqa: E402
 from media_security_audit.scanners.smb import SmbExecutor  # noqa: E402
 from media_security_audit.scanners.testssl import TestsslExecutor, testssl_output_path  # noqa: E402
 from media_security_audit.storage import JsonStore  # noqa: E402
+from media_security_audit.web_reports import generate_web_reports  # noqa: E402
 
 
 class CliWorkflowTests(unittest.TestCase):
@@ -722,6 +730,66 @@ class CliWorkflowTests(unittest.TestCase):
 
         self.assertEqual(error.exception.code, 2)
         self.assertIn("error: mission not found: missing", stderr.getvalue())
+
+    def test_mission_readiness_json_command_is_machine_readable(self) -> None:
+        root_dir = Path(__file__).resolve().parents[1] / ".tmp-tests" / "cli-mission-readiness-json"
+        data_dir = root_dir / "data"
+        reports_dir = root_dir / "reports"
+        client = create_client(name="Client Readiness", data_dir=data_dir)
+        mission = create_mission(
+            client_id=client.id,
+            name="Readiness Audit",
+            authorization_reference="AUTH-READY",
+            data_dir=data_dir,
+        )
+        add_scope(
+            mission_id=mission.id,
+            scope_type=ScopeType.DOMAIN,
+            value="client.example",
+            approved=True,
+            data_dir=data_dir,
+        )
+        add_finding(
+            mission_id=mission.id,
+            title="Reviewed finding",
+            severity=Severity.LOW,
+            affected_asset="client.example",
+            category="manual",
+            proof="Reviewed evidence.",
+            risk="Known low risk.",
+            remediation="Apply remediation.",
+            counter_test="Repeat approved checks.",
+            data_dir=data_dir,
+        )
+        finding = JsonStore(data_dir).list_findings(mission.id)[0]
+        finding.status = FindingStatus.CONFIRMED
+        JsonStore(data_dir).save_finding(mission.id, finding)
+        generate_web_reports(JsonStore(data_dir), mission.id, reports_dir)
+        stdout = io.StringIO()
+
+        with redirect_stdout(stdout):
+            app(
+                [
+                    "mission",
+                    "readiness",
+                    "--mission-id",
+                    mission.id,
+                    "--data-dir",
+                    str(data_dir),
+                    "--reports-dir",
+                    str(reports_dir),
+                    "--format",
+                    "json",
+                ]
+            )
+
+        payload = json.loads(stdout.getvalue())
+
+        self.assertEqual(payload["schema_version"], 1)
+        self.assertEqual(payload["summary"]["execution"], "not_executed")
+        self.assertEqual(payload["summary"]["generated_reports"], 3)
+        self.assertEqual(payload["scan_plan"]["execution"], "not_executed")
+        self.assertEqual(JsonStore(data_dir).list_scan_runs(mission.id), [])
 
     def test_preflight_json_command_is_machine_readable(self) -> None:
         root_dir = Path(__file__).resolve().parents[1] / ".tmp-tests" / "cli-preflight-json"

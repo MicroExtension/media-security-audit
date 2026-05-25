@@ -15,6 +15,12 @@ from media_security_audit.deployment_preflight import (
     format_deployment_preflight_json,
     preflight_exit_code,
 )
+from media_security_audit.mission_readiness import (
+    build_mission_readiness_payload,
+    format_mission_readiness_json,
+    format_mission_readiness_text,
+    mission_readiness_exit_code,
+)
 from media_security_audit.models import (
     AuditCheck,
     AuditType,
@@ -947,6 +953,27 @@ try:
     ) -> None:
         typer.echo(show_mission(mission_id=mission_id, data_dir=data_dir))
 
+    @mission_app.command("readiness")
+    def mission_readiness(
+        mission_id: str = typer.Option(..., "--mission-id"),
+        data_dir: Path = typer.Option(Path("data"), "--data-dir"),
+        reports_dir: Path = typer.Option(Path("reports"), "--reports-dir"),
+        output_format: str = typer.Option("text", "--format"),
+        strict: bool = typer.Option(False, "--strict"),
+    ) -> None:
+        """Check mission readiness without running scans."""
+        if output_format not in {"text", "json"}:
+            raise typer.BadParameter("--format must be text or json")
+        store = JsonStore(data_dir)
+        payload = build_mission_readiness_payload(store, mission_id, reports_dir)
+        if output_format == "json":
+            typer.echo(format_mission_readiness_json(store, mission_id, reports_dir))
+        else:
+            typer.echo(format_mission_readiness_text(store, mission_id, reports_dir))
+        exit_code = mission_readiness_exit_code(payload, strict=strict)
+        if exit_code:
+            raise typer.Exit(code=exit_code)
+
     @scope_app.command("add")
     def scope_add(
         mission_id: str = typer.Option(..., "--mission-id"),
@@ -1277,6 +1304,15 @@ except ModuleNotFoundError:
         mission_show_parser = mission_subparsers.add_parser("show", help="Show mission details.")
         mission_show_parser.add_argument("--mission-id", required=True)
         mission_show_parser.add_argument("--data-dir", type=Path, default=Path("data"))
+        mission_readiness_parser = mission_subparsers.add_parser(
+            "readiness",
+            help="Check mission readiness without running scans.",
+        )
+        mission_readiness_parser.add_argument("--mission-id", required=True)
+        mission_readiness_parser.add_argument("--data-dir", type=Path, default=Path("data"))
+        mission_readiness_parser.add_argument("--reports-dir", type=Path, default=Path("reports"))
+        mission_readiness_parser.add_argument("--format", choices=["text", "json"], default="text")
+        mission_readiness_parser.add_argument("--strict", action="store_true")
 
         scope_parser = subparsers.add_parser("scope", help="Manage mission scope.")
         scope_subparsers = scope_parser.add_subparsers(dest="scope_command")
@@ -1496,6 +1532,18 @@ except ModuleNotFoundError:
 
             if args.command == "mission" and args.mission_command == "show":
                 print(show_mission(mission_id=args.mission_id, data_dir=args.data_dir))
+                return
+
+            if args.command == "mission" and args.mission_command == "readiness":
+                store = JsonStore(args.data_dir)
+                payload = build_mission_readiness_payload(store, args.mission_id, args.reports_dir)
+                if args.format == "json":
+                    print(format_mission_readiness_json(store, args.mission_id, args.reports_dir))
+                else:
+                    print(format_mission_readiness_text(store, args.mission_id, args.reports_dir))
+                exit_code = mission_readiness_exit_code(payload, strict=args.strict)
+                if exit_code:
+                    raise SystemExit(exit_code)
                 return
 
             if args.command == "scope" and args.scope_command == "add":

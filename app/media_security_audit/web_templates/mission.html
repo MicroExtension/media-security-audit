@@ -299,6 +299,8 @@
     <div class="report-links" aria-label="Mission export package">
       {% if view.mission_export %}
       <a href="/missions/{{ view.mission.id }}/export">zip</a>
+      <a href="/missions/{{ view.mission.id }}/export-manifest/markdown">manifest md</a>
+      <a href="/missions/{{ view.mission.id }}/export-manifest/json">manifest json</a>
       <a href="/missions/{{ view.mission.id }}/export-verification/markdown">verification md</a>
       <a href="/missions/{{ view.mission.id }}/export-verification/json">verification json</a>
       <span class="muted">{{ view.mission_export.filename }} | {{ view.mission_export.size_bytes }} bytes</span>

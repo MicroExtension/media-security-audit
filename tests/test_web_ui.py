@@ -334,6 +334,8 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("view.mission_export.unexpected_count", template)
         self.assertIn("view.mission_export.has_integrity_issues", template)
         self.assertIn('aria-label="Mission export package"', template)
+        self.assertIn('/missions/{{ view.mission.id }}/export-manifest/markdown', template)
+        self.assertIn('/missions/{{ view.mission.id }}/export-manifest/json', template)
         self.assertIn('/missions/{{ view.mission.id }}/export-verification/markdown', template)
         self.assertIn('/missions/{{ view.mission.id }}/export-verification/json', template)
         self.assertIn(

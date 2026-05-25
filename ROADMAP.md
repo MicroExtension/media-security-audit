@@ -191,6 +191,8 @@ Current foundation:
 - guarded TLS testssl.sh adapter started
 - testssl.sh JSON parser started
 - TLS scan plan previews started
+- guarded SMB anonymous listing adapter started
+- SMB scan plan previews started
 
 ## V3 - Portable Appliance
 

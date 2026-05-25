@@ -9,6 +9,7 @@ from media_security_audit.models import AuditCheck, Finding, FindingStatus, Miss
 from media_security_audit.scanners.dns_mail import approved_dns_domains, dns_mail_query_plan
 from media_security_audit.scanners.http_headers import approved_http_targets
 from media_security_audit.scanners.nmap import NmapCommandBuilder, render_command
+from media_security_audit.scanners.smb import SmbCommandBuilder, render_smb_command
 from media_security_audit.scanners.testssl import TestsslCommandBuilder, render_testssl_command
 
 
@@ -52,6 +53,7 @@ def build_scan_plan_previews(mission: Mission) -> list[ScanPlanPreview]:
         AuditCheck.HTTP_HEADERS: _http_preview,
         AuditCheck.DNS_MAIL: _dns_mail_preview,
         AuditCheck.TLS: _tls_preview,
+        AuditCheck.SMB: _smb_preview,
     }
     if not mission.selected_checks:
         return [_blocked_plan("Check Selection", "No audit check is selected for this mission.")]
@@ -219,6 +221,24 @@ def _tls_preview(mission: Mission) -> ScanPlanPreview:
         label="TLS",
         status="ready",
         detail=f"{len(rendered)} planned testssl.sh command(s).",
+        commands=rendered,
+    )
+
+
+def _smb_preview(mission: Mission) -> ScanPlanPreview:
+    try:
+        commands = SmbCommandBuilder().build_for_scope(mission.scope)
+    except ValueError as error:
+        return _blocked_plan("SMB", str(error))
+
+    if not commands:
+        return _blocked_plan("SMB", "No approved SMB-compatible target.")
+
+    rendered = [render_smb_command(command) for command in commands]
+    return ScanPlanPreview(
+        label="SMB",
+        status="ready",
+        detail=f"{len(rendered)} planned smbclient command(s).",
         commands=rendered,
     )
 

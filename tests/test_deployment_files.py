@@ -16,6 +16,7 @@ class DeploymentFileTests(unittest.TestCase):
 
         self.assertIn("apt-get install -y --no-install-recommends", dockerfile)
         self.assertIn("nmap", dockerfile)
+        self.assertIn("smbclient", dockerfile)
         self.assertIn("USER mediaaudit", dockerfile)
         self.assertIn("/var/lib/media-audit/data", dockerfile)
         self.assertIn("/var/lib/media-audit/reports", dockerfile)

@@ -97,6 +97,7 @@ class AuditCheck(str, Enum):
     HTTP_HEADERS = "http_headers"
     DNS_MAIL = "dns_mail"
     TLS = "tls"
+    SMB = "smb"
 
 
 DEFAULT_AUDIT_CHECKS: tuple[AuditCheck, ...] = (

@@ -26,6 +26,7 @@ from media_security_audit.web_exports import (  # noqa: E402
     generate_mission_export,
     list_mission_export,
     mission_export_file,
+    mission_export_path,
     verify_mission_export,
 )
 from media_security_audit.web_reports import generate_web_reports  # noqa: E402
@@ -198,6 +199,34 @@ class WebExportTests(unittest.TestCase):
         self.assertEqual(verification.missing_files, ["data/mission.json"])
         self.assertEqual(verification.mismatched_files, [])
         self.assertIn("Integrity check failed", verification.detail)
+
+    def test_list_mission_export_includes_integrity_details(self) -> None:
+        reports_dir = clean_dir("web-export-bad-link")
+        mission_id = "mission_bad_link"
+        export_path = mission_export_path(reports_dir, mission_id)
+        export_path.parent.mkdir(parents=True, exist_ok=True)
+        manifest = {
+            "archive_files": [
+                {
+                    "path": "data/mission.json",
+                    "size_bytes": 2,
+                    "sha256": sha256(b"{}").hexdigest(),
+                }
+            ]
+        }
+        with ZipFile(export_path, mode="w") as archive:
+            archive.writestr("manifest.json", json.dumps(manifest))
+
+        export_link = list_mission_export(mission_id, reports_dir)
+
+        self.assertIsNotNone(export_link)
+        self.assertEqual(export_link.integrity_status, "failed")
+        self.assertEqual(export_link.checked_files, 0)
+        self.assertEqual(export_link.missing_count, 1)
+        self.assertEqual(export_link.mismatched_count, 0)
+        self.assertEqual(export_link.unexpected_count, 0)
+        self.assertEqual(export_link.missing_files, ["data/mission.json"])
+        self.assertTrue(export_link.has_integrity_issues)
 
     def test_missing_mission_export_has_named_error(self) -> None:
         reports_dir = clean_dir("web-export-missing")

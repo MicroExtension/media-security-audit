@@ -327,6 +327,12 @@ class WebUiTests(unittest.TestCase):
         self.assertIn('/missions/{{ view.mission.id }}/scan-plan/markdown', template)
         self.assertIn('/missions/{{ view.mission.id }}/scan-plan/json', template)
         self.assertIn('aria-label="Scan plan exports"', template)
+        self.assertIn('aria-label="Mission export integrity details"', template)
+        self.assertIn("view.mission_export.checked_files", template)
+        self.assertIn("view.mission_export.missing_count", template)
+        self.assertIn("view.mission_export.mismatched_count", template)
+        self.assertIn("view.mission_export.unexpected_count", template)
+        self.assertIn("view.mission_export.has_integrity_issues", template)
         self.assertIn(
             "Required for false positive, accepted risk, or counter-test status.",
             template,
@@ -1723,6 +1729,11 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(view.mission_export.filename, f"{mission.id}-package.zip")
         self.assertEqual(view.mission_export.integrity_status, "ready")
         self.assertIn("packaged file(s) verified", view.mission_export.integrity_detail)
+        self.assertGreater(view.mission_export.checked_files, 0)
+        self.assertEqual(view.mission_export.missing_count, 0)
+        self.assertEqual(view.mission_export.mismatched_count, 0)
+        self.assertEqual(view.mission_export.unexpected_count, 0)
+        self.assertFalse(view.mission_export.has_integrity_issues)
 
     def test_mission_view_includes_authorization_brief_links(self) -> None:
         store = JsonStore(clean_data_dir("web-ui-authorization-data"))

@@ -43,6 +43,26 @@ class MissionExportLink:
     size_bytes: int
     integrity_status: str
     integrity_detail: str
+    checked_files: int
+    missing_files: list[str]
+    mismatched_files: list[str]
+    unexpected_files: list[str]
+
+    @property
+    def missing_count(self) -> int:
+        return len(self.missing_files)
+
+    @property
+    def mismatched_count(self) -> int:
+        return len(self.mismatched_files)
+
+    @property
+    def unexpected_count(self) -> int:
+        return len(self.unexpected_files)
+
+    @property
+    def has_integrity_issues(self) -> bool:
+        return bool(self.missing_files or self.mismatched_files or self.unexpected_files)
 
 
 @dataclass(frozen=True)
@@ -234,6 +254,10 @@ def list_mission_export(mission_id: str, reports_dir: Path) -> MissionExportLink
         size_bytes=path.stat().st_size,
         integrity_status=verification.status,
         integrity_detail=verification.detail,
+        checked_files=verification.checked_files,
+        missing_files=verification.missing_files,
+        mismatched_files=verification.mismatched_files,
+        unexpected_files=verification.unexpected_files,
     )
 
 

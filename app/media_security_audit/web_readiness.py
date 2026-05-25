@@ -9,6 +9,7 @@ from media_security_audit.models import AuditCheck, Finding, FindingStatus, Miss
 from media_security_audit.scanners.dns_mail import approved_dns_domains, dns_mail_query_plan
 from media_security_audit.scanners.http_headers import approved_http_targets
 from media_security_audit.scanners.nmap import NmapCommandBuilder, render_command
+from media_security_audit.scanners.testssl import TestsslCommandBuilder, render_testssl_command
 
 
 @dataclass(frozen=True)
@@ -50,6 +51,7 @@ def build_scan_plan_previews(mission: Mission) -> list[ScanPlanPreview]:
         AuditCheck.NMAP: _nmap_preview,
         AuditCheck.HTTP_HEADERS: _http_preview,
         AuditCheck.DNS_MAIL: _dns_mail_preview,
+        AuditCheck.TLS: _tls_preview,
     }
     if not mission.selected_checks:
         return [_blocked_plan("Check Selection", "No audit check is selected for this mission.")]
@@ -197,6 +199,27 @@ def _dns_mail_preview(mission: Mission) -> ScanPlanPreview:
         status="ready",
         detail=f"{len(queries)} planned TXT lookup(s).",
         commands=queries,
+    )
+
+
+def _tls_preview(mission: Mission) -> ScanPlanPreview:
+    try:
+        commands = TestsslCommandBuilder().build_for_scope(
+            mission.scope,
+            output_dir=Path("runs") / mission.id / "evidence",
+        )
+    except ValueError as error:
+        return _blocked_plan("TLS", str(error))
+
+    if not commands:
+        return _blocked_plan("TLS", "No approved TLS-compatible target.")
+
+    rendered = [render_testssl_command(command) for command in commands]
+    return ScanPlanPreview(
+        label="TLS",
+        status="ready",
+        detail=f"{len(rendered)} planned testssl.sh command(s).",
+        commands=rendered,
     )
 
 

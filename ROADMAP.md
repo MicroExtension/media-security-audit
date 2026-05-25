@@ -188,6 +188,9 @@ Current foundation:
 - mission finding disposition summary started
 - mission readiness and safe scan plan previews started
 - scan execution remains CLI-only
+- guarded TLS testssl.sh adapter started
+- testssl.sh JSON parser started
+- TLS scan plan previews started
 
 ## V3 - Portable Appliance
 

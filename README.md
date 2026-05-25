@@ -50,6 +50,7 @@ Implemented so far:
 - web check selection for mission planning
 - web system status page for appliance readiness
 - web run monitor for CLI scan execution history
+- guarded TLS testssl.sh plan, execution wrapper, and JSON parser
 - web mission export package for audit handoff
 - structured authorization details for mission records and reports
 - web authorization brief export for pre-audit approval review
@@ -191,6 +192,7 @@ python -m media_security_audit.cli mission show --mission-id "mission_xxxxx"
 python -m media_security_audit.cli scan nmap-plan --mission-id "mission_xxxxx"
 python -m media_security_audit.cli scan http-plan --mission-id "mission_xxxxx"
 python -m media_security_audit.cli scan dns-plan --mission-id "mission_xxxxx" --dkim-selector default
+python -m media_security_audit.cli scan tls-plan --mission-id "mission_xxxxx"
 python -m media_security_audit.cli report generate --mission-id "mission_xxxxx"
 python -m media_security_audit.cli web --data-dir data --reports-dir reports --host 127.0.0.1 --port 8080
 ```
@@ -227,6 +229,18 @@ python -m media_security_audit.cli scan dns-run --mission-id "mission_xxxxx" --d
 
 `dns-run` checks SPF and DMARC by default. DKIM checks are performed only for
 selectors explicitly provided with `--dkim-selector`.
+
+TLS auditing uses approved HTTPS URL, domain, host, or IP scope items and
+prints conservative `testssl.sh` commands before any execution:
+
+```powershell
+python -m media_security_audit.cli scope add --mission-id "mission_xxxxx" --type url --value "https://client.example" --environment external --approved
+python -m media_security_audit.cli scan tls-plan --mission-id "mission_xxxxx"
+python -m media_security_audit.cli scan tls-run --mission-id "mission_xxxxx" --execute
+```
+
+Like the other scanner adapters, `tls-run` is blocked unless `--execute` is
+present, authorization is recorded, and scope is approved.
 
 Local web interface:
 
@@ -439,7 +453,7 @@ media-security-audit/
 - Nmap XML parser later
 - HTTP security headers audit later
 - DNS and mail audit later
-- TLS audit adapter later
+- TLS audit adapter started
 - basic SMB audit adapter later
 - findings engine started
 - JSON, Markdown, and HTML reports

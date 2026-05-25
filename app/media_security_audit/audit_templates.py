@@ -31,10 +31,12 @@ BUILTIN_AUDIT_TEMPLATES: tuple[AuditTemplate, ...] = (
             AuditCheck.NMAP,
             AuditCheck.HTTP_HEADERS,
             AuditCheck.DNS_MAIL,
+            AuditCheck.TLS,
         ),
         scope_guidance=(
             "Approved public IP addresses and hostnames",
             "Approved public URLs for web header review",
+            "Approved HTTPS endpoints or domains for TLS posture review",
             "Approved customer domains for SPF, DKIM, and DMARC checks",
         ),
         authorization_requirements=(
@@ -77,9 +79,10 @@ BUILTIN_AUDIT_TEMPLATES: tuple[AuditTemplate, ...] = (
         audit_type=AuditType.EXTERNAL,
         cadence="quarterly",
         summary="Focus on browser security headers and mail authentication posture.",
-        recommended_checks=(AuditCheck.HTTP_HEADERS, AuditCheck.DNS_MAIL),
+        recommended_checks=(AuditCheck.HTTP_HEADERS, AuditCheck.DNS_MAIL, AuditCheck.TLS),
         scope_guidance=(
             "Approved HTTPS URLs",
+            "Approved hostnames or domains for TLS certificate and protocol review",
             "Approved customer mail domains",
             "Known DKIM selectors supplied by the customer or MSP",
         ),
@@ -104,6 +107,7 @@ BUILTIN_AUDIT_TEMPLATES: tuple[AuditTemplate, ...] = (
             AuditCheck.NMAP,
             AuditCheck.HTTP_HEADERS,
             AuditCheck.DNS_MAIL,
+            AuditCheck.TLS,
         ),
         scope_guidance=(
             "Only assets linked to remediated findings",

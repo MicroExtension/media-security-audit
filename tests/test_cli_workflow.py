@@ -24,14 +24,17 @@ from media_security_audit.cli import (  # noqa: E402
     plan_dns_mail_audit,
     plan_http_headers_audit,
     plan_nmap_scan,
+    plan_tls_audit,
     run_dns_mail_audit,
     run_http_headers_audit,
     run_nmap_scan,
+    run_tls_audit,
     show_mission,
 )
 from media_security_audit.models import AuditType, MissionStatus, ScopeType, Severity  # noqa: E402
 from media_security_audit.scanners.http_headers import HttpHeaderResponse  # noqa: E402
 from media_security_audit.scanners.nmap import NmapExecutor, nmap_output_path  # noqa: E402
+from media_security_audit.scanners.testssl import TestsslExecutor, testssl_output_path  # noqa: E402
 from media_security_audit.storage import JsonStore  # noqa: E402
 
 
@@ -148,6 +151,39 @@ class CliWorkflowTests(unittest.TestCase):
         )
         self.assertTrue(any(finding.category == "dns_mail" for finding in dns_findings))
 
+        tls_commands = plan_tls_audit(
+            mission_id=mission.id,
+            data_dir=data_dir,
+            output_dir=root_dir / "evidence",
+        )
+        self.assertEqual(len(tls_commands), 1)
+        self.assertEqual(tls_commands[0][0], "testssl.sh")
+        self.assertEqual(tls_commands[0][-1], "example.invalid")
+
+        tls_fixture = Path(__file__).parent / "fixtures" / "testssl_sample.json"
+
+        def tls_runner(
+            command: list[str],
+            timeout_seconds: int,
+        ) -> subprocess.CompletedProcess[str]:
+            output_path = testssl_output_path(command)
+            assert output_path is not None
+            output_path.write_text(tls_fixture.read_text(encoding="utf-8"), encoding="utf-8")
+            return subprocess.CompletedProcess(command, 0, "", "")
+
+        tls_results, tls_findings = run_tls_audit(
+            mission_id=mission.id,
+            data_dir=data_dir,
+            output_dir=root_dir / "evidence",
+            execute=True,
+            executor=TestsslExecutor(
+                runner=tls_runner,
+                executable_lookup=lambda executable: f"/usr/bin/{executable}",
+            ),
+        )
+        self.assertEqual(len(tls_results), 1)
+        self.assertTrue(any(finding.category == "tls" for finding in tls_findings))
+
         fixture = Path(__file__).parent / "fixtures" / "nmap_sample.xml"
 
         def runner(command: list[str], timeout_seconds: int) -> subprocess.CompletedProcess[str]:
@@ -172,7 +208,10 @@ class CliWorkflowTests(unittest.TestCase):
         self.assertTrue(any("RDP" in finding.title for finding in findings))
 
         runs = JsonStore(data_dir).list_scan_runs(mission.id)
-        self.assertEqual([run.check.value for run in runs], ["nmap", "dns_mail", "http_headers"])
+        self.assertEqual(
+            [run.check.value for run in runs],
+            ["nmap", "tls", "dns_mail", "http_headers"],
+        )
         self.assertTrue(all(run.status.value == "completed" for run in runs))
         self.assertEqual(runs[0].finding_count, 2)
 
@@ -312,6 +351,75 @@ class CliWorkflowTests(unittest.TestCase):
             run_dns_mail_audit(mission_id=mission.id, data_dir=data_dir)
 
         self.assertIn("without --execute", str(error.exception))
+
+    def test_tls_run_requires_execute_flag(self) -> None:
+        root_dir = Path(__file__).resolve().parents[1] / ".tmp-tests" / "cli-tls-guard"
+        data_dir = root_dir / "data"
+
+        client = create_client(name="Client X", data_dir=data_dir)
+        mission = create_mission(
+            client_id=client.id,
+            name="External audit",
+            audit_type=AuditType.EXTERNAL,
+            authorization_reference="signed-order",
+            data_dir=data_dir,
+        )
+        add_scope(
+            mission_id=mission.id,
+            scope_type=ScopeType.DOMAIN,
+            value="example.invalid",
+            approved=True,
+            data_dir=data_dir,
+        )
+
+        with self.assertRaises(ValueError) as error:
+            run_tls_audit(mission_id=mission.id, data_dir=data_dir)
+
+        self.assertIn("without --execute", str(error.exception))
+
+    def test_tls_run_records_failed_execution(self) -> None:
+        root_dir = Path(__file__).resolve().parents[1] / ".tmp-tests" / "cli-tls-failed-run"
+        data_dir = root_dir / "data"
+
+        client = create_client(name="Client X", data_dir=data_dir)
+        mission = create_mission(
+            client_id=client.id,
+            name="External audit",
+            audit_type=AuditType.EXTERNAL,
+            authorization_reference="signed-order",
+            data_dir=data_dir,
+        )
+        add_scope(
+            mission_id=mission.id,
+            scope_type=ScopeType.DOMAIN,
+            value="example.invalid",
+            approved=True,
+            data_dir=data_dir,
+        )
+
+        def failing_runner(
+            command: list[str],
+            timeout_seconds: int,
+        ) -> subprocess.CompletedProcess[str]:
+            return subprocess.CompletedProcess(command, 2, "", "tls failed")
+
+        with self.assertRaises(RuntimeError):
+            run_tls_audit(
+                mission_id=mission.id,
+                data_dir=data_dir,
+                execute=True,
+                executor=TestsslExecutor(
+                    runner=failing_runner,
+                    executable_lookup=lambda executable: f"/usr/bin/{executable}",
+                ),
+            )
+
+        runs = JsonStore(data_dir).list_scan_runs(mission.id)
+
+        self.assertEqual(len(runs), 1)
+        self.assertEqual(runs[0].check.value, "tls")
+        self.assertEqual(runs[0].status.value, "failed")
+        self.assertIn("tls failed", runs[0].error or "")
 
     def test_missing_mission_error_is_readable(self) -> None:
         data_dir = Path(__file__).resolve().parents[1] / ".tmp-tests" / "cli-errors"

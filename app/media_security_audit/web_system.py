@@ -50,7 +50,7 @@ class SystemStatus:
 
 TOOL_CHECKS: tuple[tuple[str, str, str], ...] = (
     ("Nmap", "nmap", "Required for guarded Nmap execution."),
-    ("testssl.sh", "testssl.sh", "Planned for TLS checks."),
+    ("testssl.sh", "testssl.sh", "Required for guarded TLS execution."),
     ("Nuclei", "nuclei", "Optional future template checks."),
     ("smbclient", "smbclient", "Planned for SMB checks."),
     ("ldapsearch", "ldapsearch", "Planned for LDAP checks."),

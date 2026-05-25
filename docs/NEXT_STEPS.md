@@ -263,6 +263,28 @@ Codex action:
 - test TLS behavior with mocked runners
 - do not run `testssl.sh` from the development environment
 
+## Step 2.7 - SMB Basic Audit
+
+Status: started.
+
+The SMB module:
+- uses approved host, IP, or domain scope items only
+- supports `scan smb-plan` without executing `smbclient`
+- requires `scan smb-run --execute` before running `smbclient`
+- performs anonymous listing checks only
+- rejects credentialed and interactive command shapes
+- parses fixture `smbclient -g` output into normalized findings
+- stores findings and evidence on the mission
+
+Owner action:
+- no action required yet
+- later, confirm whether anonymous SMB listing checks are acceptable by default
+  for internal maintenance audits
+
+Codex action:
+- test SMB behavior with mocked runners
+- do not run `smbclient` from the development environment
+
 ## Step 3 - Decide Branding
 
 Status: not blocking.
@@ -561,6 +583,7 @@ Current GUI status:
 - mission readiness cards link to the setup section that needs action
 - mission readiness and safe scan plan previews are visible from mission pages
 - TLS testssl.sh scan plan previews are available when the TLS check is selected
+- SMB scan plan previews are available when the SMB check is selected
 - scan execution remains CLI-only
 
 ## Step 7 - Add Safe Scanner Modules
@@ -572,7 +595,7 @@ Initial module order:
 2. HTTP headers
 3. DNS/Mail
 4. TLS via testssl.sh: started
-5. SMB basic checks
+5. SMB basic checks: started
 
 Owner action before real modules:
 - confirm accepted Nmap timing defaults

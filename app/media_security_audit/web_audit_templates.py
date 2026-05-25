@@ -13,6 +13,7 @@ CHECK_LABELS: dict[AuditCheck, str] = {
     AuditCheck.HTTP_HEADERS: "HTTP headers",
     AuditCheck.DNS_MAIL: "DNS/Mail",
     AuditCheck.TLS: "TLS posture",
+    AuditCheck.SMB: "SMB basic",
 }
 
 

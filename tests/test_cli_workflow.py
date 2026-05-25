@@ -24,16 +24,19 @@ from media_security_audit.cli import (  # noqa: E402
     plan_dns_mail_audit,
     plan_http_headers_audit,
     plan_nmap_scan,
+    plan_smb_audit,
     plan_tls_audit,
     run_dns_mail_audit,
     run_http_headers_audit,
     run_nmap_scan,
+    run_smb_audit,
     run_tls_audit,
     show_mission,
 )
 from media_security_audit.models import AuditType, MissionStatus, ScopeType, Severity  # noqa: E402
 from media_security_audit.scanners.http_headers import HttpHeaderResponse  # noqa: E402
 from media_security_audit.scanners.nmap import NmapExecutor, nmap_output_path  # noqa: E402
+from media_security_audit.scanners.smb import SmbExecutor  # noqa: E402
 from media_security_audit.scanners.testssl import TestsslExecutor, testssl_output_path  # noqa: E402
 from media_security_audit.storage import JsonStore  # noqa: E402
 
@@ -184,6 +187,37 @@ class CliWorkflowTests(unittest.TestCase):
         self.assertEqual(len(tls_results), 1)
         self.assertTrue(any(finding.category == "tls" for finding in tls_findings))
 
+        smb_commands = plan_smb_audit(mission_id=mission.id, data_dir=data_dir)
+        self.assertEqual(len(smb_commands), 1)
+        self.assertEqual(smb_commands[0][0], "smbclient")
+        self.assertEqual(smb_commands[0][2], "//example.invalid")
+
+        smb_fixture = Path(__file__).parent / "fixtures" / "smbclient_list_sample.txt"
+
+        def smb_runner(
+            command: list[str],
+            timeout_seconds: int,
+        ) -> subprocess.CompletedProcess[str]:
+            return subprocess.CompletedProcess(
+                command,
+                0,
+                smb_fixture.read_text(encoding="utf-8"),
+                "",
+            )
+
+        smb_results, smb_findings = run_smb_audit(
+            mission_id=mission.id,
+            data_dir=data_dir,
+            output_dir=root_dir / "evidence",
+            execute=True,
+            executor=SmbExecutor(
+                runner=smb_runner,
+                executable_lookup=lambda executable: f"/usr/bin/{executable}",
+            ),
+        )
+        self.assertEqual(len(smb_results), 1)
+        self.assertTrue(any(finding.category == "smb" for finding in smb_findings))
+
         fixture = Path(__file__).parent / "fixtures" / "nmap_sample.xml"
 
         def runner(command: list[str], timeout_seconds: int) -> subprocess.CompletedProcess[str]:
@@ -210,7 +244,7 @@ class CliWorkflowTests(unittest.TestCase):
         runs = JsonStore(data_dir).list_scan_runs(mission.id)
         self.assertEqual(
             [run.check.value for run in runs],
-            ["nmap", "tls", "dns_mail", "http_headers"],
+            ["nmap", "smb", "tls", "dns_mail", "http_headers"],
         )
         self.assertTrue(all(run.status.value == "completed" for run in runs))
         self.assertEqual(runs[0].finding_count, 2)
@@ -420,6 +454,75 @@ class CliWorkflowTests(unittest.TestCase):
         self.assertEqual(runs[0].check.value, "tls")
         self.assertEqual(runs[0].status.value, "failed")
         self.assertIn("tls failed", runs[0].error or "")
+
+    def test_smb_run_requires_execute_flag(self) -> None:
+        root_dir = Path(__file__).resolve().parents[1] / ".tmp-tests" / "cli-smb-guard"
+        data_dir = root_dir / "data"
+
+        client = create_client(name="Client X", data_dir=data_dir)
+        mission = create_mission(
+            client_id=client.id,
+            name="Internal audit",
+            audit_type=AuditType.INTERNAL,
+            authorization_reference="signed-order",
+            data_dir=data_dir,
+        )
+        add_scope(
+            mission_id=mission.id,
+            scope_type=ScopeType.HOST,
+            value="fs01.client.local",
+            approved=True,
+            data_dir=data_dir,
+        )
+
+        with self.assertRaises(ValueError) as error:
+            run_smb_audit(mission_id=mission.id, data_dir=data_dir)
+
+        self.assertIn("without --execute", str(error.exception))
+
+    def test_smb_run_records_failed_execution(self) -> None:
+        root_dir = Path(__file__).resolve().parents[1] / ".tmp-tests" / "cli-smb-failed-run"
+        data_dir = root_dir / "data"
+
+        client = create_client(name="Client X", data_dir=data_dir)
+        mission = create_mission(
+            client_id=client.id,
+            name="Internal audit",
+            audit_type=AuditType.INTERNAL,
+            authorization_reference="signed-order",
+            data_dir=data_dir,
+        )
+        add_scope(
+            mission_id=mission.id,
+            scope_type=ScopeType.HOST,
+            value="fs01.client.local",
+            approved=True,
+            data_dir=data_dir,
+        )
+
+        def failing_runner(
+            command: list[str],
+            timeout_seconds: int,
+        ) -> subprocess.CompletedProcess[str]:
+            return subprocess.CompletedProcess(command, 1, "", "anonymous listing denied")
+
+        with self.assertRaises(RuntimeError):
+            run_smb_audit(
+                mission_id=mission.id,
+                data_dir=data_dir,
+                execute=True,
+                executor=SmbExecutor(
+                    runner=failing_runner,
+                    executable_lookup=lambda executable: f"/usr/bin/{executable}",
+                ),
+            )
+
+        runs = JsonStore(data_dir).list_scan_runs(mission.id)
+
+        self.assertEqual(len(runs), 1)
+        self.assertEqual(runs[0].check.value, "smb")
+        self.assertEqual(runs[0].status.value, "failed")
+        self.assertIn("anonymous listing denied", runs[0].error or "")
 
     def test_missing_mission_error_is_readable(self) -> None:
         data_dir = Path(__file__).resolve().parents[1] / ".tmp-tests" / "cli-errors"

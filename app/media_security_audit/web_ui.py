@@ -351,6 +351,7 @@ CHECK_LABELS: dict[AuditCheck, str] = {
     AuditCheck.HTTP_HEADERS: "HTTP headers",
     AuditCheck.DNS_MAIL: "DNS/Mail",
     AuditCheck.TLS: "TLS posture",
+    AuditCheck.SMB: "SMB basic",
 }
 
 CHECK_DESCRIPTIONS: dict[AuditCheck, str] = {
@@ -358,6 +359,7 @@ CHECK_DESCRIPTIONS: dict[AuditCheck, str] = {
     AuditCheck.HTTP_HEADERS: "Browser security header review on approved URL scope.",
     AuditCheck.DNS_MAIL: "SPF, DMARC, and explicit DKIM TXT lookup plan on approved domain scope.",
     AuditCheck.TLS: "testssl.sh TLS protocol, cipher, and certificate review on approved endpoints.",
+    AuditCheck.SMB: "Anonymous SMB listing check on approved host, IP, or domain scope.",
 }
 
 PREPARATION_STATUS_RANK = {"blocked": 0, "warning": 1, "ready": 2}

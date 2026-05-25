@@ -52,6 +52,14 @@ from media_security_audit.scanners.nmap import (
     parse_nmap_xml_file,
     render_command,
 )
+from media_security_audit.scanners.smb import (
+    SmbCommandBuilder,
+    SmbExecutionResult,
+    SmbExecutor,
+    findings_from_smb_shares,
+    parse_smbclient_listing,
+    render_smb_command,
+)
 from media_security_audit.scanners.testssl import (
     TestsslCommandBuilder,
     TestsslExecutionResult,
@@ -565,6 +573,103 @@ def run_tls_audit(
     return results, stored_findings
 
 
+def plan_smb_audit(
+    mission_id: str,
+    data_dir: Path,
+) -> list[list[str]]:
+    store = JsonStore(data_dir)
+    mission = store.get_mission(mission_id)
+    commands = SmbCommandBuilder().build_for_scope(mission.scope)
+    if not commands:
+        raise ValueError("no approved SMB-compatible scope items found")
+    return commands
+
+
+def run_smb_audit(
+    mission_id: str,
+    data_dir: Path,
+    output_dir: Path | None = None,
+    execute: bool = False,
+    executor: SmbExecutor | None = None,
+) -> tuple[list[SmbExecutionResult], list[Finding]]:
+    if not execute:
+        raise ValueError("refusing to audit SMB without --execute; use scan smb-plan first")
+
+    store = JsonStore(data_dir)
+    mission = store.get_mission(mission_id)
+    if not mission.is_authorized:
+        raise ValueError("mission authorization is required before SMB audit")
+    if not mission.has_approved_scope:
+        raise ValueError("approved mission scope is required before SMB audit")
+
+    commands = SmbCommandBuilder().build_for_scope(mission.scope)
+    if not commands:
+        raise ValueError("no approved SMB-compatible scope items found")
+
+    smb_executor = executor or SmbExecutor()
+    try:
+        results = [smb_executor.run(command) for command in commands]
+    except Exception as error:
+        record_scan_run(
+            store,
+            mission_id,
+            AuditCheck.SMB,
+            ScanRunStatus.FAILED,
+            command_count=len(commands),
+            error=str(error),
+            metadata={"stage": "execution"},
+        )
+        raise
+
+    evidence_dir = output_dir or Path("runs") / mission.id / "evidence"
+    evidence_dir.mkdir(parents=True, exist_ok=True)
+    evidence_paths = []
+    for index, result in enumerate(results, start=1):
+        evidence_path = evidence_dir / f"smbclient-{index}.txt"
+        evidence_path.write_text(
+            f"$ {render_smb_command(list(result.command))}\n\n"
+            f"STDOUT:\n{result.stdout}\n\nSTDERR:\n{result.stderr}\n",
+            encoding="utf-8",
+        )
+        evidence_paths.append(str(evidence_path))
+
+    failed = [result for result in results if result.exit_code != 0]
+    if failed:
+        first = failed[0]
+        record_scan_run(
+            store,
+            mission_id,
+            AuditCheck.SMB,
+            ScanRunStatus.FAILED,
+            command_count=len(commands),
+            evidence_paths=evidence_paths,
+            error=first.stderr,
+            metadata={"exit_code": str(first.exit_code)},
+        )
+        raise RuntimeError(
+            f"smbclient command failed with exit code {first.exit_code}: {first.stderr}"
+        )
+
+    shares = [
+        share
+        for result in results
+        for share in parse_smbclient_listing(result.stdout, result.target)
+    ]
+    findings = findings_from_smb_shares(shares)
+    stored_findings = store.add_findings(mission_id, findings)
+    record_scan_run(
+        store,
+        mission_id,
+        AuditCheck.SMB,
+        ScanRunStatus.COMPLETED,
+        command_count=len(commands),
+        finding_count=len(stored_findings),
+        evidence_paths=evidence_paths,
+        metadata={"target_count": str(len(commands))},
+    )
+    return results, stored_findings
+
+
 def format_cli_error(error: Exception) -> str:
     if isinstance(error, ValidationError):
         messages = [item["msg"] for item in error.errors()]
@@ -907,6 +1012,31 @@ try:
         )
         typer.echo(f"Executed {len(results)} TLS command(s); stored {len(findings)} finding(s).")
 
+    @scan_app.command("smb-plan")
+    def scan_smb_plan(
+        mission_id: str = typer.Option(..., "--mission-id"),
+        data_dir: Path = typer.Option(Path("data"), "--data-dir"),
+    ) -> None:
+        """Print safe smbclient commands without executing them."""
+        for command in plan_smb_audit(mission_id=mission_id, data_dir=data_dir):
+            typer.echo(render_smb_command(command))
+
+    @scan_app.command("smb-run")
+    def scan_smb_run(
+        mission_id: str = typer.Option(..., "--mission-id"),
+        data_dir: Path = typer.Option(Path("data"), "--data-dir"),
+        output_dir: Path | None = typer.Option(None, "--output-dir"),
+        execute: bool = typer.Option(False, "--execute", help="Required to run smbclient."),
+    ) -> None:
+        """Audit SMB anonymous listing only when --execute is explicitly provided."""
+        results, findings = run_smb_audit(
+            mission_id=mission_id,
+            data_dir=data_dir,
+            output_dir=output_dir,
+            execute=execute,
+        )
+        typer.echo(f"Executed {len(results)} SMB command(s); stored {len(findings)} finding(s).")
+
 except ModuleNotFoundError:
 
     def app(argv: list[str] | None = None) -> None:
@@ -1070,6 +1200,20 @@ except ModuleNotFoundError:
         tls_run_parser.add_argument("--data-dir", type=Path, default=Path("data"))
         tls_run_parser.add_argument("--output-dir", type=Path)
         tls_run_parser.add_argument("--execute", action="store_true")
+        smb_plan_parser = scan_subparsers.add_parser(
+            "smb-plan",
+            help="Print safe smbclient commands without executing them.",
+        )
+        smb_plan_parser.add_argument("--mission-id", required=True)
+        smb_plan_parser.add_argument("--data-dir", type=Path, default=Path("data"))
+        smb_run_parser = scan_subparsers.add_parser(
+            "smb-run",
+            help="Audit SMB anonymous listing only when --execute is explicitly provided.",
+        )
+        smb_run_parser.add_argument("--mission-id", required=True)
+        smb_run_parser.add_argument("--data-dir", type=Path, default=Path("data"))
+        smb_run_parser.add_argument("--output-dir", type=Path)
+        smb_run_parser.add_argument("--execute", action="store_true")
 
         report_parser = subparsers.add_parser("report", help="Generate reports.")
         report_subparsers = report_parser.add_subparsers(dest="report_command")
@@ -1275,6 +1419,21 @@ except ModuleNotFoundError:
                     execute=args.execute,
                 )
                 print(f"Executed {len(results)} TLS command(s); stored {len(findings)} finding(s).")
+                return
+
+            if args.command == "scan" and args.scan_command == "smb-plan":
+                for command in plan_smb_audit(mission_id=args.mission_id, data_dir=args.data_dir):
+                    print(render_smb_command(command))
+                return
+
+            if args.command == "scan" and args.scan_command == "smb-run":
+                results, findings = run_smb_audit(
+                    mission_id=args.mission_id,
+                    data_dir=args.data_dir,
+                    output_dir=args.output_dir,
+                    execute=args.execute,
+                )
+                print(f"Executed {len(results)} SMB command(s); stored {len(findings)} finding(s).")
                 return
 
             if args.command == "report" and args.report_command == "generate":

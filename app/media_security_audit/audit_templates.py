@@ -56,10 +56,11 @@ BUILTIN_AUDIT_TEMPLATES: tuple[AuditTemplate, ...] = (
         audit_type=AuditType.INTERNAL,
         cadence="semiannual",
         summary="Review internal service exposure and administrative surface on approved ranges.",
-        recommended_checks=(AuditCheck.NMAP,),
+        recommended_checks=(AuditCheck.NMAP, AuditCheck.SMB),
         scope_guidance=(
             "Approved internal CIDR ranges",
             "Approved server VLANs or management subnets",
+            "Approved file server hostnames or IPs for SMB anonymous listing checks",
             "Excluded sensitive ranges documented before execution",
         ),
         authorization_requirements=(
@@ -108,6 +109,7 @@ BUILTIN_AUDIT_TEMPLATES: tuple[AuditTemplate, ...] = (
             AuditCheck.HTTP_HEADERS,
             AuditCheck.DNS_MAIL,
             AuditCheck.TLS,
+            AuditCheck.SMB,
         ),
         scope_guidance=(
             "Only assets linked to remediated findings",

@@ -1325,7 +1325,7 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(view.mission.audit_template_title, "Internal Network Hygiene")
         self.assertIsNotNone(view.template_guidance)
         self.assertEqual(view.template_guidance.title, "Internal Network Hygiene")
-        self.assertEqual(view.template_guidance.recommended_checks, ["Nmap services"])
+        self.assertEqual(view.template_guidance.recommended_checks, ["Nmap services", "SMB basic"])
         self.assertIn("Approved internal CIDR ranges", view.template_guidance.scope_guidance)
         self.assertEqual(view.mission.authorization_reference, "AUTH-002")
         self.assertEqual(view.mission.authorization_contact, "RSSI Client")

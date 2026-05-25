@@ -1,0 +1,6 @@
+Disk|Public|Shared public files
+Disk|Finance|Finance team share
+Disk|ADMIN$|Remote Admin
+IPC|IPC$|IPC Service
+Server|CLIENT-FS|Samba server
+Workgroup|WORKGROUP|CLIENT-FS

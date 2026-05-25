@@ -23,6 +23,8 @@ from media_security_audit.models import (  # noqa: E402
 from media_security_audit.storage import JsonStore  # noqa: E402
 from media_security_audit.web_authorization import generate_authorization_brief  # noqa: E402
 from media_security_audit.web_exports import (  # noqa: E402
+    MissionExportVerificationFormat,
+    build_mission_export_verification_export,
     generate_mission_export,
     list_mission_export,
     mission_export_file,
@@ -175,6 +177,27 @@ class WebExportTests(unittest.TestCase):
         self.assertIn(f"readiness/{mission.id}-readiness.md", names)
         self.assertIn(f"reports/{mission.id}.json", names)
         self.assertIn(f"reports/{mission.id}.html", names)
+
+        json_export = build_mission_export_verification_export(
+            mission.id,
+            reports_dir,
+            MissionExportVerificationFormat.JSON,
+        )
+        markdown_export = build_mission_export_verification_export(
+            mission.id,
+            reports_dir,
+            MissionExportVerificationFormat.MARKDOWN,
+        )
+        verification_payload = json.loads(json_export.content)
+
+        self.assertEqual(json_export.filename, f"{mission.id}-export-verification.json")
+        self.assertEqual(json_export.media_type, "application/json")
+        self.assertEqual(verification_payload["status"], "ready")
+        self.assertEqual(verification_payload["execution"], "not_executed")
+        self.assertEqual(verification_payload["summary"]["missing_files"], 0)
+        self.assertEqual(markdown_export.filename, f"{mission.id}-export-verification.md")
+        self.assertIn("# Mission Export Verification", markdown_export.content)
+        self.assertIn("- Execution: `not_executed`", markdown_export.content)
 
     def test_mission_export_verification_fails_when_manifest_member_is_missing(self) -> None:
         reports_dir = clean_dir("web-export-bad-package")

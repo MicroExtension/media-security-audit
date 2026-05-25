@@ -275,6 +275,7 @@ Current foundation:
 - mission export integrity verification started
 - CLI mission export integrity verification started
 - web mission export integrity details started
+- web mission export verification downloads started
 - mission export scan plan files started
 - mission export readiness files started
 - workspace activity log export started

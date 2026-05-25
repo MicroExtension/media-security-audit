@@ -380,7 +380,8 @@ package also includes mission readiness exports for technician handoff. The
 manifest includes SHA-256 checksums for packaged files, and the mission page
 verifies export integrity before showing package status, checked file counts,
 and any missing, mismatched, or unexpected file details. The same verification
-is available from the CLI for copy/handoff checks.
+is available from the CLI and as JSON or Markdown downloads for copy/handoff
+checks.
 The Activity page provides a workspace-level event log for operational review
 and export. The log can be filtered by search text, event action, client, and
 mission, plus an inclusive date range.
@@ -596,6 +597,7 @@ Planned screens:
 - mission export integrity verification started
 - CLI mission export integrity verification started
 - web mission export integrity details started
+- web mission export verification downloads started
 - workspace activity log export started
 - activity log filters started
 - activity log client and mission filters started

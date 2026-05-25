@@ -322,6 +322,7 @@ The consolidated plan command:
 - supports JSON output for automation
 - supports JSON and Markdown web downloads from mission pages
 - is included in mission export ZIP packages
+- is embedded in authorization briefs for pre-audit approval review
 - records `execution=not_executed`
 - never runs scanner commands
 
@@ -335,6 +336,7 @@ Codex action:
 - keep CLI and web scan planning aligned
 - use the JSON schema for deployment and technician automation
 - keep mission export packages useful for pre-audit authorization review
+- keep authorization briefs explicit about planned commands and non-execution
 
 ## Step 3 - Decide Branding
 
@@ -583,6 +585,7 @@ Current GUI status:
 - new missions can use a template to set audit type and initial checks
 - mission pages show selected template guidance for preparation
 - authorization briefs include selected template guidance
+- authorization briefs include selected scan plan summaries
 - a first remediation library is visible from the web navigation
 - mission findings show matching remediation library suggestions
 - remediation library filters can be exported as JSON, Markdown, or HTML

@@ -10,6 +10,7 @@ from pathlib import Path
 from media_security_audit.audit_templates import AuditTemplate, get_audit_template
 from media_security_audit.models import Mission, ScopeItem, utc_now
 from media_security_audit.reports import authorization_summary, scope_summary
+from media_security_audit.scan_plan_exports import scan_plan_payload
 from media_security_audit.storage import JsonStore
 from media_security_audit.web_reports import mission_report_dir
 
@@ -132,6 +133,39 @@ def render_template_guidance_markdown(template: AuditTemplate | None) -> list[st
     return lines
 
 
+def render_scan_plan_markdown(mission: Mission) -> list[str]:
+    payload = scan_plan_payload(mission)
+    summary = payload["summary"]
+    plans = payload["plans"]
+    lines = [
+        "## Planned Scan Commands",
+        "",
+        f"- Execution: `{summary['execution']}`",
+        f"- Checks: `{summary['checks']}`",
+        f"- Ready checks: `{summary['ready']}`",
+        f"- Blocked checks: `{summary['blocked']}`",
+        f"- Planned commands: `{summary['planned_commands']}`",
+        "",
+    ]
+    for plan in plans:
+        lines.extend(
+            [
+                f"### {plan['label']}",
+                "",
+                f"- Status: `{plan['status']}`",
+                f"- Detail: {plan['detail']}",
+                "- Commands:",
+            ]
+        )
+        commands = plan["commands"]
+        if commands:
+            lines.extend(f"  - `{command}`" for command in commands)
+        else:
+            lines.append("  - `none`")
+        lines.append("")
+    return lines
+
+
 def render_authorization_brief_markdown(
     mission: Mission,
     client_name: str | None = None,
@@ -190,6 +224,7 @@ def render_authorization_brief_markdown(
     lines.extend(render_scope_list(draft_scope_items(mission)))
     lines.extend([""])
     lines.extend(render_template_guidance_markdown(template))
+    lines.extend(render_scan_plan_markdown(mission))
     lines.extend(
         [
             "## Guardrails",
@@ -239,6 +274,41 @@ def template_guidance_html(template: AuditTemplate | None) -> str:
     <ul>{html_tuple_list(template.authorization_requirements)}</ul>
     <h3>Expected Deliverables</h3>
     <ul>{html_tuple_list(template.deliverables)}</ul>
+  </section>"""
+
+
+def scan_plan_html(mission: Mission) -> str:
+    payload = scan_plan_payload(mission)
+    summary = payload["summary"]
+    plan_sections = []
+    for plan in payload["plans"]:
+        commands = plan["commands"]
+        if commands:
+            command_items = "".join(f"<li><code>{escape(command)}</code></li>" for command in commands)
+        else:
+            command_items = "<li><code>none</code></li>"
+        plan_sections.append(
+            f"""
+    <article>
+      <h3>{escape(plan['label'])}</h3>
+      <dl>
+        <dt>Status</dt><dd>{escape(plan['status'])}</dd>
+        <dt>Detail</dt><dd>{escape(plan['detail'])}</dd>
+      </dl>
+      <ul>{command_items}</ul>
+    </article>"""
+        )
+    return f"""
+  <section>
+    <h2>Planned Scan Commands</h2>
+    <dl>
+      <dt>Execution</dt><dd>{escape(summary['execution'])}</dd>
+      <dt>Checks</dt><dd>{summary['checks']}</dd>
+      <dt>Ready checks</dt><dd>{summary['ready']}</dd>
+      <dt>Blocked checks</dt><dd>{summary['blocked']}</dd>
+      <dt>Planned commands</dt><dd>{summary['planned_commands']}</dd>
+    </dl>
+    {''.join(plan_sections)}
   </section>"""
 
 
@@ -322,6 +392,7 @@ def render_authorization_brief_html(
     <ul>{scope_html(draft_scope_items(mission))}</ul>
   </section>
   {template_guidance_html(template)}
+  {scan_plan_html(mission)}
   <section>
     <h2>Guardrails</h2>
     <ul>

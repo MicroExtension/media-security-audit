@@ -81,6 +81,7 @@ Current foundation:
 - check selection UI started
 - structured authorization tracking started
 - authorization brief exports started
+- authorization brief scan plan summaries started
 - run monitor started
 - system status page started
 - report generation from mission pages started
@@ -146,6 +147,7 @@ Current foundation:
 - Debian VM update plan helper script started
 - Debian VM update helper script started
 - template guidance in authorization briefs started
+- scan plan summaries in authorization briefs started
 - enriched mission export manifest started
 - mission export checksum manifest started
 - mission export integrity verification started

@@ -56,6 +56,7 @@ Implemented so far:
 - consolidated CLI scan plan output for selected checks
 - web scan plan exports in JSON and Markdown
 - mission export packages include scan plan exports
+- authorization briefs include the selected scan plan summary
 - web mission export package for audit handoff
 - structured authorization details for mission records and reports
 - web authorization brief export for pre-audit approval review
@@ -288,6 +289,8 @@ approved scope count, authorization state, and an explicit `not_executed`
 execution marker for automation.
 The mission web page exposes the same plan as JSON and Markdown downloads, and
 mission ZIP packages include both files for authorization and handoff review.
+Authorization briefs also include the selected plan so customer approval can
+cover the intended guarded CLI commands before audit work starts.
 
 Local web interface:
 
@@ -337,6 +340,8 @@ internal, web/mail, and counter-test workflows. New missions can be created
 from these templates to set the initial audit type and recommended checks.
 Mission pages show selected template guidance during preparation.
 Authorization briefs include selected template guidance for pre-audit review.
+Authorization briefs include the selected scan plan and still state that no scan
+is executed by the brief.
 Mission export ZIP packages include an enriched manifest for handoff review and
 archival. They include the selected scan plan exports for pre-audit review. The
 manifest includes SHA-256 checksums for packaged files, and the mission page
@@ -506,6 +511,7 @@ media-security-audit/
 - basic LDAP RootDSE adapter started
 - consolidated safe scan planning started
 - scan plan exports started
+- authorization brief scan plan summary started
 - findings engine started
 - JSON, Markdown, and HTML reports
 
@@ -538,6 +544,7 @@ Planned screens:
 - scan plan JSON and Markdown exports started
 - authorization tracking details started
 - authorization brief export started
+- authorization brief scan plan summary started
 - workspace backup export started
 - workspace inventory diagnostics started
 - remediation library started

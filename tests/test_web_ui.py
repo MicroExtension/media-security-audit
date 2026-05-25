@@ -632,6 +632,107 @@ class WebUiTests(unittest.TestCase):
             f"/missions/{checks_mission.id}#check-selection",
         )
 
+    def test_failed_counter_tests_drive_next_action_links(self) -> None:
+        store = JsonStore(clean_data_dir("web-ui-counter-test-next-actions"))
+        client = store.create_client(Client(name="Client Retest"))
+        mission = store.create_mission(
+            Mission(
+                client_id=client.id,
+                name="Retest Audit",
+                authorization_reference="AUTH-RETEST",
+            )
+        )
+        store.add_scope_item(
+            mission.id,
+            ScopeItem(type=ScopeType.DOMAIN, value="client.example", approved=True),
+        )
+        store.add_finding(
+            mission.id,
+            Finding(
+                title="Failed retest",
+                severity=Severity.MEDIUM,
+                affected_asset="client.example",
+                category="manual",
+                source_module="manual",
+                proof="Counter-test still shows the issue.",
+                risk="Risk remains after remediation.",
+                remediation="Continue remediation.",
+                counter_test="Repeat the check after correction.",
+                confidence=0.8,
+                status=FindingStatus.COUNTER_TEST_FAILED,
+                metadata={"review_note": "Still visible."},
+            ),
+        )
+        store.add_finding(
+            mission.id,
+            Finding(
+                title="New related finding",
+                severity=Severity.LOW,
+                affected_asset="client.example",
+                category="manual",
+                source_module="manual",
+                proof="New evidence still needs review.",
+                risk="Risk needs review.",
+                remediation="Apply correction.",
+                counter_test="Repeat the check.",
+                confidence=0.8,
+            ),
+        )
+
+        dashboard = build_dashboard_view(store)
+        client_view = build_client_view(store, client.id)
+
+        self.assertEqual(dashboard.missions[0].preparation_status, "warning")
+        self.assertEqual(
+            dashboard.missions[0].preparation_next_action,
+            "Review 1 failed counter-test(s).",
+        )
+        self.assertEqual(
+            dashboard.missions[0].preparation_action_label,
+            "Open Counter-tests",
+        )
+        self.assertEqual(
+            dashboard.missions[0].preparation_action_href,
+            f"/missions/{mission.id}#counter-test",
+        )
+        self.assertEqual(
+            dashboard.review_missions[0].next_action,
+            "Review 1 failed counter-test(s).",
+        )
+        self.assertEqual(
+            dashboard.review_missions[0].next_action_label,
+            "Open Counter-tests",
+        )
+        self.assertEqual(
+            dashboard.review_missions[0].next_action_href,
+            f"/missions/{mission.id}#counter-test",
+        )
+        self.assertEqual(
+            dashboard.clients[0].next_action,
+            "Review 1 failed counter-test(s).",
+        )
+        self.assertEqual(dashboard.clients[0].next_action_label, "Open Counter-tests")
+        self.assertEqual(
+            dashboard.clients[0].next_action_href,
+            f"/missions/{mission.id}#counter-test",
+        )
+        self.assertEqual(
+            client_view.preparation_items[0].next_action,
+            "Review 1 failed counter-test(s).",
+        )
+        self.assertEqual(
+            client_view.preparation_items[0].next_action_label,
+            "Open Counter-tests",
+        )
+        self.assertEqual(
+            client_view.preparation_items[0].next_action_href,
+            f"/missions/{mission.id}#counter-test",
+        )
+        self.assertEqual(
+            client_view.missions[0].preparation_action_href,
+            f"/missions/{mission.id}#counter-test",
+        )
+
     def test_dashboard_client_rows_include_review_and_risk_counts(self) -> None:
         store = JsonStore(clean_data_dir("web-ui-client-row-review-counts"))
         client_a = store.create_client(Client(name="Client A"))

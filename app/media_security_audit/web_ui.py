@@ -423,7 +423,7 @@ def mission_preparation_summary(
         [item for item in mission.scope if item.approved and not item.excluded]
     )
     blocked_actions: list[str] = []
-    warning_actions: list[str] = []
+    warning_actions: list[tuple[str, str, str]] = []
 
     if not mission.is_authorized:
         blocked_actions.append("Add written authorization reference.")
@@ -432,11 +432,33 @@ def mission_preparation_summary(
     if not mission.selected_checks:
         blocked_actions.append("Select audit checks for planning.")
 
+    failed_counter_test_count = len(
+        [
+            finding
+            for finding in findings
+            if finding.status == FindingStatus.COUNTER_TEST_FAILED
+        ]
+    )
+    if failed_counter_test_count:
+        warning_actions.append(
+            (
+                f"Review {failed_counter_test_count} failed counter-test(s).",
+                "Open Counter-tests",
+                "counter-test",
+            )
+        )
+
     new_finding_count = len(
         [finding for finding in findings if finding.status == FindingStatus.NEW]
     )
     if new_finding_count:
-        warning_actions.append(f"Review {new_finding_count} new finding(s).")
+        warning_actions.append(
+            (
+                f"Review {new_finding_count} new finding(s).",
+                "Review Findings",
+                "findings",
+            )
+        )
 
     if blocked_actions:
         status = "blocked"
@@ -452,9 +474,7 @@ def mission_preparation_summary(
             next_action_anchor = "check-selection"
     elif warning_actions:
         status = "warning"
-        next_action = warning_actions[0]
-        next_action_label = "Review Findings"
-        next_action_anchor = "findings"
+        next_action, next_action_label, next_action_anchor = warning_actions[0]
     else:
         status = "ready"
         next_action = "Ready for guarded CLI execution or reporting."

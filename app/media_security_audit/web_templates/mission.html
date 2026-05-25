@@ -302,6 +302,41 @@
       <span class="muted">{{ view.mission_export.filename }} | {{ view.mission_export.size_bytes }} bytes</span>
       <span class="badge status-{{ view.mission_export.integrity_status }}">{{ view.mission_export.integrity_status }}</span>
       <span class="muted">{{ view.mission_export.integrity_detail }}</span>
+      <div class="export-integrity-summary" aria-label="Mission export integrity details">
+        <span>checked {{ view.mission_export.checked_files }}</span>
+        <span>missing {{ view.mission_export.missing_count }}</span>
+        <span>mismatched {{ view.mission_export.mismatched_count }}</span>
+        <span>unexpected {{ view.mission_export.unexpected_count }}</span>
+      </div>
+      {% if view.mission_export.has_integrity_issues %}
+      <details class="export-integrity-details">
+        <summary>Integrity issues</summary>
+        {% if view.mission_export.missing_files %}
+        <strong>Missing files</strong>
+        <ul>
+          {% for filename in view.mission_export.missing_files %}
+          <li>{{ filename }}</li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+        {% if view.mission_export.mismatched_files %}
+        <strong>Mismatched files</strong>
+        <ul>
+          {% for filename in view.mission_export.mismatched_files %}
+          <li>{{ filename }}</li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+        {% if view.mission_export.unexpected_files %}
+        <strong>Unexpected files</strong>
+        <ul>
+          {% for filename in view.mission_export.unexpected_files %}
+          <li>{{ filename }}</li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+      </details>
+      {% endif %}
       {% else %}
       <span class="empty">No mission export package yet.</span>
       {% endif %}

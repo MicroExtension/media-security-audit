@@ -658,6 +658,33 @@ textarea:focus {
   text-decoration: none;
 }
 
+.export-integrity-summary {
+  color: var(--muted);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 12px;
+  gap: 6px 10px;
+}
+
+.export-integrity-details {
+  color: var(--muted);
+  flex-basis: 100%;
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: left;
+}
+
+.export-integrity-details summary {
+  color: var(--text);
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.export-integrity-details ul {
+  margin: 4px 0 8px;
+  padding-left: 18px;
+}
+
 .scope-list {
   display: grid;
   gap: 12px;

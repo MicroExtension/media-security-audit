@@ -378,8 +378,9 @@ Mission export ZIP packages include an enriched manifest for handoff review and
 archival. They include the selected scan plan exports for pre-audit review. The
 package also includes mission readiness exports for technician handoff. The
 manifest includes SHA-256 checksums for packaged files, and the mission page
-verifies export integrity before showing the package status. The same
-verification is available from the CLI for copy/handoff checks.
+verifies export integrity before showing package status, checked file counts,
+and any missing, mismatched, or unexpected file details. The same verification
+is available from the CLI for copy/handoff checks.
 The Activity page provides a workspace-level event log for operational review
 and export. The log can be filtered by search text, event action, client, and
 mission, plus an inclusive date range.
@@ -594,6 +595,7 @@ Planned screens:
 - mission export checksum manifest started
 - mission export integrity verification started
 - CLI mission export integrity verification started
+- web mission export integrity details started
 - workspace activity log export started
 - activity log filters started
 - activity log client and mission filters started

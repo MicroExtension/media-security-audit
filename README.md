@@ -44,6 +44,7 @@ Implemented so far:
 - dashboard and client pages show counter-test ready, passed, and failed summaries
 - dashboard and client mission tables show per-mission counter-test counts
 - dashboard and client pages show failed counter-test mission watchlists
+- failed counter-tests drive dashboard, client, and mission next-action links
 - finding review requires notes for false positives, accepted risks, and counter-test results
 - web mission activity log for traceability
 - web check selection for mission planning
@@ -314,6 +315,8 @@ Mission tables also include compact counter-test counts for ready, passed, and
 failed retests.
 Failed counter-test mission watchlists link directly to the mission
 counter-test plan so remediation follow-up is easier to prioritize.
+When a failed counter-test exists, mission, dashboard, and client next actions
+also point directly to the counter-test section.
 The dashboard client list also shows compact review counts per customer, so MSP
 technicians can see which client has new, accepted, or false-positive findings.
 It also shows each client's risk score, active finding count, and active
@@ -503,6 +506,7 @@ Planned screens:
 - dashboard and client counter-test summaries started
 - mission table counter-test count badges started
 - failed counter-test mission watchlists started
+- failed counter-test next-action routing started
 - system status started
 - settings
 

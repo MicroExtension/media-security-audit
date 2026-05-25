@@ -536,6 +536,7 @@ Current GUI status:
 - dashboard and client mission tables show preparation status and next action
 - dashboard and client mission tables show compact finding review counts
 - dashboard and client mission tables show compact counter-test counts
+- failed counter-tests drive mission, dashboard, and client next-action links
 - mission readiness cards link to the setup section that needs action
 - mission readiness and safe scan plan previews are visible from mission pages
 - scan execution remains CLI-only

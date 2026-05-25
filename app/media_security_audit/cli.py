@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 from datetime import date
 from pathlib import Path
 
@@ -87,6 +88,11 @@ from media_security_audit.scan_plan_exports import (
     scan_plan_payload as build_scan_plan_payload,
 )
 from media_security_audit.storage import JsonStore
+from media_security_audit.web_exports import (
+    MissionExportVerification,
+    mission_export_path,
+    verify_mission_export,
+)
 from media_security_audit.web_readiness import ScanPlanPreview, build_scan_plan_previews
 
 
@@ -822,6 +828,87 @@ def format_cli_error(error: Exception) -> str:
     return str(error)
 
 
+def mission_export_verification_package_path(
+    mission_id: str | None,
+    reports_dir: Path,
+    package_path: Path | None,
+) -> Path:
+    if package_path is not None:
+        return package_path
+    if mission_id:
+        return mission_export_path(reports_dir, mission_id)
+    raise ValueError("either --mission-id or --package is required")
+
+
+def mission_export_verification_payload(
+    package_path: Path,
+    verification: MissionExportVerification,
+) -> dict[str, object]:
+    return {
+        "schema_version": 1,
+        "package": str(package_path),
+        "status": verification.status,
+        "detail": verification.detail,
+        "execution": "not_executed",
+        "summary": {
+            "checked_files": verification.checked_files,
+            "missing_files": len(verification.missing_files),
+            "mismatched_files": len(verification.mismatched_files),
+            "unexpected_files": len(verification.unexpected_files),
+        },
+        "missing_files": verification.missing_files,
+        "mismatched_files": verification.mismatched_files,
+        "unexpected_files": verification.unexpected_files,
+    }
+
+
+def format_mission_export_verification_json(
+    package_path: Path,
+    verification: MissionExportVerification,
+) -> str:
+    return json.dumps(
+        mission_export_verification_payload(package_path, verification),
+        indent=2,
+        sort_keys=True,
+    )
+
+
+def format_mission_export_verification_text(
+    package_path: Path,
+    verification: MissionExportVerification,
+) -> str:
+    lines = [
+        f"Mission export verification: {verification.status}",
+        f"Package: {package_path}",
+        f"Detail: {verification.detail}",
+        f"Checked files: {verification.checked_files}",
+        f"Missing files: {len(verification.missing_files)}",
+        f"Mismatched files: {len(verification.mismatched_files)}",
+        f"Unexpected files: {len(verification.unexpected_files)}",
+        "Execution: not executed by this command",
+    ]
+    for label, files in (
+        ("Missing file list", verification.missing_files),
+        ("Mismatched file list", verification.mismatched_files),
+        ("Unexpected file list", verification.unexpected_files),
+    ):
+        if files:
+            lines.append(f"{label}:")
+            lines.extend(f"- {name}" for name in files)
+    return "\n".join(lines)
+
+
+def mission_export_verification_exit_code(
+    verification: MissionExportVerification,
+    strict: bool = False,
+) -> int:
+    if verification.status == "failed":
+        return 1
+    if strict and verification.status != "ready":
+        return 1
+    return 0
+
+
 def parse_cli_date(value: str) -> date:
     try:
         return date.fromisoformat(value)
@@ -971,6 +1058,30 @@ try:
         else:
             typer.echo(format_mission_readiness_text(store, mission_id, reports_dir))
         exit_code = mission_readiness_exit_code(payload, strict=strict)
+        if exit_code:
+            raise typer.Exit(code=exit_code)
+
+    @mission_app.command("export-verify")
+    def mission_export_verify(
+        mission_id: str | None = typer.Option(None, "--mission-id"),
+        reports_dir: Path = typer.Option(Path("reports"), "--reports-dir"),
+        package_path: Path | None = typer.Option(None, "--package"),
+        output_format: str = typer.Option("text", "--format"),
+        strict: bool = typer.Option(False, "--strict"),
+    ) -> None:
+        """Verify a mission export ZIP package without running scans."""
+        if output_format not in {"text", "json"}:
+            raise typer.BadParameter("--format must be text or json")
+        try:
+            path = mission_export_verification_package_path(mission_id, reports_dir, package_path)
+        except ValueError as error:
+            raise typer.BadParameter(str(error)) from error
+        verification = verify_mission_export(path)
+        if output_format == "json":
+            typer.echo(format_mission_export_verification_json(path, verification))
+        else:
+            typer.echo(format_mission_export_verification_text(path, verification))
+        exit_code = mission_export_verification_exit_code(verification, strict=strict)
         if exit_code:
             raise typer.Exit(code=exit_code)
 
@@ -1313,6 +1424,15 @@ except ModuleNotFoundError:
         mission_readiness_parser.add_argument("--reports-dir", type=Path, default=Path("reports"))
         mission_readiness_parser.add_argument("--format", choices=["text", "json"], default="text")
         mission_readiness_parser.add_argument("--strict", action="store_true")
+        mission_export_verify_parser = mission_subparsers.add_parser(
+            "export-verify",
+            help="Verify a mission export ZIP package without running scans.",
+        )
+        mission_export_verify_parser.add_argument("--mission-id")
+        mission_export_verify_parser.add_argument("--reports-dir", type=Path, default=Path("reports"))
+        mission_export_verify_parser.add_argument("--package", type=Path)
+        mission_export_verify_parser.add_argument("--format", choices=["text", "json"], default="text")
+        mission_export_verify_parser.add_argument("--strict", action="store_true")
 
         scope_parser = subparsers.add_parser("scope", help="Manage mission scope.")
         scope_subparsers = scope_parser.add_subparsers(dest="scope_command")
@@ -1542,6 +1662,18 @@ except ModuleNotFoundError:
                 else:
                     print(format_mission_readiness_text(store, args.mission_id, args.reports_dir))
                 exit_code = mission_readiness_exit_code(payload, strict=args.strict)
+                if exit_code:
+                    raise SystemExit(exit_code)
+                return
+
+            if args.command == "mission" and args.mission_command == "export-verify":
+                path = mission_export_verification_package_path(args.mission_id, args.reports_dir, args.package)
+                verification = verify_mission_export(path)
+                if args.format == "json":
+                    print(format_mission_export_verification_json(path, verification))
+                else:
+                    print(format_mission_export_verification_text(path, verification))
+                exit_code = mission_export_verification_exit_code(verification, strict=args.strict)
                 if exit_code:
                     raise SystemExit(exit_code)
                 return

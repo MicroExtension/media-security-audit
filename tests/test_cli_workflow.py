@@ -52,6 +52,7 @@ from media_security_audit.scanners.nmap import NmapExecutor, nmap_output_path  #
 from media_security_audit.scanners.smb import SmbExecutor  # noqa: E402
 from media_security_audit.scanners.testssl import TestsslExecutor, testssl_output_path  # noqa: E402
 from media_security_audit.storage import JsonStore  # noqa: E402
+from media_security_audit.web_exports import generate_mission_export  # noqa: E402
 from media_security_audit.web_reports import generate_web_reports  # noqa: E402
 
 
@@ -790,6 +791,73 @@ class CliWorkflowTests(unittest.TestCase):
         self.assertEqual(payload["summary"]["generated_reports"], 3)
         self.assertEqual(payload["scan_plan"]["execution"], "not_executed")
         self.assertEqual(JsonStore(data_dir).list_scan_runs(mission.id), [])
+
+    def test_mission_export_verify_json_command_is_machine_readable(self) -> None:
+        root_dir = Path(__file__).resolve().parents[1] / ".tmp-tests" / "cli-mission-export-verify-json"
+        data_dir = root_dir / "data"
+        reports_dir = root_dir / "reports"
+        client = create_client(name="Client Export Verify", data_dir=data_dir)
+        mission = create_mission(
+            client_id=client.id,
+            name="Export Verify Audit",
+            authorization_reference="AUTH-VERIFY",
+            data_dir=data_dir,
+        )
+        add_scope(
+            mission_id=mission.id,
+            scope_type=ScopeType.DOMAIN,
+            value="client.example",
+            approved=True,
+            data_dir=data_dir,
+        )
+        generate_web_reports(JsonStore(data_dir), mission.id, reports_dir)
+        generate_mission_export(JsonStore(data_dir), mission.id, reports_dir)
+        stdout = io.StringIO()
+
+        with redirect_stdout(stdout):
+            app(
+                [
+                    "mission",
+                    "export-verify",
+                    "--mission-id",
+                    mission.id,
+                    "--reports-dir",
+                    str(reports_dir),
+                    "--format",
+                    "json",
+                ]
+            )
+
+        payload = json.loads(stdout.getvalue())
+
+        self.assertEqual(payload["schema_version"], 1)
+        self.assertEqual(payload["status"], "ready")
+        self.assertEqual(payload["execution"], "not_executed")
+        self.assertGreater(payload["summary"]["checked_files"], 0)
+        self.assertEqual(payload["summary"]["missing_files"], 0)
+        self.assertEqual(payload["summary"]["mismatched_files"], 0)
+        self.assertEqual(JsonStore(data_dir).list_scan_runs(mission.id), [])
+
+    def test_mission_export_verify_missing_package_returns_failure(self) -> None:
+        root_dir = Path(__file__).resolve().parents[1] / ".tmp-tests" / "cli-mission-export-verify-missing"
+        stdout = io.StringIO()
+
+        with self.assertRaises(SystemExit) as error, redirect_stdout(stdout):
+            app(
+                [
+                    "mission",
+                    "export-verify",
+                    "--package",
+                    str(root_dir / "missing.zip"),
+                ]
+            )
+
+        text = stdout.getvalue()
+
+        self.assertEqual(error.exception.code, 1)
+        self.assertIn("Mission export verification: failed", text)
+        self.assertIn("package cannot be verified", text)
+        self.assertIn("Execution: not executed by this command", text)
 
     def test_preflight_json_command_is_machine_readable(self) -> None:
         root_dir = Path(__file__).resolve().parents[1] / ".tmp-tests" / "cli-preflight-json"

@@ -273,6 +273,7 @@ Current foundation:
 - enriched mission export manifest started
 - mission export checksum manifest started
 - mission export integrity verification started
+- CLI mission export integrity verification started
 - mission export scan plan files started
 - mission export readiness files started
 - workspace activity log export started

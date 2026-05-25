@@ -19,8 +19,11 @@ from media_security_audit.cli import (  # noqa: E402
     app,
     create_client,
     create_mission,
+    format_scan_plan_json,
+    format_scan_plan_text,
     generate_mission_reports,
     list_scope,
+    plan_all_scans,
     plan_dns_mail_audit,
     plan_http_headers_audit,
     plan_ldap_audit,
@@ -35,7 +38,7 @@ from media_security_audit.cli import (  # noqa: E402
     run_tls_audit,
     show_mission,
 )
-from media_security_audit.models import AuditType, MissionStatus, ScopeType, Severity  # noqa: E402
+from media_security_audit.models import AuditCheck, AuditType, MissionStatus, ScopeType, Severity  # noqa: E402
 from media_security_audit.scanners.http_headers import HttpHeaderResponse  # noqa: E402
 from media_security_audit.scanners.ldap import LdapExecutor  # noqa: E402
 from media_security_audit.scanners.nmap import NmapExecutor, nmap_output_path  # noqa: E402
@@ -626,6 +629,89 @@ class CliWorkflowTests(unittest.TestCase):
         self.assertEqual(runs[0].check.value, "ldap")
         self.assertEqual(runs[0].status.value, "failed")
         self.assertIn("invalid credentials", runs[0].error or "")
+
+    def test_scan_plan_all_formats_selected_checks_without_execution(self) -> None:
+        root_dir = Path(__file__).resolve().parents[1] / ".tmp-tests" / "cli-plan-all"
+        data_dir = root_dir / "data"
+
+        client = create_client(name="Client X", data_dir=data_dir)
+        mission = create_mission(
+            client_id=client.id,
+            name="Mixed audit",
+            audit_type=AuditType.MIXED,
+            authorization_reference="signed-order",
+            data_dir=data_dir,
+        )
+        add_scope(
+            mission_id=mission.id,
+            scope_type=ScopeType.DOMAIN,
+            value="client.example",
+            approved=True,
+            data_dir=data_dir,
+        )
+        add_scope(
+            mission_id=mission.id,
+            scope_type=ScopeType.URL,
+            value="https://client.example",
+            approved=True,
+            data_dir=data_dir,
+        )
+        add_scope(
+            mission_id=mission.id,
+            scope_type=ScopeType.HOST,
+            value="dc01.client.local",
+            approved=True,
+            data_dir=data_dir,
+        )
+        store = JsonStore(data_dir)
+        selected = [
+            AuditCheck.NMAP,
+            AuditCheck.HTTP_HEADERS,
+            AuditCheck.DNS_MAIL,
+            AuditCheck.TLS,
+            AuditCheck.SMB,
+            AuditCheck.LDAP,
+        ]
+        mission = store.save_mission(
+            store.get_mission(mission.id).model_copy(update={"selected_checks": selected})
+        )
+
+        plans = plan_all_scans(mission_id=mission.id, data_dir=data_dir)
+        payload = json.loads(format_scan_plan_json(mission_id=mission.id, data_dir=data_dir))
+        text = format_scan_plan_text(mission_id=mission.id, data_dir=data_dir)
+
+        self.assertEqual(
+            [plan.label for plan in plans],
+            ["Nmap", "HTTP Headers", "DNS/Mail", "TLS", "SMB", "LDAP"],
+        )
+        self.assertEqual(payload["schema_version"], 1)
+        self.assertEqual(payload["mission"]["id"], mission.id)
+        self.assertEqual(payload["summary"]["execution"], "not_executed")
+        self.assertEqual(payload["summary"]["ready"], 6)
+        self.assertGreaterEqual(payload["summary"]["planned_commands"], 6)
+        self.assertTrue(all(item["status"] == "ready" for item in payload["plans"]))
+        self.assertIn("Execution: not executed by this command", text)
+        self.assertIn("[ready] LDAP", text)
+        self.assertIn("ldapsearch -x -LLL", text)
+
+        stdout = io.StringIO()
+        with redirect_stdout(stdout):
+            app(
+                [
+                    "scan",
+                    "plan-all",
+                    "--mission-id",
+                    mission.id,
+                    "--data-dir",
+                    str(data_dir),
+                    "--format",
+                    "json",
+                ]
+            )
+
+        cli_payload = json.loads(stdout.getvalue())
+        self.assertEqual(cli_payload["summary"]["execution"], "not_executed")
+        self.assertEqual(JsonStore(data_dir).list_scan_runs(mission.id), [])
 
     def test_missing_mission_error_is_readable(self) -> None:
         data_dir = Path(__file__).resolve().parents[1] / ".tmp-tests" / "cli-errors"

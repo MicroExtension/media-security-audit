@@ -195,6 +195,7 @@ Current foundation:
 - SMB scan plan previews started
 - guarded LDAP RootDSE adapter started
 - LDAP scan plan previews started
+- consolidated CLI scan plan summary started
 
 ## V3 - Portable Appliance
 

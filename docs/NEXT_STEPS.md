@@ -68,6 +68,9 @@ python -m media_security_audit.cli scan dns-plan `
   --mission-id "mission_xxxxx" `
   --dkim-selector default
 
+python -m media_security_audit.cli scan plan-all `
+  --mission-id "mission_xxxxx"
+
 python -m media_security_audit.cli report generate `
   --mission-id "mission_xxxxx"
 ```
@@ -306,6 +309,29 @@ Owner action:
 Codex action:
 - test LDAP behavior with mocked runners
 - do not run `ldapsearch` from the development environment
+
+## Step 2.9 - Consolidated Scan Plan
+
+Status: started.
+
+The consolidated plan command:
+- uses the mission selected checks
+- reuses the same safe previews shown in the web UI
+- reports ready and blocked checks together
+- supports text output for technicians
+- supports JSON output for automation
+- records `execution=not_executed`
+- never runs scanner commands
+
+Owner action:
+- no action required yet
+- later, decide whether this plan should be attached to the customer
+  authorization brief before every audit
+
+Codex action:
+- keep this command read-only
+- keep CLI and web scan planning aligned
+- use the JSON schema for deployment and technician automation
 
 ## Step 3 - Decide Branding
 

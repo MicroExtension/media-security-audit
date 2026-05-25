@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 from datetime import date
 from pathlib import Path
 
@@ -20,6 +21,7 @@ from media_security_audit.models import (
     AuditType,
     Client,
     Finding,
+    Mission,
     ReportFormat,
     ScanRun,
     ScanRunStatus,
@@ -76,6 +78,10 @@ from media_security_audit.scanners.testssl import (
     render_testssl_command,
 )
 from media_security_audit.storage import JsonStore
+from media_security_audit.web_readiness import ScanPlanPreview, build_scan_plan_previews
+
+
+SCAN_PLAN_SCHEMA_VERSION = 1
 
 
 def generate_sample_reports(output: Path) -> None:
@@ -690,6 +696,86 @@ def plan_ldap_audit(
     return commands
 
 
+def load_scan_plan(mission_id: str, data_dir: Path) -> tuple[Mission, list[ScanPlanPreview]]:
+    store = JsonStore(data_dir)
+    mission = store.get_mission(mission_id)
+    return mission, build_scan_plan_previews(mission)
+
+
+def plan_all_scans(mission_id: str, data_dir: Path) -> list[ScanPlanPreview]:
+    return load_scan_plan(mission_id, data_dir)[1]
+
+
+def scan_plan_payload(mission_id: str, data_dir: Path) -> dict[str, object]:
+    mission, plans = load_scan_plan(mission_id, data_dir)
+    ready_count = len([plan for plan in plans if plan.status == "ready"])
+    blocked_count = len([plan for plan in plans if plan.status == "blocked"])
+    command_count = sum(len(plan.commands) for plan in plans)
+    approved_scope_count = len([item for item in mission.scope if item.approved and not item.excluded])
+
+    return {
+        "schema_version": SCAN_PLAN_SCHEMA_VERSION,
+        "mission": {
+            "id": mission.id,
+            "name": mission.name,
+            "status": mission.status.value,
+            "authorized": mission.is_authorized,
+            "approved_scope_count": approved_scope_count,
+            "selected_check_count": len(mission.selected_checks),
+        },
+        "summary": {
+            "checks": len(plans),
+            "ready": ready_count,
+            "blocked": blocked_count,
+            "planned_commands": command_count,
+            "execution": "not_executed",
+        },
+        "plans": [
+            {
+                "label": plan.label,
+                "status": plan.status,
+                "detail": plan.detail,
+                "commands": plan.commands,
+            }
+            for plan in plans
+        ],
+    }
+
+
+def format_scan_plan_json(mission_id: str, data_dir: Path) -> str:
+    return json.dumps(scan_plan_payload(mission_id, data_dir), indent=2, sort_keys=True)
+
+
+def format_scan_plan_text(mission_id: str, data_dir: Path) -> str:
+    mission, plans = load_scan_plan(mission_id, data_dir)
+    ready_count = len([plan for plan in plans if plan.status == "ready"])
+    blocked_count = len([plan for plan in plans if plan.status == "blocked"])
+    command_count = sum(len(plan.commands) for plan in plans)
+    approved_scope_count = len([item for item in mission.scope if item.approved and not item.excluded])
+    lines = [
+        f"Scan plan for mission: {mission.name}",
+        f"Mission ID: {mission.id}",
+        f"Status: {mission.status.value}",
+        f"Authorization: {'recorded' if mission.is_authorized else 'missing'}",
+        f"Approved scope: {approved_scope_count}",
+        f"Selected checks: {len(mission.selected_checks)}",
+        f"Ready checks: {ready_count}",
+        f"Blocked checks: {blocked_count}",
+        f"Planned commands: {command_count}",
+        "Execution: not executed by this command",
+        "",
+    ]
+    for plan in plans:
+        lines.append(f"[{plan.status}] {plan.label}")
+        lines.append(f"  {plan.detail}")
+        if plan.commands:
+            lines.extend(f"  - {command}" for command in plan.commands)
+        else:
+            lines.append("  - no command")
+        lines.append("")
+    return "\n".join(lines).rstrip()
+
+
 def run_ldap_audit(
     mission_id: str,
     data_dir: Path,
@@ -1007,6 +1093,20 @@ try:
         for path in generate_mission_reports(mission_id=mission_id, data_dir=data_dir, output=output):
             typer.echo(path)
 
+    @scan_app.command("plan-all")
+    def scan_plan_all(
+        mission_id: str = typer.Option(..., "--mission-id"),
+        data_dir: Path = typer.Option(Path("data"), "--data-dir"),
+        output_format: str = typer.Option("text", "--format"),
+    ) -> None:
+        """Print all selected safe scan plans without executing anything."""
+        if output_format not in {"text", "json"}:
+            raise typer.BadParameter("--format must be text or json")
+        if output_format == "json":
+            typer.echo(format_scan_plan_json(mission_id=mission_id, data_dir=data_dir))
+        else:
+            typer.echo(format_scan_plan_text(mission_id=mission_id, data_dir=data_dir))
+
     @scan_app.command("nmap-plan")
     def scan_nmap_plan(
         mission_id: str = typer.Option(..., "--mission-id"),
@@ -1275,6 +1375,13 @@ except ModuleNotFoundError:
 
         scan_parser = subparsers.add_parser("scan", help="Plan safe scanner commands.")
         scan_subparsers = scan_parser.add_subparsers(dest="scan_command")
+        plan_all_parser = scan_subparsers.add_parser(
+            "plan-all",
+            help="Print all selected safe scan plans without executing anything.",
+        )
+        plan_all_parser.add_argument("--mission-id", required=True)
+        plan_all_parser.add_argument("--data-dir", type=Path, default=Path("data"))
+        plan_all_parser.add_argument("--format", choices=["text", "json"], default="text")
         nmap_plan_parser = scan_subparsers.add_parser(
             "nmap-plan",
             help="Print safe Nmap commands without executing them.",
@@ -1495,6 +1602,13 @@ except ModuleNotFoundError:
                         f"{finding.id}\t{finding.severity.value}\t"
                         f"{finding.status.value}\t{finding.affected_asset}\t{finding.title}"
                     )
+                return
+
+            if args.command == "scan" and args.scan_command == "plan-all":
+                if args.format == "json":
+                    print(format_scan_plan_json(mission_id=args.mission_id, data_dir=args.data_dir))
+                else:
+                    print(format_scan_plan_text(mission_id=args.mission_id, data_dir=args.data_dir))
                 return
 
             if args.command == "scan" and args.scan_command == "nmap-plan":

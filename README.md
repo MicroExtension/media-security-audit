@@ -53,6 +53,7 @@ Implemented so far:
 - guarded TLS testssl.sh plan, execution wrapper, and JSON parser
 - guarded SMB anonymous listing plan, execution wrapper, and parser
 - guarded LDAP RootDSE plan, execution wrapper, and parser
+- consolidated CLI scan plan output for selected checks
 - web mission export package for audit handoff
 - structured authorization details for mission records and reports
 - web authorization brief export for pre-audit approval review
@@ -197,6 +198,7 @@ python -m media_security_audit.cli scan dns-plan --mission-id "mission_xxxxx" --
 python -m media_security_audit.cli scan tls-plan --mission-id "mission_xxxxx"
 python -m media_security_audit.cli scan smb-plan --mission-id "mission_xxxxx"
 python -m media_security_audit.cli scan ldap-plan --mission-id "mission_xxxxx"
+python -m media_security_audit.cli scan plan-all --mission-id "mission_xxxxx" --format json
 python -m media_security_audit.cli report generate --mission-id "mission_xxxxx"
 python -m media_security_audit.cli web --data-dir data --reports-dir reports --host 127.0.0.1 --port 8080
 ```
@@ -271,6 +273,17 @@ python -m media_security_audit.cli scan ldap-run --mission-id "mission_xxxxx" --
 `ldap-run` is blocked unless `--execute` is present, authorization is recorded,
 and scope is approved. It uses anonymous RootDSE base-scope queries only and
 does not accept credentials.
+
+All selected checks can be reviewed together without executing anything:
+
+```powershell
+python -m media_security_audit.cli scan plan-all --mission-id "mission_xxxxx"
+python -m media_security_audit.cli scan plan-all --mission-id "mission_xxxxx" --format json
+```
+
+The consolidated plan shows ready and blocked checks, planned command previews,
+approved scope count, authorization state, and an explicit `not_executed`
+execution marker for automation.
 
 Local web interface:
 
@@ -486,6 +499,7 @@ media-security-audit/
 - TLS audit adapter started
 - basic SMB audit adapter started
 - basic LDAP RootDSE adapter started
+- consolidated safe scan planning started
 - findings engine started
 - JSON, Markdown, and HTML reports
 

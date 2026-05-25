@@ -181,6 +181,7 @@ Current foundation:
 - mission row review count badges started
 - mission readiness action links started
 - CLI mission readiness checks started
+- mission readiness exports started
 - finding review note guardrails cover false positives, accepted risks, and counter-test results
 - counter-test pass/fail review actions started
 - counter-test ready/passed/failed summaries started
@@ -273,6 +274,7 @@ Current foundation:
 - mission export checksum manifest started
 - mission export integrity verification started
 - mission export scan plan files started
+- mission export readiness files started
 - workspace activity log export started
 - activity log filters started
 - activity log client and mission filters started

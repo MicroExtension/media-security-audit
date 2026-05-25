@@ -163,6 +163,8 @@ Implemented so far:
 - mission tables show compact finding review counts
 - mission readiness cards link directly to the setup sections that need action
 - CLI mission readiness check for technician and automation review
+- web mission readiness exports in JSON and Markdown
+- mission export packages include readiness exports
 
 The first implementation target remains a CLI-driven V1 with a local web
 interface that can set up the mission workflow:
@@ -305,6 +307,8 @@ python -m media_security_audit.cli mission readiness --mission-id "mission_xxxxx
 The readiness command reports authorization, approved scope, check selection,
 finding review, generated reports, and scan plan summary without running scans.
 `--strict` returns an error when the mission is blocked or still has warnings.
+The mission web page exposes the same readiness state as JSON and Markdown
+downloads, and mission ZIP packages include both files for handoff review.
 
 Local web interface:
 
@@ -358,6 +362,7 @@ Authorization briefs include the selected scan plan and still state that no scan
 is executed by the brief.
 Mission export ZIP packages include an enriched manifest for handoff review and
 archival. They include the selected scan plan exports for pre-audit review. The
+package also includes mission readiness exports for technician handoff. The
 manifest includes SHA-256 checksums for packaged files, and the mission page
 verifies export integrity before showing the package status.
 The Activity page provides a workspace-level event log for operational review
@@ -527,6 +532,7 @@ media-security-audit/
 - scan plan exports started
 - authorization brief scan plan summary started
 - CLI mission readiness check started
+- mission readiness exports started
 - findings engine started
 - JSON, Markdown, and HTML reports
 
@@ -589,6 +595,7 @@ Planned screens:
 - mission row review count badges started
 - mission readiness action links started
 - CLI mission readiness JSON/text check started
+- mission readiness JSON and Markdown exports started
 - finding review note guardrails cover false positives, accepted risks, and counter-test results
 - counter-test pass/fail review actions started
 - counter-test ready/passed/failed summaries started

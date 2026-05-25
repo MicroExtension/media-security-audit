@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+from dataclasses import dataclass
+from enum import Enum
 from pathlib import Path
 
 from media_security_audit.scan_plan_exports import scan_plan_payload
@@ -12,6 +14,19 @@ from media_security_audit.web_reports import list_generated_reports
 
 
 MISSION_READINESS_SCHEMA_VERSION = 1
+
+
+class MissionReadinessExportFormat(str, Enum):
+    JSON = "json"
+    MARKDOWN = "markdown"
+
+
+@dataclass(frozen=True)
+class MissionReadinessExport:
+    format: MissionReadinessExportFormat
+    filename: str
+    media_type: str
+    content: str
 
 
 def readiness_status(items: list[ReadinessItem]) -> str:
@@ -121,6 +136,85 @@ def format_mission_readiness_text(
         ]
     )
     return "\n".join(lines)
+
+
+def format_mission_readiness_markdown(payload: dict[str, object]) -> str:
+    mission = payload["mission"]
+    summary = payload["summary"]
+    lines = [
+        "# Mission Readiness",
+        "",
+        f"- Status: `{payload['status']}`",
+        f"- Mission: `{mission['name']}`",
+        f"- Mission id: `{mission['id']}`",
+        f"- Mission status: `{mission['status']}`",
+        f"- Ready items: `{summary['ready']}`",
+        f"- Warning items: `{summary['warning']}`",
+        f"- Blocked items: `{summary['blocked']}`",
+        f"- Findings: `{summary['findings']}`",
+        f"- Generated reports: `{summary['generated_reports']}`",
+        f"- Execution: `{summary['execution']}`",
+        "",
+        "## Readiness Items",
+        "",
+    ]
+    for item in payload["items"]:
+        lines.extend(
+            [
+                f"### {item['label']}",
+                "",
+                f"- Status: `{item['status']}`",
+                f"- Detail: {item['detail']}",
+            ]
+        )
+        if item["action_label"]:
+            lines.append(f"- Action: {item['action_label']} `{item['action_href']}`")
+        lines.append("")
+
+    scan_plan = payload["scan_plan"]
+    lines.extend(
+        [
+            "## Scan Plan Summary",
+            "",
+            f"- Ready checks: `{scan_plan['ready']}`",
+            f"- Blocked checks: `{scan_plan['blocked']}`",
+            f"- Planned commands: `{scan_plan['planned_commands']}`",
+            f"- Execution: `{scan_plan['execution']}`",
+            "",
+        ]
+    )
+    return "\n".join(lines)
+
+
+def build_mission_readiness_export(
+    store: JsonStore,
+    mission_id: str,
+    reports_dir: Path,
+    export_format: MissionReadinessExportFormat,
+) -> MissionReadinessExport:
+    payload = build_mission_readiness_payload(store, mission_id, reports_dir)
+    filename = mission_readiness_export_filename(mission_id, export_format)
+    if export_format is MissionReadinessExportFormat.JSON:
+        return MissionReadinessExport(
+            format=export_format,
+            filename=filename,
+            media_type="application/json",
+            content=json.dumps(payload, indent=2, sort_keys=True),
+        )
+    return MissionReadinessExport(
+        format=export_format,
+        filename=filename,
+        media_type="text/markdown; charset=utf-8",
+        content=format_mission_readiness_markdown(payload),
+    )
+
+
+def mission_readiness_export_filename(
+    mission_id: str,
+    export_format: MissionReadinessExportFormat,
+) -> str:
+    suffix = "json" if export_format is MissionReadinessExportFormat.JSON else "md"
+    return f"{mission_id}-readiness.{suffix}"
 
 
 def mission_readiness_exit_code(payload: dict[str, object], strict: bool = False) -> int:

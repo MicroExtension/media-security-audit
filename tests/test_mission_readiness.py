@@ -9,8 +9,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "app"))
 
 from media_security_audit.mission_readiness import (  # noqa: E402
+    MissionReadinessExportFormat,
+    build_mission_readiness_export,
     build_mission_readiness_payload,
     format_mission_readiness_json,
+    format_mission_readiness_markdown,
     format_mission_readiness_text,
     mission_readiness_exit_code,
 )
@@ -44,6 +47,12 @@ class MissionReadinessTests(unittest.TestCase):
 
         payload = build_mission_readiness_payload(store, mission.id, reports_dir)
         text = format_mission_readiness_text(store, mission.id, reports_dir)
+        export = build_mission_readiness_export(
+            store,
+            mission.id,
+            reports_dir,
+            MissionReadinessExportFormat.MARKDOWN,
+        )
 
         self.assertEqual(payload["schema_version"], 1)
         self.assertEqual(payload["status"], "blocked")
@@ -54,6 +63,9 @@ class MissionReadinessTests(unittest.TestCase):
         self.assertEqual(mission_readiness_exit_code(payload), 1)
         self.assertIn("Mission readiness: blocked", text)
         self.assertIn("[blocked] Authorization", text)
+        self.assertEqual(export.filename, f"{mission.id}-readiness.md")
+        self.assertIn("# Mission Readiness", export.content)
+        self.assertIn("Status: `blocked`", export.content)
         self.assertEqual(store.list_scan_runs(mission.id), [])
 
     def test_reports_ready_mission_with_reviewed_findings_and_reports(self) -> None:
@@ -91,12 +103,22 @@ class MissionReadinessTests(unittest.TestCase):
         generate_web_reports(store, mission.id, reports_dir)
 
         payload = json.loads(format_mission_readiness_json(store, mission.id, reports_dir))
+        markdown = format_mission_readiness_markdown(payload)
+        export = build_mission_readiness_export(
+            store,
+            mission.id,
+            reports_dir,
+            MissionReadinessExportFormat.JSON,
+        )
 
         self.assertEqual(payload["status"], "ready")
         self.assertEqual(payload["summary"]["ready"], 5)
         self.assertEqual(payload["summary"]["generated_reports"], 3)
         self.assertEqual(payload["scan_plan"]["ready"], 3)
         self.assertEqual(payload["scan_plan"]["planned_commands"], 4)
+        self.assertIn("Generated reports: `3`", markdown)
+        self.assertEqual(export.filename, f"{mission.id}-readiness.json")
+        self.assertEqual(export.media_type, "application/json")
         self.assertEqual(mission_readiness_exit_code(payload, strict=True), 0)
         self.assertEqual(store.list_scan_runs(mission.id), [])
 

@@ -43,6 +43,10 @@
   <div class="section-title">
     <h2>Mission Readiness</h2>
   </div>
+  <div class="report-links" aria-label="Mission readiness exports">
+    <a href="/missions/{{ view.mission.id }}/readiness/markdown">markdown</a>
+    <a href="/missions/{{ view.mission.id }}/readiness/json">json</a>
+  </div>
   <div class="readiness-grid">
     {% for item in view.readiness_items %}
     <div class="readiness-item readiness-{{ item.status }}">

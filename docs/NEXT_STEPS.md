@@ -339,6 +339,12 @@ The mission readiness command:
 - records `execution=not_executed`
 - never runs scanner commands
 
+Mission readiness exports:
+- are available from mission pages as JSON and Markdown
+- are included in mission export ZIP packages
+- keep the same `execution=not_executed` marker
+- never run scanner commands
+
 Owner action:
 - no action required yet
 - later, decide whether this plan should be attached to the customer
@@ -351,6 +357,7 @@ Codex action:
 - keep mission export packages useful for pre-audit authorization review
 - keep authorization briefs explicit about planned commands and non-execution
 - keep mission readiness output aligned with the same web readiness rules
+- keep mission export packages useful for handoff and readiness review
 
 ## Step 3 - Decide Branding
 
@@ -653,6 +660,7 @@ Current GUI status:
 - mission readiness cards link to the setup section that needs action
 - mission readiness and safe scan plan previews are visible from mission pages
 - CLI mission readiness checks are available for technician automation
+- mission readiness exports are available from mission pages and mission packages
 - TLS testssl.sh scan plan previews are available when the TLS check is selected
 - SMB scan plan previews are available when the SMB check is selected
 - LDAP scan plan previews are available when the LDAP check is selected

@@ -17,6 +17,10 @@ from media_security_audit.models import (
     ScopeType,
     Severity,
 )
+from media_security_audit.mission_readiness import (
+    MissionReadinessExportFormat,
+    build_mission_readiness_export,
+)
 from media_security_audit.reports import render_html
 from media_security_audit.storage import JsonStore
 from media_security_audit.web_authorization import (
@@ -582,6 +586,27 @@ def create_web_app(
         except FileNotFoundError as error:
             raise HTTPException(status_code=404, detail=str(error)) from error
         return FileResponse(path)
+
+    @app.get("/missions/{mission_id}/readiness/{export_format}", dependencies=protected)
+    def mission_readiness_download(
+        mission_id: str,
+        export_format: MissionReadinessExportFormat,
+    ) -> Response:
+        try:
+            store.get_mission(mission_id)
+            export = build_mission_readiness_export(
+                store,
+                mission_id,
+                reports_dir,
+                export_format,
+            )
+        except FileNotFoundError as error:
+            raise HTTPException(status_code=404, detail=str(error)) from error
+        return Response(
+            content=export.content,
+            media_type=export.media_type,
+            headers={"Content-Disposition": f'attachment; filename="{export.filename}"'},
+        )
 
     @app.get("/missions/{mission_id}/scan-plan/{export_format}", dependencies=protected)
     def scan_plan_download(

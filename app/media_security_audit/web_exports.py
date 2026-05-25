@@ -11,6 +11,12 @@ from zipfile import ZIP_DEFLATED, BadZipFile, ZipFile
 from pydantic import BaseModel
 
 from media_security_audit.audit_templates import get_audit_template
+from media_security_audit.mission_readiness import (
+    MissionReadinessExport,
+    MissionReadinessExportFormat,
+    build_mission_readiness_export,
+    build_mission_readiness_payload,
+)
 from media_security_audit.models import Client, Mission, ReportFormat, ScanRun, utc_now
 from media_security_audit.reports import scope_summary
 from media_security_audit.scan_plan_exports import (
@@ -90,6 +96,11 @@ def generate_mission_export(store: JsonStore, mission_id: str, reports_dir: Path
         build_scan_plan_export(mission, export_format)
         for export_format in ScanPlanExportFormat
     ]
+    readiness_exports = [
+        build_mission_readiness_export(store, mission_id, reports_dir, export_format)
+        for export_format in MissionReadinessExportFormat
+    ]
+    readiness_payload = build_mission_readiness_payload(store, mission_id, reports_dir)
 
     output_path = mission_export_path(reports_dir, mission_id)
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -102,6 +113,7 @@ def generate_mission_export(store: JsonStore, mission_id: str, reports_dir: Path
         report_paths=report_paths,
         authorization_brief_paths=authorization_brief_paths,
         scan_plan_exports=scan_plan_exports,
+        readiness_exports=readiness_exports,
     )
     manifest = build_mission_export_manifest(
         mission=mission,
@@ -112,6 +124,8 @@ def generate_mission_export(store: JsonStore, mission_id: str, reports_dir: Path
         report_paths=report_paths,
         authorization_brief_paths=authorization_brief_paths,
         scan_plan_exports=scan_plan_exports,
+        readiness_exports=readiness_exports,
+        readiness_payload=readiness_payload,
         archive_members=members,
     )
 
@@ -132,6 +146,7 @@ def mission_export_members(
     report_paths: list[Path],
     authorization_brief_paths: list[Path],
     scan_plan_exports: list[ScanPlanExport],
+    readiness_exports: list[MissionReadinessExport],
 ) -> list[ArchiveMember]:
     members: list[ArchiveMember] = []
     if client is not None:
@@ -147,6 +162,8 @@ def mission_export_members(
         members.append(file_member(f"authorization/{path.name}", path))
     for export in scan_plan_exports:
         members.append(text_member(f"scan-plan/{export.filename}", export.content))
+    for export in readiness_exports:
+        members.append(text_member(f"readiness/{export.filename}", export.content))
     for path in report_paths:
         members.append(file_member(f"reports/{path.name}", path))
     return members
@@ -161,17 +178,20 @@ def build_mission_export_manifest(
     report_paths: list[Path],
     authorization_brief_paths: list[Path],
     scan_plan_exports: list[ScanPlanExport],
+    readiness_exports: list[MissionReadinessExport],
+    readiness_payload: dict[str, object],
     archive_members: list[ArchiveMember] | None = None,
 ) -> dict[str, object]:
     template = get_audit_template(mission.audit_template_id)
     reports = [f"reports/{path.name}" for path in report_paths]
     authorization_briefs = [f"authorization/{path.name}" for path in authorization_brief_paths]
     scan_plans = [f"scan-plan/{export.filename}" for export in scan_plan_exports]
+    readiness_exports_list = [f"readiness/{export.filename}" for export in readiness_exports]
     evidence_path_count = sum(len(run.evidence_paths) for run in scan_runs)
     archive_files = archive_member_entries(archive_members or [])
 
     return {
-        "manifest_version": 3,
+        "manifest_version": 4,
         "generated_at": utc_now().isoformat(),
         "mission_id": mission.id,
         "mission_name": mission.name,
@@ -192,11 +212,15 @@ def build_mission_export_manifest(
         "authorization_brief_count": len(authorization_briefs),
         "scan_plan_count": len(scan_plans),
         "scan_plan_summary": scan_plan_payload(mission)["summary"],
+        "readiness_export_count": len(readiness_exports_list),
+        "readiness_status": readiness_payload["status"],
+        "readiness_summary": readiness_payload["summary"],
         "archive_file_count": len(archive_files),
         "archive_files": archive_files,
         "reports": reports,
         "authorization_briefs": authorization_briefs,
         "scan_plans": scan_plans,
+        "readiness_exports": readiness_exports_list,
     }
 
 

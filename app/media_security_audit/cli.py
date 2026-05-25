@@ -52,6 +52,13 @@ from media_security_audit.scanners.nmap import (
     parse_nmap_xml_file,
     render_command,
 )
+from media_security_audit.scanners.testssl import (
+    TestsslCommandBuilder,
+    TestsslExecutionResult,
+    TestsslExecutor,
+    parse_testssl_json_file,
+    render_testssl_command,
+)
 from media_security_audit.storage import JsonStore
 
 
@@ -466,6 +473,98 @@ def run_dns_mail_audit(
     return stored_findings
 
 
+def plan_tls_audit(
+    mission_id: str,
+    data_dir: Path,
+    output_dir: Path | None = None,
+) -> list[list[str]]:
+    store = JsonStore(data_dir)
+    mission = store.get_mission(mission_id)
+    evidence_dir = output_dir or Path("runs") / mission.id / "evidence"
+    commands = TestsslCommandBuilder().build_for_scope(mission.scope, output_dir=evidence_dir)
+    if not commands:
+        raise ValueError("no approved TLS-compatible scope items found")
+    return commands
+
+
+def run_tls_audit(
+    mission_id: str,
+    data_dir: Path,
+    output_dir: Path | None = None,
+    execute: bool = False,
+    executor: TestsslExecutor | None = None,
+) -> tuple[list[TestsslExecutionResult], list[Finding]]:
+    if not execute:
+        raise ValueError("refusing to audit TLS without --execute; use scan tls-plan first")
+
+    store = JsonStore(data_dir)
+    mission = store.get_mission(mission_id)
+    if not mission.is_authorized:
+        raise ValueError("mission authorization is required before TLS audit")
+    if not mission.has_approved_scope:
+        raise ValueError("approved mission scope is required before TLS audit")
+
+    evidence_dir = output_dir or Path("runs") / mission.id / "evidence"
+    commands = TestsslCommandBuilder().build_for_scope(mission.scope, output_dir=evidence_dir)
+    if not commands:
+        raise ValueError("no approved TLS-compatible scope items found")
+
+    tls_executor = executor or TestsslExecutor()
+    try:
+        results = [tls_executor.run(command) for command in commands]
+    except Exception as error:
+        record_scan_run(
+            store,
+            mission_id,
+            AuditCheck.TLS,
+            ScanRunStatus.FAILED,
+            command_count=len(commands),
+            error=str(error),
+            metadata={"stage": "execution"},
+        )
+        raise
+
+    evidence_paths = [
+        str(result.output_path)
+        for result in results
+        if result.output_path is not None
+    ]
+    failed = [result for result in results if result.exit_code != 0]
+    if failed:
+        first = failed[0]
+        record_scan_run(
+            store,
+            mission_id,
+            AuditCheck.TLS,
+            ScanRunStatus.FAILED,
+            command_count=len(commands),
+            evidence_paths=evidence_paths,
+            error=first.stderr,
+            metadata={"exit_code": str(first.exit_code)},
+        )
+        raise RuntimeError(
+            f"testssl.sh command failed with exit code {first.exit_code}: {first.stderr}"
+        )
+
+    findings: list[Finding] = []
+    for result in results:
+        if result.output_path is not None and result.output_path.exists():
+            findings.extend(parse_testssl_json_file(result.output_path, result.target))
+
+    stored_findings = store.add_findings(mission_id, findings)
+    record_scan_run(
+        store,
+        mission_id,
+        AuditCheck.TLS,
+        ScanRunStatus.COMPLETED,
+        command_count=len(commands),
+        finding_count=len(stored_findings),
+        evidence_paths=evidence_paths,
+        metadata={"target_count": str(len(commands))},
+    )
+    return results, stored_findings
+
+
 def format_cli_error(error: Exception) -> str:
     if isinstance(error, ValidationError):
         messages = [item["msg"] for item in error.errors()]
@@ -778,6 +877,36 @@ try:
         )
         typer.echo(f"Stored {len(findings)} DNS/Mail finding(s).")
 
+    @scan_app.command("tls-plan")
+    def scan_tls_plan(
+        mission_id: str = typer.Option(..., "--mission-id"),
+        data_dir: Path = typer.Option(Path("data"), "--data-dir"),
+        output_dir: Path | None = typer.Option(None, "--output-dir"),
+    ) -> None:
+        """Print safe testssl.sh commands without executing them."""
+        for command in plan_tls_audit(
+            mission_id=mission_id,
+            data_dir=data_dir,
+            output_dir=output_dir,
+        ):
+            typer.echo(render_testssl_command(command))
+
+    @scan_app.command("tls-run")
+    def scan_tls_run(
+        mission_id: str = typer.Option(..., "--mission-id"),
+        data_dir: Path = typer.Option(Path("data"), "--data-dir"),
+        output_dir: Path | None = typer.Option(None, "--output-dir"),
+        execute: bool = typer.Option(False, "--execute", help="Required to run testssl.sh."),
+    ) -> None:
+        """Audit TLS with testssl.sh only when --execute is explicitly provided."""
+        results, findings = run_tls_audit(
+            mission_id=mission_id,
+            data_dir=data_dir,
+            output_dir=output_dir,
+            execute=execute,
+        )
+        typer.echo(f"Executed {len(results)} TLS command(s); stored {len(findings)} finding(s).")
+
 except ModuleNotFoundError:
 
     def app(argv: list[str] | None = None) -> None:
@@ -926,6 +1055,21 @@ except ModuleNotFoundError:
         dns_run_parser.add_argument("--data-dir", type=Path, default=Path("data"))
         dns_run_parser.add_argument("--execute", action="store_true")
         dns_run_parser.add_argument("--dkim-selector", action="append", default=[])
+        tls_plan_parser = scan_subparsers.add_parser(
+            "tls-plan",
+            help="Print safe testssl.sh commands without executing them.",
+        )
+        tls_plan_parser.add_argument("--mission-id", required=True)
+        tls_plan_parser.add_argument("--data-dir", type=Path, default=Path("data"))
+        tls_plan_parser.add_argument("--output-dir", type=Path)
+        tls_run_parser = scan_subparsers.add_parser(
+            "tls-run",
+            help="Audit TLS with testssl.sh only when --execute is explicitly provided.",
+        )
+        tls_run_parser.add_argument("--mission-id", required=True)
+        tls_run_parser.add_argument("--data-dir", type=Path, default=Path("data"))
+        tls_run_parser.add_argument("--output-dir", type=Path)
+        tls_run_parser.add_argument("--execute", action="store_true")
 
         report_parser = subparsers.add_parser("report", help="Generate reports.")
         report_subparsers = report_parser.add_subparsers(dest="report_command")
@@ -1112,6 +1256,25 @@ except ModuleNotFoundError:
                     dkim_selectors=args.dkim_selector,
                 )
                 print(f"Stored {len(findings)} DNS/Mail finding(s).")
+                return
+
+            if args.command == "scan" and args.scan_command == "tls-plan":
+                for command in plan_tls_audit(
+                    mission_id=args.mission_id,
+                    data_dir=args.data_dir,
+                    output_dir=args.output_dir,
+                ):
+                    print(render_testssl_command(command))
+                return
+
+            if args.command == "scan" and args.scan_command == "tls-run":
+                results, findings = run_tls_audit(
+                    mission_id=args.mission_id,
+                    data_dir=args.data_dir,
+                    output_dir=args.output_dir,
+                    execute=args.execute,
+                )
+                print(f"Executed {len(results)} TLS command(s); stored {len(findings)} finding(s).")
                 return
 
             if args.command == "report" and args.report_command == "generate":

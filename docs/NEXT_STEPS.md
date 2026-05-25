@@ -242,6 +242,27 @@ Codex action:
 - test DNS behavior with mocked resolvers
 - avoid live DNS lookups in the development environment
 
+## Step 2.6 - TLS testssl.sh Audit
+
+Status: started.
+
+The TLS module:
+- uses approved HTTPS URL, domain, host, or IP scope items only
+- supports `scan tls-plan` without executing `testssl.sh`
+- requires `scan tls-run --execute` before running `testssl.sh`
+- builds conservative commands with JSON evidence output
+- parses fixture JSON into normalized TLS findings
+- stores findings on the mission
+
+Owner action:
+- no action required yet
+- later, confirm whether `testssl.sh` should be installed in the VM image or
+  documented as a required customer appliance dependency
+
+Codex action:
+- test TLS behavior with mocked runners
+- do not run `testssl.sh` from the development environment
+
 ## Step 3 - Decide Branding
 
 Status: not blocking.
@@ -539,6 +560,7 @@ Current GUI status:
 - failed counter-tests drive mission, dashboard, and client next-action links
 - mission readiness cards link to the setup section that needs action
 - mission readiness and safe scan plan previews are visible from mission pages
+- TLS testssl.sh scan plan previews are available when the TLS check is selected
 - scan execution remains CLI-only
 
 ## Step 7 - Add Safe Scanner Modules
@@ -549,7 +571,7 @@ Initial module order:
 1. Nmap safe adapter and XML parser
 2. HTTP headers
 3. DNS/Mail
-4. TLS via testssl.sh
+4. TLS via testssl.sh: started
 5. SMB basic checks
 
 Owner action before real modules:

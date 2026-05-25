@@ -1,0 +1,22 @@
+[
+  {
+    "id": "TLS1",
+    "severity": "MEDIUM",
+    "finding": "TLS 1.0 is offered"
+  },
+  {
+    "id": "cipher-rc4",
+    "severity": "HIGH",
+    "finding": "RC4 cipher suite is offered"
+  },
+  {
+    "id": "cert_chain_of_trust",
+    "severity": "OK",
+    "finding": "certificate chain is trusted"
+  },
+  {
+    "id": "service_banner",
+    "severity": "INFO",
+    "finding": "informational service detail"
+  }
+]

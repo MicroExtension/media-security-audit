@@ -107,6 +107,23 @@ class WebReadinessTests(unittest.TestCase):
         self.assertEqual([plan.label for plan in plans], ["HTTP Headers"])
         self.assertEqual(plans[0].status, "ready")
 
+    def test_tls_scan_plan_preview_is_available_when_selected(self) -> None:
+        mission = Mission(
+            client_id="client_1",
+            name="Audit",
+            scope=[
+                ScopeItem(type=ScopeType.URL, value="https://client.example", approved=True),
+            ],
+            selected_checks=[AuditCheck.TLS],
+        )
+
+        plans = build_scan_plan_previews(mission)
+
+        self.assertEqual([plan.label for plan in plans], ["TLS"])
+        self.assertEqual(plans[0].status, "ready")
+        self.assertTrue(plans[0].commands[0].startswith("testssl.sh --warnings batch"))
+        self.assertIn("client.example", plans[0].commands[0])
+
     def test_empty_check_selection_blocks_scan_plan_preview(self) -> None:
         mission = Mission(client_id="client_1", name="Audit", selected_checks=[])
 

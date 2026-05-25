@@ -112,7 +112,10 @@ class WebFormTests(unittest.TestCase):
 
         self.assertEqual(mission.audit_template_id, "tpl_web_mail_hygiene")
         self.assertEqual(mission.audit_type, AuditType.EXTERNAL)
-        self.assertEqual(mission.selected_checks, [AuditCheck.HTTP_HEADERS, AuditCheck.DNS_MAIL])
+        self.assertEqual(
+            mission.selected_checks,
+            [AuditCheck.HTTP_HEADERS, AuditCheck.DNS_MAIL, AuditCheck.TLS],
+        )
 
     def test_create_mission_rejects_unknown_template(self) -> None:
         store = JsonStore(clean_data_dir("web-form-mission-template-missing"))

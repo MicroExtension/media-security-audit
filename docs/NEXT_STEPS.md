@@ -320,6 +320,8 @@ The consolidated plan command:
 - reports ready and blocked checks together
 - supports text output for technicians
 - supports JSON output for automation
+- supports JSON and Markdown web downloads from mission pages
+- is included in mission export ZIP packages
 - records `execution=not_executed`
 - never runs scanner commands
 
@@ -332,6 +334,7 @@ Codex action:
 - keep this command read-only
 - keep CLI and web scan planning aligned
 - use the JSON schema for deployment and technician automation
+- keep mission export packages useful for pre-audit authorization review
 
 ## Step 3 - Decide Branding
 
@@ -593,6 +596,8 @@ Current GUI status:
 - mission ZIP manifests include client, template, scope, report, and evidence metadata
 - mission ZIP manifests include SHA-256 checksums for packaged files
 - mission pages verify mission ZIP package integrity from the manifest
+- mission pages expose scan plan JSON and Markdown downloads
+- mission export ZIP packages include scan plan JSON and Markdown files
 - a workspace Activity page lists mission events and exports the log
 - Activity log filters can narrow events by search text and action
 - Activity log filters can narrow events by client and mission

@@ -54,6 +54,8 @@ Implemented so far:
 - guarded SMB anonymous listing plan, execution wrapper, and parser
 - guarded LDAP RootDSE plan, execution wrapper, and parser
 - consolidated CLI scan plan output for selected checks
+- web scan plan exports in JSON and Markdown
+- mission export packages include scan plan exports
 - web mission export package for audit handoff
 - structured authorization details for mission records and reports
 - web authorization brief export for pre-audit approval review
@@ -284,6 +286,8 @@ python -m media_security_audit.cli scan plan-all --mission-id "mission_xxxxx" --
 The consolidated plan shows ready and blocked checks, planned command previews,
 approved scope count, authorization state, and an explicit `not_executed`
 execution marker for automation.
+The mission web page exposes the same plan as JSON and Markdown downloads, and
+mission ZIP packages include both files for authorization and handoff review.
 
 Local web interface:
 
@@ -334,8 +338,9 @@ from these templates to set the initial audit type and recommended checks.
 Mission pages show selected template guidance during preparation.
 Authorization briefs include selected template guidance for pre-audit review.
 Mission export ZIP packages include an enriched manifest for handoff review and
-archival. The manifest includes SHA-256 checksums for packaged files, and the
-mission page verifies export integrity before showing the package status.
+archival. They include the selected scan plan exports for pre-audit review. The
+manifest includes SHA-256 checksums for packaged files, and the mission page
+verifies export integrity before showing the package status.
 The Activity page provides a workspace-level event log for operational review
 and export. The log can be filtered by search text, event action, client, and
 mission, plus an inclusive date range.
@@ -500,6 +505,7 @@ media-security-audit/
 - basic SMB audit adapter started
 - basic LDAP RootDSE adapter started
 - consolidated safe scan planning started
+- scan plan exports started
 - findings engine started
 - JSON, Markdown, and HTML reports
 
@@ -529,6 +535,7 @@ Planned screens:
 - report finding disposition summary started
 - mission finding disposition summary started
 - mission export package started
+- scan plan JSON and Markdown exports started
 - authorization tracking details started
 - authorization brief export started
 - workspace backup export started

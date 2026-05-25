@@ -113,7 +113,7 @@ class WebExportTests(unittest.TestCase):
 
         archive_files = {item["path"]: item for item in manifest["archive_files"]}
         self.assertEqual(manifest["mission_id"], mission.id)
-        self.assertEqual(manifest["manifest_version"], 2)
+        self.assertEqual(manifest["manifest_version"], 3)
         self.assertEqual(manifest["mission_name"], "Export Audit")
         self.assertEqual(manifest["client_name"], "Client Export")
         self.assertEqual(manifest["audit_template_id"], "tpl_web_mail_hygiene")
@@ -140,12 +140,25 @@ class WebExportTests(unittest.TestCase):
                 f"authorization/{mission.id}-authorization-brief.html",
             ],
         )
+        self.assertEqual(manifest["scan_plan_count"], 2)
+        self.assertEqual(manifest["scan_plan_summary"]["execution"], "not_executed")
+        self.assertEqual(manifest["scan_plan_summary"]["ready"], 1)
+        self.assertEqual(manifest["scan_plan_summary"]["blocked"], 1)
+        self.assertEqual(
+            manifest["scan_plans"],
+            [
+                f"scan-plan/{mission.id}-scan-plan.json",
+                f"scan-plan/{mission.id}-scan-plan.md",
+            ],
+        )
         self.assertIn("data/client.json", names)
         self.assertIn("data/mission.json", names)
         self.assertIn(f"data/findings/{finding.id}.json", names)
         self.assertIn(f"data/activity/{event.id}.json", names)
         self.assertIn(f"data/runs/{run.id}.json", names)
         self.assertIn(f"authorization/{mission.id}-authorization-brief.md", names)
+        self.assertIn(f"scan-plan/{mission.id}-scan-plan.json", names)
+        self.assertIn(f"scan-plan/{mission.id}-scan-plan.md", names)
         self.assertIn(f"reports/{mission.id}.json", names)
         self.assertIn(f"reports/{mission.id}.html", names)
 

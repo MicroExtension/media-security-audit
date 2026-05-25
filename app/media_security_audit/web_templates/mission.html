@@ -102,6 +102,10 @@
     <h2>Scan Plan Preview</h2>
     <span class="muted">CLI execution only</span>
   </div>
+  <div class="report-links" aria-label="Scan plan exports">
+    <a href="/missions/{{ view.mission.id }}/scan-plan/markdown">markdown</a>
+    <a href="/missions/{{ view.mission.id }}/scan-plan/json">json</a>
+  </div>
   <div class="plan-grid">
     {% for plan in view.scan_plans %}
     <article class="plan-card plan-{{ plan.status }}">

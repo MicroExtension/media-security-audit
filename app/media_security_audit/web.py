@@ -40,6 +40,7 @@ from media_security_audit.web_remediations import (
     build_remediation_library_export,
     build_remediation_library_view,
 )
+from media_security_audit.scan_plan_exports import ScanPlanExportFormat, build_scan_plan_export
 from media_security_audit.web_ui import (
     build_client_view,
     build_dashboard_view,
@@ -581,6 +582,22 @@ def create_web_app(
         except FileNotFoundError as error:
             raise HTTPException(status_code=404, detail=str(error)) from error
         return FileResponse(path)
+
+    @app.get("/missions/{mission_id}/scan-plan/{export_format}", dependencies=protected)
+    def scan_plan_download(
+        mission_id: str,
+        export_format: ScanPlanExportFormat,
+    ) -> Response:
+        try:
+            mission = store.get_mission(mission_id)
+            export = build_scan_plan_export(mission, export_format)
+        except FileNotFoundError as error:
+            raise HTTPException(status_code=404, detail=str(error)) from error
+        return Response(
+            content=export.content,
+            media_type=export.media_type,
+            headers={"Content-Disposition": f'attachment; filename="{export.filename}"'},
+        )
 
     @app.post("/missions/{mission_id}/export", dependencies=protected)
     async def mission_export_generate(request: Request, mission_id: str):

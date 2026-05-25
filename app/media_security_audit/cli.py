@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-import json
 from datetime import date
 from pathlib import Path
 
@@ -21,7 +20,6 @@ from media_security_audit.models import (
     AuditType,
     Client,
     Finding,
-    Mission,
     ReportFormat,
     ScanRun,
     ScanRunStatus,
@@ -77,11 +75,13 @@ from media_security_audit.scanners.testssl import (
     parse_testssl_json_file,
     render_testssl_command,
 )
+from media_security_audit.scan_plan_exports import (
+    format_scan_plan_json as render_scan_plan_json,
+    format_scan_plan_text as render_scan_plan_text,
+    scan_plan_payload as build_scan_plan_payload,
+)
 from media_security_audit.storage import JsonStore
 from media_security_audit.web_readiness import ScanPlanPreview, build_scan_plan_previews
-
-
-SCAN_PLAN_SCHEMA_VERSION = 1
 
 
 def generate_sample_reports(output: Path) -> None:
@@ -708,72 +708,17 @@ def plan_all_scans(mission_id: str, data_dir: Path) -> list[ScanPlanPreview]:
 
 def scan_plan_payload(mission_id: str, data_dir: Path) -> dict[str, object]:
     mission, plans = load_scan_plan(mission_id, data_dir)
-    ready_count = len([plan for plan in plans if plan.status == "ready"])
-    blocked_count = len([plan for plan in plans if plan.status == "blocked"])
-    command_count = sum(len(plan.commands) for plan in plans)
-    approved_scope_count = len([item for item in mission.scope if item.approved and not item.excluded])
-
-    return {
-        "schema_version": SCAN_PLAN_SCHEMA_VERSION,
-        "mission": {
-            "id": mission.id,
-            "name": mission.name,
-            "status": mission.status.value,
-            "authorized": mission.is_authorized,
-            "approved_scope_count": approved_scope_count,
-            "selected_check_count": len(mission.selected_checks),
-        },
-        "summary": {
-            "checks": len(plans),
-            "ready": ready_count,
-            "blocked": blocked_count,
-            "planned_commands": command_count,
-            "execution": "not_executed",
-        },
-        "plans": [
-            {
-                "label": plan.label,
-                "status": plan.status,
-                "detail": plan.detail,
-                "commands": plan.commands,
-            }
-            for plan in plans
-        ],
-    }
+    return build_scan_plan_payload(mission, plans)
 
 
 def format_scan_plan_json(mission_id: str, data_dir: Path) -> str:
-    return json.dumps(scan_plan_payload(mission_id, data_dir), indent=2, sort_keys=True)
+    mission, plans = load_scan_plan(mission_id, data_dir)
+    return render_scan_plan_json(mission, plans)
 
 
 def format_scan_plan_text(mission_id: str, data_dir: Path) -> str:
     mission, plans = load_scan_plan(mission_id, data_dir)
-    ready_count = len([plan for plan in plans if plan.status == "ready"])
-    blocked_count = len([plan for plan in plans if plan.status == "blocked"])
-    command_count = sum(len(plan.commands) for plan in plans)
-    approved_scope_count = len([item for item in mission.scope if item.approved and not item.excluded])
-    lines = [
-        f"Scan plan for mission: {mission.name}",
-        f"Mission ID: {mission.id}",
-        f"Status: {mission.status.value}",
-        f"Authorization: {'recorded' if mission.is_authorized else 'missing'}",
-        f"Approved scope: {approved_scope_count}",
-        f"Selected checks: {len(mission.selected_checks)}",
-        f"Ready checks: {ready_count}",
-        f"Blocked checks: {blocked_count}",
-        f"Planned commands: {command_count}",
-        "Execution: not executed by this command",
-        "",
-    ]
-    for plan in plans:
-        lines.append(f"[{plan.status}] {plan.label}")
-        lines.append(f"  {plan.detail}")
-        if plan.commands:
-            lines.extend(f"  - {command}" for command in plan.commands)
-        else:
-            lines.append("  - no command")
-        lines.append("")
-    return "\n".join(lines).rstrip()
+    return render_scan_plan_text(mission, plans)
 
 
 def run_ldap_audit(

@@ -199,6 +199,7 @@ python -m media_security_audit.cli scope list --mission-id "mission_xxxxx"
 python -m media_security_audit.cli finding add-sample --mission-id "mission_xxxxx"
 python -m media_security_audit.cli mission show --mission-id "mission_xxxxx"
 python -m media_security_audit.cli mission readiness --mission-id "mission_xxxxx" --format json
+python -m media_security_audit.cli mission export-inventory --format json --include-missing
 python -m media_security_audit.cli mission export-manifest --mission-id "mission_xxxxx" --format json
 python -m media_security_audit.cli mission export-verify --mission-id "mission_xxxxx" --format json
 python -m media_security_audit.cli scan nmap-plan --mission-id "mission_xxxxx"
@@ -316,6 +317,8 @@ Mission export packages can be verified from the CLI after generation or after
 copying the ZIP:
 
 ```powershell
+python -m media_security_audit.cli mission export-inventory
+python -m media_security_audit.cli mission export-inventory --format json --include-missing
 python -m media_security_audit.cli mission export-manifest --mission-id "mission_xxxxx"
 python -m media_security_audit.cli mission export-manifest --package reports\missions\mission_xxxxx\mission_xxxxx-package.zip --format markdown
 python -m media_security_audit.cli mission export-verify --mission-id "mission_xxxxx"
@@ -323,6 +326,7 @@ python -m media_security_audit.cli mission export-verify --mission-id "mission_x
 python -m media_security_audit.cli mission export-verify --package reports\missions\mission_xxxxx\mission_xxxxx-package.zip --strict
 ```
 
+The inventory command lists package status without opening the web interface.
 The manifest command reads only `manifest.json` from the ZIP. The verification
 command checks packaged file presence, sizes, checksums, and unexpected members
 without regenerating reports or running scans.
@@ -600,6 +604,7 @@ Planned screens:
 - mission export checksum manifest started
 - web mission export manifest downloads started
 - CLI mission export manifest output started
+- CLI mission export inventory started
 - mission export integrity verification started
 - CLI mission export integrity verification started
 - web mission export integrity details started

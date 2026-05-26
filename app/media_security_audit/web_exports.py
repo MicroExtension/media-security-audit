@@ -108,6 +108,23 @@ class MissionExportManifestExport:
     content: str
 
 
+@dataclass(frozen=True)
+class MissionExportInventoryItem:
+    mission_id: str
+    mission_name: str
+    client_id: str
+    client_name: str | None
+    package_path: str
+    filename: str | None
+    size_bytes: int
+    status: str
+    detail: str
+    checked_files: int
+    missing_files: int
+    mismatched_files: int
+    unexpected_files: int
+
+
 def mission_export_path(reports_dir: Path, mission_id: str) -> Path:
     return mission_report_dir(reports_dir, mission_id) / f"{mission_id}-package.zip"
 
@@ -286,6 +303,144 @@ def list_mission_export(mission_id: str, reports_dir: Path) -> MissionExportLink
         mismatched_files=verification.mismatched_files,
         unexpected_files=verification.unexpected_files,
     )
+
+
+def build_mission_export_inventory(
+    store: JsonStore,
+    reports_dir: Path,
+    include_missing: bool = False,
+) -> list[MissionExportInventoryItem]:
+    items: list[MissionExportInventoryItem] = []
+    missions = sorted(store.list_missions(), key=lambda mission: (mission.name.lower(), mission.id))
+    for mission in missions:
+        package_path = mission_export_path(reports_dir, mission.id)
+        export_link = list_mission_export(mission.id, reports_dir)
+        if export_link is None:
+            if include_missing:
+                items.append(
+                    mission_export_inventory_item(
+                        mission=mission,
+                        client_name=mission_export_inventory_client_name(store, mission),
+                        package_path=package_path,
+                        export_link=None,
+                    )
+                )
+            continue
+        items.append(
+            mission_export_inventory_item(
+                mission=mission,
+                client_name=mission_export_inventory_client_name(store, mission),
+                package_path=package_path,
+                export_link=export_link,
+            )
+        )
+    return items
+
+
+def mission_export_inventory_client_name(store: JsonStore, mission: Mission) -> str | None:
+    try:
+        return store.get_client(mission.client_id).name
+    except FileNotFoundError:
+        return None
+
+
+def mission_export_inventory_item(
+    mission: Mission,
+    client_name: str | None,
+    package_path: Path,
+    export_link: MissionExportLink | None,
+) -> MissionExportInventoryItem:
+    if export_link is None:
+        return MissionExportInventoryItem(
+            mission_id=mission.id,
+            mission_name=mission.name,
+            client_id=mission.client_id,
+            client_name=client_name,
+            package_path=str(package_path),
+            filename=None,
+            size_bytes=0,
+            status="missing",
+            detail="mission export package not found",
+            checked_files=0,
+            missing_files=0,
+            mismatched_files=0,
+            unexpected_files=0,
+        )
+    return MissionExportInventoryItem(
+        mission_id=mission.id,
+        mission_name=mission.name,
+        client_id=mission.client_id,
+        client_name=client_name,
+        package_path=str(package_path),
+        filename=export_link.filename,
+        size_bytes=export_link.size_bytes,
+        status=export_link.integrity_status,
+        detail=export_link.integrity_detail,
+        checked_files=export_link.checked_files,
+        missing_files=export_link.missing_count,
+        mismatched_files=export_link.mismatched_count,
+        unexpected_files=export_link.unexpected_count,
+    )
+
+
+def mission_export_inventory_payload(items: list[MissionExportInventoryItem]) -> dict[str, object]:
+    statuses = {status: 0 for status in ("ready", "warning", "failed", "missing")}
+    for item in items:
+        statuses[item.status] = statuses.get(item.status, 0) + 1
+    return {
+        "schema_version": 1,
+        "summary": {
+            "packages": len([item for item in items if item.status != "missing"]),
+            "items": len(items),
+            "ready": statuses.get("ready", 0),
+            "warning": statuses.get("warning", 0),
+            "failed": statuses.get("failed", 0),
+            "missing": statuses.get("missing", 0),
+        },
+        "items": [
+            {
+                "mission_id": item.mission_id,
+                "mission_name": item.mission_name,
+                "client_id": item.client_id,
+                "client_name": item.client_name,
+                "package_path": item.package_path,
+                "filename": item.filename,
+                "size_bytes": item.size_bytes,
+                "status": item.status,
+                "detail": item.detail,
+                "checked_files": item.checked_files,
+                "missing_files": item.missing_files,
+                "mismatched_files": item.mismatched_files,
+                "unexpected_files": item.unexpected_files,
+            }
+            for item in items
+        ],
+    }
+
+
+def format_mission_export_inventory_json(items: list[MissionExportInventoryItem]) -> str:
+    return json.dumps(mission_export_inventory_payload(items), indent=2, sort_keys=True)
+
+
+def format_mission_export_inventory_text(items: list[MissionExportInventoryItem]) -> str:
+    payload = mission_export_inventory_payload(items)
+    summary = payload["summary"]
+    lines = [
+        "Mission export inventory",
+        f"Items: {summary['items']}",
+        f"Packages: {summary['packages']}",
+        (
+            f"Ready: {summary['ready']} | Warning: {summary['warning']} | "
+            f"Failed: {summary['failed']} | Missing: {summary['missing']}"
+        ),
+        "Execution: not executed by this command",
+    ]
+    for item in items:
+        lines.append(
+            f"[{item.status}] {item.mission_id} | {item.mission_name} | "
+            f"{item.filename or '<missing>'} | {item.detail}"
+        )
+    return "\n".join(lines)
 
 
 def mission_export_file(reports_dir: Path, mission_id: str) -> Path:

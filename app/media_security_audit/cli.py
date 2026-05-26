@@ -88,6 +88,9 @@ from media_security_audit.scan_plan_exports import (
 )
 from media_security_audit.storage import JsonStore
 from media_security_audit.web_exports import (
+    build_mission_export_inventory,
+    format_mission_export_inventory_json,
+    format_mission_export_inventory_text,
     format_mission_export_manifest_json,
     format_mission_export_manifest_markdown,
     format_mission_export_verification_json,
@@ -1040,6 +1043,23 @@ try:
         else:
             typer.echo(format_mission_export_manifest_markdown(manifest))
 
+    @mission_app.command("export-inventory")
+    def mission_export_inventory(
+        data_dir: Path = typer.Option(Path("data"), "--data-dir"),
+        reports_dir: Path = typer.Option(Path("reports"), "--reports-dir"),
+        output_format: str = typer.Option("text", "--format"),
+        include_missing: bool = typer.Option(False, "--include-missing"),
+    ) -> None:
+        """List mission export ZIP packages without opening the web interface."""
+        if output_format not in {"text", "json"}:
+            raise typer.BadParameter("--format must be text or json")
+        store = JsonStore(data_dir)
+        items = build_mission_export_inventory(store, reports_dir, include_missing=include_missing)
+        if output_format == "json":
+            typer.echo(format_mission_export_inventory_json(items))
+        else:
+            typer.echo(format_mission_export_inventory_text(items))
+
     @scope_app.command("add")
     def scope_add(
         mission_id: str = typer.Option(..., "--mission-id"),
@@ -1396,6 +1416,14 @@ except ModuleNotFoundError:
         mission_export_manifest_parser.add_argument("--reports-dir", type=Path, default=Path("reports"))
         mission_export_manifest_parser.add_argument("--package", type=Path)
         mission_export_manifest_parser.add_argument("--format", choices=["json", "markdown"], default="json")
+        mission_export_inventory_parser = mission_subparsers.add_parser(
+            "export-inventory",
+            help="List mission export ZIP packages without opening the web interface.",
+        )
+        mission_export_inventory_parser.add_argument("--data-dir", type=Path, default=Path("data"))
+        mission_export_inventory_parser.add_argument("--reports-dir", type=Path, default=Path("reports"))
+        mission_export_inventory_parser.add_argument("--format", choices=["text", "json"], default="text")
+        mission_export_inventory_parser.add_argument("--include-missing", action="store_true")
 
         scope_parser = subparsers.add_parser("scope", help="Manage mission scope.")
         scope_subparsers = scope_parser.add_subparsers(dest="scope_command")
@@ -1648,6 +1676,18 @@ except ModuleNotFoundError:
                     print(format_mission_export_manifest_json(manifest))
                 else:
                     print(format_mission_export_manifest_markdown(manifest))
+                return
+
+            if args.command == "mission" and args.mission_command == "export-inventory":
+                items = build_mission_export_inventory(
+                    JsonStore(args.data_dir),
+                    args.reports_dir,
+                    include_missing=args.include_missing,
+                )
+                if args.format == "json":
+                    print(format_mission_export_inventory_json(items))
+                else:
+                    print(format_mission_export_inventory_text(items))
                 return
 
             if args.command == "scope" and args.scope_command == "add":

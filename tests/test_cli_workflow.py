@@ -3,6 +3,7 @@ from __future__ import annotations
 import io
 import json
 import os
+import shutil
 import subprocess
 import sys
 import unittest
@@ -895,6 +896,79 @@ class CliWorkflowTests(unittest.TestCase):
         self.assertIn("# Mission Export Manifest", markdown)
         self.assertIn("- Execution: `not_executed`", markdown)
         self.assertEqual(JsonStore(data_dir).list_scan_runs(mission.id), [])
+
+    def test_mission_export_inventory_command_lists_packages(self) -> None:
+        root_dir = Path(__file__).resolve().parents[1] / ".tmp-tests" / "cli-mission-export-inventory"
+        if root_dir.exists():
+            shutil.rmtree(root_dir)
+        data_dir = root_dir / "data"
+        reports_dir = root_dir / "reports"
+        client = create_client(name="Client Export Inventory", data_dir=data_dir)
+        packaged_mission = create_mission(
+            client_id=client.id,
+            name="Packaged Audit",
+            authorization_reference="AUTH-PACKAGED",
+            data_dir=data_dir,
+        )
+        missing_mission = create_mission(
+            client_id=client.id,
+            name="Missing Package Audit",
+            authorization_reference="AUTH-MISSING",
+            data_dir=data_dir,
+        )
+        add_scope(
+            mission_id=packaged_mission.id,
+            scope_type=ScopeType.DOMAIN,
+            value="client.example",
+            approved=True,
+            data_dir=data_dir,
+        )
+        generate_web_reports(JsonStore(data_dir), packaged_mission.id, reports_dir)
+        generate_mission_export(JsonStore(data_dir), packaged_mission.id, reports_dir)
+        json_stdout = io.StringIO()
+        text_stdout = io.StringIO()
+
+        with redirect_stdout(json_stdout):
+            app(
+                [
+                    "mission",
+                    "export-inventory",
+                    "--data-dir",
+                    str(data_dir),
+                    "--reports-dir",
+                    str(reports_dir),
+                    "--format",
+                    "json",
+                    "--include-missing",
+                ]
+            )
+        with redirect_stdout(text_stdout):
+            app(
+                [
+                    "mission",
+                    "export-inventory",
+                    "--data-dir",
+                    str(data_dir),
+                    "--reports-dir",
+                    str(reports_dir),
+                ]
+            )
+
+        payload = json.loads(json_stdout.getvalue())
+        text = text_stdout.getvalue()
+        statuses = {item["mission_id"]: item["status"] for item in payload["items"]}
+
+        self.assertEqual(payload["summary"]["items"], 2)
+        self.assertEqual(payload["summary"]["packages"], 1)
+        self.assertEqual(payload["summary"]["ready"], 1)
+        self.assertEqual(payload["summary"]["missing"], 1)
+        self.assertEqual(statuses[packaged_mission.id], "ready")
+        self.assertEqual(statuses[missing_mission.id], "missing")
+        self.assertIn("Mission export inventory", text)
+        self.assertIn(packaged_mission.id, text)
+        self.assertNotIn(missing_mission.id, text)
+        self.assertEqual(JsonStore(data_dir).list_scan_runs(packaged_mission.id), [])
+        self.assertEqual(JsonStore(data_dir).list_scan_runs(missing_mission.id), [])
 
     def test_mission_export_verify_missing_package_returns_failure(self) -> None:
         root_dir = Path(__file__).resolve().parents[1] / ".tmp-tests" / "cli-mission-export-verify-missing"

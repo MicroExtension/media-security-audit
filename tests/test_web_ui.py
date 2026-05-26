@@ -28,6 +28,7 @@ from media_security_audit.web_authorization import generate_authorization_brief 
 from media_security_audit.web_exports import generate_mission_export  # noqa: E402
 from media_security_audit.web_pilot import (  # noqa: E402
     build_pilot_runbook_view,
+    format_pilot_acceptance_markdown,
     format_pilot_runbook_markdown,
 )
 from media_security_audit.web_ui import (  # noqa: E402
@@ -389,14 +390,20 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("view.subtitle", template)
         self.assertIn("view.metrics", template)
         self.assertIn("view.sections", template)
+        self.assertIn("view.acceptance_items", template)
         self.assertIn('aria-label="Pilot runbook summary"', template)
         self.assertIn('aria-label="Pilot runbook shortcuts"', template)
         self.assertIn('href="/pilot/runbook.md"', template)
+        self.assertIn('href="/pilot/acceptance.md"', template)
         self.assertIn("section.anchor", template)
         self.assertIn("section.steps|length", template)
         self.assertIn("section.links", template)
         self.assertIn("step.title", template)
         self.assertIn("step.detail", template)
+        self.assertIn('id="pilot-acceptance"', template)
+        self.assertIn('aria-label="Pilot acceptance export"', template)
+        self.assertIn("item.phase", template)
+        self.assertIn("item.evidence", template)
 
         view = build_pilot_runbook_view()
         anchors = [section.anchor for section in view.sections]
@@ -421,6 +428,10 @@ class WebUiTests(unittest.TestCase):
             "/system#system-backup",
         ]:
             self.assertIn(href, hrefs)
+        self.assertEqual(len(view.acceptance_items), 11)
+        acceptance_titles = [item.title for item in view.acceptance_items]
+        self.assertIn("Appliance status reviewed", acceptance_titles)
+        self.assertIn("Workspace backup created", acceptance_titles)
 
         markdown = format_pilot_runbook_markdown(view)
         self.assertIn("# Pilot Runbook", markdown)
@@ -459,6 +470,7 @@ class WebUiTests(unittest.TestCase):
             [metric.value for metric in view.metrics],
             ["5", "Local", "Guarded", "Reports"],
         )
+        self.assertEqual(len(view.acceptance_items), 11)
 
     def test_web_pilot_route_is_local_runbook_only(self) -> None:
         web_path = (
@@ -477,6 +489,10 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("def pilot_runbook_markdown(", web)
         self.assertIn("format_pilot_runbook_markdown()", web)
         self.assertIn('filename="pilot-runbook.md"', web)
+        self.assertIn('@app.get("/pilot/acceptance.md"', web)
+        self.assertIn("def pilot_acceptance_markdown(", web)
+        self.assertIn("format_pilot_acceptance_markdown()", web)
+        self.assertIn('filename="pilot-acceptance-checklist.md"', web)
 
     def test_pilot_runbook_export_is_deterministic_markdown(self) -> None:
         markdown = format_pilot_runbook_markdown()
@@ -486,6 +502,19 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("- Scans: `Guarded`", markdown)
         self.assertIn("[System](/system)", markdown)
         self.assertIn("[Backup](/system#system-backup)", markdown)
+        self.assertTrue(markdown.endswith("\n"))
+
+    def test_pilot_acceptance_export_is_deterministic_markdown(self) -> None:
+        markdown = format_pilot_acceptance_markdown()
+
+        self.assertTrue(markdown.startswith("# Pilot Acceptance Checklist\n"))
+        self.assertIn("- Context: `Client Pilot`", markdown)
+        self.assertIn("- Source: `Pilot Runbook`", markdown)
+        self.assertIn("- [ ] **Setup: Appliance status reviewed**", markdown)
+        self.assertIn("- [ ] **Mission: Authorization details completed**", markdown)
+        self.assertIn("- [ ] **Handoff: Export inventory verified**", markdown)
+        self.assertIn("- [ ] **Closeout: Workspace backup created**", markdown)
+        self.assertIn("Evidence: System status page checked before client use.", markdown)
         self.assertTrue(markdown.endswith("\n"))
 
     def test_mission_template_exposes_shortcut_anchors(self) -> None:

@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import csv
 import json
 from dataclasses import dataclass
 from enum import Enum
 from hashlib import sha256
+from io import StringIO
 from pathlib import Path
 from zipfile import ZIP_DEFLATED, BadZipFile, ZipFile
 
@@ -109,6 +111,7 @@ class MissionExportManifestExport:
 
 
 class MissionExportInventoryFormat(str, Enum):
+    CSV = "csv"
     JSON = "json"
     MARKDOWN = "markdown"
 
@@ -501,6 +504,47 @@ def format_mission_export_inventory_json(
     )
 
 
+def format_mission_export_inventory_csv(items: list[MissionExportInventoryItem]) -> str:
+    output = StringIO()
+    writer = csv.writer(output, lineterminator="\n")
+    writer.writerow(
+        [
+            "mission_id",
+            "mission_name",
+            "client_id",
+            "client_name",
+            "package_path",
+            "filename",
+            "size_bytes",
+            "status",
+            "detail",
+            "checked_files",
+            "missing_files",
+            "mismatched_files",
+            "unexpected_files",
+        ]
+    )
+    for item in items:
+        writer.writerow(
+            [
+                item.mission_id,
+                item.mission_name,
+                item.client_id,
+                item.client_name or "",
+                item.package_path,
+                item.filename or "",
+                item.size_bytes,
+                item.status,
+                item.detail,
+                item.checked_files,
+                item.missing_files,
+                item.mismatched_files,
+                item.unexpected_files,
+            ]
+        )
+    return output.getvalue()
+
+
 def format_mission_export_inventory_markdown(
     items: list[MissionExportInventoryItem],
     filters: dict[str, object] | None = None,
@@ -606,6 +650,13 @@ def build_mission_export_inventory_export(
         include_missing=include_missing,
     )
     filename = mission_export_inventory_export_filename(export_format)
+    if export_format is MissionExportInventoryFormat.CSV:
+        return MissionExportInventoryExport(
+            format=export_format,
+            filename=filename,
+            media_type="text/csv; charset=utf-8",
+            content=format_mission_export_inventory_csv(filtered_items),
+        )
     if export_format is MissionExportInventoryFormat.JSON:
         return MissionExportInventoryExport(
             format=export_format,
@@ -622,7 +673,12 @@ def build_mission_export_inventory_export(
 
 
 def mission_export_inventory_export_filename(export_format: MissionExportInventoryFormat) -> str:
-    suffix = "json" if export_format is MissionExportInventoryFormat.JSON else "md"
+    suffixes = {
+        MissionExportInventoryFormat.CSV: "csv",
+        MissionExportInventoryFormat.JSON: "json",
+        MissionExportInventoryFormat.MARKDOWN: "md",
+    }
+    suffix = suffixes[export_format]
     return f"mission-export-inventory.{suffix}"
 
 

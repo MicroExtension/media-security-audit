@@ -624,6 +624,7 @@ Current GUI status:
 - web mission export inventory lists package status for handoff review
 - web mission export inventory downloads JSON and Markdown handoff files
 - web mission export inventory filters handoff files by search text and status
+- web mission export inventory downloads CSV files for spreadsheet review
 - CLI mission export manifest output reads ZIP manifests after handoff
 - mission pages verify mission ZIP package integrity from the manifest
 - CLI mission export verification checks mission ZIP integrity after handoff

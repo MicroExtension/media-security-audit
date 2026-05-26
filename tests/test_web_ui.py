@@ -321,6 +321,9 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("summary.missing", template)
         self.assertIn("item.mission_name", template)
         self.assertIn("item.client_name", template)
+        self.assertIn('name="client_id"', template)
+        self.assertIn("client_options", template)
+        self.assertIn("client_filter", template)
         self.assertIn("item.status", template)
         self.assertIn("item.detail", template)
         self.assertIn("/exports/download/csv?{{ download_query }}", template)
@@ -351,6 +354,9 @@ class WebUiTests(unittest.TestCase):
         self.assertIn('"exports.html"', web)
         self.assertIn("q: str | None = None", web)
         self.assertIn("status: str | None = None", web)
+        self.assertIn("client_id: str | None = None", web)
+        self.assertIn("client_options = sorted(store.list_clients()", web)
+        self.assertIn("client_id=client_filter", web)
         self.assertIn("include_missing: bool = True", web)
 
     def test_mission_template_exposes_shortcut_anchors(self) -> None:

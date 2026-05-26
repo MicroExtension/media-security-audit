@@ -56,6 +56,15 @@
         </select>
       </label>
       <label>
+        <span>Client</span>
+        <select name="client_id">
+          <option value=""></option>
+          {% for client in client_options %}
+          <option value="{{ client.id }}" {% if client.id == client_filter %}selected{% endif %}>{{ client.name }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>
         <span>Missing packages</span>
         <select name="include_missing">
           <option value="true" {% if include_missing %}selected{% endif %}>show</option>

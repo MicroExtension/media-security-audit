@@ -360,12 +360,16 @@ def filter_mission_export_inventory(
     items: list[MissionExportInventoryItem],
     query: str = "",
     status: str = "",
+    client_id: str = "",
 ) -> list[MissionExportInventoryItem]:
     normalized_query = query.strip().lower()
     normalized_status = normalize_mission_export_inventory_status(status)
+    normalized_client_id = client_id.strip()
     filtered: list[MissionExportInventoryItem] = []
     for item in items:
         if normalized_status and item.status != normalized_status:
+            continue
+        if normalized_client_id and item.client_id != normalized_client_id:
             continue
         if normalized_query and normalized_query not in mission_export_inventory_search_text(item):
             continue
@@ -484,11 +488,13 @@ def mission_export_inventory_payload(
 def mission_export_inventory_filter_payload(
     query: str = "",
     status: str = "",
+    client_id: str = "",
     include_missing: bool = True,
 ) -> dict[str, object]:
     return {
         "query": query.strip(),
         "status": normalize_mission_export_inventory_status(status),
+        "client_id": client_id.strip(),
         "include_missing": include_missing,
     }
 
@@ -570,6 +576,7 @@ def format_mission_export_inventory_markdown(
                 "",
                 f"- Search: `{filters.get('query') or 'none'}`",
                 f"- Status: `{filters.get('status') or 'all'}`",
+                f"- Client: `{filters.get('client_id') or 'all'}`",
                 f"- Include missing: `{filters.get('include_missing')}`",
                 "",
             ]
@@ -637,16 +644,23 @@ def build_mission_export_inventory_export(
     include_missing: bool = True,
     query: str = "",
     status: str = "",
+    client_id: str = "",
 ) -> MissionExportInventoryExport:
     items = build_mission_export_inventory(
         store,
         reports_dir,
         include_missing=include_missing,
     )
-    filtered_items = filter_mission_export_inventory(items, query=query, status=status)
+    filtered_items = filter_mission_export_inventory(
+        items,
+        query=query,
+        status=status,
+        client_id=client_id,
+    )
     filters = mission_export_inventory_filter_payload(
         query=query,
         status=status,
+        client_id=client_id,
         include_missing=include_missing,
     )
     filename = mission_export_inventory_export_filename(export_format)

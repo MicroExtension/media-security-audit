@@ -311,6 +311,7 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("item.client_name", template)
         self.assertIn("item.status", template)
         self.assertIn("item.detail", template)
+        self.assertIn("/exports/download/csv?{{ download_query }}", template)
         self.assertIn("/exports/download/markdown?{{ download_query }}", template)
         self.assertIn("/exports/download/json?{{ download_query }}", template)
         self.assertIn("/missions/{{ item.mission_id }}/export", template)

@@ -1,6 +1,8 @@
-from pathlib import Path
+import csv
 from hashlib import sha256
+from io import StringIO
 import json
+from pathlib import Path
 import shutil
 import sys
 import unittest
@@ -332,7 +334,15 @@ class WebExportTests(unittest.TestCase):
             include_missing=True,
             status="missing",
         )
+        csv_export = build_mission_export_inventory_export(
+            store,
+            reports_dir,
+            MissionExportInventoryFormat.CSV,
+            include_missing=True,
+            status="missing",
+        )
         json_payload = json.loads(json_export.content)
+        csv_rows = list(csv.DictReader(StringIO(csv_export.content)))
 
         self.assertEqual(json_export.filename, "mission-export-inventory.json")
         self.assertEqual(json_export.media_type, "application/json")
@@ -345,6 +355,11 @@ class WebExportTests(unittest.TestCase):
         self.assertIn("- Status: `missing`", markdown_export.content)
         self.assertIn("Missing Audit", markdown_export.content)
         self.assertNotIn("Packaged Audit", markdown_export.content)
+        self.assertEqual(csv_export.filename, "mission-export-inventory.csv")
+        self.assertEqual(csv_export.media_type, "text/csv; charset=utf-8")
+        self.assertEqual(len(csv_rows), 1)
+        self.assertEqual(csv_rows[0]["mission_id"], missing.id)
+        self.assertEqual(csv_rows[0]["status"], "missing")
 
     def test_missing_mission_export_has_named_error(self) -> None:
         reports_dir = clean_dir("web-export-missing")

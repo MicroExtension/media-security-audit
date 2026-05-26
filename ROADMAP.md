@@ -284,6 +284,7 @@ Current foundation:
 - web mission export inventory client filter started
 - client export inventory links started
 - local pilot runbook page started
+- local pilot runbook Markdown export started
 - mission export integrity verification started
 - CLI mission export integrity verification started
 - web mission export integrity details started

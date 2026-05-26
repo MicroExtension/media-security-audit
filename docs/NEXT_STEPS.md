@@ -629,6 +629,7 @@ Current GUI status:
 - web mission export inventory filters handoff files by client for MSP review
 - client and dashboard pages link to each client's filtered export inventory
 - local Pilot page guides first client deployment and closeout review
+- local Pilot page exports a Markdown runbook for technician handoff
 - CLI mission export manifest output reads ZIP manifests after handoff
 - mission pages verify mission ZIP package integrity from the manifest
 - CLI mission export verification checks mission ZIP integrity after handoff

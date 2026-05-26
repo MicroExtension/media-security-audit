@@ -26,6 +26,10 @@ from media_security_audit.models import (  # noqa: E402
 from media_security_audit.storage import JsonStore  # noqa: E402
 from media_security_audit.web_authorization import generate_authorization_brief  # noqa: E402
 from media_security_audit.web_exports import generate_mission_export  # noqa: E402
+from media_security_audit.web_pilot import (  # noqa: E402
+    build_pilot_runbook_view,
+    format_pilot_runbook_markdown,
+)
 from media_security_audit.web_ui import (  # noqa: E402
     build_client_view,
     build_dashboard_view,
@@ -381,28 +385,80 @@ class WebUiTests(unittest.TestCase):
         )
         template = template_path.read_text(encoding="utf-8")
 
-        self.assertIn("Pilot Runbook", template)
+        self.assertIn("view.title", template)
+        self.assertIn("view.subtitle", template)
+        self.assertIn("view.metrics", template)
+        self.assertIn("view.sections", template)
         self.assertIn('aria-label="Pilot runbook summary"', template)
         self.assertIn('aria-label="Pilot runbook shortcuts"', template)
-        for anchor in [
-            "pilot-setup",
-            "pilot-mission",
-            "pilot-review",
-            "pilot-handoff",
-            "pilot-closeout",
+        self.assertIn('href="/pilot/runbook.md"', template)
+        self.assertIn("section.anchor", template)
+        self.assertIn("section.steps|length", template)
+        self.assertIn("section.links", template)
+        self.assertIn("step.title", template)
+        self.assertIn("step.detail", template)
+
+        view = build_pilot_runbook_view()
+        anchors = [section.anchor for section in view.sections]
+        self.assertEqual(
+            anchors,
+            [
+                "pilot-setup",
+                "pilot-mission",
+                "pilot-review",
+                "pilot-handoff",
+                "pilot-closeout",
+            ],
+        )
+        hrefs = {link.href for section in view.sections for link in section.links}
+        for href in [
+            "/",
+            "/system",
+            "/templates",
+            "/activity",
+            "/remediations",
+            "/exports",
+            "/system#system-backup",
         ]:
-            self.assertIn(f'href="#{anchor}"', template)
-            self.assertIn(f'id="{anchor}"', template)
-        for link in [
-            'href="/"',
-            'href="/system"',
-            'href="/templates"',
-            'href="/activity"',
-            'href="/remediations"',
-            'href="/exports"',
-            'href="/system#system-backup"',
+            self.assertIn(href, hrefs)
+
+        markdown = format_pilot_runbook_markdown(view)
+        self.assertIn("# Pilot Runbook", markdown)
+        for title in [
+            "Setup",
+            "Mission",
+            "Review",
+            "Handoff",
+            "Closeout",
         ]:
-            self.assertIn(link, template)
+            self.assertIn(f"### {title}", markdown)
+        for step in [
+            "Check appliance status",
+            "Create client and mission",
+            "Review dispositions",
+            "Verify export inventory",
+            "Plan next iteration",
+        ]:
+            self.assertIn(step, markdown)
+
+    def test_pilot_runbook_view_keeps_known_phase_counts(self) -> None:
+        view = build_pilot_runbook_view()
+        counts = {section.title: len(section.steps) for section in view.sections}
+
+        self.assertEqual(
+            counts,
+            {
+                "Setup": 3,
+                "Mission": 4,
+                "Review": 4,
+                "Handoff": 4,
+                "Closeout": 3,
+            },
+        )
+        self.assertEqual(
+            [metric.value for metric in view.metrics],
+            ["5", "Local", "Guarded", "Reports"],
+        )
 
     def test_web_pilot_route_is_local_runbook_only(self) -> None:
         web_path = (
@@ -416,6 +472,21 @@ class WebUiTests(unittest.TestCase):
         self.assertIn('@app.get("/pilot"', web)
         self.assertIn("def pilot_runbook(", web)
         self.assertIn('"pilot.html"', web)
+        self.assertIn("build_pilot_runbook_view()", web)
+        self.assertIn('@app.get("/pilot/runbook.md"', web)
+        self.assertIn("def pilot_runbook_markdown(", web)
+        self.assertIn("format_pilot_runbook_markdown()", web)
+        self.assertIn('filename="pilot-runbook.md"', web)
+
+    def test_pilot_runbook_export_is_deterministic_markdown(self) -> None:
+        markdown = format_pilot_runbook_markdown()
+
+        self.assertTrue(markdown.startswith("# Pilot Runbook\n"))
+        self.assertIn("- Context: `Client Pilot`", markdown)
+        self.assertIn("- Scans: `Guarded`", markdown)
+        self.assertIn("[System](/system)", markdown)
+        self.assertIn("[Backup](/system#system-backup)", markdown)
+        self.assertTrue(markdown.endswith("\n"))
 
     def test_mission_template_exposes_shortcut_anchors(self) -> None:
         template_path = (

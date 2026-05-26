@@ -308,7 +308,7 @@ def build_mission_export_manifest_export(
             format=export_format,
             filename=filename,
             media_type="application/json",
-            content=json.dumps(manifest, indent=2, sort_keys=True),
+            content=format_mission_export_manifest_json(manifest),
         )
     return MissionExportManifestExport(
         format=export_format,
@@ -456,6 +456,10 @@ def format_mission_export_verification_json(
         indent=2,
         sort_keys=True,
     )
+
+
+def format_mission_export_manifest_json(manifest: dict[str, object]) -> str:
+    return json.dumps(manifest, indent=2, sort_keys=True)
 
 
 def format_mission_export_manifest_markdown(manifest: dict[str, object]) -> str:

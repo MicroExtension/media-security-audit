@@ -620,6 +620,7 @@ Current GUI status:
 - mission ZIP manifests include client, template, scope, report, and evidence metadata
 - mission ZIP manifests include SHA-256 checksums for packaged files
 - mission pages expose mission ZIP manifest JSON and Markdown downloads
+- CLI mission export manifest output reads ZIP manifests after handoff
 - mission pages verify mission ZIP package integrity from the manifest
 - CLI mission export verification checks mission ZIP integrity after handoff
 - mission pages show export integrity counts and issue details

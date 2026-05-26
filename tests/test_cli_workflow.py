@@ -838,6 +838,64 @@ class CliWorkflowTests(unittest.TestCase):
         self.assertEqual(payload["summary"]["mismatched_files"], 0)
         self.assertEqual(JsonStore(data_dir).list_scan_runs(mission.id), [])
 
+    def test_mission_export_manifest_command_reads_existing_package(self) -> None:
+        root_dir = Path(__file__).resolve().parents[1] / ".tmp-tests" / "cli-mission-export-manifest"
+        data_dir = root_dir / "data"
+        reports_dir = root_dir / "reports"
+        client = create_client(name="Client Export Manifest", data_dir=data_dir)
+        mission = create_mission(
+            client_id=client.id,
+            name="Export Manifest Audit",
+            authorization_reference="AUTH-MANIFEST",
+            data_dir=data_dir,
+        )
+        add_scope(
+            mission_id=mission.id,
+            scope_type=ScopeType.DOMAIN,
+            value="client.example",
+            approved=True,
+            data_dir=data_dir,
+        )
+        generate_web_reports(JsonStore(data_dir), mission.id, reports_dir)
+        export_path = generate_mission_export(JsonStore(data_dir), mission.id, reports_dir)
+        json_stdout = io.StringIO()
+        markdown_stdout = io.StringIO()
+
+        with redirect_stdout(json_stdout):
+            app(
+                [
+                    "mission",
+                    "export-manifest",
+                    "--mission-id",
+                    mission.id,
+                    "--reports-dir",
+                    str(reports_dir),
+                    "--format",
+                    "json",
+                ]
+            )
+        with redirect_stdout(markdown_stdout):
+            app(
+                [
+                    "mission",
+                    "export-manifest",
+                    "--package",
+                    str(export_path),
+                    "--format",
+                    "markdown",
+                ]
+            )
+
+        payload = json.loads(json_stdout.getvalue())
+        markdown = markdown_stdout.getvalue()
+
+        self.assertEqual(payload["manifest_version"], 4)
+        self.assertEqual(payload["mission_id"], mission.id)
+        self.assertGreater(payload["archive_file_count"], 0)
+        self.assertIn("# Mission Export Manifest", markdown)
+        self.assertIn("- Execution: `not_executed`", markdown)
+        self.assertEqual(JsonStore(data_dir).list_scan_runs(mission.id), [])
+
     def test_mission_export_verify_missing_package_returns_failure(self) -> None:
         root_dir = Path(__file__).resolve().parents[1] / ".tmp-tests" / "cli-mission-export-verify-missing"
         stdout = io.StringIO()

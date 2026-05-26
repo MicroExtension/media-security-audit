@@ -88,10 +88,13 @@ from media_security_audit.scan_plan_exports import (
 )
 from media_security_audit.storage import JsonStore
 from media_security_audit.web_exports import (
+    format_mission_export_manifest_json,
+    format_mission_export_manifest_markdown,
     format_mission_export_verification_json,
     format_mission_export_verification_text,
     mission_export_verification_exit_code,
     mission_export_path,
+    read_mission_export_manifest,
     verify_mission_export,
 )
 from media_security_audit.web_readiness import ScanPlanPreview, build_scan_plan_previews
@@ -1017,6 +1020,26 @@ try:
         if exit_code:
             raise typer.Exit(code=exit_code)
 
+    @mission_app.command("export-manifest")
+    def mission_export_manifest(
+        mission_id: str | None = typer.Option(None, "--mission-id"),
+        reports_dir: Path = typer.Option(Path("reports"), "--reports-dir"),
+        package_path: Path | None = typer.Option(None, "--package"),
+        output_format: str = typer.Option("json", "--format"),
+    ) -> None:
+        """Print a mission export ZIP manifest without extracting the package."""
+        if output_format not in {"json", "markdown"}:
+            raise typer.BadParameter("--format must be json or markdown")
+        try:
+            path = mission_export_verification_package_path(mission_id, reports_dir, package_path)
+        except ValueError as error:
+            raise typer.BadParameter(str(error)) from error
+        manifest = read_mission_export_manifest(path)
+        if output_format == "json":
+            typer.echo(format_mission_export_manifest_json(manifest))
+        else:
+            typer.echo(format_mission_export_manifest_markdown(manifest))
+
     @scope_app.command("add")
     def scope_add(
         mission_id: str = typer.Option(..., "--mission-id"),
@@ -1365,6 +1388,14 @@ except ModuleNotFoundError:
         mission_export_verify_parser.add_argument("--package", type=Path)
         mission_export_verify_parser.add_argument("--format", choices=["text", "json"], default="text")
         mission_export_verify_parser.add_argument("--strict", action="store_true")
+        mission_export_manifest_parser = mission_subparsers.add_parser(
+            "export-manifest",
+            help="Print a mission export ZIP manifest without extracting the package.",
+        )
+        mission_export_manifest_parser.add_argument("--mission-id")
+        mission_export_manifest_parser.add_argument("--reports-dir", type=Path, default=Path("reports"))
+        mission_export_manifest_parser.add_argument("--package", type=Path)
+        mission_export_manifest_parser.add_argument("--format", choices=["json", "markdown"], default="json")
 
         scope_parser = subparsers.add_parser("scope", help="Manage mission scope.")
         scope_subparsers = scope_parser.add_subparsers(dest="scope_command")
@@ -1608,6 +1639,15 @@ except ModuleNotFoundError:
                 exit_code = mission_export_verification_exit_code(verification, strict=args.strict)
                 if exit_code:
                     raise SystemExit(exit_code)
+                return
+
+            if args.command == "mission" and args.mission_command == "export-manifest":
+                path = mission_export_verification_package_path(args.mission_id, args.reports_dir, args.package)
+                manifest = read_mission_export_manifest(path)
+                if args.format == "json":
+                    print(format_mission_export_manifest_json(manifest))
+                else:
+                    print(format_mission_export_manifest_markdown(manifest))
                 return
 
             if args.command == "scope" and args.scope_command == "add":

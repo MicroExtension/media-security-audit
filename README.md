@@ -199,6 +199,7 @@ python -m media_security_audit.cli scope list --mission-id "mission_xxxxx"
 python -m media_security_audit.cli finding add-sample --mission-id "mission_xxxxx"
 python -m media_security_audit.cli mission show --mission-id "mission_xxxxx"
 python -m media_security_audit.cli mission readiness --mission-id "mission_xxxxx" --format json
+python -m media_security_audit.cli mission export-manifest --mission-id "mission_xxxxx" --format json
 python -m media_security_audit.cli mission export-verify --mission-id "mission_xxxxx" --format json
 python -m media_security_audit.cli scan nmap-plan --mission-id "mission_xxxxx"
 python -m media_security_audit.cli scan http-plan --mission-id "mission_xxxxx"
@@ -315,14 +316,16 @@ Mission export packages can be verified from the CLI after generation or after
 copying the ZIP:
 
 ```powershell
+python -m media_security_audit.cli mission export-manifest --mission-id "mission_xxxxx"
+python -m media_security_audit.cli mission export-manifest --package reports\missions\mission_xxxxx\mission_xxxxx-package.zip --format markdown
 python -m media_security_audit.cli mission export-verify --mission-id "mission_xxxxx"
 python -m media_security_audit.cli mission export-verify --mission-id "mission_xxxxx" --format json
 python -m media_security_audit.cli mission export-verify --package reports\missions\mission_xxxxx\mission_xxxxx-package.zip --strict
 ```
 
-The command reads only the ZIP and its manifest. It checks packaged file
-presence, sizes, checksums, and unexpected members without regenerating reports
-or running scans.
+The manifest command reads only `manifest.json` from the ZIP. The verification
+command checks packaged file presence, sizes, checksums, and unexpected members
+without regenerating reports or running scans.
 
 Local web interface:
 
@@ -596,6 +599,7 @@ Planned screens:
 - enriched mission export manifest started
 - mission export checksum manifest started
 - web mission export manifest downloads started
+- CLI mission export manifest output started
 - mission export integrity verification started
 - CLI mission export integrity verification started
 - web mission export integrity details started

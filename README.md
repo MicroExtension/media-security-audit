@@ -87,6 +87,7 @@ Implemented so far:
 - client detail pages show recent client activity and filtered Activity links
 - client detail pages show finding disposition counts
 - client detail pages show mission preparation status summaries
+- local pilot runbook page for first client deployment walkthrough
 - dashboard shows workspace mission preparation status summaries
 - dashboard shows workspace finding disposition counts
 - dashboard shows shortcut links to operational sections
@@ -626,6 +627,7 @@ Planned screens:
 - web mission export inventory filter context started
 - web mission export inventory client filter started
 - client export inventory links started
+- local pilot runbook page started
 - mission export integrity verification started
 - CLI mission export integrity verification started
 - web mission export integrity details started

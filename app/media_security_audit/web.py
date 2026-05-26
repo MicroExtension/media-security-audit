@@ -228,6 +228,25 @@ def create_web_app(
             )
         )
 
+    @app.get("/pilot", response_class=HTMLResponse, dependencies=protected)
+    def pilot_runbook(
+        request: Request,
+        message: str | None = None,
+        error: str | None = None,
+    ) -> HTMLResponse:
+        return HTMLResponse(
+            render_template(
+                templates,
+                "pilot.html",
+                {
+                    "request": request,
+                    "data_dir": data_dir,
+                    "message": message,
+                    "error": error,
+                },
+            )
+        )
+
     @app.get("/clients/{client_id}", response_class=HTMLResponse, dependencies=protected)
     def client_detail(
         request: Request,

@@ -68,6 +68,7 @@ from media_security_audit.web_forms import (
     validate_form_token,
 )
 from media_security_audit.web_exports import (
+    MISSION_EXPORT_INVENTORY_STATUSES,
     MissionExportInventoryFormat,
     MissionExportManifestFormat,
     MissionExportVerificationFormat,
@@ -75,9 +76,12 @@ from media_security_audit.web_exports import (
     build_mission_export_inventory,
     build_mission_export_manifest_export,
     build_mission_export_verification_export,
+    filter_mission_export_inventory,
     generate_mission_export,
     mission_export_file,
+    mission_export_inventory_filter_payload,
     mission_export_inventory_payload,
+    normalize_mission_export_inventory_status,
 )
 from media_security_audit.web_health import build_health_status, health_status_code
 from media_security_audit.web_reports import generate_web_reports, generated_report_file
@@ -373,16 +377,37 @@ def create_web_app(
     @app.get("/exports", response_class=HTMLResponse, dependencies=protected)
     def mission_export_inventory(
         request: Request,
+        q: str | None = None,
+        status: str | None = None,
         include_missing: bool = True,
         message: str | None = None,
         error: str | None = None,
     ) -> HTMLResponse:
+        query = q or ""
+        status_filter = normalize_mission_export_inventory_status(status or "")
         items = build_mission_export_inventory(
             store,
             reports_dir,
             include_missing=include_missing,
         )
-        payload = mission_export_inventory_payload(items)
+        filtered_items = filter_mission_export_inventory(
+            items,
+            query=query,
+            status=status_filter,
+        )
+        filters = mission_export_inventory_filter_payload(
+            query=query,
+            status=status_filter,
+            include_missing=include_missing,
+        )
+        payload = mission_export_inventory_payload(filtered_items, filters=filters)
+        download_params = {"include_missing": str(include_missing).lower()}
+        if query.strip():
+            download_params["q"] = query.strip()
+        if status_filter:
+            download_params["status"] = status_filter
+        toggle_params = dict(download_params)
+        toggle_params["include_missing"] = str(not include_missing).lower()
         return HTMLResponse(
             render_template(
                 templates,
@@ -390,9 +415,15 @@ def create_web_app(
                 {
                     "request": request,
                     "data_dir": data_dir,
-                    "items": items,
+                    "items": filtered_items,
                     "summary": payload["summary"],
+                    "filters": filters,
+                    "query": query,
+                    "status_filter": status_filter,
+                    "status_options": MISSION_EXPORT_INVENTORY_STATUSES,
                     "include_missing": include_missing,
+                    "download_query": urlencode(download_params),
+                    "toggle_query": urlencode(toggle_params),
                     "message": message,
                     "error": error,
                 },
@@ -402,6 +433,8 @@ def create_web_app(
     @app.get("/exports/download/{export_format}", dependencies=protected)
     def mission_export_inventory_download(
         export_format: MissionExportInventoryFormat,
+        q: str | None = None,
+        status: str | None = None,
         include_missing: bool = True,
     ) -> Response:
         export = build_mission_export_inventory_export(
@@ -409,6 +442,8 @@ def create_web_app(
             reports_dir,
             export_format,
             include_missing=include_missing,
+            query=q or "",
+            status=status or "",
         )
         return Response(
             content=export.content,

@@ -30,6 +30,7 @@ from media_security_audit.web_exports import (  # noqa: E402
     build_mission_export_inventory,
     build_mission_export_manifest_export,
     build_mission_export_verification_export,
+    filter_mission_export_inventory,
     generate_mission_export,
     list_mission_export,
     mission_export_file,
@@ -303,6 +304,8 @@ class WebExportTests(unittest.TestCase):
         payload = mission_export_inventory_payload(items)
         statuses = {item["mission_id"]: item["status"] for item in payload["items"]}
         names = {item["mission_id"]: item["client_name"] for item in payload["items"]}
+        missing_items = filter_mission_export_inventory(items, status="missing")
+        packaged_items = filter_mission_export_inventory(items, query="packaged")
 
         self.assertEqual(payload["summary"]["items"], 2)
         self.assertEqual(payload["summary"]["packages"], 1)
@@ -311,28 +314,37 @@ class WebExportTests(unittest.TestCase):
         self.assertEqual(statuses[packaged.id], "ready")
         self.assertEqual(statuses[missing.id], "missing")
         self.assertEqual(names[packaged.id], "Client Inventory")
+        self.assertEqual([item.mission_id for item in missing_items], [missing.id])
+        self.assertEqual([item.mission_id for item in packaged_items], [packaged.id])
 
         json_export = build_mission_export_inventory_export(
             store,
             reports_dir,
             MissionExportInventoryFormat.JSON,
             include_missing=True,
+            query="Packaged",
+            status="ready",
         )
         markdown_export = build_mission_export_inventory_export(
             store,
             reports_dir,
             MissionExportInventoryFormat.MARKDOWN,
             include_missing=True,
+            status="missing",
         )
+        json_payload = json.loads(json_export.content)
 
         self.assertEqual(json_export.filename, "mission-export-inventory.json")
         self.assertEqual(json_export.media_type, "application/json")
-        self.assertEqual(json.loads(json_export.content)["summary"]["items"], 2)
+        self.assertEqual(json_payload["summary"]["items"], 1)
+        self.assertEqual(json_payload["filters"]["query"], "Packaged")
+        self.assertEqual(json_payload["filters"]["status"], "ready")
         self.assertEqual(markdown_export.filename, "mission-export-inventory.md")
         self.assertIn("# Mission Export Inventory", markdown_export.content)
         self.assertIn("- Execution: `not_executed`", markdown_export.content)
-        self.assertIn("Packaged Audit", markdown_export.content)
+        self.assertIn("- Status: `missing`", markdown_export.content)
         self.assertIn("Missing Audit", markdown_export.content)
+        self.assertNotIn("Packaged Audit", markdown_export.content)
 
     def test_missing_mission_export_has_named_error(self) -> None:
         reports_dir = clean_dir("web-export-missing")

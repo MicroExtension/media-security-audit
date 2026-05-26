@@ -278,6 +278,7 @@ Current foundation:
 - CLI mission export inventory started
 - web mission export inventory started
 - web mission export inventory downloads started
+- web mission export inventory filters started
 - mission export integrity verification started
 - CLI mission export integrity verification started
 - web mission export integrity details started

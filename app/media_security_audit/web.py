@@ -68,8 +68,10 @@ from media_security_audit.web_forms import (
     validate_form_token,
 )
 from media_security_audit.web_exports import (
+    MissionExportInventoryFormat,
     MissionExportManifestFormat,
     MissionExportVerificationFormat,
+    build_mission_export_inventory_export,
     build_mission_export_inventory,
     build_mission_export_manifest_export,
     build_mission_export_verification_export,
@@ -395,6 +397,23 @@ def create_web_app(
                     "error": error,
                 },
             )
+        )
+
+    @app.get("/exports/download/{export_format}", dependencies=protected)
+    def mission_export_inventory_download(
+        export_format: MissionExportInventoryFormat,
+        include_missing: bool = True,
+    ) -> Response:
+        export = build_mission_export_inventory_export(
+            store,
+            reports_dir,
+            export_format,
+            include_missing=include_missing,
+        )
+        return Response(
+            content=export.content,
+            media_type=export.media_type,
+            headers={"Content-Disposition": f'attachment; filename="{export.filename}"'},
         )
 
     @app.post("/system/backup", dependencies=protected)

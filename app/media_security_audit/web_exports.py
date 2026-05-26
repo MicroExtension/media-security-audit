@@ -108,6 +108,19 @@ class MissionExportManifestExport:
     content: str
 
 
+class MissionExportInventoryFormat(str, Enum):
+    JSON = "json"
+    MARKDOWN = "markdown"
+
+
+@dataclass(frozen=True)
+class MissionExportInventoryExport:
+    format: MissionExportInventoryFormat
+    filename: str
+    media_type: str
+    content: str
+
+
 @dataclass(frozen=True)
 class MissionExportInventoryItem:
     mission_id: str
@@ -422,6 +435,52 @@ def format_mission_export_inventory_json(items: list[MissionExportInventoryItem]
     return json.dumps(mission_export_inventory_payload(items), indent=2, sort_keys=True)
 
 
+def format_mission_export_inventory_markdown(items: list[MissionExportInventoryItem]) -> str:
+    payload = mission_export_inventory_payload(items)
+    summary = payload["summary"]
+    lines = [
+        "# Mission Export Inventory",
+        "",
+        f"- Items: `{summary['items']}`",
+        f"- Packages: `{summary['packages']}`",
+        f"- Ready: `{summary['ready']}`",
+        f"- Warning: `{summary['warning']}`",
+        f"- Failed: `{summary['failed']}`",
+        f"- Missing: `{summary['missing']}`",
+        "- Execution: `not_executed`",
+        "",
+        "| Mission | Client | Status | Package | Integrity | Counters |",
+        "| --- | --- | --- | --- | --- | --- |",
+    ]
+    if not items:
+        lines.append("| None | - | - | - | No mission export package found. | - |")
+    for item in items:
+        package = item.filename or "missing"
+        counters = (
+            f"checked {item.checked_files}; missing {item.missing_files}; "
+            f"mismatched {item.mismatched_files}; unexpected {item.unexpected_files}"
+        )
+        lines.append(
+            "| "
+            + " | ".join(
+                [
+                    markdown_cell(f"{item.mission_name} ({item.mission_id})"),
+                    markdown_cell(item.client_name or item.client_id),
+                    markdown_cell(item.status),
+                    markdown_cell(package),
+                    markdown_cell(item.detail),
+                    markdown_cell(counters),
+                ]
+            )
+            + " |"
+        )
+    return "\n".join(lines)
+
+
+def markdown_cell(value: object) -> str:
+    return str(value).replace("|", "\\|").replace("\n", " ")
+
+
 def format_mission_export_inventory_text(items: list[MissionExportInventoryItem]) -> str:
     payload = mission_export_inventory_payload(items)
     summary = payload["summary"]
@@ -441,6 +500,38 @@ def format_mission_export_inventory_text(items: list[MissionExportInventoryItem]
             f"{item.filename or '<missing>'} | {item.detail}"
         )
     return "\n".join(lines)
+
+
+def build_mission_export_inventory_export(
+    store: JsonStore,
+    reports_dir: Path,
+    export_format: MissionExportInventoryFormat,
+    include_missing: bool = True,
+) -> MissionExportInventoryExport:
+    items = build_mission_export_inventory(
+        store,
+        reports_dir,
+        include_missing=include_missing,
+    )
+    filename = mission_export_inventory_export_filename(export_format)
+    if export_format is MissionExportInventoryFormat.JSON:
+        return MissionExportInventoryExport(
+            format=export_format,
+            filename=filename,
+            media_type="application/json",
+            content=format_mission_export_inventory_json(items),
+        )
+    return MissionExportInventoryExport(
+        format=export_format,
+        filename=filename,
+        media_type="text/markdown; charset=utf-8",
+        content=format_mission_export_inventory_markdown(items),
+    )
+
+
+def mission_export_inventory_export_filename(export_format: MissionExportInventoryFormat) -> str:
+    suffix = "json" if export_format is MissionExportInventoryFormat.JSON else "md"
+    return f"mission-export-inventory.{suffix}"
 
 
 def mission_export_file(reports_dir: Path, mission_id: str) -> Path:

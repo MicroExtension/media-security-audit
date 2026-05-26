@@ -237,6 +237,7 @@ class WebUiTests(unittest.TestCase):
         self.assertIn('id="new-mission"', template)
         self.assertIn("item.next_action_href", template)
         self.assertIn("client.next_action_href", template)
+        self.assertIn("client.export_inventory_url", template)
         self.assertIn("mission.preparation_action_href", template)
 
     def test_client_template_exposes_preparation_action_links(self) -> None:
@@ -251,6 +252,8 @@ class WebUiTests(unittest.TestCase):
 
         self.assertIn("item.next_action_href", template)
         self.assertIn("item.next_action_label", template)
+        self.assertIn('href="{{ view.export_inventory_url }}"', template)
+        self.assertIn('href="{{ view.activity_log_url }}"', template)
         self.assertIn("mission.preparation_action_href", template)
         self.assertIn("mission.preparation_action_label", template)
 
@@ -481,6 +484,7 @@ class WebUiTests(unittest.TestCase):
             view.clients[0].next_action_href,
             f"/missions/{mission.id}#findings",
         )
+        self.assertEqual(view.clients[0].export_inventory_url, f"/exports?client_id={client.id}")
         self.assertEqual(view.clients[0].next_action_mission_id, mission.id)
         self.assertEqual(view.clients[0].next_action_mission_name, "External Audit")
         self.assertEqual(view.clients[0].blocked_preparation_count, 0)
@@ -1175,6 +1179,7 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(view.missions[0].preparation_status, "warning")
         self.assertEqual(view.missions[0].preparation_next_action, "Review 1 new finding(s).")
         self.assertEqual(view.activity_log_url, f"/activity?client_id={client_a.id}")
+        self.assertEqual(view.export_inventory_url, f"/exports?client_id={client_a.id}")
         self.assertEqual(len(view.recent_activity_events), 1)
         self.assertEqual(view.recent_activity_events[0].mission_name, "Client A Audit")
         self.assertEqual(view.recent_activity_events[0].action, "scope.approved")

@@ -222,6 +222,9 @@
             <span class="muted block">
               <a class="table-action" href="{{ client.next_action_href }}">{{ client.next_action_label }}</a>
             </span>
+            <span class="muted block">
+              <a class="table-action" href="{{ client.export_inventory_url }}">Exports</a>
+            </span>
             {% if client.next_action_mission_id %}
             <span class="muted block">
               <a href="/missions/{{ client.next_action_mission_id }}">{{ client.next_action_mission_name }}</a>

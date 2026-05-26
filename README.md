@@ -64,6 +64,7 @@ Implemented so far:
 - web mission export inventory CSV download for spreadsheet review
 - web mission export inventory filter context and shortcuts
 - web mission export inventory client filter for MSP handoff review
+- client and dashboard pages link directly to filtered mission export inventory
 - structured authorization details for mission records and reports
 - web authorization brief export for pre-audit approval review
 - web workspace backup package for appliance operations
@@ -624,6 +625,7 @@ Planned screens:
 - web mission export inventory CSV download started
 - web mission export inventory filter context started
 - web mission export inventory client filter started
+- client export inventory links started
 - mission export integrity verification started
 - CLI mission export integrity verification started
 - web mission export integrity details started

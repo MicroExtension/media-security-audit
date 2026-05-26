@@ -395,6 +395,11 @@ def create_web_app(
             query=query,
             status=status_filter,
         )
+        active_filters = mission_export_inventory_active_filters(
+            query=query,
+            status=status_filter,
+            include_missing=include_missing,
+        )
         filters = mission_export_inventory_filter_payload(
             query=query,
             status=status_filter,
@@ -418,6 +423,10 @@ def create_web_app(
                     "items": filtered_items,
                     "summary": payload["summary"],
                     "filters": filters,
+                    "active_filters": active_filters,
+                    "has_filters": bool(active_filters),
+                    "clear_filters_url": "/exports",
+                    "total_items": len(items),
                     "query": query,
                     "status_filter": status_filter,
                     "status_options": MISSION_EXPORT_INVENTORY_STATUSES,
@@ -450,6 +459,20 @@ def create_web_app(
             media_type=export.media_type,
             headers={"Content-Disposition": f'attachment; filename="{export.filename}"'},
         )
+
+    def mission_export_inventory_active_filters(
+        query: str,
+        status: str,
+        include_missing: bool,
+    ) -> list[dict[str, str]]:
+        filters: list[dict[str, str]] = []
+        if query.strip():
+            filters.append({"label": "Search", "value": query.strip()})
+        if status:
+            filters.append({"label": "Status", "value": status})
+        if not include_missing:
+            filters.append({"label": "Missing packages", "value": "hidden"})
+        return filters
 
     @app.post("/system/backup", dependencies=protected)
     async def workspace_backup_generate(request: Request):

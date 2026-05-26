@@ -18,6 +18,27 @@
   </div>
 </section>
 
+<section class="page-shortcuts" aria-label="Mission export shortcuts">
+  <a href="#export-filters">Filters <span>{{ active_filters|length }}</span></a>
+  <a href="#mission-export-inventory">Inventory <span>{{ summary["items"] }}</span></a>
+  <a href="#export-downloads">Downloads <span>3</span></a>
+</section>
+
+{% if has_filters %}
+<section class="callout activity-filter-context">
+  <div>
+    <h2>Active Filters</h2>
+    <p>{{ summary["items"] }} of {{ total_items }} inventory item(s) visible.</p>
+  </div>
+  <div class="filter-chips" aria-label="Active mission export filters">
+    {% for filter in active_filters %}
+    <span class="filter-chip">{{ filter.label }}: {{ filter.value }}</span>
+    {% endfor %}
+    <a class="filter-chip clear-filter" href="{{ clear_filters_url }}">Clear filters</a>
+  </div>
+</section>
+{% endif %}
+
 <section class="section" id="export-filters">
   <form class="form-panel" method="get" action="/exports" aria-label="Filter mission exports">
     <div class="field-grid">
@@ -60,7 +81,11 @@
 <section class="section" id="mission-export-inventory">
   <div class="section-title">
     <h2>Export Inventory</h2>
-    <span class="muted">Existing mission ZIP packages and manifest integrity</span>
+    <div class="report-links" id="export-downloads" aria-label="Mission export inventory downloads">
+      <a href="/exports/download/csv?{{ download_query }}">CSV</a>
+      <a href="/exports/download/markdown?{{ download_query }}">Markdown</a>
+      <a href="/exports/download/json?{{ download_query }}">JSON</a>
+    </div>
   </div>
   <div class="table-wrap">
     <table>

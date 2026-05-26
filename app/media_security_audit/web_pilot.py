@@ -24,6 +24,13 @@ class PilotRunbookStep:
 
 
 @dataclass(frozen=True)
+class PilotAcceptanceItem:
+    phase: str
+    title: str
+    evidence: str
+
+
+@dataclass(frozen=True)
 class PilotRunbookSection:
     anchor: str
     title: str
@@ -37,6 +44,7 @@ class PilotRunbookView:
     subtitle: str
     metrics: list[PilotRunbookMetric]
     sections: list[PilotRunbookSection]
+    acceptance_items: list[PilotAcceptanceItem]
 
 
 def build_pilot_runbook_view() -> PilotRunbookView:
@@ -48,6 +56,63 @@ def build_pilot_runbook_view() -> PilotRunbookView:
             PilotRunbookMetric(label="Mode", value="Local"),
             PilotRunbookMetric(label="Scans", value="Guarded"),
             PilotRunbookMetric(label="Output", value="Reports"),
+        ],
+        acceptance_items=[
+            PilotAcceptanceItem(
+                phase="Setup",
+                title="Appliance status reviewed",
+                evidence="System status page checked before client use.",
+            ),
+            PilotAcceptanceItem(
+                phase="Mission",
+                title="Client and mission created",
+                evidence="Client detail and mission page exist in the dashboard.",
+            ),
+            PilotAcceptanceItem(
+                phase="Mission",
+                title="Authorization details completed",
+                evidence="Authorization reference, contact, dates, and recipients are recorded.",
+            ),
+            PilotAcceptanceItem(
+                phase="Mission",
+                title="Approved scope recorded",
+                evidence="Only validated scope items are approved for the mission.",
+            ),
+            PilotAcceptanceItem(
+                phase="Mission",
+                title="Checks selected from approved scope",
+                evidence="Selected checks match authorization and visible scan plan previews.",
+            ),
+            PilotAcceptanceItem(
+                phase="Review",
+                title="Findings reviewed",
+                evidence="False positives, accepted risks, and counter-test results have notes.",
+            ),
+            PilotAcceptanceItem(
+                phase="Handoff",
+                title="Reports generated",
+                evidence="JSON, Markdown, and HTML reports are available from the mission.",
+            ),
+            PilotAcceptanceItem(
+                phase="Handoff",
+                title="Mission package generated",
+                evidence="Mission ZIP package is available with manifest and verification links.",
+            ),
+            PilotAcceptanceItem(
+                phase="Handoff",
+                title="Export inventory verified",
+                evidence="Mission export inventory shows the package as ready or reviewed.",
+            ),
+            PilotAcceptanceItem(
+                phase="Closeout",
+                title="Workspace backup created",
+                evidence="System backup package exists before closing the pilot session.",
+            ),
+            PilotAcceptanceItem(
+                phase="Closeout",
+                title="Residual risks recorded",
+                evidence="Accepted risks and pending counter-tests are visible for follow-up.",
+            ),
         ],
         sections=[
             PilotRunbookSection(
@@ -243,4 +308,21 @@ def format_pilot_runbook_markdown(view: PilotRunbookView | None = None) -> str:
             lines.append(f"{index}. **{step.title}**")
             lines.append(f"   {step.detail}")
         lines.append("")
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def format_pilot_acceptance_markdown(view: PilotRunbookView | None = None) -> str:
+    view = view or build_pilot_runbook_view()
+    lines = [
+        "# Pilot Acceptance Checklist",
+        "",
+        f"- Context: `{view.subtitle}`",
+        f"- Source: `{view.title}`",
+        "",
+        "## Checklist",
+        "",
+    ]
+    for item in view.acceptance_items:
+        lines.append(f"- [ ] **{item.phase}: {item.title}**")
+        lines.append(f"  Evidence: {item.evidence}")
     return "\n".join(lines).rstrip() + "\n"

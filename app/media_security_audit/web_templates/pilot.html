@@ -10,6 +10,7 @@
     <a class="button secondary-button" href="/">Dashboard</a>
     <a class="button secondary-button" href="/system">System</a>
     <a class="button secondary-button" href="/pilot/runbook.md">Markdown</a>
+    <a class="button secondary-button" href="/pilot/acceptance.md">Acceptance</a>
   </div>
 </section>
 
@@ -23,6 +24,7 @@
   {% for section in view.sections %}
   <a href="#{{ section.anchor }}">{{ section.title }} <span>{{ section.steps|length }}</span></a>
   {% endfor %}
+  <a href="#pilot-acceptance">Acceptance <span>{{ view.acceptance_items|length }}</span></a>
 </section>
 
 {% for section in view.sections %}
@@ -48,4 +50,22 @@
   {% endfor %}
 </section>
 {% endfor %}
+
+<section class="section" id="pilot-acceptance">
+  <div class="section-title">
+    <h2>Acceptance</h2>
+    <div class="report-links" aria-label="Pilot acceptance export">
+      <a href="/pilot/acceptance.md">Markdown</a>
+    </div>
+  </div>
+  {% for item in view.acceptance_items %}
+  <div class="status-panel">
+    <span class="badge status-ready">{{ item.phase }}</span>
+    <div>
+      <strong>{{ item.title }}</strong>
+      <p>{{ item.evidence }}</p>
+    </div>
+  </div>
+  {% endfor %}
+</section>
 {% endblock %}

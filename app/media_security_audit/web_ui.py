@@ -55,6 +55,7 @@ class ClientRow:
     next_action: str
     next_action_label: str
     next_action_href: str
+    export_inventory_url: str
     next_action_mission_id: str
     next_action_mission_name: str
     blocked_preparation_count: int
@@ -302,6 +303,7 @@ class ClientView:
     counter_test_summary: list[CounterTestSummaryRow]
     failed_counter_test_missions: list[MissionRow]
     activity_log_url: str
+    export_inventory_url: str
     blocked_preparation_count: int
     warning_preparation_count: int
     ready_preparation_count: int
@@ -786,6 +788,10 @@ def client_activity_log_url(client_id: str) -> str:
     return f"/activity?{urlencode({'client_id': client_id})}"
 
 
+def client_export_inventory_url(client_id: str) -> str:
+    return f"/exports?{urlencode({'client_id': client_id})}"
+
+
 def mission_activity_log_url(mission_id: str) -> str:
     return f"/activity?{urlencode({'mission_id': mission_id})}"
 
@@ -993,6 +999,7 @@ def build_dashboard_view(store: JsonStore) -> DashboardView:
                 next_action=next_action,
                 next_action_label=next_action_label,
                 next_action_href=next_action_href,
+                export_inventory_url=client_export_inventory_url(client.id),
                 next_action_mission_id=mission_id,
                 next_action_mission_name=mission_name,
                 blocked_preparation_count=preparation_counts.get(client.id, {}).get(
@@ -1121,6 +1128,7 @@ def build_client_view(store: JsonStore, client_id: str) -> ClientView:
         counter_test_summary=counter_test_summary_rows(all_findings),
         failed_counter_test_missions=failed_counter_test_mission_rows(mission_rows),
         activity_log_url=client_activity_log_url(client.id),
+        export_inventory_url=client_export_inventory_url(client.id),
         blocked_preparation_count=len(
             [item for item in preparation_items if item.status == "blocked"]
         ),

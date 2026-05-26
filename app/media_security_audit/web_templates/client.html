@@ -7,6 +7,10 @@
     <h1>{{ view.client.name }}</h1>
     <p class="muted">{{ view.client.reference or view.client.id }}</p>
   </div>
+  <div class="actions">
+    <a class="button secondary-button" href="{{ view.export_inventory_url }}">Open Exports</a>
+    <a class="button secondary-button" href="{{ view.activity_log_url }}">Open Activity</a>
+  </div>
 </section>
 
 <section class="metrics" aria-label="Client summary">

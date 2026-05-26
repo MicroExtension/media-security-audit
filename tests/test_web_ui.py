@@ -66,8 +66,17 @@ class WebUiTests(unittest.TestCase):
 
         self.assertIn('href="/exports"', template)
         self.assertIn(">Exports</a>", template)
+        self.assertIn('href="/pilot"', template)
+        self.assertIn(">Pilot</a>", template)
 
-        for prefix in ["/activity", "/exports", "/templates", "/remediations", "/system"]:
+        for prefix in [
+            "/activity",
+            "/exports",
+            "/templates",
+            "/remediations",
+            "/pilot",
+            "/system",
+        ]:
             self.assertIn(f"current_path.startswith('{prefix}')", template)
 
     def test_global_styles_expose_visible_keyboard_focus(self) -> None:
@@ -361,6 +370,52 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("client_options = sorted(store.list_clients()", web)
         self.assertIn("client_id=client_filter", web)
         self.assertIn("include_missing: bool = True", web)
+
+    def test_pilot_template_exposes_client_pilot_runbook(self) -> None:
+        template_path = (
+            Path(__file__).resolve().parents[1]
+            / "app"
+            / "media_security_audit"
+            / "web_templates"
+            / "pilot.html"
+        )
+        template = template_path.read_text(encoding="utf-8")
+
+        self.assertIn("Pilot Runbook", template)
+        self.assertIn('aria-label="Pilot runbook summary"', template)
+        self.assertIn('aria-label="Pilot runbook shortcuts"', template)
+        for anchor in [
+            "pilot-setup",
+            "pilot-mission",
+            "pilot-review",
+            "pilot-handoff",
+            "pilot-closeout",
+        ]:
+            self.assertIn(f'href="#{anchor}"', template)
+            self.assertIn(f'id="{anchor}"', template)
+        for link in [
+            'href="/"',
+            'href="/system"',
+            'href="/templates"',
+            'href="/activity"',
+            'href="/remediations"',
+            'href="/exports"',
+            'href="/system#system-backup"',
+        ]:
+            self.assertIn(link, template)
+
+    def test_web_pilot_route_is_local_runbook_only(self) -> None:
+        web_path = (
+            Path(__file__).resolve().parents[1]
+            / "app"
+            / "media_security_audit"
+            / "web.py"
+        )
+        web = web_path.read_text(encoding="utf-8")
+
+        self.assertIn('@app.get("/pilot"', web)
+        self.assertIn("def pilot_runbook(", web)
+        self.assertIn('"pilot.html"', web)
 
     def test_mission_template_exposes_shortcut_anchors(self) -> None:
         template_path = (

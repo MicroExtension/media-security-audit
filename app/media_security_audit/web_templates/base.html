@@ -15,6 +15,7 @@
     <nav class="topnav" aria-label="Primary navigation">
       <a href="/" class="{{ 'active' if dashboard_active else '' }}" {% if dashboard_active %}aria-current="page"{% endif %}>Dashboard</a>
       <a href="/activity" class="{{ 'active' if current_path.startswith('/activity') else '' }}" {% if current_path.startswith('/activity') %}aria-current="page"{% endif %}>Activity</a>
+      <a href="/exports" class="{{ 'active' if current_path.startswith('/exports') else '' }}" {% if current_path.startswith('/exports') %}aria-current="page"{% endif %}>Exports</a>
       <a href="/templates" class="{{ 'active' if current_path.startswith('/templates') else '' }}" {% if current_path.startswith('/templates') %}aria-current="page"{% endif %}>Templates</a>
       <a href="/remediations" class="{{ 'active' if current_path.startswith('/remediations') else '' }}" {% if current_path.startswith('/remediations') %}aria-current="page"{% endif %}>Remediations</a>
       <a href="/system" class="{{ 'active' if current_path.startswith('/system') else '' }}" {% if current_path.startswith('/system') %}aria-current="page"{% endif %}>System</a>

@@ -70,10 +70,12 @@ from media_security_audit.web_forms import (
 from media_security_audit.web_exports import (
     MissionExportManifestFormat,
     MissionExportVerificationFormat,
+    build_mission_export_inventory,
     build_mission_export_manifest_export,
     build_mission_export_verification_export,
     generate_mission_export,
     mission_export_file,
+    mission_export_inventory_payload,
 )
 from media_security_audit.web_health import build_health_status, health_status_code
 from media_security_audit.web_reports import generate_web_reports, generated_report_file
@@ -364,6 +366,35 @@ def create_web_app(
             content=export.content,
             media_type=export.media_type,
             headers={"Content-Disposition": f'attachment; filename="{export.filename}"'},
+        )
+
+    @app.get("/exports", response_class=HTMLResponse, dependencies=protected)
+    def mission_export_inventory(
+        request: Request,
+        include_missing: bool = True,
+        message: str | None = None,
+        error: str | None = None,
+    ) -> HTMLResponse:
+        items = build_mission_export_inventory(
+            store,
+            reports_dir,
+            include_missing=include_missing,
+        )
+        payload = mission_export_inventory_payload(items)
+        return HTMLResponse(
+            render_template(
+                templates,
+                "exports.html",
+                {
+                    "request": request,
+                    "data_dir": data_dir,
+                    "items": items,
+                    "summary": payload["summary"],
+                    "include_missing": include_missing,
+                    "message": message,
+                    "error": error,
+                },
+            )
         )
 
     @app.post("/system/backup", dependencies=protected)

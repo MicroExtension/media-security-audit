@@ -58,6 +58,7 @@ Implemented so far:
 - mission export packages include scan plan exports
 - authorization briefs include the selected scan plan summary
 - web mission export package for audit handoff
+- web mission export inventory for handoff review
 - structured authorization details for mission records and reports
 - web authorization brief export for pre-audit approval review
 - web workspace backup package for appliance operations
@@ -330,6 +331,9 @@ The inventory command lists package status without opening the web interface.
 The manifest command reads only `manifest.json` from the ZIP. The verification
 command checks packaged file presence, sizes, checksums, and unexpected members
 without regenerating reports or running scans.
+
+The local web interface also exposes `/exports` to review all mission export
+packages, missing packages, and integrity counters from a single page.
 
 Local web interface:
 
@@ -605,6 +609,7 @@ Planned screens:
 - web mission export manifest downloads started
 - CLI mission export manifest output started
 - CLI mission export inventory started
+- web mission export inventory started
 - mission export integrity verification started
 - CLI mission export integrity verification started
 - web mission export integrity details started

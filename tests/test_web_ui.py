@@ -64,7 +64,10 @@ class WebUiTests(unittest.TestCase):
         self.assertIn('role="alert"', template)
         self.assertIn('aria-label="Workspace metadata"', template)
 
-        for prefix in ["/activity", "/templates", "/remediations", "/system"]:
+        self.assertIn('href="/exports"', template)
+        self.assertIn(">Exports</a>", template)
+
+        for prefix in ["/activity", "/exports", "/templates", "/remediations", "/system"]:
             self.assertIn(f"current_path.startswith('{prefix}')", template)
 
     def test_global_styles_expose_visible_keyboard_focus(self) -> None:
@@ -136,6 +139,7 @@ class WebUiTests(unittest.TestCase):
             "activity.html",
             "client.html",
             "dashboard.html",
+            "exports.html",
             "mission.html",
             "system.html",
         ]:
@@ -278,6 +282,47 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("mission.counter_test_ready_count", template)
         self.assertIn("mission.counter_test_passed_count", template)
         self.assertIn("mission.counter_test_failed_count", template)
+
+    def test_export_inventory_template_exposes_package_actions(self) -> None:
+        template_path = (
+            Path(__file__).resolve().parents[1]
+            / "app"
+            / "media_security_audit"
+            / "web_templates"
+            / "exports.html"
+        )
+        template = template_path.read_text(encoding="utf-8")
+
+        self.assertIn('aria-label="Mission export inventory summary"', template)
+        self.assertIn('id="mission-export-inventory"', template)
+        self.assertIn('summary["items"]', template)
+        self.assertIn("summary.packages", template)
+        self.assertIn("summary.ready", template)
+        self.assertIn("summary.warning", template)
+        self.assertIn("summary.failed", template)
+        self.assertIn("summary.missing", template)
+        self.assertIn("item.mission_name", template)
+        self.assertIn("item.client_name", template)
+        self.assertIn("item.status", template)
+        self.assertIn("item.detail", template)
+        self.assertIn("/missions/{{ item.mission_id }}/export", template)
+        self.assertIn("/exports?include_missing=false", template)
+        self.assertIn("/exports?include_missing=true", template)
+
+    def test_web_exports_route_is_inventory_only(self) -> None:
+        web_path = (
+            Path(__file__).resolve().parents[1]
+            / "app"
+            / "media_security_audit"
+            / "web.py"
+        )
+        web = web_path.read_text(encoding="utf-8")
+
+        self.assertIn('@app.get("/exports"', web)
+        self.assertIn("build_mission_export_inventory", web)
+        self.assertIn("mission_export_inventory_payload", web)
+        self.assertIn('"exports.html"', web)
+        self.assertIn("include_missing: bool = True", web)
 
     def test_mission_template_exposes_shortcut_anchors(self) -> None:
         template_path = (

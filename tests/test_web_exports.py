@@ -25,11 +25,13 @@ from media_security_audit.web_authorization import generate_authorization_brief 
 from media_security_audit.web_exports import (  # noqa: E402
     MissionExportManifestFormat,
     MissionExportVerificationFormat,
+    build_mission_export_inventory,
     build_mission_export_manifest_export,
     build_mission_export_verification_export,
     generate_mission_export,
     list_mission_export,
     mission_export_file,
+    mission_export_inventory_payload,
     mission_export_path,
     verify_mission_export,
 )
@@ -272,6 +274,41 @@ class WebExportTests(unittest.TestCase):
         self.assertEqual(export_link.unexpected_count, 0)
         self.assertEqual(export_link.missing_files, ["data/mission.json"])
         self.assertTrue(export_link.has_integrity_issues)
+
+    def test_mission_export_inventory_payload_lists_web_handoff_status(self) -> None:
+        data_dir = clean_dir("web-export-inventory-data")
+        reports_dir = clean_dir("web-export-inventory-reports")
+        store = JsonStore(data_dir)
+        client = store.create_client(Client(name="Client Inventory"))
+        packaged = store.create_mission(
+            Mission(
+                client_id=client.id,
+                name="Packaged Audit",
+                authorization_reference="AUTH-PACKAGED",
+            )
+        )
+        missing = store.create_mission(
+            Mission(
+                client_id=client.id,
+                name="Missing Audit",
+                authorization_reference="AUTH-MISSING",
+            )
+        )
+        generate_web_reports(store, packaged.id, reports_dir)
+        generate_mission_export(store, packaged.id, reports_dir)
+
+        items = build_mission_export_inventory(store, reports_dir, include_missing=True)
+        payload = mission_export_inventory_payload(items)
+        statuses = {item["mission_id"]: item["status"] for item in payload["items"]}
+        names = {item["mission_id"]: item["client_name"] for item in payload["items"]}
+
+        self.assertEqual(payload["summary"]["items"], 2)
+        self.assertEqual(payload["summary"]["packages"], 1)
+        self.assertEqual(payload["summary"]["ready"], 1)
+        self.assertEqual(payload["summary"]["missing"], 1)
+        self.assertEqual(statuses[packaged.id], "ready")
+        self.assertEqual(statuses[missing.id], "missing")
+        self.assertEqual(names[packaged.id], "Client Inventory")
 
     def test_missing_mission_export_has_named_error(self) -> None:
         reports_dir = clean_dir("web-export-missing")

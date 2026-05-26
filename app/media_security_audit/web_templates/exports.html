@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Mission Exports | MEDIA Security Audit{% endblock %}
+{% block content %}
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">Handoff</p>
+    <h1>Mission Exports</h1>
+  </div>
+  <div class="actions">
+    {% if include_missing %}
+    <a class="button secondary-button" href="/exports?include_missing=false">Hide Missing</a>
+    {% else %}
+    <a class="button secondary-button" href="/exports?include_missing=true">Show Missing</a>
+    {% endif %}
+  </div>
+</section>
+
+<section class="metrics" aria-label="Mission export inventory summary">
+  <div class="metric"><span>Items</span><strong>{{ summary["items"] }}</strong></div>
+  <div class="metric"><span>Packages</span><strong>{{ summary.packages }}</strong></div>
+  <div class="metric"><span>Ready</span><strong>{{ summary.ready }}</strong></div>
+  <div class="metric"><span>Warning</span><strong>{{ summary.warning }}</strong></div>
+  <div class="metric"><span>Failed</span><strong>{{ summary.failed }}</strong></div>
+  <div class="metric"><span>Missing</span><strong>{{ summary.missing }}</strong></div>
+</section>
+
+<section class="section" id="mission-export-inventory">
+  <div class="section-title">
+    <h2>Export Inventory</h2>
+    <span class="muted">Existing mission ZIP packages and manifest integrity</span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <caption class="sr-only">Mission export package inventory</caption>
+      <thead>
+        <tr>
+          <th>Mission</th>
+          <th>Client</th>
+          <th>Status</th>
+          <th>Package</th>
+          <th>Integrity</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+        <tr>
+          <td><a href="/missions/{{ item.mission_id }}">{{ item.mission_name }}</a></td>
+          <td>
+            {% if item.client_name %}
+            <a href="/clients/{{ item.client_id }}">{{ item.client_name }}</a>
+            {% else %}
+            <span class="muted">{{ item.client_id }}</span>
+            {% endif %}
+          </td>
+          <td><span class="status status-{{ item.status }}">{{ item.status }}</span></td>
+          <td>
+            {% if item.filename %}
+            {{ item.filename }}
+            <span class="muted block">{{ item.size_bytes }} bytes</span>
+            {% else %}
+            <span class="muted">No package</span>
+            {% endif %}
+          </td>
+          <td>
+            {{ item.detail }}
+            <span class="muted block">
+              Checked {{ item.checked_files }} |
+              Missing {{ item.missing_files }} |
+              Mismatched {{ item.mismatched_files }} |
+              Unexpected {{ item.unexpected_files }}
+            </span>
+          </td>
+          <td>
+            <a class="table-action" href="/missions/{{ item.mission_id }}">Open Mission</a>
+            {% if item.filename %}
+            <span class="muted block"><a class="table-action" href="/missions/{{ item.mission_id }}/export">Download ZIP</a></span>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="empty">No mission export package found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

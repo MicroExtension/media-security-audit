@@ -8,6 +8,13 @@
   </div>
   <div class="actions">
     {% if include_missing %}
+    <a class="button secondary-button" href="/exports/download/markdown?include_missing=true">Markdown</a>
+    <a class="button secondary-button" href="/exports/download/json?include_missing=true">JSON</a>
+    {% else %}
+    <a class="button secondary-button" href="/exports/download/markdown?include_missing=false">Markdown</a>
+    <a class="button secondary-button" href="/exports/download/json?include_missing=false">JSON</a>
+    {% endif %}
+    {% if include_missing %}
     <a class="button secondary-button" href="/exports?include_missing=false">Hide Missing</a>
     {% else %}
     <a class="button secondary-button" href="/exports?include_missing=true">Show Missing</a>

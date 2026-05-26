@@ -23,8 +23,10 @@ from media_security_audit.models import (  # noqa: E402
 from media_security_audit.storage import JsonStore  # noqa: E402
 from media_security_audit.web_authorization import generate_authorization_brief  # noqa: E402
 from media_security_audit.web_exports import (  # noqa: E402
+    MissionExportInventoryFormat,
     MissionExportManifestFormat,
     MissionExportVerificationFormat,
+    build_mission_export_inventory_export,
     build_mission_export_inventory,
     build_mission_export_manifest_export,
     build_mission_export_verification_export,
@@ -309,6 +311,28 @@ class WebExportTests(unittest.TestCase):
         self.assertEqual(statuses[packaged.id], "ready")
         self.assertEqual(statuses[missing.id], "missing")
         self.assertEqual(names[packaged.id], "Client Inventory")
+
+        json_export = build_mission_export_inventory_export(
+            store,
+            reports_dir,
+            MissionExportInventoryFormat.JSON,
+            include_missing=True,
+        )
+        markdown_export = build_mission_export_inventory_export(
+            store,
+            reports_dir,
+            MissionExportInventoryFormat.MARKDOWN,
+            include_missing=True,
+        )
+
+        self.assertEqual(json_export.filename, "mission-export-inventory.json")
+        self.assertEqual(json_export.media_type, "application/json")
+        self.assertEqual(json.loads(json_export.content)["summary"]["items"], 2)
+        self.assertEqual(markdown_export.filename, "mission-export-inventory.md")
+        self.assertIn("# Mission Export Inventory", markdown_export.content)
+        self.assertIn("- Execution: `not_executed`", markdown_export.content)
+        self.assertIn("Packaged Audit", markdown_export.content)
+        self.assertIn("Missing Audit", markdown_export.content)
 
     def test_missing_mission_export_has_named_error(self) -> None:
         reports_dir = clean_dir("web-export-missing")

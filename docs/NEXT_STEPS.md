@@ -622,6 +622,7 @@ Current GUI status:
 - mission pages expose mission ZIP manifest JSON and Markdown downloads
 - CLI mission export inventory lists package status for handoff review
 - web mission export inventory lists package status for handoff review
+- web mission export inventory downloads JSON and Markdown handoff files
 - CLI mission export manifest output reads ZIP manifests after handoff
 - mission pages verify mission ZIP package integrity from the manifest
 - CLI mission export verification checks mission ZIP integrity after handoff

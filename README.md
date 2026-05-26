@@ -60,6 +60,7 @@ Implemented so far:
 - web mission export package for audit handoff
 - web mission export inventory for handoff review
 - web mission export inventory downloads for handoff review
+- web mission export inventory filters for handoff review
 - structured authorization details for mission records and reports
 - web authorization brief export for pre-audit approval review
 - web workspace backup package for appliance operations
@@ -335,7 +336,8 @@ without regenerating reports or running scans.
 
 The local web interface also exposes `/exports` to review all mission export
 packages, missing packages, and integrity counters from a single page. The
-same inventory can be downloaded from the page as JSON or Markdown.
+same inventory can be filtered by search text or status, then downloaded from
+the page as JSON or Markdown.
 
 Local web interface:
 
@@ -613,6 +615,7 @@ Planned screens:
 - CLI mission export inventory started
 - web mission export inventory started
 - web mission export inventory downloads started
+- web mission export inventory filters started
 - mission export integrity verification started
 - CLI mission export integrity verification started
 - web mission export integrity details started

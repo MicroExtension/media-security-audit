@@ -293,8 +293,14 @@ class WebUiTests(unittest.TestCase):
         )
         template = template_path.read_text(encoding="utf-8")
 
+        self.assertIn('id="export-filters"', template)
+        self.assertIn('aria-label="Filter mission exports"', template)
         self.assertIn('aria-label="Mission export inventory summary"', template)
         self.assertIn('id="mission-export-inventory"', template)
+        self.assertIn('name="q"', template)
+        self.assertIn('name="status"', template)
+        self.assertIn("status_options", template)
+        self.assertIn('name="include_missing"', template)
         self.assertIn('summary["items"]', template)
         self.assertIn("summary.packages", template)
         self.assertIn("summary.ready", template)
@@ -305,13 +311,10 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("item.client_name", template)
         self.assertIn("item.status", template)
         self.assertIn("item.detail", template)
-        self.assertIn("/exports/download/markdown?include_missing=true", template)
-        self.assertIn("/exports/download/json?include_missing=true", template)
-        self.assertIn("/exports/download/markdown?include_missing=false", template)
-        self.assertIn("/exports/download/json?include_missing=false", template)
+        self.assertIn("/exports/download/markdown?{{ download_query }}", template)
+        self.assertIn("/exports/download/json?{{ download_query }}", template)
         self.assertIn("/missions/{{ item.mission_id }}/export", template)
-        self.assertIn("/exports?include_missing=false", template)
-        self.assertIn("/exports?include_missing=true", template)
+        self.assertIn("/exports?{{ toggle_query }}", template)
 
     def test_web_exports_route_is_inventory_only(self) -> None:
         web_path = (
@@ -324,11 +327,16 @@ class WebUiTests(unittest.TestCase):
 
         self.assertIn('@app.get("/exports"', web)
         self.assertIn('@app.get("/exports/download/{export_format}"', web)
+        self.assertIn("MISSION_EXPORT_INVENTORY_STATUSES", web)
         self.assertIn("MissionExportInventoryFormat", web)
         self.assertIn("build_mission_export_inventory_export", web)
         self.assertIn("build_mission_export_inventory", web)
+        self.assertIn("filter_mission_export_inventory", web)
+        self.assertIn("mission_export_inventory_filter_payload", web)
         self.assertIn("mission_export_inventory_payload", web)
         self.assertIn('"exports.html"', web)
+        self.assertIn("q: str | None = None", web)
+        self.assertIn("status: str | None = None", web)
         self.assertIn("include_missing: bool = True", web)
 
     def test_mission_template_exposes_shortcut_anchors(self) -> None:

@@ -138,6 +138,9 @@ class MissionExportInventoryItem:
     unexpected_files: int
 
 
+MISSION_EXPORT_INVENTORY_STATUSES = ("ready", "warning", "failed", "missing")
+
+
 def mission_export_path(reports_dir: Path, mission_id: str) -> Path:
     return mission_report_dir(reports_dir, mission_id) / f"{mission_id}-package.zip"
 
@@ -350,6 +353,44 @@ def build_mission_export_inventory(
     return items
 
 
+def filter_mission_export_inventory(
+    items: list[MissionExportInventoryItem],
+    query: str = "",
+    status: str = "",
+) -> list[MissionExportInventoryItem]:
+    normalized_query = query.strip().lower()
+    normalized_status = normalize_mission_export_inventory_status(status)
+    filtered: list[MissionExportInventoryItem] = []
+    for item in items:
+        if normalized_status and item.status != normalized_status:
+            continue
+        if normalized_query and normalized_query not in mission_export_inventory_search_text(item):
+            continue
+        filtered.append(item)
+    return filtered
+
+
+def normalize_mission_export_inventory_status(status: str = "") -> str:
+    normalized = status.strip().lower()
+    if normalized in MISSION_EXPORT_INVENTORY_STATUSES:
+        return normalized
+    return ""
+
+
+def mission_export_inventory_search_text(item: MissionExportInventoryItem) -> str:
+    values = [
+        item.mission_id,
+        item.mission_name,
+        item.client_id,
+        item.client_name or "",
+        item.package_path,
+        item.filename or "",
+        item.status,
+        item.detail,
+    ]
+    return " ".join(values).lower()
+
+
 def mission_export_inventory_client_name(store: JsonStore, mission: Mission) -> str | None:
     try:
         return store.get_client(mission.client_id).name
@@ -396,11 +437,14 @@ def mission_export_inventory_item(
     )
 
 
-def mission_export_inventory_payload(items: list[MissionExportInventoryItem]) -> dict[str, object]:
+def mission_export_inventory_payload(
+    items: list[MissionExportInventoryItem],
+    filters: dict[str, object] | None = None,
+) -> dict[str, object]:
     statuses = {status: 0 for status in ("ready", "warning", "failed", "missing")}
     for item in items:
         statuses[item.status] = statuses.get(item.status, 0) + 1
-    return {
+    payload: dict[str, object] = {
         "schema_version": 1,
         "summary": {
             "packages": len([item for item in items if item.status != "missing"]),
@@ -429,14 +473,39 @@ def mission_export_inventory_payload(items: list[MissionExportInventoryItem]) ->
             for item in items
         ],
     }
+    if filters is not None:
+        payload["filters"] = filters
+    return payload
 
 
-def format_mission_export_inventory_json(items: list[MissionExportInventoryItem]) -> str:
-    return json.dumps(mission_export_inventory_payload(items), indent=2, sort_keys=True)
+def mission_export_inventory_filter_payload(
+    query: str = "",
+    status: str = "",
+    include_missing: bool = True,
+) -> dict[str, object]:
+    return {
+        "query": query.strip(),
+        "status": normalize_mission_export_inventory_status(status),
+        "include_missing": include_missing,
+    }
 
 
-def format_mission_export_inventory_markdown(items: list[MissionExportInventoryItem]) -> str:
-    payload = mission_export_inventory_payload(items)
+def format_mission_export_inventory_json(
+    items: list[MissionExportInventoryItem],
+    filters: dict[str, object] | None = None,
+) -> str:
+    return json.dumps(
+        mission_export_inventory_payload(items, filters=filters),
+        indent=2,
+        sort_keys=True,
+    )
+
+
+def format_mission_export_inventory_markdown(
+    items: list[MissionExportInventoryItem],
+    filters: dict[str, object] | None = None,
+) -> str:
+    payload = mission_export_inventory_payload(items, filters=filters)
     summary = payload["summary"]
     lines = [
         "# Mission Export Inventory",
@@ -449,9 +518,24 @@ def format_mission_export_inventory_markdown(items: list[MissionExportInventoryI
         f"- Missing: `{summary['missing']}`",
         "- Execution: `not_executed`",
         "",
-        "| Mission | Client | Status | Package | Integrity | Counters |",
-        "| --- | --- | --- | --- | --- | --- |",
     ]
+    if filters is not None:
+        lines.extend(
+            [
+                "## Filters",
+                "",
+                f"- Search: `{filters.get('query') or 'none'}`",
+                f"- Status: `{filters.get('status') or 'all'}`",
+                f"- Include missing: `{filters.get('include_missing')}`",
+                "",
+            ]
+        )
+    lines.extend(
+        [
+            "| Mission | Client | Status | Package | Integrity | Counters |",
+            "| --- | --- | --- | --- | --- | --- |",
+        ]
+    )
     if not items:
         lines.append("| None | - | - | - | No mission export package found. | - |")
     for item in items:
@@ -507,10 +591,18 @@ def build_mission_export_inventory_export(
     reports_dir: Path,
     export_format: MissionExportInventoryFormat,
     include_missing: bool = True,
+    query: str = "",
+    status: str = "",
 ) -> MissionExportInventoryExport:
     items = build_mission_export_inventory(
         store,
         reports_dir,
+        include_missing=include_missing,
+    )
+    filtered_items = filter_mission_export_inventory(items, query=query, status=status)
+    filters = mission_export_inventory_filter_payload(
+        query=query,
+        status=status,
         include_missing=include_missing,
     )
     filename = mission_export_inventory_export_filename(export_format)
@@ -519,13 +611,13 @@ def build_mission_export_inventory_export(
             format=export_format,
             filename=filename,
             media_type="application/json",
-            content=format_mission_export_inventory_json(items),
+            content=format_mission_export_inventory_json(filtered_items, filters=filters),
         )
     return MissionExportInventoryExport(
         format=export_format,
         filename=filename,
         media_type="text/markdown; charset=utf-8",
-        content=format_mission_export_inventory_markdown(items),
+        content=format_mission_export_inventory_markdown(filtered_items, filters=filters),
     )
 
 

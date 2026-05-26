@@ -275,6 +275,7 @@ Current foundation:
 - mission export checksum manifest started
 - web mission export manifest downloads started
 - CLI mission export manifest output started
+- CLI mission export inventory started
 - mission export integrity verification started
 - CLI mission export integrity verification started
 - web mission export integrity details started

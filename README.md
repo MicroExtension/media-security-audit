@@ -88,6 +88,7 @@ Implemented so far:
 - client detail pages show finding disposition counts
 - client detail pages show mission preparation status summaries
 - local pilot runbook page for first client deployment walkthrough
+- local pilot runbook Markdown export for technician handoff
 - dashboard shows workspace mission preparation status summaries
 - dashboard shows workspace finding disposition counts
 - dashboard shows shortcut links to operational sections
@@ -628,6 +629,7 @@ Planned screens:
 - web mission export inventory client filter started
 - client export inventory links started
 - local pilot runbook page started
+- local pilot runbook Markdown export started
 - mission export integrity verification started
 - CLI mission export integrity verification started
 - web mission export integrity details started

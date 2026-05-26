@@ -84,6 +84,10 @@ from media_security_audit.web_exports import (
     normalize_mission_export_inventory_status,
 )
 from media_security_audit.web_health import build_health_status, health_status_code
+from media_security_audit.web_pilot import (
+    build_pilot_runbook_view,
+    format_pilot_runbook_markdown,
+)
 from media_security_audit.web_reports import generate_web_reports, generated_report_file
 from media_security_audit.web_system import build_system_status
 
@@ -241,10 +245,19 @@ def create_web_app(
                 {
                     "request": request,
                     "data_dir": data_dir,
+                    "view": build_pilot_runbook_view(),
                     "message": message,
                     "error": error,
                 },
             )
+        )
+
+    @app.get("/pilot/runbook.md", dependencies=protected)
+    def pilot_runbook_markdown() -> Response:
+        return Response(
+            content=format_pilot_runbook_markdown(),
+            media_type="text/markdown; charset=utf-8",
+            headers={"Content-Disposition": 'attachment; filename="pilot-runbook.md"'},
         )
 
     @app.get("/clients/{client_id}", response_class=HTMLResponse, dependencies=protected)

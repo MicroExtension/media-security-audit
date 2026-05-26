@@ -1,201 +1,51 @@
 {% extends "base.html" %}
-{% block title %}Pilot Runbook | MEDIA Security Audit{% endblock %}
+{% block title %}{{ view.title }} | MEDIA Security Audit{% endblock %}
 {% block content %}
 <section class="page-heading">
   <div>
-    <p class="eyebrow">Client Pilot</p>
-    <h1>Pilot Runbook</h1>
+    <p class="eyebrow">{{ view.subtitle }}</p>
+    <h1>{{ view.title }}</h1>
   </div>
   <div class="actions">
     <a class="button secondary-button" href="/">Dashboard</a>
     <a class="button secondary-button" href="/system">System</a>
+    <a class="button secondary-button" href="/pilot/runbook.md">Markdown</a>
   </div>
 </section>
 
 <section class="metrics" aria-label="Pilot runbook summary">
-  <div class="metric"><span>Phase</span><strong>5</strong></div>
-  <div class="metric"><span>Mode</span><strong>Local</strong></div>
-  <div class="metric"><span>Scans</span><strong>Guarded</strong></div>
-  <div class="metric"><span>Output</span><strong>Reports</strong></div>
+  {% for metric in view.metrics %}
+  <div class="metric"><span>{{ metric.label }}</span><strong>{{ metric.value }}</strong></div>
+  {% endfor %}
 </section>
 
 <section class="page-shortcuts" aria-label="Pilot runbook shortcuts">
-  <a href="#pilot-setup">Setup <span>3</span></a>
-  <a href="#pilot-mission">Mission <span>4</span></a>
-  <a href="#pilot-review">Review <span>4</span></a>
-  <a href="#pilot-handoff">Handoff <span>4</span></a>
-  <a href="#pilot-closeout">Closeout <span>3</span></a>
+  {% for section in view.sections %}
+  <a href="#{{ section.anchor }}">{{ section.title }} <span>{{ section.steps|length }}</span></a>
+  {% endfor %}
 </section>
 
-<section class="section" id="pilot-setup">
+{% for section in view.sections %}
+<section class="section" id="{{ section.anchor }}">
   <div class="section-title">
-    <h2>Setup</h2>
-    <div class="report-links" aria-label="Pilot setup links">
-      <a href="/system">System</a>
-      <a href="/templates">Templates</a>
+    <h2>{{ section.title }}</h2>
+    {% if section.links %}
+    <div class="report-links" aria-label="Pilot {{ section.title|lower }} links">
+      {% for link in section.links %}
+      <a href="{{ link.href }}">{{ link.label }}</a>
+      {% endfor %}
     </div>
+    {% endif %}
   </div>
+  {% for step in section.steps %}
   <div class="status-panel">
-    <span class="badge status-ready">1</span>
+    <span class="badge status-ready">{{ loop.index }}</span>
     <div>
-      <strong>Check appliance status</strong>
-      <p>Confirm authentication, storage, tool visibility, and backup readiness.</p>
+      <strong>{{ step.title }}</strong>
+      <p>{{ step.detail }}</p>
     </div>
   </div>
-  <div class="status-panel">
-    <span class="badge status-ready">2</span>
-    <div>
-      <strong>Select pilot template</strong>
-      <p>Use a restrained audit profile aligned with the approved maintenance scope.</p>
-    </div>
-  </div>
-  <div class="status-panel">
-    <span class="badge status-ready">3</span>
-    <div>
-      <strong>Record client context</strong>
-      <p>Keep notes, reference, contacts, and retention details ready before mission setup.</p>
-    </div>
-  </div>
+  {% endfor %}
 </section>
-
-<section class="section" id="pilot-mission">
-  <div class="section-title">
-    <h2>Mission</h2>
-    <div class="report-links" aria-label="Pilot mission links">
-      <a href="/">Dashboard</a>
-      <a href="/templates">Templates</a>
-    </div>
-  </div>
-  <div class="status-panel">
-    <span class="badge status-ready">1</span>
-    <div>
-      <strong>Create client and mission</strong>
-      <p>Use the dashboard form and attach the selected audit template when relevant.</p>
-    </div>
-  </div>
-  <div class="status-panel">
-    <span class="badge status-ready">2</span>
-    <div>
-      <strong>Complete authorization</strong>
-      <p>Add authorization reference, contact, dates, emergency contact, and recipients.</p>
-    </div>
-  </div>
-  <div class="status-panel">
-    <span class="badge status-ready">3</span>
-    <div>
-      <strong>Approve scope</strong>
-      <p>Mark only validated IP, CIDR, domain, URL, and host entries as approved.</p>
-    </div>
-  </div>
-  <div class="status-panel">
-    <span class="badge status-ready">4</span>
-    <div>
-      <strong>Select checks</strong>
-      <p>Keep selected checks aligned with authorization and visible scan plan previews.</p>
-    </div>
-  </div>
-</section>
-
-<section class="section" id="pilot-review">
-  <div class="section-title">
-    <h2>Review</h2>
-    <div class="report-links" aria-label="Pilot review links">
-      <a href="/activity">Activity</a>
-      <a href="/remediations">Remediations</a>
-    </div>
-  </div>
-  <div class="status-panel">
-    <span class="badge status-ready">1</span>
-    <div>
-      <strong>Import or record findings</strong>
-      <p>Use manual findings or guarded CLI outputs that stay inside approved scope.</p>
-    </div>
-  </div>
-  <div class="status-panel">
-    <span class="badge status-ready">2</span>
-    <div>
-      <strong>Review dispositions</strong>
-      <p>Add notes for false positives, accepted risks, and counter-test decisions.</p>
-    </div>
-  </div>
-  <div class="status-panel">
-    <span class="badge status-ready">3</span>
-    <div>
-      <strong>Validate remediation wording</strong>
-      <p>Use remediation suggestions as a baseline, then adapt to client context.</p>
-    </div>
-  </div>
-  <div class="status-panel">
-    <span class="badge status-ready">4</span>
-    <div>
-      <strong>Check activity trace</strong>
-      <p>Confirm mission events show the preparation and review path.</p>
-    </div>
-  </div>
-</section>
-
-<section class="section" id="pilot-handoff">
-  <div class="section-title">
-    <h2>Handoff</h2>
-    <div class="report-links" aria-label="Pilot handoff links">
-      <a href="/exports">Exports</a>
-      <a href="/system#system-backup">Backup</a>
-    </div>
-  </div>
-  <div class="status-panel">
-    <span class="badge status-ready">1</span>
-    <div>
-      <strong>Generate reports</strong>
-      <p>Create JSON, Markdown, and HTML reports from the reviewed mission page.</p>
-    </div>
-  </div>
-  <div class="status-panel">
-    <span class="badge status-ready">2</span>
-    <div>
-      <strong>Generate mission package</strong>
-      <p>Package reports, readiness, scan plan, manifest, and evidence references.</p>
-    </div>
-  </div>
-  <div class="status-panel">
-    <span class="badge status-ready">3</span>
-    <div>
-      <strong>Verify export inventory</strong>
-      <p>Use the export inventory to confirm package integrity before delivery.</p>
-    </div>
-  </div>
-  <div class="status-panel">
-    <span class="badge status-ready">4</span>
-    <div>
-      <strong>Create workspace backup</strong>
-      <p>Generate a local backup before closing the pilot session.</p>
-    </div>
-  </div>
-</section>
-
-<section class="section" id="pilot-closeout">
-  <div class="section-title">
-    <h2>Closeout</h2>
-  </div>
-  <div class="status-panel">
-    <span class="badge status-ready">1</span>
-    <div>
-      <strong>Record residual risks</strong>
-      <p>Keep accepted risks and pending counter-tests visible for the next visit.</p>
-    </div>
-  </div>
-  <div class="status-panel">
-    <span class="badge status-ready">2</span>
-    <div>
-      <strong>Save delivery evidence</strong>
-      <p>Keep package manifests, verification files, and export inventory with the mission.</p>
-    </div>
-  </div>
-  <div class="status-panel">
-    <span class="badge status-ready">3</span>
-    <div>
-      <strong>Plan next iteration</strong>
-      <p>Use client feedback to tune templates, wording, and remediation priorities.</p>
-    </div>
-  </div>
-</section>
+{% endfor %}
 {% endblock %}

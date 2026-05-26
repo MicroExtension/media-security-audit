@@ -379,12 +379,16 @@ def create_web_app(
         request: Request,
         q: str | None = None,
         status: str | None = None,
+        client_id: str | None = None,
         include_missing: bool = True,
         message: str | None = None,
         error: str | None = None,
     ) -> HTMLResponse:
         query = q or ""
         status_filter = normalize_mission_export_inventory_status(status or "")
+        client_filter = client_id or ""
+        client_options = sorted(store.list_clients(), key=lambda client: client.name.lower())
+        client_names = {client.id: client.name for client in client_options}
         items = build_mission_export_inventory(
             store,
             reports_dir,
@@ -394,15 +398,18 @@ def create_web_app(
             items,
             query=query,
             status=status_filter,
+            client_id=client_filter,
         )
         active_filters = mission_export_inventory_active_filters(
             query=query,
             status=status_filter,
+            client_label=client_names.get(client_filter, client_filter),
             include_missing=include_missing,
         )
         filters = mission_export_inventory_filter_payload(
             query=query,
             status=status_filter,
+            client_id=client_filter,
             include_missing=include_missing,
         )
         payload = mission_export_inventory_payload(filtered_items, filters=filters)
@@ -411,6 +418,8 @@ def create_web_app(
             download_params["q"] = query.strip()
         if status_filter:
             download_params["status"] = status_filter
+        if client_filter:
+            download_params["client_id"] = client_filter
         toggle_params = dict(download_params)
         toggle_params["include_missing"] = str(not include_missing).lower()
         return HTMLResponse(
@@ -430,6 +439,8 @@ def create_web_app(
                     "query": query,
                     "status_filter": status_filter,
                     "status_options": MISSION_EXPORT_INVENTORY_STATUSES,
+                    "client_filter": client_filter,
+                    "client_options": client_options,
                     "include_missing": include_missing,
                     "download_query": urlencode(download_params),
                     "toggle_query": urlencode(toggle_params),
@@ -444,6 +455,7 @@ def create_web_app(
         export_format: MissionExportInventoryFormat,
         q: str | None = None,
         status: str | None = None,
+        client_id: str | None = None,
         include_missing: bool = True,
     ) -> Response:
         export = build_mission_export_inventory_export(
@@ -453,6 +465,7 @@ def create_web_app(
             include_missing=include_missing,
             query=q or "",
             status=status or "",
+            client_id=client_id or "",
         )
         return Response(
             content=export.content,
@@ -463,6 +476,7 @@ def create_web_app(
     def mission_export_inventory_active_filters(
         query: str,
         status: str,
+        client_label: str,
         include_missing: bool,
     ) -> list[dict[str, str]]:
         filters: list[dict[str, str]] = []
@@ -470,6 +484,8 @@ def create_web_app(
             filters.append({"label": "Search", "value": query.strip()})
         if status:
             filters.append({"label": "Status", "value": status})
+        if client_label:
+            filters.append({"label": "Client", "value": client_label})
         if not include_missing:
             filters.append({"label": "Missing packages", "value": "hidden"})
         return filters

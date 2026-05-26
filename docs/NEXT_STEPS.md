@@ -626,6 +626,7 @@ Current GUI status:
 - web mission export inventory filters handoff files by search text and status
 - web mission export inventory downloads CSV files for spreadsheet review
 - web mission export inventory summarizes active filters and page shortcuts
+- web mission export inventory filters handoff files by client for MSP review
 - CLI mission export manifest output reads ZIP manifests after handoff
 - mission pages verify mission ZIP package integrity from the manifest
 - CLI mission export verification checks mission ZIP integrity after handoff

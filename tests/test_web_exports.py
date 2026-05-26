@@ -361,6 +361,65 @@ class WebExportTests(unittest.TestCase):
         self.assertEqual(csv_rows[0]["mission_id"], missing.id)
         self.assertEqual(csv_rows[0]["status"], "missing")
 
+    def test_mission_export_inventory_filters_exports_by_client(self) -> None:
+        data_dir = clean_dir("web-export-inventory-client-data")
+        reports_dir = clean_dir("web-export-inventory-client-reports")
+        store = JsonStore(data_dir)
+        client_a = store.create_client(Client(name="Client Alpha"))
+        client_b = store.create_client(Client(name="Client Beta"))
+        mission_a = store.create_mission(
+            Mission(
+                client_id=client_a.id,
+                name="Alpha Audit",
+                authorization_reference="AUTH-ALPHA",
+            )
+        )
+        mission_b = store.create_mission(
+            Mission(
+                client_id=client_b.id,
+                name="Beta Audit",
+                authorization_reference="AUTH-BETA",
+            )
+        )
+        generate_web_reports(store, mission_a.id, reports_dir)
+        generate_mission_export(store, mission_a.id, reports_dir)
+        generate_web_reports(store, mission_b.id, reports_dir)
+        generate_mission_export(store, mission_b.id, reports_dir)
+
+        items = build_mission_export_inventory(store, reports_dir, include_missing=True)
+        alpha_items = filter_mission_export_inventory(items, client_id=client_a.id)
+        beta_items = filter_mission_export_inventory(
+            items,
+            query="audit",
+            client_id=client_b.id,
+        )
+
+        self.assertEqual([item.mission_id for item in alpha_items], [mission_a.id])
+        self.assertEqual([item.mission_id for item in beta_items], [mission_b.id])
+
+        json_export = build_mission_export_inventory_export(
+            store,
+            reports_dir,
+            MissionExportInventoryFormat.JSON,
+            include_missing=True,
+            client_id=client_b.id,
+        )
+        markdown_export = build_mission_export_inventory_export(
+            store,
+            reports_dir,
+            MissionExportInventoryFormat.MARKDOWN,
+            include_missing=True,
+            client_id=client_a.id,
+        )
+        json_payload = json.loads(json_export.content)
+
+        self.assertEqual(json_payload["filters"]["client_id"], client_b.id)
+        self.assertEqual(json_payload["summary"]["items"], 1)
+        self.assertEqual(json_payload["items"][0]["mission_id"], mission_b.id)
+        self.assertIn(f"- Client: `{client_a.id}`", markdown_export.content)
+        self.assertIn("Alpha Audit", markdown_export.content)
+        self.assertNotIn("Beta Audit", markdown_export.content)
+
     def test_missing_mission_export_has_named_error(self) -> None:
         reports_dir = clean_dir("web-export-missing")
 

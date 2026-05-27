@@ -86,6 +86,7 @@ from media_security_audit.web_exports import (
 from media_security_audit.web_health import build_health_status, health_status_code
 from media_security_audit.web_pilot import (
     build_pilot_evidence_bundle,
+    build_pilot_evidence_manifest,
     build_pilot_readiness_items,
     build_pilot_runbook_view,
     format_pilot_acceptance_markdown,
@@ -300,6 +301,17 @@ def create_web_app(
             content=bundle.content,
             media_type=bundle.media_type,
             headers={"Content-Disposition": f'attachment; filename="{bundle.filename}"'},
+        )
+
+    @app.get("/pilot/bundle-manifest.json", dependencies=protected)
+    def pilot_evidence_manifest() -> Response:
+        system_view = build_system_status(data_dir, reports_dir, settings)
+        readiness_items = build_pilot_readiness_items(store, reports_dir, system_view)
+        manifest = build_pilot_evidence_manifest(readiness_items)
+        return Response(
+            content=manifest.content,
+            media_type=manifest.media_type,
+            headers={"Content-Disposition": f'attachment; filename="{manifest.filename}"'},
         )
 
     @app.get("/clients/{client_id}", response_class=HTMLResponse, dependencies=protected)

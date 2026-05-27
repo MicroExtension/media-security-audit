@@ -74,6 +74,14 @@ class PilotEvidenceBundle:
     content: bytes
 
 
+@dataclass(frozen=True)
+class PilotEvidenceManifest:
+    filename: str
+    media_type: str
+    content: str
+    payload: dict[str, object]
+
+
 def build_pilot_runbook_view(
     readiness_items: list[PilotReadinessItem] | None = None,
 ) -> PilotRunbookView:
@@ -479,21 +487,8 @@ def build_pilot_evidence_bundle(
     view: PilotRunbookView | None = None,
 ) -> PilotEvidenceBundle:
     view = view or build_pilot_runbook_view(readiness_items=readiness_items)
-    evidence_files = {
-        "pilot-acceptance-checklist.md": format_pilot_acceptance_markdown(view),
-        "pilot-readiness.md": format_pilot_readiness_markdown(readiness_items, view),
-        "pilot-runbook.md": format_pilot_runbook_markdown(view),
-    }
-    manifest = {
-        "bundle_type": "pilot_evidence",
-        "context": view.subtitle,
-        "files": [
-            manifest_file_entry(path, content)
-            for path, content in sorted(evidence_files.items())
-        ],
-        "schema_version": 1,
-        "source": view.title,
-    }
+    evidence_files = build_pilot_evidence_files(readiness_items, view)
+    manifest = build_pilot_evidence_manifest_payload(evidence_files, view)
     bundle_files = {
         **evidence_files,
         "manifest.json": json.dumps(manifest, indent=2, sort_keys=True) + "\n",
@@ -509,6 +504,48 @@ def build_pilot_evidence_bundle(
         media_type="application/zip",
         content=output.getvalue(),
     )
+
+
+def build_pilot_evidence_manifest(
+    readiness_items: list[PilotReadinessItem],
+    view: PilotRunbookView | None = None,
+) -> PilotEvidenceManifest:
+    view = view or build_pilot_runbook_view(readiness_items=readiness_items)
+    evidence_files = build_pilot_evidence_files(readiness_items, view)
+    payload = build_pilot_evidence_manifest_payload(evidence_files, view)
+    return PilotEvidenceManifest(
+        filename="pilot-evidence-manifest.json",
+        media_type="application/json",
+        content=json.dumps(payload, indent=2, sort_keys=True) + "\n",
+        payload=payload,
+    )
+
+
+def build_pilot_evidence_files(
+    readiness_items: list[PilotReadinessItem],
+    view: PilotRunbookView,
+) -> dict[str, str]:
+    return {
+        "pilot-acceptance-checklist.md": format_pilot_acceptance_markdown(view),
+        "pilot-readiness.md": format_pilot_readiness_markdown(readiness_items, view),
+        "pilot-runbook.md": format_pilot_runbook_markdown(view),
+    }
+
+
+def build_pilot_evidence_manifest_payload(
+    evidence_files: dict[str, str],
+    view: PilotRunbookView,
+) -> dict[str, object]:
+    return {
+        "bundle_type": "pilot_evidence",
+        "context": view.subtitle,
+        "files": [
+            manifest_file_entry(path, content)
+            for path, content in sorted(evidence_files.items())
+        ],
+        "schema_version": 1,
+        "source": view.title,
+    }
 
 
 def manifest_file_entry(path: str, content: str) -> dict[str, object]:

@@ -34,6 +34,7 @@ from media_security_audit.web_exports import generate_mission_export  # noqa: E4
 from media_security_audit.web_pilot import (  # noqa: E402
     PilotReadinessItem,
     build_pilot_evidence_bundle,
+    build_pilot_evidence_manifest,
     build_pilot_readiness_items,
     build_pilot_runbook_view,
     format_pilot_acceptance_markdown,
@@ -408,6 +409,7 @@ class WebUiTests(unittest.TestCase):
         self.assertIn('aria-label="Pilot readiness links"', template)
         self.assertIn('href="/pilot/readiness.md"', template)
         self.assertIn('href="/pilot/bundle.zip"', template)
+        self.assertIn('href="/pilot/bundle-manifest.json"', template)
         self.assertIn("item.status", template)
         self.assertIn("item.href", template)
         self.assertIn('href="/pilot/runbook.md"', template)
@@ -555,6 +557,10 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("def pilot_evidence_bundle(", web)
         self.assertIn("build_pilot_evidence_bundle(readiness_items)", web)
         self.assertIn("bundle.filename", web)
+        self.assertIn('@app.get("/pilot/bundle-manifest.json"', web)
+        self.assertIn("def pilot_evidence_manifest(", web)
+        self.assertIn("build_pilot_evidence_manifest(readiness_items)", web)
+        self.assertIn("manifest.filename", web)
 
     def test_pilot_runbook_export_is_deterministic_markdown(self) -> None:
         markdown = format_pilot_runbook_markdown()
@@ -614,6 +620,11 @@ class WebUiTests(unittest.TestCase):
                 ],
             )
             manifest = json.loads(archive.read("manifest.json").decode("utf-8"))
+            public_manifest = build_pilot_evidence_manifest(readiness_items)
+            self.assertEqual(manifest, public_manifest.payload)
+            self.assertEqual(json.loads(public_manifest.content), public_manifest.payload)
+            self.assertEqual(public_manifest.filename, "pilot-evidence-manifest.json")
+            self.assertEqual(public_manifest.media_type, "application/json")
             self.assertEqual(manifest["schema_version"], 1)
             self.assertEqual(manifest["bundle_type"], "pilot_evidence")
             self.assertEqual(manifest["context"], "Client Pilot")

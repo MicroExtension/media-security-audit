@@ -1,8 +1,12 @@
-from datetime import date
-from pathlib import Path
+import json
 import re
 import shutil
 import unittest
+from datetime import date
+from hashlib import sha256
+from io import BytesIO
+from pathlib import Path
+from zipfile import ZipFile
 
 import sys
 
@@ -28,6 +32,8 @@ from media_security_audit.web_authorization import generate_authorization_brief 
 from media_security_audit.web_auth import WebAuthSettings  # noqa: E402
 from media_security_audit.web_exports import generate_mission_export  # noqa: E402
 from media_security_audit.web_pilot import (  # noqa: E402
+    PilotReadinessItem,
+    build_pilot_evidence_bundle,
     build_pilot_readiness_items,
     build_pilot_runbook_view,
     format_pilot_acceptance_markdown,
@@ -401,6 +407,7 @@ class WebUiTests(unittest.TestCase):
         self.assertIn('id="pilot-readiness"', template)
         self.assertIn('aria-label="Pilot readiness links"', template)
         self.assertIn('href="/pilot/readiness.md"', template)
+        self.assertIn('href="/pilot/bundle.zip"', template)
         self.assertIn("item.status", template)
         self.assertIn("item.href", template)
         self.assertIn('href="/pilot/runbook.md"', template)
@@ -544,6 +551,10 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("def pilot_readiness_markdown(", web)
         self.assertIn("format_pilot_readiness_markdown(readiness_items)", web)
         self.assertIn('filename="pilot-readiness.md"', web)
+        self.assertIn('@app.get("/pilot/bundle.zip"', web)
+        self.assertIn("def pilot_evidence_bundle(", web)
+        self.assertIn("build_pilot_evidence_bundle(readiness_items)", web)
+        self.assertIn("bundle.filename", web)
 
     def test_pilot_runbook_export_is_deterministic_markdown(self) -> None:
         markdown = format_pilot_runbook_markdown()
@@ -577,6 +588,60 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("- Blocked: `0`", markdown)
         self.assertIn("| None | warning | No readiness item was generated. | - |", markdown)
         self.assertTrue(markdown.endswith("\n"))
+
+    def test_pilot_evidence_bundle_contains_manifest_and_markdown(self) -> None:
+        readiness_items = [
+            PilotReadinessItem(
+                label="Web authentication",
+                status="ready",
+                detail="Authentication enabled.",
+                href="/system#system-auth",
+            )
+        ]
+
+        bundle = build_pilot_evidence_bundle(readiness_items)
+
+        self.assertEqual(bundle.filename, "pilot-evidence-bundle.zip")
+        self.assertEqual(bundle.media_type, "application/zip")
+        with ZipFile(BytesIO(bundle.content)) as archive:
+            self.assertEqual(
+                sorted(archive.namelist()),
+                [
+                    "manifest.json",
+                    "pilot-acceptance-checklist.md",
+                    "pilot-readiness.md",
+                    "pilot-runbook.md",
+                ],
+            )
+            manifest = json.loads(archive.read("manifest.json").decode("utf-8"))
+            self.assertEqual(manifest["schema_version"], 1)
+            self.assertEqual(manifest["bundle_type"], "pilot_evidence")
+            self.assertEqual(manifest["context"], "Client Pilot")
+            self.assertEqual(manifest["source"], "Pilot Runbook")
+            self.assertEqual(
+                [item["path"] for item in manifest["files"]],
+                [
+                    "pilot-acceptance-checklist.md",
+                    "pilot-readiness.md",
+                    "pilot-runbook.md",
+                ],
+            )
+            for item in manifest["files"]:
+                content = archive.read(item["path"])
+                self.assertEqual(item["size_bytes"], len(content))
+                self.assertEqual(item["sha256"], sha256(content).hexdigest())
+            self.assertIn(
+                "# Pilot Acceptance Checklist",
+                archive.read("pilot-acceptance-checklist.md").decode("utf-8"),
+            )
+            self.assertIn(
+                "# Pilot Readiness Summary",
+                archive.read("pilot-readiness.md").decode("utf-8"),
+            )
+            self.assertIn(
+                "# Pilot Runbook",
+                archive.read("pilot-runbook.md").decode("utf-8"),
+            )
 
     def test_mission_template_exposes_shortcut_anchors(self) -> None:
         template_path = (

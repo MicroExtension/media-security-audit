@@ -288,6 +288,7 @@ Current foundation:
 - local pilot acceptance checklist export started
 - local pilot readiness summary started
 - local pilot readiness Markdown export started
+- local pilot evidence bundle started
 - mission export integrity verification started
 - CLI mission export integrity verification started
 - web mission export integrity details started

@@ -21,11 +21,36 @@
 </section>
 
 <section class="page-shortcuts" aria-label="Pilot runbook shortcuts">
+  {% if view.readiness_items %}
+  <a href="#pilot-readiness">Readiness <span>{{ view.readiness_items|length }}</span></a>
+  {% endif %}
   {% for section in view.sections %}
   <a href="#{{ section.anchor }}">{{ section.title }} <span>{{ section.steps|length }}</span></a>
   {% endfor %}
   <a href="#pilot-acceptance">Acceptance <span>{{ view.acceptance_items|length }}</span></a>
 </section>
+
+{% if view.readiness_items %}
+<section class="section" id="pilot-readiness">
+  <div class="section-title">
+    <h2>Readiness</h2>
+    <div class="report-links" aria-label="Pilot readiness links">
+      <a href="/system">System</a>
+      <a href="/exports">Exports</a>
+    </div>
+  </div>
+  {% for item in view.readiness_items %}
+  <div class="status-panel">
+    <span class="badge status-{{ item.status }}">{{ item.status }}</span>
+    <div>
+      <strong>{{ item.label }}</strong>
+      <p>{{ item.detail }}</p>
+      <span class="muted"><a class="table-action" href="{{ item.href }}">Review</a></span>
+    </div>
+  </div>
+  {% endfor %}
+</section>
+{% endif %}
 
 {% for section in view.sections %}
 <section class="section" id="{{ section.anchor }}">

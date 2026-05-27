@@ -3,6 +3,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
+
+from media_security_audit.storage import JsonStore
+from media_security_audit.web_exports import build_mission_export_inventory
+from media_security_audit.web_system import SystemStatus
 
 
 @dataclass(frozen=True)
@@ -31,6 +36,14 @@ class PilotAcceptanceItem:
 
 
 @dataclass(frozen=True)
+class PilotReadinessItem:
+    label: str
+    status: str
+    detail: str
+    href: str
+
+
+@dataclass(frozen=True)
 class PilotRunbookSection:
     anchor: str
     title: str
@@ -45,9 +58,12 @@ class PilotRunbookView:
     metrics: list[PilotRunbookMetric]
     sections: list[PilotRunbookSection]
     acceptance_items: list[PilotAcceptanceItem]
+    readiness_items: list[PilotReadinessItem]
 
 
-def build_pilot_runbook_view() -> PilotRunbookView:
+def build_pilot_runbook_view(
+    readiness_items: list[PilotReadinessItem] | None = None,
+) -> PilotRunbookView:
     return PilotRunbookView(
         title="Pilot Runbook",
         subtitle="Client Pilot",
@@ -114,6 +130,7 @@ def build_pilot_runbook_view() -> PilotRunbookView:
                 evidence="Accepted risks and pending counter-tests are visible for follow-up.",
             ),
         ],
+        readiness_items=readiness_items or [],
         sections=[
             PilotRunbookSection(
                 anchor="pilot-setup",
@@ -287,6 +304,80 @@ def build_pilot_runbook_view() -> PilotRunbookView:
             ),
         ],
     )
+
+
+def build_pilot_readiness_items(
+    store: JsonStore,
+    reports_dir: Path,
+    system_status: SystemStatus,
+) -> list[PilotReadinessItem]:
+    clients = store.list_clients()
+    missions = store.list_missions()
+    export_items = build_mission_export_inventory(store, reports_dir, include_missing=True)
+    package_items = [item for item in export_items if item.status != "missing"]
+    ready_packages = [item for item in package_items if item.status == "ready"]
+    ready_paths = [item for item in system_status.paths if item.status == "ready"]
+    ready_tools = [item for item in system_status.tools if item.status == "ready"]
+
+    return [
+        PilotReadinessItem(
+            label="Web authentication",
+            status=system_status.auth.status,
+            detail=system_status.auth.detail,
+            href="/system#system-auth",
+        ),
+        PilotReadinessItem(
+            label="Storage readiness",
+            status=readiness_rollup_status([item.status for item in system_status.paths]),
+            detail=f"{len(ready_paths)}/{len(system_status.paths)} storage path(s) ready.",
+            href="/system#system-storage",
+        ),
+        PilotReadinessItem(
+            label="Client records",
+            status="ready" if clients else "warning",
+            detail=f"{len(clients)} client record(s) available.",
+            href="/",
+        ),
+        PilotReadinessItem(
+            label="Mission records",
+            status="ready" if missions else "warning",
+            detail=f"{len(missions)} mission record(s) available.",
+            href="/",
+        ),
+        PilotReadinessItem(
+            label="Mission exports",
+            status="ready" if ready_packages else "warning",
+            detail=(
+                f"{len(ready_packages)} ready package(s), "
+                f"{len(package_items)} package(s) total."
+            ),
+            href="/exports",
+        ),
+        PilotReadinessItem(
+            label="Workspace backup",
+            status="ready" if system_status.workspace_backup else "warning",
+            detail=(
+                system_status.workspace_backup.filename
+                if system_status.workspace_backup
+                else "No workspace backup package found."
+            ),
+            href="/system#system-backup",
+        ),
+        PilotReadinessItem(
+            label="External tools",
+            status="ready" if len(ready_tools) == len(system_status.tools) else "warning",
+            detail=f"{len(ready_tools)}/{len(system_status.tools)} tool(s) available.",
+            href="/system#system-tools",
+        ),
+    ]
+
+
+def readiness_rollup_status(statuses: list[str]) -> str:
+    if any(status == "blocked" for status in statuses):
+        return "blocked"
+    if any(status != "ready" for status in statuses):
+        return "warning"
+    return "ready"
 
 
 def format_pilot_runbook_markdown(view: PilotRunbookView | None = None) -> str:

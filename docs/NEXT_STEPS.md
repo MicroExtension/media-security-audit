@@ -637,6 +637,7 @@ Current GUI status:
 - local Pilot page exports the pilot evidence manifest JSON before bundle handoff
 - local Pilot page exports a Markdown verification sheet for pilot evidence checks
 - local Pilot page shows the pilot evidence bundle file inventory before download
+- local Pilot page shows readiness rollup counters before pilot handoff
 - CLI mission export manifest output reads ZIP manifests after handoff
 - mission pages verify mission ZIP package integrity from the manifest
 - CLI mission export verification checks mission ZIP integrity after handoff

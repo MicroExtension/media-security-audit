@@ -404,8 +404,14 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("view.sections", template)
         self.assertIn("view.acceptance_items", template)
         self.assertIn("view.readiness_items", template)
+        self.assertIn("view.readiness_rollup", template)
         self.assertIn("view.evidence_files", template)
         self.assertIn('aria-label="Pilot runbook summary"', template)
+        self.assertIn('aria-label="Pilot readiness rollup"', template)
+        self.assertIn("view.readiness_rollup.status", template)
+        self.assertIn("view.readiness_rollup.ready", template)
+        self.assertIn("view.readiness_rollup.warning", template)
+        self.assertIn("view.readiness_rollup.blocked", template)
         self.assertIn('aria-label="Pilot runbook shortcuts"', template)
         self.assertIn('id="pilot-bundle"', template)
         self.assertIn('aria-label="Pilot evidence bundle links"', template)
@@ -455,6 +461,9 @@ class WebUiTests(unittest.TestCase):
         ]:
             self.assertIn(href, hrefs)
         self.assertEqual(len(view.acceptance_items), 11)
+        self.assertEqual(view.readiness_rollup.status, "warning")
+        self.assertEqual(view.readiness_rollup.total, 0)
+        self.assertEqual(view.readiness_rollup.detail, "No readiness item was generated.")
         self.assertEqual(
             [item.path for item in view.evidence_files],
             [
@@ -507,6 +516,7 @@ class WebUiTests(unittest.TestCase):
         )
         self.assertEqual(len(view.acceptance_items), 11)
         self.assertEqual(view.readiness_items, [])
+        self.assertEqual(view.readiness_rollup.warning, 0)
         self.assertEqual(len(view.evidence_files), 3)
 
     def test_pilot_readiness_items_summarize_workspace_state(self) -> None:
@@ -526,6 +536,7 @@ class WebUiTests(unittest.TestCase):
         )
 
         items = build_pilot_readiness_items(store, reports_dir, system_status)
+        view = build_pilot_runbook_view(readiness_items=items)
         by_label = {item.label: item for item in items}
 
         self.assertEqual(by_label["Web authentication"].status, "ready")
@@ -536,6 +547,12 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("1 ready package(s)", by_label["Mission exports"].detail)
         self.assertEqual(by_label["Workspace backup"].status, "warning")
         self.assertEqual(by_label["External tools"].detail, "5/5 tool(s) available.")
+        self.assertEqual(view.readiness_rollup.status, "warning")
+        self.assertEqual(view.readiness_rollup.ready, 6)
+        self.assertEqual(view.readiness_rollup.warning, 1)
+        self.assertEqual(view.readiness_rollup.blocked, 0)
+        self.assertEqual(view.readiness_rollup.total, 7)
+        self.assertEqual(view.readiness_rollup.detail, "6 ready, 1 warning, 0 blocked.")
 
         markdown = format_pilot_readiness_markdown(items)
         self.assertIn("# Pilot Readiness Summary", markdown)

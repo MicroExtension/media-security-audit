@@ -404,8 +404,13 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("view.sections", template)
         self.assertIn("view.acceptance_items", template)
         self.assertIn("view.readiness_items", template)
+        self.assertIn("view.evidence_files", template)
         self.assertIn('aria-label="Pilot runbook summary"', template)
         self.assertIn('aria-label="Pilot runbook shortcuts"', template)
+        self.assertIn('id="pilot-bundle"', template)
+        self.assertIn('aria-label="Pilot evidence bundle links"', template)
+        self.assertIn('<caption class="sr-only">Pilot evidence bundle files</caption>', template)
+        self.assertIn("item.sha256_short", template)
         self.assertIn('id="pilot-readiness"', template)
         self.assertIn('aria-label="Pilot readiness links"', template)
         self.assertIn('href="/pilot/readiness.md"', template)
@@ -450,6 +455,15 @@ class WebUiTests(unittest.TestCase):
         ]:
             self.assertIn(href, hrefs)
         self.assertEqual(len(view.acceptance_items), 11)
+        self.assertEqual(
+            [item.path for item in view.evidence_files],
+            [
+                "pilot-acceptance-checklist.md",
+                "pilot-readiness.md",
+                "pilot-runbook.md",
+            ],
+        )
+        self.assertTrue(all(len(item.sha256_short) == 12 for item in view.evidence_files))
         acceptance_titles = [item.title for item in view.acceptance_items]
         self.assertIn("Appliance status reviewed", acceptance_titles)
         self.assertIn("Workspace backup created", acceptance_titles)
@@ -493,6 +507,7 @@ class WebUiTests(unittest.TestCase):
         )
         self.assertEqual(len(view.acceptance_items), 11)
         self.assertEqual(view.readiness_items, [])
+        self.assertEqual(len(view.evidence_files), 3)
 
     def test_pilot_readiness_items_summarize_workspace_state(self) -> None:
         root_dir = clean_data_dir("web-ui-pilot-readiness")

@@ -632,6 +632,7 @@ Current GUI status:
 - local Pilot page exports a Markdown runbook for technician handoff
 - local Pilot page exports a Markdown acceptance checklist for beta sign-off
 - local Pilot page summarizes workspace readiness from status, exports, and backup state
+- local Pilot page exports workspace readiness as Markdown for beta evidence
 - CLI mission export manifest output reads ZIP manifests after handoff
 - mission pages verify mission ZIP package integrity from the manifest
 - CLI mission export verification checks mission ZIP integrity after handoff

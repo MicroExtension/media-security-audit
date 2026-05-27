@@ -31,6 +31,7 @@ from media_security_audit.web_pilot import (  # noqa: E402
     build_pilot_readiness_items,
     build_pilot_runbook_view,
     format_pilot_acceptance_markdown,
+    format_pilot_readiness_markdown,
     format_pilot_runbook_markdown,
 )
 from media_security_audit.web_system import build_system_status  # noqa: E402
@@ -399,6 +400,7 @@ class WebUiTests(unittest.TestCase):
         self.assertIn('aria-label="Pilot runbook shortcuts"', template)
         self.assertIn('id="pilot-readiness"', template)
         self.assertIn('aria-label="Pilot readiness links"', template)
+        self.assertIn('href="/pilot/readiness.md"', template)
         self.assertIn("item.status", template)
         self.assertIn("item.href", template)
         self.assertIn('href="/pilot/runbook.md"', template)
@@ -509,6 +511,13 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(by_label["Workspace backup"].status, "warning")
         self.assertEqual(by_label["External tools"].detail, "5/5 tool(s) available.")
 
+        markdown = format_pilot_readiness_markdown(items)
+        self.assertIn("# Pilot Readiness Summary", markdown)
+        self.assertIn("- Ready: `6`", markdown)
+        self.assertIn("- Warning: `1`", markdown)
+        self.assertIn("| Web authentication | ready |", markdown)
+        self.assertIn("| Workspace backup | warning | No workspace backup package found. |", markdown)
+
     def test_web_pilot_route_is_local_runbook_only(self) -> None:
         web_path = (
             Path(__file__).resolve().parents[1]
@@ -531,6 +540,10 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("def pilot_acceptance_markdown(", web)
         self.assertIn("format_pilot_acceptance_markdown()", web)
         self.assertIn('filename="pilot-acceptance-checklist.md"', web)
+        self.assertIn('@app.get("/pilot/readiness.md"', web)
+        self.assertIn("def pilot_readiness_markdown(", web)
+        self.assertIn("format_pilot_readiness_markdown(readiness_items)", web)
+        self.assertIn('filename="pilot-readiness.md"', web)
 
     def test_pilot_runbook_export_is_deterministic_markdown(self) -> None:
         markdown = format_pilot_runbook_markdown()
@@ -553,6 +566,16 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("- [ ] **Handoff: Export inventory verified**", markdown)
         self.assertIn("- [ ] **Closeout: Workspace backup created**", markdown)
         self.assertIn("Evidence: System status page checked before client use.", markdown)
+        self.assertTrue(markdown.endswith("\n"))
+
+    def test_pilot_readiness_export_handles_empty_items(self) -> None:
+        markdown = format_pilot_readiness_markdown([])
+
+        self.assertTrue(markdown.startswith("# Pilot Readiness Summary\n"))
+        self.assertIn("- Ready: `0`", markdown)
+        self.assertIn("- Warning: `0`", markdown)
+        self.assertIn("- Blocked: `0`", markdown)
+        self.assertIn("| None | warning | No readiness item was generated. | - |", markdown)
         self.assertTrue(markdown.endswith("\n"))
 
     def test_mission_template_exposes_shortcut_anchors(self) -> None:

@@ -88,6 +88,7 @@ from media_security_audit.web_pilot import (
     build_pilot_readiness_items,
     build_pilot_runbook_view,
     format_pilot_acceptance_markdown,
+    format_pilot_readiness_markdown,
     format_pilot_runbook_markdown,
 )
 from media_security_audit.web_reports import generate_web_reports, generated_report_file
@@ -277,6 +278,16 @@ def create_web_app(
             headers={
                 "Content-Disposition": 'attachment; filename="pilot-acceptance-checklist.md"'
             },
+        )
+
+    @app.get("/pilot/readiness.md", dependencies=protected)
+    def pilot_readiness_markdown() -> Response:
+        system_view = build_system_status(data_dir, reports_dir, settings)
+        readiness_items = build_pilot_readiness_items(store, reports_dir, system_view)
+        return Response(
+            content=format_pilot_readiness_markdown(readiness_items),
+            media_type="text/markdown; charset=utf-8",
+            headers={"Content-Disposition": 'attachment; filename="pilot-readiness.md"'},
         )
 
     @app.get("/clients/{client_id}", response_class=HTMLResponse, dependencies=protected)

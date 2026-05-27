@@ -417,3 +417,49 @@ def format_pilot_acceptance_markdown(view: PilotRunbookView | None = None) -> st
         lines.append(f"- [ ] **{item.phase}: {item.title}**")
         lines.append(f"  Evidence: {item.evidence}")
     return "\n".join(lines).rstrip() + "\n"
+
+
+def format_pilot_readiness_markdown(
+    readiness_items: list[PilotReadinessItem],
+    view: PilotRunbookView | None = None,
+) -> str:
+    view = view or build_pilot_runbook_view(readiness_items=readiness_items)
+    counts = {
+        "ready": len([item for item in readiness_items if item.status == "ready"]),
+        "warning": len([item for item in readiness_items if item.status == "warning"]),
+        "blocked": len([item for item in readiness_items if item.status == "blocked"]),
+    }
+    lines = [
+        "# Pilot Readiness Summary",
+        "",
+        f"- Context: `{view.subtitle}`",
+        f"- Source: `{view.title}`",
+        f"- Ready: `{counts['ready']}`",
+        f"- Warning: `{counts['warning']}`",
+        f"- Blocked: `{counts['blocked']}`",
+        "",
+        "## Readiness",
+        "",
+        "| Check | Status | Detail | Review |",
+        "| --- | --- | --- | --- |",
+    ]
+    if not readiness_items:
+        lines.append("| None | warning | No readiness item was generated. | - |")
+    for item in readiness_items:
+        lines.append(
+            "| "
+            + " | ".join(
+                [
+                    markdown_cell(item.label),
+                    markdown_cell(item.status),
+                    markdown_cell(item.detail),
+                    markdown_cell(item.href),
+                ]
+            )
+            + " |"
+        )
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def markdown_cell(value: object) -> str:
+    return str(value).replace("|", "\\|").replace("\n", " ")

@@ -82,6 +82,13 @@ class PilotEvidenceManifest:
     payload: dict[str, object]
 
 
+@dataclass(frozen=True)
+class PilotEvidenceVerification:
+    filename: str
+    media_type: str
+    content: str
+
+
 def build_pilot_runbook_view(
     readiness_items: list[PilotReadinessItem] | None = None,
 ) -> PilotRunbookView:
@@ -519,6 +526,64 @@ def build_pilot_evidence_manifest(
         content=json.dumps(payload, indent=2, sort_keys=True) + "\n",
         payload=payload,
     )
+
+
+def build_pilot_evidence_verification(
+    readiness_items: list[PilotReadinessItem],
+    view: PilotRunbookView | None = None,
+) -> PilotEvidenceVerification:
+    manifest = build_pilot_evidence_manifest(readiness_items, view)
+    return PilotEvidenceVerification(
+        filename="pilot-evidence-verification.md",
+        media_type="text/markdown; charset=utf-8",
+        content=format_pilot_evidence_verification_markdown(manifest.payload),
+    )
+
+
+def format_pilot_evidence_verification_markdown(payload: dict[str, object]) -> str:
+    files = payload.get("files")
+    file_entries = files if isinstance(files, list) else []
+    lines = [
+        "# Pilot Evidence Bundle Verification",
+        "",
+        f"- Context: `{payload.get('context', '')}`",
+        f"- Source: `{payload.get('source', '')}`",
+        f"- Bundle type: `{payload.get('bundle_type', '')}`",
+        f"- Schema version: `{payload.get('schema_version', '')}`",
+        "",
+        "## Files",
+        "",
+        "| File | Bytes | SHA-256 |",
+        "| --- | ---: | --- |",
+    ]
+    if not file_entries:
+        lines.append("| None | 0 | - |")
+    for item in file_entries:
+        if not isinstance(item, dict):
+            continue
+        lines.append(
+            "| "
+            + " | ".join(
+                [
+                    markdown_cell(item.get("path", "")),
+                    markdown_cell(item.get("size_bytes", "")),
+                    markdown_cell(item.get("sha256", "")),
+                ]
+            )
+            + " |"
+        )
+    lines.extend(
+        [
+            "",
+            "## Verification Steps",
+            "",
+            "1. Download the pilot evidence bundle.",
+            "2. Extract the ZIP on a trusted workstation.",
+            "3. Compare each extracted file hash with the SHA-256 value above.",
+            "4. Keep this verification sheet with the pilot handoff evidence.",
+        ]
+    )
+    return "\n".join(lines).rstrip() + "\n"
 
 
 def build_pilot_evidence_files(

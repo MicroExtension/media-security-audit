@@ -50,6 +50,16 @@ class PilotReadinessItem:
 
 
 @dataclass(frozen=True)
+class PilotReadinessRollup:
+    status: str
+    ready: int
+    warning: int
+    blocked: int
+    total: int
+    detail: str
+
+
+@dataclass(frozen=True)
 class PilotRunbookSection:
     anchor: str
     title: str
@@ -73,6 +83,7 @@ class PilotRunbookView:
     sections: list[PilotRunbookSection]
     acceptance_items: list[PilotAcceptanceItem]
     readiness_items: list[PilotReadinessItem]
+    readiness_rollup: PilotReadinessRollup
     evidence_files: list[PilotEvidenceFileView]
 
 
@@ -169,6 +180,7 @@ def build_pilot_runbook_view(
             ),
         ],
         readiness_items=readiness_items,
+        readiness_rollup=build_pilot_readiness_rollup(readiness_items),
         evidence_files=[],
         sections=[
             PilotRunbookSection(
@@ -346,6 +358,34 @@ def build_pilot_runbook_view(
     return replace(
         view,
         evidence_files=build_pilot_evidence_file_views(readiness_items, view),
+    )
+
+
+def build_pilot_readiness_rollup(
+    readiness_items: list[PilotReadinessItem],
+) -> PilotReadinessRollup:
+    ready = len([item for item in readiness_items if item.status == "ready"])
+    warning = len([item for item in readiness_items if item.status == "warning"])
+    blocked = len([item for item in readiness_items if item.status == "blocked"])
+    total = len(readiness_items)
+    if blocked:
+        status = "blocked"
+    elif warning or not total:
+        status = "warning"
+    else:
+        status = "ready"
+    detail = (
+        "No readiness item was generated."
+        if not total
+        else f"{ready} ready, {warning} warning, {blocked} blocked."
+    )
+    return PilotReadinessRollup(
+        status=status,
+        ready=ready,
+        warning=warning,
+        blocked=blocked,
+        total=total,
+        detail=detail,
     )
 
 

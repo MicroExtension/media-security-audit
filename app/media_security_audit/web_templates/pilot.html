@@ -24,6 +24,13 @@
   {% endfor %}
 </section>
 
+<section class="metrics" aria-label="Pilot readiness rollup">
+  <div class="metric"><span>Status</span><strong>{{ view.readiness_rollup.status }}</strong></div>
+  <div class="metric"><span>Ready</span><strong>{{ view.readiness_rollup.ready }}</strong></div>
+  <div class="metric"><span>Warning</span><strong>{{ view.readiness_rollup.warning }}</strong></div>
+  <div class="metric"><span>Blocked</span><strong>{{ view.readiness_rollup.blocked }}</strong></div>
+</section>
+
 <section class="page-shortcuts" aria-label="Pilot runbook shortcuts">
   <a href="#pilot-bundle">Bundle <span>{{ view.evidence_files|length }}</span></a>
   {% if view.readiness_items %}

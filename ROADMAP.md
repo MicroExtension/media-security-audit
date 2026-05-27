@@ -292,6 +292,7 @@ Current foundation:
 - local pilot evidence manifest export started
 - local pilot evidence verification export started
 - local pilot evidence bundle inventory started
+- local pilot readiness rollup started
 - mission export integrity verification started
 - CLI mission export integrity verification started
 - web mission export integrity details started

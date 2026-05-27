@@ -94,6 +94,7 @@ Implemented so far:
 - local pilot readiness Markdown export for beta evidence handoff
 - local pilot evidence ZIP bundle with manifest and checksums
 - local pilot evidence manifest JSON export for pre-handoff review
+- local pilot evidence verification Markdown export for handoff checks
 - dashboard shows workspace mission preparation status summaries
 - dashboard shows workspace finding disposition counts
 - dashboard shows shortcut links to operational sections
@@ -640,6 +641,7 @@ Planned screens:
 - local pilot readiness Markdown export started
 - local pilot evidence bundle started
 - local pilot evidence manifest export started
+- local pilot evidence verification export started
 - mission export integrity verification started
 - CLI mission export integrity verification started
 - web mission export integrity details started

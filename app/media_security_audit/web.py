@@ -87,6 +87,7 @@ from media_security_audit.web_health import build_health_status, health_status_c
 from media_security_audit.web_pilot import (
     build_pilot_evidence_bundle,
     build_pilot_evidence_manifest,
+    build_pilot_evidence_verification,
     build_pilot_readiness_items,
     build_pilot_runbook_view,
     format_pilot_acceptance_markdown,
@@ -312,6 +313,17 @@ def create_web_app(
             content=manifest.content,
             media_type=manifest.media_type,
             headers={"Content-Disposition": f'attachment; filename="{manifest.filename}"'},
+        )
+
+    @app.get("/pilot/bundle-verification.md", dependencies=protected)
+    def pilot_evidence_verification() -> Response:
+        system_view = build_system_status(data_dir, reports_dir, settings)
+        readiness_items = build_pilot_readiness_items(store, reports_dir, system_view)
+        verification = build_pilot_evidence_verification(readiness_items)
+        return Response(
+            content=verification.content,
+            media_type=verification.media_type,
+            headers={"Content-Disposition": f'attachment; filename="{verification.filename}"'},
         )
 
     @app.get("/clients/{client_id}", response_class=HTMLResponse, dependencies=protected)

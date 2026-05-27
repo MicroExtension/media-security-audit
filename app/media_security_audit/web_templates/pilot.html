@@ -25,6 +25,7 @@
 </section>
 
 <section class="page-shortcuts" aria-label="Pilot runbook shortcuts">
+  <a href="#pilot-bundle">Bundle <span>{{ view.evidence_files|length }}</span></a>
   {% if view.readiness_items %}
   <a href="#pilot-readiness">Readiness <span>{{ view.readiness_items|length }}</span></a>
   {% endif %}
@@ -32,6 +33,36 @@
   <a href="#{{ section.anchor }}">{{ section.title }} <span>{{ section.steps|length }}</span></a>
   {% endfor %}
   <a href="#pilot-acceptance">Acceptance <span>{{ view.acceptance_items|length }}</span></a>
+</section>
+
+<section class="section" id="pilot-bundle">
+  <div class="section-title">
+    <h2>Bundle</h2>
+    <div class="report-links" aria-label="Pilot evidence bundle links">
+      <a href="/pilot/bundle.zip">Bundle</a>
+      <a href="/pilot/bundle-manifest.json">Manifest</a>
+      <a href="/pilot/bundle-verification.md">Verify</a>
+    </div>
+  </div>
+  <table>
+    <caption class="sr-only">Pilot evidence bundle files</caption>
+    <thead>
+      <tr>
+        <th>File</th>
+        <th>Bytes</th>
+        <th>SHA-256</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in view.evidence_files %}
+      <tr>
+        <td>{{ item.path }}</td>
+        <td>{{ item.size_bytes }}</td>
+        <td><code title="{{ item.sha256 }}">{{ item.sha256_short }}</code></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </section>
 
 {% if view.readiness_items %}

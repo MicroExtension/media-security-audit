@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from hashlib import sha256
 from io import BytesIO
 from pathlib import Path
@@ -58,6 +58,14 @@ class PilotRunbookSection:
 
 
 @dataclass(frozen=True)
+class PilotEvidenceFileView:
+    path: str
+    size_bytes: int
+    sha256: str
+    sha256_short: str
+
+
+@dataclass(frozen=True)
 class PilotRunbookView:
     title: str
     subtitle: str
@@ -65,6 +73,7 @@ class PilotRunbookView:
     sections: list[PilotRunbookSection]
     acceptance_items: list[PilotAcceptanceItem]
     readiness_items: list[PilotReadinessItem]
+    evidence_files: list[PilotEvidenceFileView]
 
 
 @dataclass(frozen=True)
@@ -92,7 +101,8 @@ class PilotEvidenceVerification:
 def build_pilot_runbook_view(
     readiness_items: list[PilotReadinessItem] | None = None,
 ) -> PilotRunbookView:
-    return PilotRunbookView(
+    readiness_items = readiness_items or []
+    view = PilotRunbookView(
         title="Pilot Runbook",
         subtitle="Client Pilot",
         metrics=[
@@ -158,7 +168,8 @@ def build_pilot_runbook_view(
                 evidence="Accepted risks and pending counter-tests are visible for follow-up.",
             ),
         ],
-        readiness_items=readiness_items or [],
+        readiness_items=readiness_items,
+        evidence_files=[],
         sections=[
             PilotRunbookSection(
                 anchor="pilot-setup",
@@ -331,6 +342,10 @@ def build_pilot_runbook_view(
                 ],
             ),
         ],
+    )
+    return replace(
+        view,
+        evidence_files=build_pilot_evidence_file_views(readiness_items, view),
     )
 
 
@@ -611,6 +626,26 @@ def build_pilot_evidence_manifest_payload(
         "schema_version": 1,
         "source": view.title,
     }
+
+
+def build_pilot_evidence_file_views(
+    readiness_items: list[PilotReadinessItem],
+    view: PilotRunbookView,
+) -> list[PilotEvidenceFileView]:
+    evidence_files = build_pilot_evidence_files(readiness_items, view)
+    file_views: list[PilotEvidenceFileView] = []
+    for path, content in sorted(evidence_files.items()):
+        entry = manifest_file_entry(path, content)
+        sha256_value = str(entry["sha256"])
+        file_views.append(
+            PilotEvidenceFileView(
+                path=str(entry["path"]),
+                size_bytes=int(entry["size_bytes"]),
+                sha256=sha256_value,
+                sha256_short=sha256_value[:12],
+            )
+        )
+    return file_views
 
 
 def manifest_file_entry(path: str, content: str) -> dict[str, object]:

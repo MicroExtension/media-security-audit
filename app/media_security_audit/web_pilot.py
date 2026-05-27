@@ -2,12 +2,18 @@
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
+from hashlib import sha256
+from io import BytesIO
 from pathlib import Path
+from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 
 from media_security_audit.storage import JsonStore
 from media_security_audit.web_exports import build_mission_export_inventory
 from media_security_audit.web_system import SystemStatus
+
+PILOT_BUNDLE_TIMESTAMP = (2026, 1, 1, 0, 0, 0)
 
 
 @dataclass(frozen=True)
@@ -59,6 +65,13 @@ class PilotRunbookView:
     sections: list[PilotRunbookSection]
     acceptance_items: list[PilotAcceptanceItem]
     readiness_items: list[PilotReadinessItem]
+
+
+@dataclass(frozen=True)
+class PilotEvidenceBundle:
+    filename: str
+    media_type: str
+    content: bytes
 
 
 def build_pilot_runbook_view(
@@ -459,6 +472,60 @@ def format_pilot_readiness_markdown(
             + " |"
         )
     return "\n".join(lines).rstrip() + "\n"
+
+
+def build_pilot_evidence_bundle(
+    readiness_items: list[PilotReadinessItem],
+    view: PilotRunbookView | None = None,
+) -> PilotEvidenceBundle:
+    view = view or build_pilot_runbook_view(readiness_items=readiness_items)
+    evidence_files = {
+        "pilot-acceptance-checklist.md": format_pilot_acceptance_markdown(view),
+        "pilot-readiness.md": format_pilot_readiness_markdown(readiness_items, view),
+        "pilot-runbook.md": format_pilot_runbook_markdown(view),
+    }
+    manifest = {
+        "bundle_type": "pilot_evidence",
+        "context": view.subtitle,
+        "files": [
+            manifest_file_entry(path, content)
+            for path, content in sorted(evidence_files.items())
+        ],
+        "schema_version": 1,
+        "source": view.title,
+    }
+    bundle_files = {
+        **evidence_files,
+        "manifest.json": json.dumps(manifest, indent=2, sort_keys=True) + "\n",
+    }
+
+    output = BytesIO()
+    with ZipFile(output, "w", compression=ZIP_DEFLATED) as archive:
+        for path, content in sorted(bundle_files.items()):
+            write_zip_text(archive, path, content)
+
+    return PilotEvidenceBundle(
+        filename="pilot-evidence-bundle.zip",
+        media_type="application/zip",
+        content=output.getvalue(),
+    )
+
+
+def manifest_file_entry(path: str, content: str) -> dict[str, object]:
+    content_bytes = content.encode("utf-8")
+    return {
+        "path": path,
+        "sha256": sha256(content_bytes).hexdigest(),
+        "size_bytes": len(content_bytes),
+    }
+
+
+def write_zip_text(archive: ZipFile, path: str, content: str) -> None:
+    info = ZipInfo(path, date_time=PILOT_BUNDLE_TIMESTAMP)
+    info.compress_type = ZIP_DEFLATED
+    info.create_system = 3
+    info.external_attr = 0o600 << 16
+    archive.writestr(info, content.encode("utf-8"))
 
 
 def markdown_cell(value: object) -> str:

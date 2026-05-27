@@ -90,6 +90,7 @@ Implemented so far:
 - local pilot runbook page for first client deployment walkthrough
 - local pilot runbook Markdown export for technician handoff
 - local pilot acceptance checklist Markdown export for beta sign-off
+- local pilot readiness summary from workspace status, exports, and backup state
 - dashboard shows workspace mission preparation status summaries
 - dashboard shows workspace finding disposition counts
 - dashboard shows shortcut links to operational sections
@@ -632,6 +633,7 @@ Planned screens:
 - local pilot runbook page started
 - local pilot runbook Markdown export started
 - local pilot acceptance checklist export started
+- local pilot readiness summary started
 - mission export integrity verification started
 - CLI mission export integrity verification started
 - web mission export integrity details started

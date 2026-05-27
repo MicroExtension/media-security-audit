@@ -286,6 +286,7 @@ Current foundation:
 - local pilot runbook page started
 - local pilot runbook Markdown export started
 - local pilot acceptance checklist export started
+- local pilot readiness summary started
 - mission export integrity verification started
 - CLI mission export integrity verification started
 - web mission export integrity details started

@@ -85,6 +85,7 @@ from media_security_audit.web_exports import (
 )
 from media_security_audit.web_health import build_health_status, health_status_code
 from media_security_audit.web_pilot import (
+    build_pilot_readiness_items,
     build_pilot_runbook_view,
     format_pilot_acceptance_markdown,
     format_pilot_runbook_markdown,
@@ -239,6 +240,7 @@ def create_web_app(
         message: str | None = None,
         error: str | None = None,
     ) -> HTMLResponse:
+        system_view = build_system_status(data_dir, reports_dir, settings)
         return HTMLResponse(
             render_template(
                 templates,
@@ -246,7 +248,13 @@ def create_web_app(
                 {
                     "request": request,
                     "data_dir": data_dir,
-                    "view": build_pilot_runbook_view(),
+                    "view": build_pilot_runbook_view(
+                        readiness_items=build_pilot_readiness_items(
+                            store,
+                            reports_dir,
+                            system_view,
+                        ),
+                    ),
                     "message": message,
                     "error": error,
                 },

@@ -25,12 +25,15 @@ from media_security_audit.models import (  # noqa: E402
 )
 from media_security_audit.storage import JsonStore  # noqa: E402
 from media_security_audit.web_authorization import generate_authorization_brief  # noqa: E402
+from media_security_audit.web_auth import WebAuthSettings  # noqa: E402
 from media_security_audit.web_exports import generate_mission_export  # noqa: E402
 from media_security_audit.web_pilot import (  # noqa: E402
+    build_pilot_readiness_items,
     build_pilot_runbook_view,
     format_pilot_acceptance_markdown,
     format_pilot_runbook_markdown,
 )
+from media_security_audit.web_system import build_system_status  # noqa: E402
 from media_security_audit.web_ui import (  # noqa: E402
     build_client_view,
     build_dashboard_view,
@@ -391,8 +394,13 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("view.metrics", template)
         self.assertIn("view.sections", template)
         self.assertIn("view.acceptance_items", template)
+        self.assertIn("view.readiness_items", template)
         self.assertIn('aria-label="Pilot runbook summary"', template)
         self.assertIn('aria-label="Pilot runbook shortcuts"', template)
+        self.assertIn('id="pilot-readiness"', template)
+        self.assertIn('aria-label="Pilot readiness links"', template)
+        self.assertIn("item.status", template)
+        self.assertIn("item.href", template)
         self.assertIn('href="/pilot/runbook.md"', template)
         self.assertIn('href="/pilot/acceptance.md"', template)
         self.assertIn("section.anchor", template)
@@ -471,6 +479,35 @@ class WebUiTests(unittest.TestCase):
             ["5", "Local", "Guarded", "Reports"],
         )
         self.assertEqual(len(view.acceptance_items), 11)
+        self.assertEqual(view.readiness_items, [])
+
+    def test_pilot_readiness_items_summarize_workspace_state(self) -> None:
+        root_dir = clean_data_dir("web-ui-pilot-readiness")
+        data_dir = root_dir / "data"
+        reports_dir = root_dir / "reports"
+        reports_dir.mkdir(parents=True)
+        store = JsonStore(data_dir)
+        client = store.create_client(Client(name="Pilot Client"))
+        mission = store.create_mission(Mission(client_id=client.id, name="Pilot Audit"))
+        generate_mission_export(store, mission.id, reports_dir)
+        system_status = build_system_status(
+            data_dir=data_dir,
+            reports_dir=reports_dir,
+            auth_settings=WebAuthSettings(enabled=True, username="pilot", password="secret"),
+            tool_resolver=lambda command: f"/usr/bin/{command}",
+        )
+
+        items = build_pilot_readiness_items(store, reports_dir, system_status)
+        by_label = {item.label: item for item in items}
+
+        self.assertEqual(by_label["Web authentication"].status, "ready")
+        self.assertEqual(by_label["Storage readiness"].status, "ready")
+        self.assertEqual(by_label["Client records"].detail, "1 client record(s) available.")
+        self.assertEqual(by_label["Mission records"].detail, "1 mission record(s) available.")
+        self.assertEqual(by_label["Mission exports"].status, "ready")
+        self.assertIn("1 ready package(s)", by_label["Mission exports"].detail)
+        self.assertEqual(by_label["Workspace backup"].status, "warning")
+        self.assertEqual(by_label["External tools"].detail, "5/5 tool(s) available.")
 
     def test_web_pilot_route_is_local_runbook_only(self) -> None:
         web_path = (
@@ -484,7 +521,8 @@ class WebUiTests(unittest.TestCase):
         self.assertIn('@app.get("/pilot"', web)
         self.assertIn("def pilot_runbook(", web)
         self.assertIn('"pilot.html"', web)
-        self.assertIn("build_pilot_runbook_view()", web)
+        self.assertIn("build_pilot_readiness_items(", web)
+        self.assertIn("build_pilot_runbook_view(", web)
         self.assertIn('@app.get("/pilot/runbook.md"', web)
         self.assertIn("def pilot_runbook_markdown(", web)
         self.assertIn("format_pilot_runbook_markdown()", web)

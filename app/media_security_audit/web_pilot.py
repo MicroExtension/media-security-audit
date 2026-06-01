@@ -83,6 +83,7 @@ class PilotRunbookView:
     sections: list[PilotRunbookSection]
     acceptance_items: list[PilotAcceptanceItem]
     readiness_items: list[PilotReadinessItem]
+    attention_items: list[PilotReadinessItem]
     readiness_rollup: PilotReadinessRollup
     evidence_files: list[PilotEvidenceFileView]
 
@@ -180,6 +181,7 @@ def build_pilot_runbook_view(
             ),
         ],
         readiness_items=readiness_items,
+        attention_items=build_pilot_attention_items(readiness_items),
         readiness_rollup=build_pilot_readiness_rollup(readiness_items),
         evidence_files=[],
         sections=[
@@ -359,6 +361,12 @@ def build_pilot_runbook_view(
         view,
         evidence_files=build_pilot_evidence_file_views(readiness_items, view),
     )
+
+
+def build_pilot_attention_items(
+    readiness_items: list[PilotReadinessItem],
+) -> list[PilotReadinessItem]:
+    return [item for item in readiness_items if item.status != "ready"]
 
 
 def build_pilot_readiness_rollup(

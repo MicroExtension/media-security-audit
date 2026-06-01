@@ -709,6 +709,7 @@ def build_pilot_evidence_files(
 ) -> dict[str, str]:
     return {
         "pilot-acceptance-checklist.md": format_pilot_acceptance_markdown(view),
+        "pilot-attention.md": format_pilot_attention_markdown(view.attention_items, view),
         "pilot-readiness.md": format_pilot_readiness_markdown(readiness_items, view),
         "pilot-runbook.md": format_pilot_runbook_markdown(view),
     }

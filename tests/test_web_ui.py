@@ -33,6 +33,7 @@ from media_security_audit.web_auth import WebAuthSettings  # noqa: E402
 from media_security_audit.web_exports import generate_mission_export  # noqa: E402
 from media_security_audit.web_pilot import (  # noqa: E402
     PilotReadinessItem,
+    build_pilot_attention_export,
     build_pilot_evidence_bundle,
     build_pilot_evidence_manifest,
     build_pilot_evidence_verification,
@@ -422,6 +423,7 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("item.sha256_short", template)
         self.assertIn('id="pilot-readiness"', template)
         self.assertIn('aria-label="Pilot readiness links"', template)
+        self.assertIn('href="/pilot/attention.md"', template)
         self.assertIn('href="/pilot/readiness.md"', template)
         self.assertIn('href="/pilot/bundle.zip"', template)
         self.assertIn('href="/pilot/bundle-manifest.json"', template)
@@ -561,6 +563,12 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(len(view.attention_items), 1)
         self.assertEqual(view.attention_items[0].label, "Workspace backup")
         self.assertEqual(view.attention_items[0].status, "warning")
+        attention_export = build_pilot_attention_export(items)
+        self.assertEqual(attention_export.filename, "pilot-attention.md")
+        self.assertEqual(attention_export.media_type, "text/markdown; charset=utf-8")
+        self.assertIn("# Pilot Attention Items", attention_export.content)
+        self.assertIn("- Open items: `1`", attention_export.content)
+        self.assertIn("| Workspace backup | warning |", attention_export.content)
 
         markdown = format_pilot_readiness_markdown(items)
         self.assertIn("# Pilot Readiness Summary", markdown)
@@ -595,6 +603,10 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("def pilot_readiness_markdown(", web)
         self.assertIn("format_pilot_readiness_markdown(readiness_items)", web)
         self.assertIn('filename="pilot-readiness.md"', web)
+        self.assertIn('@app.get("/pilot/attention.md"', web)
+        self.assertIn("def pilot_attention_markdown(", web)
+        self.assertIn("build_pilot_attention_export(readiness_items)", web)
+        self.assertIn("export.filename", web)
         self.assertIn('@app.get("/pilot/bundle.zip"', web)
         self.assertIn("def pilot_evidence_bundle(", web)
         self.assertIn("build_pilot_evidence_bundle(readiness_items)", web)
@@ -640,6 +652,13 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("- Blocked: `0`", markdown)
         self.assertIn("| None | warning | No readiness item was generated. | - |", markdown)
         self.assertTrue(markdown.endswith("\n"))
+        attention_export = build_pilot_attention_export([])
+        self.assertIn("- Open items: `0`", attention_export.content)
+        self.assertIn(
+            "| None | ready | No attention item is currently open. | - |",
+            attention_export.content,
+        )
+        self.assertTrue(attention_export.content.endswith("\n"))
 
     def test_pilot_evidence_bundle_contains_manifest_and_markdown(self) -> None:
         readiness_items = [

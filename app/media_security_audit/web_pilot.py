@@ -110,6 +110,13 @@ class PilotEvidenceVerification:
     content: str
 
 
+@dataclass(frozen=True)
+class PilotAttentionExport:
+    filename: str
+    media_type: str
+    content: str
+
+
 def build_pilot_runbook_view(
     readiness_items: list[PilotReadinessItem] | None = None,
 ) -> PilotRunbookView:
@@ -537,6 +544,53 @@ def format_pilot_readiness_markdown(
     if not readiness_items:
         lines.append("| None | warning | No readiness item was generated. | - |")
     for item in readiness_items:
+        lines.append(
+            "| "
+            + " | ".join(
+                [
+                    markdown_cell(item.label),
+                    markdown_cell(item.status),
+                    markdown_cell(item.detail),
+                    markdown_cell(item.href),
+                ]
+            )
+            + " |"
+        )
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def build_pilot_attention_export(
+    readiness_items: list[PilotReadinessItem],
+    view: PilotRunbookView | None = None,
+) -> PilotAttentionExport:
+    view = view or build_pilot_runbook_view(readiness_items=readiness_items)
+    return PilotAttentionExport(
+        filename="pilot-attention.md",
+        media_type="text/markdown; charset=utf-8",
+        content=format_pilot_attention_markdown(view.attention_items, view),
+    )
+
+
+def format_pilot_attention_markdown(
+    attention_items: list[PilotReadinessItem],
+    view: PilotRunbookView | None = None,
+) -> str:
+    view = view or build_pilot_runbook_view(readiness_items=attention_items)
+    lines = [
+        "# Pilot Attention Items",
+        "",
+        f"- Context: `{view.subtitle}`",
+        f"- Source: `{view.title}`",
+        f"- Open items: `{len(attention_items)}`",
+        "",
+        "## Attention",
+        "",
+        "| Check | Status | Detail | Review |",
+        "| --- | --- | --- | --- |",
+    ]
+    if not attention_items:
+        lines.append("| None | ready | No attention item is currently open. | - |")
+    for item in attention_items:
         lines.append(
             "| "
             + " | ".join(

@@ -32,6 +32,9 @@
 </section>
 
 <section class="page-shortcuts" aria-label="Pilot runbook shortcuts">
+  {% if view.attention_items %}
+  <a href="#pilot-attention">Attention <span>{{ view.attention_items|length }}</span></a>
+  {% endif %}
   <a href="#pilot-bundle">Bundle <span>{{ view.evidence_files|length }}</span></a>
   {% if view.readiness_items %}
   <a href="#pilot-readiness">Readiness <span>{{ view.readiness_items|length }}</span></a>
@@ -41,6 +44,29 @@
   {% endfor %}
   <a href="#pilot-acceptance">Acceptance <span>{{ view.acceptance_items|length }}</span></a>
 </section>
+
+{% if view.attention_items %}
+<section class="section" id="pilot-attention">
+  <div class="section-title">
+    <h2>Attention</h2>
+    <div class="report-links" aria-label="Pilot attention links">
+      <a href="/system">System</a>
+      <a href="/exports">Exports</a>
+      <a href="/pilot/readiness.md">Readiness</a>
+    </div>
+  </div>
+  {% for item in view.attention_items %}
+  <div class="status-panel">
+    <span class="badge status-{{ item.status }}">{{ item.status }}</span>
+    <div>
+      <strong>{{ item.label }}</strong>
+      <p>{{ item.detail }}</p>
+      <span class="muted"><a class="table-action" href="{{ item.href }}">Review</a></span>
+    </div>
+  </div>
+  {% endfor %}
+</section>
+{% endif %}
 
 <section class="section" id="pilot-bundle">
   <div class="section-title">

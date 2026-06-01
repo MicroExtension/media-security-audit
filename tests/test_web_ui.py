@@ -404,6 +404,7 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("view.sections", template)
         self.assertIn("view.acceptance_items", template)
         self.assertIn("view.readiness_items", template)
+        self.assertIn("view.attention_items", template)
         self.assertIn("view.readiness_rollup", template)
         self.assertIn("view.evidence_files", template)
         self.assertIn('aria-label="Pilot runbook summary"', template)
@@ -413,6 +414,8 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("view.readiness_rollup.warning", template)
         self.assertIn("view.readiness_rollup.blocked", template)
         self.assertIn('aria-label="Pilot runbook shortcuts"', template)
+        self.assertIn('id="pilot-attention"', template)
+        self.assertIn('aria-label="Pilot attention links"', template)
         self.assertIn('id="pilot-bundle"', template)
         self.assertIn('aria-label="Pilot evidence bundle links"', template)
         self.assertIn('<caption class="sr-only">Pilot evidence bundle files</caption>', template)
@@ -461,6 +464,7 @@ class WebUiTests(unittest.TestCase):
         ]:
             self.assertIn(href, hrefs)
         self.assertEqual(len(view.acceptance_items), 11)
+        self.assertEqual(view.attention_items, [])
         self.assertEqual(view.readiness_rollup.status, "warning")
         self.assertEqual(view.readiness_rollup.total, 0)
         self.assertEqual(view.readiness_rollup.detail, "No readiness item was generated.")
@@ -516,6 +520,7 @@ class WebUiTests(unittest.TestCase):
         )
         self.assertEqual(len(view.acceptance_items), 11)
         self.assertEqual(view.readiness_items, [])
+        self.assertEqual(view.attention_items, [])
         self.assertEqual(view.readiness_rollup.warning, 0)
         self.assertEqual(len(view.evidence_files), 3)
 
@@ -553,6 +558,9 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(view.readiness_rollup.blocked, 0)
         self.assertEqual(view.readiness_rollup.total, 7)
         self.assertEqual(view.readiness_rollup.detail, "6 ready, 1 warning, 0 blocked.")
+        self.assertEqual(len(view.attention_items), 1)
+        self.assertEqual(view.attention_items[0].label, "Workspace backup")
+        self.assertEqual(view.attention_items[0].status, "warning")
 
         markdown = format_pilot_readiness_markdown(items)
         self.assertIn("# Pilot Readiness Summary", markdown)

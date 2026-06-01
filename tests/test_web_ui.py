@@ -34,6 +34,7 @@ from media_security_audit.web_exports import generate_mission_export  # noqa: E4
 from media_security_audit.web_pilot import (  # noqa: E402
     PilotReadinessItem,
     build_pilot_attention_export,
+    build_pilot_bundle_index_export,
     build_pilot_evidence_bundle,
     build_pilot_evidence_manifest,
     build_pilot_evidence_verification,
@@ -425,6 +426,7 @@ class WebUiTests(unittest.TestCase):
         self.assertIn('id="pilot-readiness"', template)
         self.assertIn('aria-label="Pilot readiness links"', template)
         self.assertIn('href="/pilot/attention.md"', template)
+        self.assertIn('href="/pilot/bundle-index.md"', template)
         self.assertIn('href="/pilot/handoff-summary.md"', template)
         self.assertIn('href="/pilot/readiness.md"', template)
         self.assertIn('href="/pilot/bundle.zip"', template)
@@ -477,6 +479,7 @@ class WebUiTests(unittest.TestCase):
             [
                 "pilot-acceptance-checklist.md",
                 "pilot-attention.md",
+                "pilot-bundle-index.md",
                 "pilot-handoff-summary.md",
                 "pilot-readiness.md",
                 "pilot-runbook.md",
@@ -528,7 +531,7 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(view.readiness_items, [])
         self.assertEqual(view.attention_items, [])
         self.assertEqual(view.readiness_rollup.warning, 0)
-        self.assertEqual(len(view.evidence_files), 5)
+        self.assertEqual(len(view.evidence_files), 6)
 
     def test_pilot_readiness_items_summarize_workspace_state(self) -> None:
         root_dir = clean_data_dir("web-ui-pilot-readiness")
@@ -579,7 +582,14 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("# Pilot Handoff Summary", handoff_summary.content)
         self.assertIn("- Readiness status: `warning`", handoff_summary.content)
         self.assertIn("- Attention items: `1`", handoff_summary.content)
+        self.assertIn("pilot-bundle-index.md", handoff_summary.content)
         self.assertIn("pilot-attention.md", handoff_summary.content)
+        bundle_index = build_pilot_bundle_index_export(items)
+        self.assertEqual(bundle_index.filename, "pilot-bundle-index.md")
+        self.assertEqual(bundle_index.media_type, "text/markdown; charset=utf-8")
+        self.assertIn("# Pilot Evidence Bundle Index", bundle_index.content)
+        self.assertIn("Open `pilot-handoff-summary.md` first", bundle_index.content)
+        self.assertIn("| manifest.json | File checksums", bundle_index.content)
 
         markdown = format_pilot_readiness_markdown(items)
         self.assertIn("# Pilot Readiness Summary", markdown)
@@ -609,6 +619,9 @@ class WebUiTests(unittest.TestCase):
         self.assertIn('@app.get("/pilot/handoff-summary.md"', web)
         self.assertIn("def pilot_handoff_summary_markdown(", web)
         self.assertIn("build_pilot_handoff_summary_export(readiness_items)", web)
+        self.assertIn('@app.get("/pilot/bundle-index.md"', web)
+        self.assertIn("def pilot_bundle_index_markdown(", web)
+        self.assertIn("build_pilot_bundle_index_export(readiness_items)", web)
         self.assertIn('@app.get("/pilot/acceptance.md"', web)
         self.assertIn("def pilot_acceptance_markdown(", web)
         self.assertIn("format_pilot_acceptance_markdown()", web)
@@ -695,6 +708,7 @@ class WebUiTests(unittest.TestCase):
                     "manifest.json",
                     "pilot-acceptance-checklist.md",
                     "pilot-attention.md",
+                    "pilot-bundle-index.md",
                     "pilot-handoff-summary.md",
                     "pilot-readiness.md",
                     "pilot-runbook.md",
@@ -710,6 +724,7 @@ class WebUiTests(unittest.TestCase):
             self.assertEqual(verification.filename, "pilot-evidence-verification.md")
             self.assertEqual(verification.media_type, "text/markdown; charset=utf-8")
             self.assertIn("# Pilot Evidence Bundle Verification", verification.content)
+            self.assertIn("pilot-bundle-index.md", verification.content)
             self.assertIn("pilot-readiness.md", verification.content)
             self.assertIn("Compare each extracted file hash", verification.content)
             self.assertEqual(manifest["schema_version"], 1)
@@ -721,6 +736,7 @@ class WebUiTests(unittest.TestCase):
                 [
                     "pilot-acceptance-checklist.md",
                     "pilot-attention.md",
+                    "pilot-bundle-index.md",
                     "pilot-handoff-summary.md",
                     "pilot-readiness.md",
                     "pilot-runbook.md",
@@ -737,6 +753,10 @@ class WebUiTests(unittest.TestCase):
             self.assertIn(
                 "# Pilot Attention Items",
                 archive.read("pilot-attention.md").decode("utf-8"),
+            )
+            self.assertIn(
+                "# Pilot Evidence Bundle Index",
+                archive.read("pilot-bundle-index.md").decode("utf-8"),
             )
             self.assertIn(
                 "# Pilot Handoff Summary",

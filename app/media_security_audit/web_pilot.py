@@ -124,6 +124,13 @@ class PilotHandoffSummaryExport:
     content: str
 
 
+@dataclass(frozen=True)
+class PilotBundleIndexExport:
+    filename: str
+    media_type: str
+    content: str
+
+
 def build_pilot_runbook_view(
     readiness_items: list[PilotReadinessItem] | None = None,
 ) -> PilotRunbookView:
@@ -609,11 +616,60 @@ def format_pilot_handoff_summary_markdown(
             "",
             "- `pilot-runbook.md`: technician workflow.",
             "- `pilot-acceptance-checklist.md`: beta sign-off checklist.",
+            "- `pilot-bundle-index.md`: bundle review order.",
             "- `pilot-readiness.md`: workspace readiness details.",
             "- `pilot-attention.md`: remaining warnings and blockers.",
             "- `manifest.json`: bundle file checksums.",
         ]
     )
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def build_pilot_bundle_index_export(
+    readiness_items: list[PilotReadinessItem],
+    view: PilotRunbookView | None = None,
+) -> PilotBundleIndexExport:
+    view = view or build_pilot_runbook_view(readiness_items=readiness_items)
+    return PilotBundleIndexExport(
+        filename="pilot-bundle-index.md",
+        media_type="text/markdown; charset=utf-8",
+        content=format_pilot_bundle_index_markdown(view),
+    )
+
+
+def format_pilot_bundle_index_markdown(
+    view: PilotRunbookView | None = None,
+) -> str:
+    view = view or build_pilot_runbook_view()
+    lines = [
+        "# Pilot Evidence Bundle Index",
+        "",
+        f"- Context: `{view.subtitle}`",
+        f"- Source: `{view.title}`",
+        f"- Readiness status: `{view.readiness_rollup.status}`",
+        f"- Attention items: `{len(view.attention_items)}`",
+        "",
+        "## Recommended Review Order",
+        "",
+        "1. Open `pilot-handoff-summary.md` first for the current handoff state.",
+        "2. Review `pilot-attention.md` for warnings or blockers.",
+        "3. Review `pilot-readiness.md` for detailed workspace readiness.",
+        "4. Complete `pilot-acceptance-checklist.md` for beta sign-off.",
+        "5. Keep `pilot-runbook.md` with the technician delivery notes.",
+        "6. Compare extracted files with `manifest.json` before archiving.",
+        "",
+        "## Bundle Files",
+        "",
+        "| File | Purpose |",
+        "| --- | --- |",
+        "| pilot-bundle-index.md | Review order for extracted evidence. |",
+        "| pilot-handoff-summary.md | Compact handoff state and next actions. |",
+        "| pilot-attention.md | Remaining warnings and blockers. |",
+        "| pilot-readiness.md | Detailed local readiness checks. |",
+        "| pilot-acceptance-checklist.md | Beta acceptance checklist. |",
+        "| pilot-runbook.md | Technician workflow. |",
+        "| manifest.json | File checksums for integrity review. |",
+    ]
     return "\n".join(lines).rstrip() + "\n"
 
 
@@ -768,6 +824,7 @@ def build_pilot_evidence_files(
     return {
         "pilot-acceptance-checklist.md": format_pilot_acceptance_markdown(view),
         "pilot-attention.md": format_pilot_attention_markdown(view.attention_items, view),
+        "pilot-bundle-index.md": format_pilot_bundle_index_markdown(view),
         "pilot-handoff-summary.md": format_pilot_handoff_summary_markdown(view),
         "pilot-readiness.md": format_pilot_readiness_markdown(readiness_items, view),
         "pilot-runbook.md": format_pilot_runbook_markdown(view),

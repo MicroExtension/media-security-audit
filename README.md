@@ -93,6 +93,7 @@ Implemented so far:
 - local pilot readiness summary from workspace status, exports, and backup state
 - local pilot readiness Markdown export for beta evidence handoff
 - local pilot evidence ZIP bundle with manifest and checksums
+- local pilot evidence bundle includes attention follow-up
 - local pilot evidence manifest JSON export for pre-handoff review
 - local pilot evidence verification Markdown export for handoff checks
 - local pilot evidence bundle inventory visible before download
@@ -644,6 +645,7 @@ Planned screens:
 - local pilot readiness summary started
 - local pilot readiness Markdown export started
 - local pilot evidence bundle started
+- local pilot evidence bundle attention file started
 - local pilot evidence manifest export started
 - local pilot evidence verification export started
 - local pilot evidence bundle inventory started

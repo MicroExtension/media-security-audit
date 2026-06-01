@@ -474,6 +474,7 @@ class WebUiTests(unittest.TestCase):
             [item.path for item in view.evidence_files],
             [
                 "pilot-acceptance-checklist.md",
+                "pilot-attention.md",
                 "pilot-readiness.md",
                 "pilot-runbook.md",
             ],
@@ -524,7 +525,7 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(view.readiness_items, [])
         self.assertEqual(view.attention_items, [])
         self.assertEqual(view.readiness_rollup.warning, 0)
-        self.assertEqual(len(view.evidence_files), 3)
+        self.assertEqual(len(view.evidence_files), 4)
 
     def test_pilot_readiness_items_summarize_workspace_state(self) -> None:
         root_dir = clean_data_dir("web-ui-pilot-readiness")
@@ -680,6 +681,7 @@ class WebUiTests(unittest.TestCase):
                 [
                     "manifest.json",
                     "pilot-acceptance-checklist.md",
+                    "pilot-attention.md",
                     "pilot-readiness.md",
                     "pilot-runbook.md",
                 ],
@@ -704,6 +706,7 @@ class WebUiTests(unittest.TestCase):
                 [item["path"] for item in manifest["files"]],
                 [
                     "pilot-acceptance-checklist.md",
+                    "pilot-attention.md",
                     "pilot-readiness.md",
                     "pilot-runbook.md",
                 ],
@@ -715,6 +718,10 @@ class WebUiTests(unittest.TestCase):
             self.assertIn(
                 "# Pilot Acceptance Checklist",
                 archive.read("pilot-acceptance-checklist.md").decode("utf-8"),
+            )
+            self.assertIn(
+                "# Pilot Attention Items",
+                archive.read("pilot-attention.md").decode("utf-8"),
             )
             self.assertIn(
                 "# Pilot Readiness Summary",

@@ -289,6 +289,7 @@ Current foundation:
 - local pilot readiness summary started
 - local pilot readiness Markdown export started
 - local pilot evidence bundle started
+- local pilot evidence bundle attention file started
 - local pilot evidence manifest export started
 - local pilot evidence verification export started
 - local pilot evidence bundle inventory started

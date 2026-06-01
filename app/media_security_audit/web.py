@@ -91,6 +91,7 @@ from media_security_audit.web_pilot import (
     build_pilot_evidence_manifest,
     build_pilot_evidence_verification,
     build_pilot_handoff_summary_export,
+    build_pilot_readiness_json_export,
     build_pilot_readiness_items,
     build_pilot_runbook_view,
     format_pilot_acceptance_markdown,
@@ -316,6 +317,17 @@ def create_web_app(
             content=format_pilot_readiness_markdown(readiness_items),
             media_type="text/markdown; charset=utf-8",
             headers={"Content-Disposition": 'attachment; filename="pilot-readiness.md"'},
+        )
+
+    @app.get("/pilot/readiness.json", dependencies=protected)
+    def pilot_readiness_json() -> Response:
+        system_view = build_system_status(data_dir, reports_dir, settings)
+        readiness_items = build_pilot_readiness_items(store, reports_dir, system_view)
+        export = build_pilot_readiness_json_export(readiness_items)
+        return Response(
+            content=export.content,
+            media_type=export.media_type,
+            headers={"Content-Disposition": f'attachment; filename="{export.filename}"'},
         )
 
     @app.get("/pilot/attention.md", dependencies=protected)

@@ -635,10 +635,12 @@ Current GUI status:
 - local Pilot page exports a Markdown acceptance checklist for beta sign-off
 - local Pilot page summarizes workspace readiness from status, exports, and backup state
 - local Pilot page exports workspace readiness as Markdown for beta evidence
+- local Pilot page exports workspace readiness as JSON for automation handoff
 - local Pilot page bundles pilot evidence exports as a local ZIP with a manifest
 - local Pilot evidence bundle includes the attention follow-up Markdown file
 - local Pilot evidence bundle includes the handoff summary Markdown file
 - local Pilot evidence bundle includes the review index Markdown file
+- local Pilot evidence bundle includes the readiness JSON file
 - local Pilot page exports the pilot evidence manifest JSON before bundle handoff
 - local Pilot evidence manifest includes readiness summary counters
 - local Pilot page exports a Markdown verification sheet for pilot evidence checks

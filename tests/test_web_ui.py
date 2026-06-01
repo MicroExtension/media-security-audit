@@ -724,13 +724,29 @@ class WebUiTests(unittest.TestCase):
             self.assertEqual(verification.filename, "pilot-evidence-verification.md")
             self.assertEqual(verification.media_type, "text/markdown; charset=utf-8")
             self.assertIn("# Pilot Evidence Bundle Verification", verification.content)
+            self.assertIn("- Schema version: `2`", verification.content)
+            self.assertIn("- Readiness status: `ready`", verification.content)
+            self.assertIn("- File count: `6`", verification.content)
             self.assertIn("pilot-bundle-index.md", verification.content)
             self.assertIn("pilot-readiness.md", verification.content)
             self.assertIn("Compare each extracted file hash", verification.content)
-            self.assertEqual(manifest["schema_version"], 1)
+            self.assertEqual(manifest["schema_version"], 2)
             self.assertEqual(manifest["bundle_type"], "pilot_evidence")
             self.assertEqual(manifest["context"], "Client Pilot")
+            self.assertEqual(manifest["file_count"], 6)
             self.assertEqual(manifest["source"], "Pilot Runbook")
+            self.assertEqual(
+                manifest["readiness"],
+                {
+                    "attention_items": 0,
+                    "blocked": 0,
+                    "detail": "1 ready, 0 warning, 0 blocked.",
+                    "ready": 1,
+                    "status": "ready",
+                    "total": 1,
+                    "warning": 0,
+                },
+            )
             self.assertEqual(
                 [item["path"] for item in manifest["files"]],
                 [

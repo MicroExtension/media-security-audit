@@ -774,6 +774,8 @@ def build_pilot_evidence_verification(
 def format_pilot_evidence_verification_markdown(payload: dict[str, object]) -> str:
     files = payload.get("files")
     file_entries = files if isinstance(files, list) else []
+    readiness = payload.get("readiness")
+    readiness_payload = readiness if isinstance(readiness, dict) else {}
     lines = [
         "# Pilot Evidence Bundle Verification",
         "",
@@ -781,6 +783,9 @@ def format_pilot_evidence_verification_markdown(payload: dict[str, object]) -> s
         f"- Source: `{payload.get('source', '')}`",
         f"- Bundle type: `{payload.get('bundle_type', '')}`",
         f"- Schema version: `{payload.get('schema_version', '')}`",
+        f"- File count: `{payload.get('file_count', len(file_entries))}`",
+        f"- Readiness status: `{readiness_payload.get('status', '')}`",
+        f"- Readiness detail: `{readiness_payload.get('detail', '')}`",
         "",
         "## Files",
         "",
@@ -838,11 +843,21 @@ def build_pilot_evidence_manifest_payload(
     return {
         "bundle_type": "pilot_evidence",
         "context": view.subtitle,
+        "file_count": len(evidence_files),
         "files": [
             manifest_file_entry(path, content)
             for path, content in sorted(evidence_files.items())
         ],
-        "schema_version": 1,
+        "readiness": {
+            "attention_items": len(view.attention_items),
+            "blocked": view.readiness_rollup.blocked,
+            "detail": view.readiness_rollup.detail,
+            "ready": view.readiness_rollup.ready,
+            "status": view.readiness_rollup.status,
+            "total": view.readiness_rollup.total,
+            "warning": view.readiness_rollup.warning,
+        },
+        "schema_version": 2,
         "source": view.title,
     }
 

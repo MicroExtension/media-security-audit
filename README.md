@@ -99,6 +99,7 @@ Implemented so far:
 - local pilot evidence bundle includes handoff summary
 - local pilot evidence bundle includes review index
 - local pilot evidence manifest JSON export for pre-handoff review
+- local pilot evidence manifest includes readiness summary
 - local pilot evidence verification Markdown export for handoff checks
 - local pilot evidence bundle inventory visible before download
 - local pilot readiness rollup visible before handoff
@@ -655,6 +656,7 @@ Planned screens:
 - local pilot evidence bundle handoff summary started
 - local pilot evidence bundle review index started
 - local pilot evidence manifest export started
+- local pilot evidence manifest readiness summary started
 - local pilot evidence verification export started
 - local pilot evidence bundle inventory started
 - local pilot readiness rollup started

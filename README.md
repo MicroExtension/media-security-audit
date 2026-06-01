@@ -98,6 +98,7 @@ Implemented so far:
 - local pilot evidence bundle inventory visible before download
 - local pilot readiness rollup visible before handoff
 - local pilot attention items highlight remaining warnings and blockers
+- local pilot attention Markdown export for handoff follow-up
 - dashboard shows workspace mission preparation status summaries
 - dashboard shows workspace finding disposition counts
 - dashboard shows shortcut links to operational sections
@@ -648,6 +649,7 @@ Planned screens:
 - local pilot evidence bundle inventory started
 - local pilot readiness rollup started
 - local pilot attention items started
+- local pilot attention Markdown export started
 - mission export integrity verification started
 - CLI mission export integrity verification started
 - web mission export integrity details started

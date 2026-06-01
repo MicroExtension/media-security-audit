@@ -639,6 +639,7 @@ Current GUI status:
 - local Pilot page shows the pilot evidence bundle file inventory before download
 - local Pilot page shows readiness rollup counters before pilot handoff
 - local Pilot page highlights non-ready attention items before pilot handoff
+- local Pilot page exports non-ready attention items as Markdown for handoff follow-up
 - CLI mission export manifest output reads ZIP manifests after handoff
 - mission pages verify mission ZIP package integrity from the manifest
 - CLI mission export verification checks mission ZIP integrity after handoff

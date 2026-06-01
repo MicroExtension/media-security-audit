@@ -85,6 +85,7 @@ from media_security_audit.web_exports import (
 )
 from media_security_audit.web_health import build_health_status, health_status_code
 from media_security_audit.web_pilot import (
+    build_pilot_attention_export,
     build_pilot_evidence_bundle,
     build_pilot_evidence_manifest,
     build_pilot_evidence_verification,
@@ -291,6 +292,17 @@ def create_web_app(
             content=format_pilot_readiness_markdown(readiness_items),
             media_type="text/markdown; charset=utf-8",
             headers={"Content-Disposition": 'attachment; filename="pilot-readiness.md"'},
+        )
+
+    @app.get("/pilot/attention.md", dependencies=protected)
+    def pilot_attention_markdown() -> Response:
+        system_view = build_system_status(data_dir, reports_dir, settings)
+        readiness_items = build_pilot_readiness_items(store, reports_dir, system_view)
+        export = build_pilot_attention_export(readiness_items)
+        return Response(
+            content=export.content,
+            media_type=export.media_type,
+            headers={"Content-Disposition": f'attachment; filename="{export.filename}"'},
         )
 
     @app.get("/pilot/bundle.zip", dependencies=protected)

@@ -640,6 +640,7 @@ Current GUI status:
 - local Pilot evidence bundle includes the handoff summary Markdown file
 - local Pilot evidence bundle includes the review index Markdown file
 - local Pilot page exports the pilot evidence manifest JSON before bundle handoff
+- local Pilot evidence manifest includes readiness summary counters
 - local Pilot page exports a Markdown verification sheet for pilot evidence checks
 - local Pilot page shows the pilot evidence bundle file inventory before download
 - local Pilot page shows readiness rollup counters before pilot handoff

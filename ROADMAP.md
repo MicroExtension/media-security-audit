@@ -295,6 +295,7 @@ Current foundation:
 - local pilot evidence bundle handoff summary started
 - local pilot evidence bundle review index started
 - local pilot evidence manifest export started
+- local pilot evidence manifest readiness summary started
 - local pilot evidence verification export started
 - local pilot evidence bundle inventory started
 - local pilot readiness rollup started

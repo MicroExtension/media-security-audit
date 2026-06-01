@@ -37,6 +37,7 @@ from media_security_audit.web_pilot import (  # noqa: E402
     build_pilot_evidence_bundle,
     build_pilot_evidence_manifest,
     build_pilot_evidence_verification,
+    build_pilot_handoff_summary_export,
     build_pilot_readiness_items,
     build_pilot_runbook_view,
     format_pilot_acceptance_markdown,
@@ -424,6 +425,7 @@ class WebUiTests(unittest.TestCase):
         self.assertIn('id="pilot-readiness"', template)
         self.assertIn('aria-label="Pilot readiness links"', template)
         self.assertIn('href="/pilot/attention.md"', template)
+        self.assertIn('href="/pilot/handoff-summary.md"', template)
         self.assertIn('href="/pilot/readiness.md"', template)
         self.assertIn('href="/pilot/bundle.zip"', template)
         self.assertIn('href="/pilot/bundle-manifest.json"', template)
@@ -475,6 +477,7 @@ class WebUiTests(unittest.TestCase):
             [
                 "pilot-acceptance-checklist.md",
                 "pilot-attention.md",
+                "pilot-handoff-summary.md",
                 "pilot-readiness.md",
                 "pilot-runbook.md",
             ],
@@ -525,7 +528,7 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(view.readiness_items, [])
         self.assertEqual(view.attention_items, [])
         self.assertEqual(view.readiness_rollup.warning, 0)
-        self.assertEqual(len(view.evidence_files), 4)
+        self.assertEqual(len(view.evidence_files), 5)
 
     def test_pilot_readiness_items_summarize_workspace_state(self) -> None:
         root_dir = clean_data_dir("web-ui-pilot-readiness")
@@ -570,6 +573,13 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("# Pilot Attention Items", attention_export.content)
         self.assertIn("- Open items: `1`", attention_export.content)
         self.assertIn("| Workspace backup | warning |", attention_export.content)
+        handoff_summary = build_pilot_handoff_summary_export(items)
+        self.assertEqual(handoff_summary.filename, "pilot-handoff-summary.md")
+        self.assertEqual(handoff_summary.media_type, "text/markdown; charset=utf-8")
+        self.assertIn("# Pilot Handoff Summary", handoff_summary.content)
+        self.assertIn("- Readiness status: `warning`", handoff_summary.content)
+        self.assertIn("- Attention items: `1`", handoff_summary.content)
+        self.assertIn("pilot-attention.md", handoff_summary.content)
 
         markdown = format_pilot_readiness_markdown(items)
         self.assertIn("# Pilot Readiness Summary", markdown)
@@ -596,6 +606,9 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("def pilot_runbook_markdown(", web)
         self.assertIn("format_pilot_runbook_markdown()", web)
         self.assertIn('filename="pilot-runbook.md"', web)
+        self.assertIn('@app.get("/pilot/handoff-summary.md"', web)
+        self.assertIn("def pilot_handoff_summary_markdown(", web)
+        self.assertIn("build_pilot_handoff_summary_export(readiness_items)", web)
         self.assertIn('@app.get("/pilot/acceptance.md"', web)
         self.assertIn("def pilot_acceptance_markdown(", web)
         self.assertIn("format_pilot_acceptance_markdown()", web)
@@ -682,6 +695,7 @@ class WebUiTests(unittest.TestCase):
                     "manifest.json",
                     "pilot-acceptance-checklist.md",
                     "pilot-attention.md",
+                    "pilot-handoff-summary.md",
                     "pilot-readiness.md",
                     "pilot-runbook.md",
                 ],
@@ -707,6 +721,7 @@ class WebUiTests(unittest.TestCase):
                 [
                     "pilot-acceptance-checklist.md",
                     "pilot-attention.md",
+                    "pilot-handoff-summary.md",
                     "pilot-readiness.md",
                     "pilot-runbook.md",
                 ],
@@ -722,6 +737,10 @@ class WebUiTests(unittest.TestCase):
             self.assertIn(
                 "# Pilot Attention Items",
                 archive.read("pilot-attention.md").decode("utf-8"),
+            )
+            self.assertIn(
+                "# Pilot Handoff Summary",
+                archive.read("pilot-handoff-summary.md").decode("utf-8"),
             )
             self.assertIn(
                 "# Pilot Readiness Summary",

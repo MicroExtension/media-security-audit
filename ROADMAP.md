@@ -284,12 +284,14 @@ Current foundation:
 - web mission export inventory client filter started
 - client export inventory links started
 - local pilot runbook page started
+- local pilot handoff summary export started
 - local pilot runbook Markdown export started
 - local pilot acceptance checklist export started
 - local pilot readiness summary started
 - local pilot readiness Markdown export started
 - local pilot evidence bundle started
 - local pilot evidence bundle attention file started
+- local pilot evidence bundle handoff summary started
 - local pilot evidence manifest export started
 - local pilot evidence verification export started
 - local pilot evidence bundle inventory started

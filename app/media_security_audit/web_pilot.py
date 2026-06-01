@@ -117,6 +117,13 @@ class PilotAttentionExport:
     content: str
 
 
+@dataclass(frozen=True)
+class PilotHandoffSummaryExport:
+    filename: str
+    media_type: str
+    content: str
+
+
 def build_pilot_runbook_view(
     readiness_items: list[PilotReadinessItem] | None = None,
 ) -> PilotRunbookView:
@@ -559,6 +566,57 @@ def format_pilot_readiness_markdown(
     return "\n".join(lines).rstrip() + "\n"
 
 
+def build_pilot_handoff_summary_export(
+    readiness_items: list[PilotReadinessItem],
+    view: PilotRunbookView | None = None,
+) -> PilotHandoffSummaryExport:
+    view = view or build_pilot_runbook_view(readiness_items=readiness_items)
+    return PilotHandoffSummaryExport(
+        filename="pilot-handoff-summary.md",
+        media_type="text/markdown; charset=utf-8",
+        content=format_pilot_handoff_summary_markdown(view),
+    )
+
+
+def format_pilot_handoff_summary_markdown(
+    view: PilotRunbookView | None = None,
+) -> str:
+    view = view or build_pilot_runbook_view()
+    lines = [
+        "# Pilot Handoff Summary",
+        "",
+        f"- Context: `{view.subtitle}`",
+        f"- Source: `{view.title}`",
+        f"- Readiness status: `{view.readiness_rollup.status}`",
+        f"- Readiness detail: `{view.readiness_rollup.detail}`",
+        f"- Attention items: `{len(view.attention_items)}`",
+        f"- Acceptance items: `{len(view.acceptance_items)}`",
+        "",
+        "## Next Actions",
+        "",
+    ]
+    if not view.attention_items:
+        lines.append("- No attention item is currently open.")
+    for item in view.attention_items:
+        lines.append(
+            f"- **{item.label}** (`{item.status}`): {item.detail} "
+            f"[Review]({item.href})"
+        )
+    lines.extend(
+        [
+            "",
+            "## Handoff Files",
+            "",
+            "- `pilot-runbook.md`: technician workflow.",
+            "- `pilot-acceptance-checklist.md`: beta sign-off checklist.",
+            "- `pilot-readiness.md`: workspace readiness details.",
+            "- `pilot-attention.md`: remaining warnings and blockers.",
+            "- `manifest.json`: bundle file checksums.",
+        ]
+    )
+    return "\n".join(lines).rstrip() + "\n"
+
+
 def build_pilot_attention_export(
     readiness_items: list[PilotReadinessItem],
     view: PilotRunbookView | None = None,
@@ -710,6 +768,7 @@ def build_pilot_evidence_files(
     return {
         "pilot-acceptance-checklist.md": format_pilot_acceptance_markdown(view),
         "pilot-attention.md": format_pilot_attention_markdown(view.attention_items, view),
+        "pilot-handoff-summary.md": format_pilot_handoff_summary_markdown(view),
         "pilot-readiness.md": format_pilot_readiness_markdown(readiness_items, view),
         "pilot-runbook.md": format_pilot_runbook_markdown(view),
     }

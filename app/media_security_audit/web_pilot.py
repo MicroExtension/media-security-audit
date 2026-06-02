@@ -23,8 +23,10 @@ PILOT_BUNDLE_REVIEW_ORDER = [
     "pilot-readiness.md",
     "pilot-readiness.json",
     "pilot-acceptance-checklist.md",
+    "pilot-acceptance-checklist.json",
     "pilot-runbook.md",
     "pilot-delivery-receipt.md",
+    "pilot-delivery-receipt.json",
     "manifest.json",
 ]
 
@@ -169,10 +171,26 @@ class PilotReadinessJsonExport:
 
 
 @dataclass(frozen=True)
+class PilotAcceptanceJsonExport:
+    filename: str
+    media_type: str
+    content: str
+    payload: dict[str, object]
+
+
+@dataclass(frozen=True)
 class PilotDeliveryReceiptExport:
     filename: str
     media_type: str
     content: str
+
+
+@dataclass(frozen=True)
+class PilotDeliveryReceiptJsonExport:
+    filename: str
+    media_type: str
+    content: str
+    payload: dict[str, object]
 
 
 @dataclass(frozen=True)
@@ -582,6 +600,38 @@ def format_pilot_acceptance_markdown(view: PilotRunbookView | None = None) -> st
     return "\n".join(lines).rstrip() + "\n"
 
 
+def build_pilot_acceptance_json_export(
+    view: PilotRunbookView | None = None,
+) -> PilotAcceptanceJsonExport:
+    view = view or build_pilot_runbook_view()
+    payload = pilot_acceptance_payload(view)
+    return PilotAcceptanceJsonExport(
+        filename="pilot-acceptance-checklist.json",
+        media_type="application/json",
+        content=json.dumps(payload, indent=2, sort_keys=True) + "\n",
+        payload=payload,
+    )
+
+
+def pilot_acceptance_payload(view: PilotRunbookView) -> dict[str, object]:
+    return {
+        "acceptance_type": "pilot",
+        "context": view.subtitle,
+        "item_count": len(view.acceptance_items),
+        "items": [
+            {
+                "evidence": item.evidence,
+                "phase": item.phase,
+                "status": "pending",
+                "title": item.title,
+            }
+            for item in view.acceptance_items
+        ],
+        "schema_version": 1,
+        "source": view.title,
+    }
+
+
 def format_pilot_readiness_markdown(
     readiness_items: list[PilotReadinessItem],
     view: PilotRunbookView | None = None,
@@ -666,9 +716,11 @@ def pilot_handoff_summary_payload(view: PilotRunbookView) -> dict[str, object]:
         "handoff_files": [
             "pilot-runbook.md",
             "pilot-acceptance-checklist.md",
+            "pilot-acceptance-checklist.json",
             "pilot-handoff-summary.json",
             "pilot-bundle-index.md",
             "pilot-delivery-receipt.md",
+            "pilot-delivery-receipt.json",
             "pilot-readiness.md",
             "pilot-readiness.json",
             "pilot-attention.md",
@@ -720,9 +772,11 @@ def format_pilot_handoff_summary_markdown(
             "",
             "- `pilot-runbook.md`: technician workflow.",
             "- `pilot-acceptance-checklist.md`: beta sign-off checklist.",
+            "- `pilot-acceptance-checklist.json`: machine-readable acceptance checklist.",
             "- `pilot-handoff-summary.json`: machine-readable handoff summary.",
             "- `pilot-bundle-index.md`: bundle review order.",
             "- `pilot-delivery-receipt.md`: delivery sign-off receipt.",
+            "- `pilot-delivery-receipt.json`: machine-readable delivery receipt.",
             "- `pilot-readiness.md`: workspace readiness details.",
             "- `pilot-readiness.json`: machine-readable readiness evidence.",
             "- `pilot-attention.md`: remaining warnings and blockers.",
@@ -765,8 +819,10 @@ def format_pilot_bundle_index_markdown(
         "5. Complete `pilot-acceptance-checklist.md` for beta sign-off.",
         "6. Keep `pilot-runbook.md` with the technician delivery notes.",
         "7. Complete `pilot-delivery-receipt.md` after client handoff.",
-        "8. Use `pilot-readiness.json` only when automation needs structured state.",
-        "9. Compare extracted files with `manifest.json` before archiving.",
+        "8. Use `pilot-acceptance-checklist.json` for structured beta sign-off.",
+        "9. Use `pilot-delivery-receipt.json` for structured delivery evidence.",
+        "10. Use `pilot-readiness.json` only when automation needs structured state.",
+        "11. Compare extracted files with `manifest.json` before archiving.",
         "",
         "## Bundle Files",
         "",
@@ -780,7 +836,9 @@ def format_pilot_bundle_index_markdown(
         "| pilot-readiness.md | Detailed local readiness checks. |",
         "| pilot-readiness.json | Machine-readable readiness state. |",
         "| pilot-acceptance-checklist.md | Beta acceptance checklist. |",
+        "| pilot-acceptance-checklist.json | Machine-readable beta acceptance checklist. |",
         "| pilot-runbook.md | Technician workflow. |",
+        "| pilot-delivery-receipt.json | Machine-readable delivery receipt. |",
         "| manifest.json | File checksums for integrity review. |",
     ]
     return "\n".join(lines).rstrip() + "\n"
@@ -845,6 +903,59 @@ def build_pilot_delivery_receipt_export(
     )
 
 
+def build_pilot_delivery_receipt_json_export(
+    readiness_items: list[PilotReadinessItem],
+    view: PilotRunbookView | None = None,
+) -> PilotDeliveryReceiptJsonExport:
+    view = view or build_pilot_runbook_view(readiness_items=readiness_items)
+    payload = pilot_delivery_receipt_payload(view)
+    return PilotDeliveryReceiptJsonExport(
+        filename="pilot-delivery-receipt.json",
+        media_type="application/json",
+        content=json.dumps(payload, indent=2, sort_keys=True) + "\n",
+        payload=payload,
+    )
+
+
+def pilot_delivery_receipt_payload(view: PilotRunbookView) -> dict[str, object]:
+    return {
+        "attention_items": len(view.attention_items),
+        "context": view.subtitle,
+        "delivery_type": "pilot",
+        "delivered_files": [
+            "pilot-handoff-summary.md",
+            "pilot-handoff-summary.json",
+            "pilot-bundle-index.md",
+            "pilot-readiness.md",
+            "pilot-readiness.json",
+            "pilot-attention.md",
+            "pilot-acceptance-checklist.md",
+            "pilot-acceptance-checklist.json",
+            "pilot-runbook.md",
+            "pilot-delivery-receipt.json",
+            "manifest.json",
+        ],
+        "readiness": {
+            "blocked": view.readiness_rollup.blocked,
+            "detail": view.readiness_rollup.detail,
+            "ready": view.readiness_rollup.ready,
+            "status": view.readiness_rollup.status,
+            "total": view.readiness_rollup.total,
+            "warning": view.readiness_rollup.warning,
+        },
+        "schema_version": 1,
+        "sign_off_fields": [
+            "client_representative",
+            "technician",
+            "delivery_date",
+            "delivery_channel",
+            "remaining_attention_items_reviewed",
+            "evidence_bundle_retained_by_msp",
+        ],
+        "source": view.title,
+    }
+
+
 def format_pilot_delivery_receipt_markdown(
     view: PilotRunbookView | None = None,
 ) -> str:
@@ -867,7 +978,9 @@ def format_pilot_delivery_receipt_markdown(
         "- `pilot-readiness.json`",
         "- `pilot-attention.md`",
         "- `pilot-acceptance-checklist.md`",
+        "- `pilot-acceptance-checklist.json`",
         "- `pilot-runbook.md`",
+        "- `pilot-delivery-receipt.json`",
         "- `manifest.json`",
         "",
         "## Sign-off",
@@ -1146,8 +1259,15 @@ def build_pilot_evidence_files(
 ) -> dict[str, str]:
     return {
         "pilot-acceptance-checklist.md": format_pilot_acceptance_markdown(view),
+        "pilot-acceptance-checklist.json": build_pilot_acceptance_json_export(
+            view,
+        ).content,
         "pilot-attention.md": format_pilot_attention_markdown(view.attention_items, view),
         "pilot-bundle-index.md": format_pilot_bundle_index_markdown(view),
+        "pilot-delivery-receipt.json": build_pilot_delivery_receipt_json_export(
+            readiness_items,
+            view,
+        ).content,
         "pilot-delivery-receipt.md": format_pilot_delivery_receipt_markdown(view),
         "pilot-handoff-summary.json": build_pilot_handoff_summary_json_export(
             readiness_items,

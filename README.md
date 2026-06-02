@@ -120,6 +120,7 @@ Implemented so far:
 - local pilot evidence verification Markdown export for handoff checks
 - local pilot evidence verification JSON export for automation handoff
 - local pilot evidence bundle inventory visible before download
+- local pilot evidence bundle inventory shows human and automation file categories
 - local pilot evidence bundle inventory CSV download
 - local pilot readiness rollup visible before handoff
 - local pilot attention items highlight remaining warnings and blockers
@@ -694,6 +695,7 @@ Planned screens:
 - local pilot workflow and inventory JSON exports started
 - local pilot evidence bundle workflow and inventory JSON started
 - local pilot evidence bundle inventory started
+- local pilot evidence bundle inventory category counters started
 - local pilot evidence bundle inventory CSV started
 - local pilot readiness rollup started
 - local pilot attention items started

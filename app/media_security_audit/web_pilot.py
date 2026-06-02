@@ -139,6 +139,13 @@ class PilotReadinessJsonExport:
     payload: dict[str, object]
 
 
+@dataclass(frozen=True)
+class PilotDeliveryReceiptExport:
+    filename: str
+    media_type: str
+    content: str
+
+
 def build_pilot_runbook_view(
     readiness_items: list[PilotReadinessItem] | None = None,
 ) -> PilotRunbookView:
@@ -625,6 +632,7 @@ def format_pilot_handoff_summary_markdown(
             "- `pilot-runbook.md`: technician workflow.",
             "- `pilot-acceptance-checklist.md`: beta sign-off checklist.",
             "- `pilot-bundle-index.md`: bundle review order.",
+            "- `pilot-delivery-receipt.md`: delivery sign-off receipt.",
             "- `pilot-readiness.md`: workspace readiness details.",
             "- `pilot-readiness.json`: machine-readable readiness evidence.",
             "- `pilot-attention.md`: remaining warnings and blockers.",
@@ -665,8 +673,9 @@ def format_pilot_bundle_index_markdown(
         "3. Review `pilot-readiness.md` for detailed workspace readiness.",
         "4. Complete `pilot-acceptance-checklist.md` for beta sign-off.",
         "5. Keep `pilot-runbook.md` with the technician delivery notes.",
-        "6. Use `pilot-readiness.json` only when automation needs structured state.",
-        "7. Compare extracted files with `manifest.json` before archiving.",
+        "6. Complete `pilot-delivery-receipt.md` after client handoff.",
+        "7. Use `pilot-readiness.json` only when automation needs structured state.",
+        "8. Compare extracted files with `manifest.json` before archiving.",
         "",
         "## Bundle Files",
         "",
@@ -674,6 +683,7 @@ def format_pilot_bundle_index_markdown(
         "| --- | --- |",
         "| pilot-bundle-index.md | Review order for extracted evidence. |",
         "| pilot-handoff-summary.md | Compact handoff state and next actions. |",
+        "| pilot-delivery-receipt.md | Delivery sign-off receipt. |",
         "| pilot-attention.md | Remaining warnings and blockers. |",
         "| pilot-readiness.md | Detailed local readiness checks. |",
         "| pilot-readiness.json | Machine-readable readiness state. |",
@@ -728,6 +738,58 @@ def format_pilot_attention_markdown(
             )
             + " |"
         )
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def build_pilot_delivery_receipt_export(
+    readiness_items: list[PilotReadinessItem],
+    view: PilotRunbookView | None = None,
+) -> PilotDeliveryReceiptExport:
+    view = view or build_pilot_runbook_view(readiness_items=readiness_items)
+    return PilotDeliveryReceiptExport(
+        filename="pilot-delivery-receipt.md",
+        media_type="text/markdown; charset=utf-8",
+        content=format_pilot_delivery_receipt_markdown(view),
+    )
+
+
+def format_pilot_delivery_receipt_markdown(
+    view: PilotRunbookView | None = None,
+) -> str:
+    view = view or build_pilot_runbook_view()
+    lines = [
+        "# Pilot Delivery Receipt",
+        "",
+        f"- Context: `{view.subtitle}`",
+        f"- Source: `{view.title}`",
+        f"- Readiness status: `{view.readiness_rollup.status}`",
+        f"- Readiness detail: `{view.readiness_rollup.detail}`",
+        f"- Attention items: `{len(view.attention_items)}`",
+        "",
+        "## Delivered Files",
+        "",
+        "- `pilot-handoff-summary.md`",
+        "- `pilot-bundle-index.md`",
+        "- `pilot-readiness.md`",
+        "- `pilot-readiness.json`",
+        "- `pilot-attention.md`",
+        "- `pilot-acceptance-checklist.md`",
+        "- `pilot-runbook.md`",
+        "- `manifest.json`",
+        "",
+        "## Sign-off",
+        "",
+        "- Client representative: ______________________________",
+        "- Technician: ______________________________",
+        "- Delivery date: ______________________________",
+        "- Delivery channel: ______________________________",
+        "- Remaining attention items reviewed: [ ] yes  [ ] no",
+        "- Evidence bundle retained by MSP: [ ] yes  [ ] no",
+        "",
+        "## Notes",
+        "",
+        "- ______________________________",
+    ]
     return "\n".join(lines).rstrip() + "\n"
 
 
@@ -895,6 +957,7 @@ def build_pilot_evidence_files(
         "pilot-acceptance-checklist.md": format_pilot_acceptance_markdown(view),
         "pilot-attention.md": format_pilot_attention_markdown(view.attention_items, view),
         "pilot-bundle-index.md": format_pilot_bundle_index_markdown(view),
+        "pilot-delivery-receipt.md": format_pilot_delivery_receipt_markdown(view),
         "pilot-handoff-summary.md": format_pilot_handoff_summary_markdown(view),
         "pilot-readiness.json": format_pilot_readiness_json(readiness_items, view),
         "pilot-readiness.md": format_pilot_readiness_markdown(readiness_items, view),

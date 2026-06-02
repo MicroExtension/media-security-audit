@@ -705,11 +705,13 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(inventory_csv.media_type, "text/csv; charset=utf-8")
         self.assertEqual(
             inventory_csv.content.splitlines()[0],
-            "review_order,path,size_bytes,sha256,sha256_short",
+            "review_order,path,kind,size_bytes,sha256,sha256_short",
         )
         self.assertEqual(inventory_rows[0]["path"], "pilot-acceptance-checklist.json")
+        self.assertEqual(inventory_rows[0]["kind"], "Automation JSON")
         self.assertEqual(inventory_rows[0]["review_order"], "11")
         self.assertEqual(inventory_rows[1]["path"], "pilot-acceptance-checklist.md")
+        self.assertEqual(inventory_rows[1]["kind"], "Human-readable Markdown")
         self.assertEqual(inventory_rows[1]["review_order"], "10")
         self.assertEqual(len(inventory_rows[0]["sha256_short"]), 12)
         inventory_json = build_pilot_bundle_inventory_json_export(items)
@@ -717,10 +719,13 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(inventory_json.filename, "pilot-bundle-inventory.json")
         self.assertEqual(inventory_json.media_type, "application/json")
         self.assertEqual(inventory_payload, inventory_json.payload)
-        self.assertEqual(inventory_payload["schema_version"], 1)
+        self.assertEqual(inventory_payload["schema_version"], 2)
         self.assertEqual(inventory_payload["bundle_type"], "pilot_evidence")
         self.assertEqual(inventory_payload["expected_file_count"], 15)
+        self.assertEqual(inventory_payload["automation_file_count"], 8)
+        self.assertEqual(inventory_payload["human_file_count"], 7)
         self.assertEqual(inventory_payload["files"][0]["path"], "pilot-acceptance-checklist.json")
+        self.assertEqual(inventory_payload["files"][0]["kind"], "Automation JSON")
         self.assertEqual(inventory_payload["files"][0]["review_order"], 11)
         acceptance_json = build_pilot_acceptance_json_export(view)
         acceptance_payload = json.loads(acceptance_json.content)
@@ -1137,6 +1142,13 @@ class WebUiTests(unittest.TestCase):
             )
             self.assertEqual(archived_inventory["bundle_type"], "pilot_evidence")
             self.assertEqual(archived_inventory["expected_file_count"], 15)
+            self.assertEqual(archived_inventory["schema_version"], 2)
+            self.assertEqual(archived_inventory["automation_file_count"], 8)
+            self.assertEqual(archived_inventory["human_file_count"], 7)
+            self.assertEqual(
+                archived_inventory["files"][0]["kind"],
+                "Automation JSON",
+            )
             self.assertIn(
                 "# Pilot Delivery Receipt",
                 archive.read("pilot-delivery-receipt.md").decode("utf-8"),

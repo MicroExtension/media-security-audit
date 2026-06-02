@@ -1248,19 +1248,22 @@ def pilot_bundle_inventory_payload(view: PilotRunbookView) -> dict[str, object]:
         for index, path in enumerate(PILOT_BUNDLE_REVIEW_ORDER, start=1)
     }
     return {
+        "automation_file_count": view.evidence_automation_file_count,
         "bundle_type": "pilot_evidence",
         "context": view.subtitle,
         "expected_file_count": len(PILOT_BUNDLE_REVIEW_ORDER) - 1,
         "files": [
             {
+                "kind": pilot_evidence_file_kind(path),
                 "path": path,
                 "purpose": pilot_bundle_file_purpose(path),
                 "review_order": review_order.get(path, 0),
             }
             for path in sorted(path for path in PILOT_BUNDLE_REVIEW_ORDER if path != "manifest.json")
         ],
+        "human_file_count": view.evidence_human_file_count,
         "manifest_path": "manifest.json",
-        "schema_version": 1,
+        "schema_version": 2,
         "source": view.title,
     }
 
@@ -1270,7 +1273,7 @@ def format_pilot_bundle_inventory_csv(
 ) -> str:
     output = StringIO()
     writer = csv.writer(output, lineterminator="\n")
-    writer.writerow(["review_order", "path", "size_bytes", "sha256", "sha256_short"])
+    writer.writerow(["review_order", "path", "kind", "size_bytes", "sha256", "sha256_short"])
     review_order = {
         path: index
         for index, path in enumerate(PILOT_BUNDLE_REVIEW_ORDER, start=1)
@@ -1280,6 +1283,7 @@ def format_pilot_bundle_inventory_csv(
             [
                 review_order.get(item.path, ""),
                 item.path,
+                item.kind,
                 item.size_bytes,
                 item.sha256,
                 item.sha256_short,

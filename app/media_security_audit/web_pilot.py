@@ -14,6 +14,17 @@ from media_security_audit.web_exports import build_mission_export_inventory
 from media_security_audit.web_system import SystemStatus
 
 PILOT_BUNDLE_TIMESTAMP = (2026, 1, 1, 0, 0, 0)
+PILOT_BUNDLE_REVIEW_ORDER = [
+    "pilot-handoff-summary.md",
+    "pilot-bundle-index.md",
+    "pilot-attention.md",
+    "pilot-readiness.md",
+    "pilot-readiness.json",
+    "pilot-acceptance-checklist.md",
+    "pilot-runbook.md",
+    "pilot-delivery-receipt.md",
+    "manifest.json",
+]
 
 
 @dataclass(frozen=True)
@@ -903,6 +914,8 @@ def format_pilot_evidence_verification_markdown(payload: dict[str, object]) -> s
     file_entries = files if isinstance(files, list) else []
     readiness = payload.get("readiness")
     readiness_payload = readiness if isinstance(readiness, dict) else {}
+    review_order = payload.get("review_order")
+    review_order_entries = review_order if isinstance(review_order, list) else []
     lines = [
         "# Pilot Evidence Bundle Verification",
         "",
@@ -935,6 +948,10 @@ def format_pilot_evidence_verification_markdown(payload: dict[str, object]) -> s
             )
             + " |"
         )
+    if review_order_entries:
+        lines.extend(["", "## Review Order", ""])
+        for index, path in enumerate(review_order_entries, start=1):
+            lines.append(f"{index}. `{path}`")
     lines.extend(
         [
             "",
@@ -986,7 +1003,8 @@ def build_pilot_evidence_manifest_payload(
             "total": view.readiness_rollup.total,
             "warning": view.readiness_rollup.warning,
         },
-        "schema_version": 2,
+        "review_order": PILOT_BUNDLE_REVIEW_ORDER,
+        "schema_version": 3,
         "source": view.title,
     }
 

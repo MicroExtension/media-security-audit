@@ -631,6 +631,7 @@ Current GUI status:
 - local Pilot page guides first client deployment and closeout review
 - local Pilot page exports a Markdown handoff summary for technician handoff
 - local Pilot page exports a Markdown bundle index for extracted evidence review
+- local Pilot page exports a Markdown delivery receipt for client sign-off
 - local Pilot page exports a Markdown runbook for technician handoff
 - local Pilot page exports a Markdown acceptance checklist for beta sign-off
 - local Pilot page summarizes workspace readiness from status, exports, and backup state
@@ -640,6 +641,7 @@ Current GUI status:
 - local Pilot evidence bundle includes the attention follow-up Markdown file
 - local Pilot evidence bundle includes the handoff summary Markdown file
 - local Pilot evidence bundle includes the review index Markdown file
+- local Pilot evidence bundle includes the delivery receipt Markdown file
 - local Pilot evidence bundle includes the readiness JSON file
 - local Pilot page exports the pilot evidence manifest JSON before bundle handoff
 - local Pilot evidence manifest includes readiness summary counters

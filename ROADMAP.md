@@ -286,6 +286,7 @@ Current foundation:
 - local pilot runbook page started
 - local pilot handoff summary export started
 - local pilot bundle index export started
+- local pilot delivery receipt export started
 - local pilot runbook Markdown export started
 - local pilot acceptance checklist export started
 - local pilot readiness summary started
@@ -295,6 +296,7 @@ Current foundation:
 - local pilot evidence bundle attention file started
 - local pilot evidence bundle handoff summary started
 - local pilot evidence bundle review index started
+- local pilot evidence bundle delivery receipt started
 - local pilot evidence bundle readiness JSON started
 - local pilot evidence manifest export started
 - local pilot evidence manifest readiness summary started

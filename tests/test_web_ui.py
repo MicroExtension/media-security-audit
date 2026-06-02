@@ -1,10 +1,11 @@
+import csv
 import json
 import re
 import shutil
 import unittest
 from datetime import date
 from hashlib import sha256
-from io import BytesIO
+from io import BytesIO, StringIO
 from pathlib import Path
 from zipfile import ZipFile
 
@@ -34,6 +35,7 @@ from media_security_audit.web_exports import generate_mission_export  # noqa: E4
 from media_security_audit.web_pilot import (  # noqa: E402
     PilotReadinessItem,
     build_pilot_attention_export,
+    build_pilot_bundle_inventory_csv_export,
     build_pilot_bundle_index_export,
     build_pilot_delivery_receipt_export,
     build_pilot_evidence_bundle,
@@ -428,6 +430,7 @@ class WebUiTests(unittest.TestCase):
         self.assertIn('id="pilot-readiness"', template)
         self.assertIn('aria-label="Pilot readiness links"', template)
         self.assertIn('href="/pilot/attention.md"', template)
+        self.assertIn('href="/pilot/bundle-inventory.csv"', template)
         self.assertIn('href="/pilot/bundle-index.md"', template)
         self.assertIn('href="/pilot/delivery-receipt.md"', template)
         self.assertIn('href="/pilot/handoff-summary.md"', template)
@@ -600,6 +603,17 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("pilot-delivery-receipt.md", bundle_index.content)
         self.assertIn("pilot-readiness.json", bundle_index.content)
         self.assertIn("| manifest.json | File checksums", bundle_index.content)
+        inventory_csv = build_pilot_bundle_inventory_csv_export(items)
+        inventory_rows = list(csv.DictReader(StringIO(inventory_csv.content)))
+        self.assertEqual(inventory_csv.filename, "pilot-bundle-inventory.csv")
+        self.assertEqual(inventory_csv.media_type, "text/csv; charset=utf-8")
+        self.assertEqual(
+            inventory_csv.content.splitlines()[0],
+            "review_order,path,size_bytes,sha256,sha256_short",
+        )
+        self.assertEqual(inventory_rows[0]["path"], "pilot-acceptance-checklist.md")
+        self.assertEqual(inventory_rows[0]["review_order"], "6")
+        self.assertEqual(len(inventory_rows[0]["sha256_short"]), 12)
         delivery_receipt = build_pilot_delivery_receipt_export(items)
         self.assertEqual(delivery_receipt.filename, "pilot-delivery-receipt.md")
         self.assertEqual(delivery_receipt.media_type, "text/markdown; charset=utf-8")
@@ -647,6 +661,9 @@ class WebUiTests(unittest.TestCase):
         self.assertIn('@app.get("/pilot/bundle-index.md"', web)
         self.assertIn("def pilot_bundle_index_markdown(", web)
         self.assertIn("build_pilot_bundle_index_export(readiness_items)", web)
+        self.assertIn('@app.get("/pilot/bundle-inventory.csv"', web)
+        self.assertIn("def pilot_bundle_inventory_csv(", web)
+        self.assertIn("build_pilot_bundle_inventory_csv_export(readiness_items)", web)
         self.assertIn('@app.get("/pilot/delivery-receipt.md"', web)
         self.assertIn("def pilot_delivery_receipt_markdown(", web)
         self.assertIn("build_pilot_delivery_receipt_export(readiness_items)", web)

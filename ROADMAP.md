@@ -300,6 +300,7 @@ Current foundation:
 - local pilot evidence bundle readiness JSON started
 - local pilot evidence manifest export started
 - local pilot evidence manifest readiness summary started
+- local pilot evidence manifest review order started
 - local pilot evidence verification export started
 - local pilot evidence bundle inventory started
 - local pilot readiness rollup started

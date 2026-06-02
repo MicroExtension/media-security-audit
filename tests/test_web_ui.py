@@ -757,18 +757,35 @@ class WebUiTests(unittest.TestCase):
             self.assertEqual(verification.filename, "pilot-evidence-verification.md")
             self.assertEqual(verification.media_type, "text/markdown; charset=utf-8")
             self.assertIn("# Pilot Evidence Bundle Verification", verification.content)
-            self.assertIn("- Schema version: `2`", verification.content)
+            self.assertIn("- Schema version: `3`", verification.content)
             self.assertIn("- Readiness status: `ready`", verification.content)
             self.assertIn("- File count: `8`", verification.content)
+            self.assertIn("## Review Order", verification.content)
+            self.assertIn("1. `pilot-handoff-summary.md`", verification.content)
+            self.assertIn("9. `manifest.json`", verification.content)
             self.assertIn("pilot-bundle-index.md", verification.content)
             self.assertIn("pilot-delivery-receipt.md", verification.content)
             self.assertIn("pilot-readiness.md", verification.content)
             self.assertIn("Compare each extracted file hash", verification.content)
-            self.assertEqual(manifest["schema_version"], 2)
+            self.assertEqual(manifest["schema_version"], 3)
             self.assertEqual(manifest["bundle_type"], "pilot_evidence")
             self.assertEqual(manifest["context"], "Client Pilot")
             self.assertEqual(manifest["file_count"], 8)
             self.assertEqual(manifest["source"], "Pilot Runbook")
+            self.assertEqual(
+                manifest["review_order"],
+                [
+                    "pilot-handoff-summary.md",
+                    "pilot-bundle-index.md",
+                    "pilot-attention.md",
+                    "pilot-readiness.md",
+                    "pilot-readiness.json",
+                    "pilot-acceptance-checklist.md",
+                    "pilot-runbook.md",
+                    "pilot-delivery-receipt.md",
+                    "manifest.json",
+                ],
+            )
             self.assertEqual(
                 manifest["readiness"],
                 {

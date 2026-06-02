@@ -649,6 +649,7 @@ Current GUI status:
 - local Pilot evidence manifest includes the recommended evidence review order
 - local Pilot page exports a Markdown verification sheet for pilot evidence checks
 - local Pilot page exports a JSON verification plan for automation handoff
+- local Pilot page exports a JSON handoff summary for automation handoff
 - local Pilot page shows the pilot evidence bundle file inventory before download
 - local Pilot page downloads the pilot evidence bundle inventory as CSV
 - local Pilot page shows readiness rollup counters before pilot handoff

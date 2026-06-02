@@ -43,6 +43,7 @@ from media_security_audit.web_pilot import (  # noqa: E402
     build_pilot_evidence_verification,
     build_pilot_evidence_verification_json,
     build_pilot_handoff_summary_export,
+    build_pilot_handoff_summary_json_export,
     build_pilot_readiness_json_export,
     build_pilot_readiness_items,
     build_pilot_runbook_view,
@@ -435,6 +436,7 @@ class WebUiTests(unittest.TestCase):
         self.assertIn('href="/pilot/bundle-index.md"', template)
         self.assertIn('href="/pilot/delivery-receipt.md"', template)
         self.assertIn('href="/pilot/handoff-summary.md"', template)
+        self.assertIn('href="/pilot/handoff-summary.json"', template)
         self.assertIn('href="/pilot/readiness.json"', template)
         self.assertIn('href="/pilot/readiness.md"', template)
         self.assertIn('href="/pilot/bundle.zip"', template)
@@ -597,6 +599,21 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("pilot-delivery-receipt.md", handoff_summary.content)
         self.assertIn("pilot-readiness.json", handoff_summary.content)
         self.assertIn("pilot-attention.md", handoff_summary.content)
+        handoff_json = build_pilot_handoff_summary_json_export(items)
+        handoff_payload = json.loads(handoff_json.content)
+        self.assertEqual(handoff_json.filename, "pilot-handoff-summary.json")
+        self.assertEqual(handoff_json.media_type, "application/json")
+        self.assertEqual(handoff_payload, handoff_json.payload)
+        self.assertEqual(handoff_payload["schema_version"], 1)
+        self.assertEqual(handoff_payload["handoff_type"], "pilot")
+        self.assertEqual(handoff_payload["context"], "Client Pilot")
+        self.assertEqual(handoff_payload["source"], "Pilot Runbook")
+        self.assertEqual(handoff_payload["readiness"]["status"], "warning")
+        self.assertEqual(handoff_payload["readiness"]["warning"], 1)
+        self.assertEqual(handoff_payload["next_action_count"], 1)
+        self.assertEqual(handoff_payload["attention_items"][0]["label"], "Workspace backup")
+        self.assertEqual(handoff_payload["attention_items"][0]["status"], "warning")
+        self.assertIn("pilot-readiness.json", handoff_payload["handoff_files"])
         bundle_index = build_pilot_bundle_index_export(items)
         self.assertEqual(bundle_index.filename, "pilot-bundle-index.md")
         self.assertEqual(bundle_index.media_type, "text/markdown; charset=utf-8")
@@ -660,6 +677,9 @@ class WebUiTests(unittest.TestCase):
         self.assertIn('@app.get("/pilot/handoff-summary.md"', web)
         self.assertIn("def pilot_handoff_summary_markdown(", web)
         self.assertIn("build_pilot_handoff_summary_export(readiness_items)", web)
+        self.assertIn('@app.get("/pilot/handoff-summary.json"', web)
+        self.assertIn("def pilot_handoff_summary_json(", web)
+        self.assertIn("build_pilot_handoff_summary_json_export(readiness_items)", web)
         self.assertIn('@app.get("/pilot/bundle-index.md"', web)
         self.assertIn("def pilot_bundle_index_markdown(", web)
         self.assertIn("build_pilot_bundle_index_export(readiness_items)", web)

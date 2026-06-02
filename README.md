@@ -89,6 +89,7 @@ Implemented so far:
 - client detail pages show mission preparation status summaries
 - local pilot runbook page for first client deployment walkthrough
 - local pilot handoff summary Markdown export for technician handoff
+- local pilot handoff summary JSON export for automation handoff
 - local pilot bundle index Markdown export for extracted evidence review
 - local pilot bundle inventory CSV export for spreadsheet review
 - local pilot delivery receipt Markdown export for client sign-off
@@ -673,6 +674,7 @@ Planned screens:
 - local pilot evidence manifest review order started
 - local pilot evidence verification export started
 - local pilot evidence verification JSON export started
+- local pilot handoff summary JSON export started
 - local pilot evidence bundle inventory started
 - local pilot evidence bundle inventory CSV started
 - local pilot readiness rollup started

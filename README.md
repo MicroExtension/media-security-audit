@@ -90,6 +90,7 @@ Implemented so far:
 - local pilot runbook page for first client deployment walkthrough
 - local pilot handoff summary Markdown export for technician handoff
 - local pilot bundle index Markdown export for extracted evidence review
+- local pilot bundle inventory CSV export for spreadsheet review
 - local pilot delivery receipt Markdown export for client sign-off
 - local pilot runbook Markdown export for technician handoff
 - local pilot acceptance checklist Markdown export for beta sign-off
@@ -107,6 +108,7 @@ Implemented so far:
 - local pilot evidence manifest includes recommended review order
 - local pilot evidence verification Markdown export for handoff checks
 - local pilot evidence bundle inventory visible before download
+- local pilot evidence bundle inventory CSV download
 - local pilot readiness rollup visible before handoff
 - local pilot attention items highlight remaining warnings and blockers
 - local pilot attention Markdown export for handoff follow-up
@@ -652,6 +654,7 @@ Planned screens:
 - local pilot runbook page started
 - local pilot handoff summary export started
 - local pilot bundle index export started
+- local pilot bundle inventory CSV export started
 - local pilot delivery receipt export started
 - local pilot runbook Markdown export started
 - local pilot acceptance checklist export started
@@ -669,6 +672,7 @@ Planned screens:
 - local pilot evidence manifest review order started
 - local pilot evidence verification export started
 - local pilot evidence bundle inventory started
+- local pilot evidence bundle inventory CSV started
 - local pilot readiness rollup started
 - local pilot attention items started
 - local pilot attention Markdown export started

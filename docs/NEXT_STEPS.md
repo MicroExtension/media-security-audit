@@ -631,6 +631,7 @@ Current GUI status:
 - local Pilot page guides first client deployment and closeout review
 - local Pilot page exports a Markdown handoff summary for technician handoff
 - local Pilot page exports a Markdown bundle index for extracted evidence review
+- local Pilot page exports bundle inventory as CSV for spreadsheet review
 - local Pilot page exports a Markdown delivery receipt for client sign-off
 - local Pilot page exports a Markdown runbook for technician handoff
 - local Pilot page exports a Markdown acceptance checklist for beta sign-off
@@ -648,6 +649,7 @@ Current GUI status:
 - local Pilot evidence manifest includes the recommended evidence review order
 - local Pilot page exports a Markdown verification sheet for pilot evidence checks
 - local Pilot page shows the pilot evidence bundle file inventory before download
+- local Pilot page downloads the pilot evidence bundle inventory as CSV
 - local Pilot page shows readiness rollup counters before pilot handoff
 - local Pilot page highlights non-ready attention items before pilot handoff
 - local Pilot page exports non-ready attention items as Markdown for handoff follow-up

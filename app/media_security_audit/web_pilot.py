@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+import csv
 import json
 from dataclasses import dataclass, replace
 from hashlib import sha256
-from io import BytesIO
+from io import BytesIO, StringIO
 from pathlib import Path
 from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 
@@ -152,6 +153,13 @@ class PilotReadinessJsonExport:
 
 @dataclass(frozen=True)
 class PilotDeliveryReceiptExport:
+    filename: str
+    media_type: str
+    content: str
+
+
+@dataclass(frozen=True)
+class PilotBundleInventoryCsvExport:
     filename: str
     media_type: str
     content: str
@@ -802,6 +810,41 @@ def format_pilot_delivery_receipt_markdown(
         "- ______________________________",
     ]
     return "\n".join(lines).rstrip() + "\n"
+
+
+def build_pilot_bundle_inventory_csv_export(
+    readiness_items: list[PilotReadinessItem],
+    view: PilotRunbookView | None = None,
+) -> PilotBundleInventoryCsvExport:
+    view = view or build_pilot_runbook_view(readiness_items=readiness_items)
+    return PilotBundleInventoryCsvExport(
+        filename="pilot-bundle-inventory.csv",
+        media_type="text/csv; charset=utf-8",
+        content=format_pilot_bundle_inventory_csv(view.evidence_files),
+    )
+
+
+def format_pilot_bundle_inventory_csv(
+    evidence_files: list[PilotEvidenceFileView],
+) -> str:
+    output = StringIO()
+    writer = csv.writer(output, lineterminator="\n")
+    writer.writerow(["review_order", "path", "size_bytes", "sha256", "sha256_short"])
+    review_order = {
+        path: index
+        for index, path in enumerate(PILOT_BUNDLE_REVIEW_ORDER, start=1)
+    }
+    for item in evidence_files:
+        writer.writerow(
+            [
+                review_order.get(item.path, ""),
+                item.path,
+                item.size_bytes,
+                item.sha256,
+                item.sha256_short,
+            ]
+        )
+    return output.getvalue()
 
 
 def build_pilot_readiness_json_export(

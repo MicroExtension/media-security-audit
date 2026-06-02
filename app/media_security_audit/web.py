@@ -86,6 +86,7 @@ from media_security_audit.web_exports import (
 from media_security_audit.web_health import build_health_status, health_status_code
 from media_security_audit.web_pilot import (
     build_pilot_attention_export,
+    build_pilot_bundle_inventory_csv_export,
     build_pilot_bundle_index_export,
     build_pilot_delivery_receipt_export,
     build_pilot_evidence_bundle,
@@ -294,6 +295,17 @@ def create_web_app(
         system_view = build_system_status(data_dir, reports_dir, settings)
         readiness_items = build_pilot_readiness_items(store, reports_dir, system_view)
         export = build_pilot_bundle_index_export(readiness_items)
+        return Response(
+            content=export.content,
+            media_type=export.media_type,
+            headers={"Content-Disposition": f'attachment; filename="{export.filename}"'},
+        )
+
+    @app.get("/pilot/bundle-inventory.csv", dependencies=protected)
+    def pilot_bundle_inventory_csv() -> Response:
+        system_view = build_system_status(data_dir, reports_dir, settings)
+        readiness_items = build_pilot_readiness_items(store, reports_dir, system_view)
+        export = build_pilot_bundle_inventory_csv_export(readiness_items)
         return Response(
             content=export.content,
             media_type=export.media_type,

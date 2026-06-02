@@ -428,12 +428,17 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("view.readiness_rollup.ready", template)
         self.assertIn("view.readiness_rollup.warning", template)
         self.assertIn("view.readiness_rollup.blocked", template)
+        self.assertIn('aria-label="Pilot evidence file categories"', template)
+        self.assertIn("view.evidence_automation_file_count", template)
+        self.assertIn("view.evidence_human_file_count", template)
         self.assertIn('aria-label="Pilot runbook shortcuts"', template)
         self.assertIn('id="pilot-attention"', template)
         self.assertIn('aria-label="Pilot attention links"', template)
         self.assertIn('id="pilot-bundle"', template)
         self.assertIn('aria-label="Pilot evidence bundle links"', template)
         self.assertIn('<caption class="sr-only">Pilot evidence bundle files</caption>', template)
+        self.assertIn("<th>Kind</th>", template)
+        self.assertIn("item.kind", template)
         self.assertIn("item.sha256_short", template)
         self.assertIn('id="pilot-readiness"', template)
         self.assertIn('aria-label="Pilot readiness links"', template)
@@ -516,6 +521,24 @@ class WebUiTests(unittest.TestCase):
                 "pilot-runbook.json",
                 "pilot-runbook.md",
             ],
+        )
+        self.assertEqual(view.evidence_automation_file_count, 8)
+        self.assertEqual(view.evidence_human_file_count, 7)
+        self.assertEqual(view.evidence_files[0].kind, "Automation JSON")
+        self.assertEqual(view.evidence_files[1].kind, "Human-readable Markdown")
+        self.assertEqual(
+            len([item for item in view.evidence_files if item.kind == "Automation JSON"]),
+            8,
+        )
+        self.assertEqual(
+            len(
+                [
+                    item
+                    for item in view.evidence_files
+                    if item.kind == "Human-readable Markdown"
+                ]
+            ),
+            7,
         )
         self.assertTrue(all(len(item.sha256_short) == 12 for item in view.evidence_files))
         acceptance_titles = [item.title for item in view.acceptance_items]

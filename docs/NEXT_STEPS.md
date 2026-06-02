@@ -660,6 +660,7 @@ Current GUI status:
 - local Pilot page exports a JSON verification plan for automation handoff
 - local Pilot page exports a JSON handoff summary for automation handoff
 - local Pilot page shows the pilot evidence bundle file inventory before download
+- local Pilot page shows human and automation categories for pilot evidence files
 - local Pilot page downloads the pilot evidence bundle inventory as CSV
 - local Pilot page shows readiness rollup counters before pilot handoff
 - local Pilot page highlights non-ready attention items before pilot handoff

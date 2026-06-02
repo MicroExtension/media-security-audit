@@ -108,6 +108,7 @@ class PilotRunbookSection:
 @dataclass(frozen=True)
 class PilotEvidenceFileView:
     path: str
+    kind: str
     size_bytes: int
     sha256: str
     sha256_short: str
@@ -124,6 +125,8 @@ class PilotRunbookView:
     attention_items: list[PilotReadinessItem]
     readiness_rollup: PilotReadinessRollup
     evidence_files: list[PilotEvidenceFileView]
+    evidence_automation_file_count: int
+    evidence_human_file_count: int
 
 
 @dataclass(frozen=True)
@@ -329,6 +332,8 @@ def build_pilot_runbook_view(
         attention_items=build_pilot_attention_items(readiness_items),
         readiness_rollup=build_pilot_readiness_rollup(readiness_items),
         evidence_files=[],
+        evidence_automation_file_count=0,
+        evidence_human_file_count=0,
         sections=[
             PilotRunbookSection(
                 anchor="pilot-setup",
@@ -502,9 +507,16 @@ def build_pilot_runbook_view(
             ),
         ],
     )
+    evidence_files = build_pilot_evidence_file_views(readiness_items, view)
     return replace(
         view,
-        evidence_files=build_pilot_evidence_file_views(readiness_items, view),
+        evidence_files=evidence_files,
+        evidence_automation_file_count=len(
+            [item for item in evidence_files if item.kind == "Automation JSON"]
+        ),
+        evidence_human_file_count=len(
+            [item for item in evidence_files if item.kind == "Human-readable Markdown"]
+        ),
     )
 
 
@@ -1594,12 +1606,21 @@ def build_pilot_evidence_file_views(
         file_views.append(
             PilotEvidenceFileView(
                 path=str(entry["path"]),
+                kind=pilot_evidence_file_kind(str(entry["path"])),
                 size_bytes=int(entry["size_bytes"]),
                 sha256=sha256_value,
                 sha256_short=sha256_value[:12],
             )
         )
     return file_views
+
+
+def pilot_evidence_file_kind(path: str) -> str:
+    if path.endswith(".json"):
+        return "Automation JSON"
+    if path.endswith(".md"):
+        return "Human-readable Markdown"
+    return "Other"
 
 
 def manifest_file_entry(path: str, content: str) -> dict[str, object]:

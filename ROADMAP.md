@@ -305,6 +305,7 @@ Current foundation:
 - local pilot evidence verification export started
 - local pilot evidence verification JSON export started
 - local pilot handoff summary JSON export started
+- local pilot evidence bundle handoff summary JSON started
 - local pilot evidence bundle inventory started
 - local pilot evidence bundle inventory CSV started
 - local pilot readiness rollup started

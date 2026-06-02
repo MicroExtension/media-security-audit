@@ -939,9 +939,12 @@ def build_pilot_bundle_index_json_export(
 
 def pilot_bundle_index_payload(view: PilotRunbookView) -> dict[str, object]:
     return {
+        "automation_file_count": view.evidence_automation_file_count,
         "bundle_file_count": len(PILOT_BUNDLE_REVIEW_ORDER) - 1,
         "context": view.subtitle,
+        "human_file_count": view.evidence_human_file_count,
         "index_type": "pilot_evidence",
+        "manifest_file_count": 1,
         "readiness": {
             "attention_items": len(view.attention_items),
             "detail": view.readiness_rollup.detail,
@@ -949,6 +952,7 @@ def pilot_bundle_index_payload(view: PilotRunbookView) -> dict[str, object]:
         },
         "review_order": [
             {
+                "kind": pilot_bundle_review_file_kind(path),
                 "order": index,
                 "path": path,
                 "purpose": pilot_bundle_file_purpose(path),
@@ -956,7 +960,7 @@ def pilot_bundle_index_payload(view: PilotRunbookView) -> dict[str, object]:
             for index, path in enumerate(PILOT_BUNDLE_REVIEW_ORDER, start=1)
         ],
         "review_step_count": len(PILOT_BUNDLE_REVIEW_ORDER),
-        "schema_version": 1,
+        "schema_version": 2,
         "source": view.title,
     }
 
@@ -972,6 +976,9 @@ def format_pilot_bundle_index_markdown(
         f"- Source: `{view.title}`",
         f"- Readiness status: `{view.readiness_rollup.status}`",
         f"- Attention items: `{len(view.attention_items)}`",
+        f"- Automation files: `{view.evidence_automation_file_count}`",
+        f"- Human-readable files: `{view.evidence_human_file_count}`",
+        "- Manifest files: `1`",
         "",
         "## Recommended Review Order",
         "",
@@ -993,30 +1000,32 @@ def format_pilot_bundle_index_markdown(
         "",
         "## Bundle Files",
         "",
-        "| File | Purpose |",
-        "| --- | --- |",
-        "| pilot-bundle-index.md | Review order for extracted evidence. |",
-        "| pilot-bundle-index.json | Machine-readable review order. |",
-        "| pilot-bundle-inventory.json | Machine-readable bundle inventory. |",
-        "| pilot-handoff-summary.md | Compact handoff state and next actions. |",
-        "| pilot-handoff-summary.json | Machine-readable handoff state. |",
-        "| pilot-delivery-receipt.md | Delivery sign-off receipt. |",
-        "| pilot-attention.md | Remaining warnings and blockers. |",
-        "| pilot-attention.json | Machine-readable attention items. |",
-        "| pilot-readiness.md | Detailed local readiness checks. |",
-        "| pilot-readiness.json | Machine-readable readiness state. |",
-        "| pilot-acceptance-checklist.md | Beta acceptance checklist. |",
-        "| pilot-acceptance-checklist.json | Machine-readable beta acceptance checklist. |",
-        "| pilot-runbook.md | Technician workflow. |",
-        "| pilot-runbook.json | Machine-readable technician workflow. |",
-        "| pilot-delivery-receipt.json | Machine-readable delivery receipt. |",
-        "| manifest.json | File checksums for integrity review. |",
+        "| File | Kind | Purpose |",
+        "| --- | --- | --- |",
     ]
+    for path in PILOT_BUNDLE_REVIEW_ORDER:
+        lines.append(
+            "| "
+            + " | ".join(
+                [
+                    markdown_cell(path),
+                    markdown_cell(pilot_bundle_review_file_kind(path)),
+                    markdown_cell(pilot_bundle_file_purpose(path)),
+                ]
+            )
+            + " |"
+        )
     return "\n".join(lines).rstrip() + "\n"
 
 
 def pilot_bundle_file_purpose(path: str) -> str:
     return PILOT_BUNDLE_FILE_PURPOSES.get(path, "Pilot evidence file.")
+
+
+def pilot_bundle_review_file_kind(path: str) -> str:
+    if path == "manifest.json":
+        return "Manifest JSON"
+    return pilot_evidence_file_kind(path)
 
 
 def build_pilot_attention_export(

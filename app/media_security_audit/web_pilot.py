@@ -123,6 +123,14 @@ class PilotEvidenceVerification:
 
 
 @dataclass(frozen=True)
+class PilotEvidenceVerificationJson:
+    filename: str
+    media_type: str
+    content: str
+    payload: dict[str, object]
+
+
+@dataclass(frozen=True)
 class PilotAttentionExport:
     filename: str
     media_type: str
@@ -950,6 +958,63 @@ def build_pilot_evidence_verification(
         media_type="text/markdown; charset=utf-8",
         content=format_pilot_evidence_verification_markdown(manifest.payload),
     )
+
+
+def build_pilot_evidence_verification_json(
+    readiness_items: list[PilotReadinessItem],
+    view: PilotRunbookView | None = None,
+) -> PilotEvidenceVerificationJson:
+    manifest = build_pilot_evidence_manifest(readiness_items, view)
+    payload = pilot_evidence_verification_payload(manifest.payload)
+    return PilotEvidenceVerificationJson(
+        filename="pilot-evidence-verification.json",
+        media_type="application/json",
+        content=json.dumps(payload, indent=2, sort_keys=True) + "\n",
+        payload=payload,
+    )
+
+
+def pilot_evidence_verification_payload(
+    manifest_payload: dict[str, object],
+) -> dict[str, object]:
+    files = manifest_payload.get("files")
+    file_entries = files if isinstance(files, list) else []
+    readiness = manifest_payload.get("readiness")
+    review_order = manifest_payload.get("review_order")
+    return {
+        "bundle_type": manifest_payload.get("bundle_type", ""),
+        "checks": [
+            {
+                "id": "download_bundle",
+                "status": "manual",
+                "detail": "Download the pilot evidence bundle from the local Pilot page.",
+            },
+            {
+                "id": "extract_bundle",
+                "status": "manual",
+                "detail": "Extract the ZIP on a trusted workstation.",
+            },
+            {
+                "id": "compare_hashes",
+                "status": "manual",
+                "detail": "Compare each extracted file hash with the manifest SHA-256.",
+            },
+            {
+                "id": "retain_evidence",
+                "status": "manual",
+                "detail": "Keep verification output with the pilot handoff evidence.",
+            },
+        ],
+        "context": manifest_payload.get("context", ""),
+        "file_count": manifest_payload.get("file_count", len(file_entries)),
+        "files": file_entries,
+        "manifest_schema_version": manifest_payload.get("schema_version", ""),
+        "readiness": readiness if isinstance(readiness, dict) else {},
+        "review_order": review_order if isinstance(review_order, list) else [],
+        "schema_version": 1,
+        "source": manifest_payload.get("source", ""),
+        "verification_type": "pilot_evidence",
+    }
 
 
 def format_pilot_evidence_verification_markdown(payload: dict[str, object]) -> str:

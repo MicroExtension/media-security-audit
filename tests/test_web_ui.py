@@ -41,6 +41,7 @@ from media_security_audit.web_pilot import (  # noqa: E402
     build_pilot_evidence_bundle,
     build_pilot_evidence_manifest,
     build_pilot_evidence_verification,
+    build_pilot_evidence_verification_json,
     build_pilot_handoff_summary_export,
     build_pilot_readiness_json_export,
     build_pilot_readiness_items,
@@ -439,6 +440,7 @@ class WebUiTests(unittest.TestCase):
         self.assertIn('href="/pilot/bundle.zip"', template)
         self.assertIn('href="/pilot/bundle-manifest.json"', template)
         self.assertIn('href="/pilot/bundle-verification.md"', template)
+        self.assertIn('href="/pilot/bundle-verification.json"', template)
         self.assertIn("item.status", template)
         self.assertIn("item.href", template)
         self.assertIn('href="/pilot/runbook.md"', template)
@@ -694,6 +696,9 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("def pilot_evidence_verification(", web)
         self.assertIn("build_pilot_evidence_verification(readiness_items)", web)
         self.assertIn("verification.filename", web)
+        self.assertIn('@app.get("/pilot/bundle-verification.json"', web)
+        self.assertIn("def pilot_evidence_verification_json(", web)
+        self.assertIn("build_pilot_evidence_verification_json(readiness_items)", web)
 
     def test_pilot_runbook_export_is_deterministic_markdown(self) -> None:
         markdown = format_pilot_runbook_markdown()
@@ -784,6 +789,26 @@ class WebUiTests(unittest.TestCase):
             self.assertIn("pilot-delivery-receipt.md", verification.content)
             self.assertIn("pilot-readiness.md", verification.content)
             self.assertIn("Compare each extracted file hash", verification.content)
+            verification_json = build_pilot_evidence_verification_json(readiness_items)
+            verification_payload = json.loads(verification_json.content)
+            self.assertEqual(
+                verification_json.filename,
+                "pilot-evidence-verification.json",
+            )
+            self.assertEqual(verification_json.media_type, "application/json")
+            self.assertEqual(verification_payload, verification_json.payload)
+            self.assertEqual(verification_payload["schema_version"], 1)
+            self.assertEqual(verification_payload["verification_type"], "pilot_evidence")
+            self.assertEqual(verification_payload["manifest_schema_version"], 3)
+            self.assertEqual(verification_payload["file_count"], 8)
+            self.assertEqual(verification_payload["readiness"]["status"], "ready")
+            self.assertEqual(verification_payload["review_order"][0], "pilot-handoff-summary.md")
+            self.assertEqual(verification_payload["checks"][0]["id"], "download_bundle")
+            self.assertEqual(verification_payload["checks"][0]["status"], "manual")
+            self.assertEqual(
+                verification_payload["files"][0]["path"],
+                "pilot-acceptance-checklist.md",
+            )
             self.assertEqual(manifest["schema_version"], 3)
             self.assertEqual(manifest["bundle_type"], "pilot_evidence")
             self.assertEqual(manifest["context"], "Client Pilot")

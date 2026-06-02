@@ -145,6 +145,14 @@ class PilotHandoffSummaryExport:
 
 
 @dataclass(frozen=True)
+class PilotHandoffSummaryJsonExport:
+    filename: str
+    media_type: str
+    content: str
+    payload: dict[str, object]
+
+
+@dataclass(frozen=True)
 class PilotBundleIndexExport:
     filename: str
     media_type: str
@@ -625,6 +633,58 @@ def build_pilot_handoff_summary_export(
         media_type="text/markdown; charset=utf-8",
         content=format_pilot_handoff_summary_markdown(view),
     )
+
+
+def build_pilot_handoff_summary_json_export(
+    readiness_items: list[PilotReadinessItem],
+    view: PilotRunbookView | None = None,
+) -> PilotHandoffSummaryJsonExport:
+    view = view or build_pilot_runbook_view(readiness_items=readiness_items)
+    payload = pilot_handoff_summary_payload(view)
+    return PilotHandoffSummaryJsonExport(
+        filename="pilot-handoff-summary.json",
+        media_type="application/json",
+        content=json.dumps(payload, indent=2, sort_keys=True) + "\n",
+        payload=payload,
+    )
+
+
+def pilot_handoff_summary_payload(view: PilotRunbookView) -> dict[str, object]:
+    return {
+        "acceptance_items": len(view.acceptance_items),
+        "attention_items": [
+            {
+                "detail": item.detail,
+                "href": item.href,
+                "label": item.label,
+                "status": item.status,
+            }
+            for item in view.attention_items
+        ],
+        "context": view.subtitle,
+        "handoff_files": [
+            "pilot-runbook.md",
+            "pilot-acceptance-checklist.md",
+            "pilot-bundle-index.md",
+            "pilot-delivery-receipt.md",
+            "pilot-readiness.md",
+            "pilot-readiness.json",
+            "pilot-attention.md",
+            "manifest.json",
+        ],
+        "handoff_type": "pilot",
+        "next_action_count": len(view.attention_items),
+        "readiness": {
+            "blocked": view.readiness_rollup.blocked,
+            "detail": view.readiness_rollup.detail,
+            "ready": view.readiness_rollup.ready,
+            "status": view.readiness_rollup.status,
+            "total": view.readiness_rollup.total,
+            "warning": view.readiness_rollup.warning,
+        },
+        "schema_version": 1,
+        "source": view.title,
+    }
 
 
 def format_pilot_handoff_summary_markdown(

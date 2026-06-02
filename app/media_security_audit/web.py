@@ -94,6 +94,7 @@ from media_security_audit.web_pilot import (
     build_pilot_evidence_verification,
     build_pilot_evidence_verification_json,
     build_pilot_handoff_summary_export,
+    build_pilot_handoff_summary_json_export,
     build_pilot_readiness_json_export,
     build_pilot_readiness_items,
     build_pilot_runbook_view,
@@ -285,6 +286,17 @@ def create_web_app(
         system_view = build_system_status(data_dir, reports_dir, settings)
         readiness_items = build_pilot_readiness_items(store, reports_dir, system_view)
         export = build_pilot_handoff_summary_export(readiness_items)
+        return Response(
+            content=export.content,
+            media_type=export.media_type,
+            headers={"Content-Disposition": f'attachment; filename="{export.filename}"'},
+        )
+
+    @app.get("/pilot/handoff-summary.json", dependencies=protected)
+    def pilot_handoff_summary_json() -> Response:
+        system_view = build_system_status(data_dir, reports_dir, settings)
+        readiness_items = build_pilot_readiness_items(store, reports_dir, system_view)
+        export = build_pilot_handoff_summary_json_export(readiness_items)
         return Response(
             content=export.content,
             media_type=export.media_type,

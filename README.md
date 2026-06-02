@@ -102,9 +102,11 @@ Implemented so far:
 - local pilot readiness JSON export for automation handoff
 - local pilot evidence ZIP bundle with manifest and checksums
 - local pilot evidence bundle includes attention follow-up
+- local pilot attention JSON export for automation handoff
 - local pilot evidence bundle includes handoff summary
 - local pilot evidence bundle includes handoff summary JSON
 - local pilot evidence bundle includes review index
+- local pilot bundle index JSON export for automation handoff
 - local pilot evidence bundle includes delivery receipt
 - local pilot evidence bundle includes sign-off JSON files
 - local pilot evidence bundle includes readiness JSON
@@ -682,6 +684,8 @@ Planned screens:
 - local pilot evidence bundle handoff summary JSON started
 - local pilot sign-off JSON exports started
 - local pilot evidence bundle sign-off JSON started
+- local pilot review JSON exports started
+- local pilot evidence bundle review JSON started
 - local pilot evidence bundle inventory started
 - local pilot evidence bundle inventory CSV started
 - local pilot readiness rollup started

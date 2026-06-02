@@ -20,6 +20,7 @@ PILOT_BUNDLE_REVIEW_ORDER = [
     "pilot-handoff-summary.json",
     "pilot-bundle-index.md",
     "pilot-bundle-index.json",
+    "pilot-bundle-inventory.json",
     "pilot-attention.md",
     "pilot-attention.json",
     "pilot-readiness.md",
@@ -27,6 +28,7 @@ PILOT_BUNDLE_REVIEW_ORDER = [
     "pilot-acceptance-checklist.md",
     "pilot-acceptance-checklist.json",
     "pilot-runbook.md",
+    "pilot-runbook.json",
     "pilot-delivery-receipt.md",
     "pilot-delivery-receipt.json",
     "manifest.json",
@@ -40,6 +42,7 @@ PILOT_BUNDLE_FILE_PURPOSES = {
     "pilot-attention.json": "Machine-readable attention items.",
     "pilot-bundle-index.md": "Review order for extracted evidence.",
     "pilot-bundle-index.json": "Machine-readable review order.",
+    "pilot-bundle-inventory.json": "Machine-readable bundle inventory.",
     "pilot-delivery-receipt.md": "Delivery sign-off receipt.",
     "pilot-delivery-receipt.json": "Machine-readable delivery receipt.",
     "pilot-handoff-summary.md": "Compact handoff state and next actions.",
@@ -47,6 +50,7 @@ PILOT_BUNDLE_FILE_PURPOSES = {
     "pilot-readiness.md": "Detailed local readiness checks.",
     "pilot-readiness.json": "Machine-readable readiness state.",
     "pilot-runbook.md": "Technician workflow.",
+    "pilot-runbook.json": "Machine-readable technician workflow.",
 }
 
 
@@ -153,6 +157,14 @@ class PilotEvidenceVerificationJson:
 
 
 @dataclass(frozen=True)
+class PilotRunbookJsonExport:
+    filename: str
+    media_type: str
+    content: str
+    payload: dict[str, object]
+
+
+@dataclass(frozen=True)
 class PilotAttentionExport:
     filename: str
     media_type: str
@@ -191,6 +203,14 @@ class PilotBundleIndexExport:
 
 @dataclass(frozen=True)
 class PilotBundleIndexJsonExport:
+    filename: str
+    media_type: str
+    content: str
+    payload: dict[str, object]
+
+
+@dataclass(frozen=True)
+class PilotBundleInventoryJsonExport:
     filename: str
     media_type: str
     content: str
@@ -618,6 +638,56 @@ def format_pilot_runbook_markdown(view: PilotRunbookView | None = None) -> str:
     return "\n".join(lines).rstrip() + "\n"
 
 
+def build_pilot_runbook_json_export(
+    view: PilotRunbookView | None = None,
+) -> PilotRunbookJsonExport:
+    view = view or build_pilot_runbook_view()
+    payload = pilot_runbook_payload(view)
+    return PilotRunbookJsonExport(
+        filename="pilot-runbook.json",
+        media_type="application/json",
+        content=json.dumps(payload, indent=2, sort_keys=True) + "\n",
+        payload=payload,
+    )
+
+
+def pilot_runbook_payload(view: PilotRunbookView) -> dict[str, object]:
+    return {
+        "acceptance_item_count": len(view.acceptance_items),
+        "context": view.subtitle,
+        "metrics": [
+            {"label": metric.label, "value": metric.value}
+            for metric in view.metrics
+        ],
+        "readiness": {
+            "blocked": view.readiness_rollup.blocked,
+            "detail": view.readiness_rollup.detail,
+            "ready": view.readiness_rollup.ready,
+            "status": view.readiness_rollup.status,
+            "total": view.readiness_rollup.total,
+            "warning": view.readiness_rollup.warning,
+        },
+        "runbook_type": "pilot",
+        "schema_version": 1,
+        "sections": [
+            {
+                "anchor": section.anchor,
+                "links": [
+                    {"href": link.href, "label": link.label}
+                    for link in section.links
+                ],
+                "steps": [
+                    {"detail": step.detail, "title": step.title}
+                    for step in section.steps
+                ],
+                "title": section.title,
+            }
+            for section in view.sections
+        ],
+        "source": view.title,
+    }
+
+
 def format_pilot_acceptance_markdown(view: PilotRunbookView | None = None) -> str:
     view = view or build_pilot_runbook_view()
     lines = [
@@ -755,12 +825,14 @@ def pilot_handoff_summary_payload(view: PilotRunbookView) -> dict[str, object]:
             "pilot-handoff-summary.json",
             "pilot-bundle-index.md",
             "pilot-bundle-index.json",
+            "pilot-bundle-inventory.json",
             "pilot-delivery-receipt.md",
             "pilot-delivery-receipt.json",
             "pilot-readiness.md",
             "pilot-readiness.json",
             "pilot-attention.md",
             "pilot-attention.json",
+            "pilot-runbook.json",
             "manifest.json",
         ],
         "handoff_type": "pilot",
@@ -813,12 +885,14 @@ def format_pilot_handoff_summary_markdown(
             "- `pilot-handoff-summary.json`: machine-readable handoff summary.",
             "- `pilot-bundle-index.md`: bundle review order.",
             "- `pilot-bundle-index.json`: machine-readable bundle review order.",
+            "- `pilot-bundle-inventory.json`: machine-readable bundle inventory.",
             "- `pilot-delivery-receipt.md`: delivery sign-off receipt.",
             "- `pilot-delivery-receipt.json`: machine-readable delivery receipt.",
             "- `pilot-readiness.md`: workspace readiness details.",
             "- `pilot-readiness.json`: machine-readable readiness evidence.",
             "- `pilot-attention.md`: remaining warnings and blockers.",
             "- `pilot-attention.json`: machine-readable attention items.",
+            "- `pilot-runbook.json`: machine-readable technician workflow.",
             "- `manifest.json`: bundle file checksums.",
         ]
     )
@@ -892,16 +966,18 @@ def format_pilot_bundle_index_markdown(
         "1. Open `pilot-handoff-summary.md` first for the current handoff state.",
         "2. Use `pilot-handoff-summary.json` when automation needs handoff state.",
         "3. Use `pilot-bundle-index.json` for structured review order.",
-        "4. Review `pilot-attention.md` for warnings or blockers.",
-        "5. Use `pilot-attention.json` when automation needs attention items.",
-        "6. Review `pilot-readiness.md` for detailed workspace readiness.",
-        "7. Use `pilot-readiness.json` only when automation needs structured state.",
-        "8. Complete `pilot-acceptance-checklist.md` for beta sign-off.",
-        "9. Use `pilot-acceptance-checklist.json` for structured beta sign-off.",
-        "10. Keep `pilot-runbook.md` with the technician delivery notes.",
-        "11. Complete `pilot-delivery-receipt.md` after client handoff.",
-        "12. Use `pilot-delivery-receipt.json` for structured delivery evidence.",
-        "13. Compare extracted files with `manifest.json` before archiving.",
+        "4. Review `pilot-bundle-inventory.json` for expected bundle files.",
+        "5. Review `pilot-attention.md` for warnings or blockers.",
+        "6. Use `pilot-attention.json` when automation needs attention items.",
+        "7. Review `pilot-readiness.md` for detailed workspace readiness.",
+        "8. Use `pilot-readiness.json` only when automation needs structured state.",
+        "9. Complete `pilot-acceptance-checklist.md` for beta sign-off.",
+        "10. Use `pilot-acceptance-checklist.json` for structured beta sign-off.",
+        "11. Keep `pilot-runbook.md` with the technician delivery notes.",
+        "12. Use `pilot-runbook.json` when automation needs workflow steps.",
+        "13. Complete `pilot-delivery-receipt.md` after client handoff.",
+        "14. Use `pilot-delivery-receipt.json` for structured delivery evidence.",
+        "15. Compare extracted files with `manifest.json` before archiving.",
         "",
         "## Bundle Files",
         "",
@@ -909,6 +985,7 @@ def format_pilot_bundle_index_markdown(
         "| --- | --- |",
         "| pilot-bundle-index.md | Review order for extracted evidence. |",
         "| pilot-bundle-index.json | Machine-readable review order. |",
+        "| pilot-bundle-inventory.json | Machine-readable bundle inventory. |",
         "| pilot-handoff-summary.md | Compact handoff state and next actions. |",
         "| pilot-handoff-summary.json | Machine-readable handoff state. |",
         "| pilot-delivery-receipt.md | Delivery sign-off receipt. |",
@@ -919,6 +996,7 @@ def format_pilot_bundle_index_markdown(
         "| pilot-acceptance-checklist.md | Beta acceptance checklist. |",
         "| pilot-acceptance-checklist.json | Machine-readable beta acceptance checklist. |",
         "| pilot-runbook.md | Technician workflow. |",
+        "| pilot-runbook.json | Machine-readable technician workflow. |",
         "| pilot-delivery-receipt.json | Machine-readable delivery receipt. |",
         "| manifest.json | File checksums for integrity review. |",
     ]
@@ -1046,6 +1124,7 @@ def pilot_delivery_receipt_payload(view: PilotRunbookView) -> dict[str, object]:
             "pilot-handoff-summary.json",
             "pilot-bundle-index.md",
             "pilot-bundle-index.json",
+            "pilot-bundle-inventory.json",
             "pilot-readiness.md",
             "pilot-readiness.json",
             "pilot-attention.md",
@@ -1053,6 +1132,7 @@ def pilot_delivery_receipt_payload(view: PilotRunbookView) -> dict[str, object]:
             "pilot-acceptance-checklist.md",
             "pilot-acceptance-checklist.json",
             "pilot-runbook.md",
+            "pilot-runbook.json",
             "pilot-delivery-receipt.json",
             "manifest.json",
         ],
@@ -1096,6 +1176,7 @@ def format_pilot_delivery_receipt_markdown(
         "- `pilot-handoff-summary.json`",
         "- `pilot-bundle-index.md`",
         "- `pilot-bundle-index.json`",
+        "- `pilot-bundle-inventory.json`",
         "- `pilot-readiness.md`",
         "- `pilot-readiness.json`",
         "- `pilot-attention.md`",
@@ -1103,6 +1184,7 @@ def format_pilot_delivery_receipt_markdown(
         "- `pilot-acceptance-checklist.md`",
         "- `pilot-acceptance-checklist.json`",
         "- `pilot-runbook.md`",
+        "- `pilot-runbook.json`",
         "- `pilot-delivery-receipt.json`",
         "- `manifest.json`",
         "",
@@ -1132,6 +1214,43 @@ def build_pilot_bundle_inventory_csv_export(
         media_type="text/csv; charset=utf-8",
         content=format_pilot_bundle_inventory_csv(view.evidence_files),
     )
+
+
+def build_pilot_bundle_inventory_json_export(
+    readiness_items: list[PilotReadinessItem],
+    view: PilotRunbookView | None = None,
+) -> PilotBundleInventoryJsonExport:
+    view = view or build_pilot_runbook_view(readiness_items=readiness_items)
+    payload = pilot_bundle_inventory_payload(view)
+    return PilotBundleInventoryJsonExport(
+        filename="pilot-bundle-inventory.json",
+        media_type="application/json",
+        content=json.dumps(payload, indent=2, sort_keys=True) + "\n",
+        payload=payload,
+    )
+
+
+def pilot_bundle_inventory_payload(view: PilotRunbookView) -> dict[str, object]:
+    review_order = {
+        path: index
+        for index, path in enumerate(PILOT_BUNDLE_REVIEW_ORDER, start=1)
+    }
+    return {
+        "bundle_type": "pilot_evidence",
+        "context": view.subtitle,
+        "expected_file_count": len(PILOT_BUNDLE_REVIEW_ORDER) - 1,
+        "files": [
+            {
+                "path": path,
+                "purpose": pilot_bundle_file_purpose(path),
+                "review_order": review_order.get(path, 0),
+            }
+            for path in sorted(path for path in PILOT_BUNDLE_REVIEW_ORDER if path != "manifest.json")
+        ],
+        "manifest_path": "manifest.json",
+        "schema_version": 1,
+        "source": view.title,
+    }
 
 
 def format_pilot_bundle_inventory_csv(
@@ -1395,6 +1514,10 @@ def build_pilot_evidence_files(
             view,
         ).content,
         "pilot-bundle-index.md": format_pilot_bundle_index_markdown(view),
+        "pilot-bundle-inventory.json": build_pilot_bundle_inventory_json_export(
+            readiness_items,
+            view,
+        ).content,
         "pilot-delivery-receipt.json": build_pilot_delivery_receipt_json_export(
             readiness_items,
             view,
@@ -1407,6 +1530,7 @@ def build_pilot_evidence_files(
         "pilot-handoff-summary.md": format_pilot_handoff_summary_markdown(view),
         "pilot-readiness.json": format_pilot_readiness_json(readiness_items, view),
         "pilot-readiness.md": format_pilot_readiness_markdown(readiness_items, view),
+        "pilot-runbook.json": build_pilot_runbook_json_export(view).content,
         "pilot-runbook.md": format_pilot_runbook_markdown(view),
     }
 

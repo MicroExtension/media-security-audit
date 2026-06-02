@@ -38,6 +38,7 @@ from media_security_audit.web_pilot import (  # noqa: E402
     build_pilot_attention_export,
     build_pilot_attention_json_export,
     build_pilot_bundle_inventory_csv_export,
+    build_pilot_bundle_inventory_json_export,
     build_pilot_bundle_index_export,
     build_pilot_bundle_index_json_export,
     build_pilot_delivery_receipt_export,
@@ -50,6 +51,7 @@ from media_security_audit.web_pilot import (  # noqa: E402
     build_pilot_handoff_summary_json_export,
     build_pilot_readiness_json_export,
     build_pilot_readiness_items,
+    build_pilot_runbook_json_export,
     build_pilot_runbook_view,
     format_pilot_acceptance_markdown,
     format_pilot_readiness_markdown,
@@ -439,6 +441,7 @@ class WebUiTests(unittest.TestCase):
         self.assertIn('href="/pilot/attention.json"', template)
         self.assertIn('href="/pilot/attention.md"', template)
         self.assertIn('href="/pilot/bundle-inventory.csv"', template)
+        self.assertIn('href="/pilot/bundle-inventory.json"', template)
         self.assertIn('href="/pilot/bundle-index.json"', template)
         self.assertIn('href="/pilot/bundle-index.md"', template)
         self.assertIn('href="/pilot/delivery-receipt.md"', template)
@@ -454,6 +457,7 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("item.status", template)
         self.assertIn("item.href", template)
         self.assertIn('href="/pilot/runbook.md"', template)
+        self.assertIn('href="/pilot/runbook.json"', template)
         self.assertIn('href="/pilot/acceptance.md"', template)
         self.assertIn("section.anchor", template)
         self.assertIn("section.steps|length", template)
@@ -502,12 +506,14 @@ class WebUiTests(unittest.TestCase):
                 "pilot-attention.md",
                 "pilot-bundle-index.json",
                 "pilot-bundle-index.md",
+                "pilot-bundle-inventory.json",
                 "pilot-delivery-receipt.json",
                 "pilot-delivery-receipt.md",
                 "pilot-handoff-summary.json",
                 "pilot-handoff-summary.md",
                 "pilot-readiness.json",
                 "pilot-readiness.md",
+                "pilot-runbook.json",
                 "pilot-runbook.md",
             ],
         )
@@ -557,7 +563,7 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(view.readiness_items, [])
         self.assertEqual(view.attention_items, [])
         self.assertEqual(view.readiness_rollup.warning, 0)
-        self.assertEqual(len(view.evidence_files), 13)
+        self.assertEqual(len(view.evidence_files), 15)
 
     def test_pilot_readiness_items_summarize_workspace_state(self) -> None:
         root_dir = clean_data_dir("web-ui-pilot-readiness")
@@ -638,8 +644,10 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(handoff_payload["attention_items"][0]["status"], "warning")
         self.assertIn("pilot-attention.json", handoff_payload["handoff_files"])
         self.assertIn("pilot-bundle-index.json", handoff_payload["handoff_files"])
+        self.assertIn("pilot-bundle-inventory.json", handoff_payload["handoff_files"])
         self.assertIn("pilot-handoff-summary.json", handoff_payload["handoff_files"])
         self.assertIn("pilot-readiness.json", handoff_payload["handoff_files"])
+        self.assertIn("pilot-runbook.json", handoff_payload["handoff_files"])
         bundle_index = build_pilot_bundle_index_export(items)
         self.assertEqual(bundle_index.filename, "pilot-bundle-index.md")
         self.assertEqual(bundle_index.media_type, "text/markdown; charset=utf-8")
@@ -648,6 +656,7 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("pilot-acceptance-checklist.json", bundle_index.content)
         self.assertIn("pilot-attention.json", bundle_index.content)
         self.assertIn("pilot-bundle-index.json", bundle_index.content)
+        self.assertIn("pilot-bundle-inventory.json", bundle_index.content)
         self.assertIn("pilot-delivery-receipt.json", bundle_index.content)
         self.assertIn("pilot-handoff-summary.json", bundle_index.content)
         self.assertIn("pilot-delivery-receipt.md", bundle_index.content)
@@ -660,9 +669,13 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(bundle_index_payload, bundle_index_json.payload)
         self.assertEqual(bundle_index_payload["schema_version"], 1)
         self.assertEqual(bundle_index_payload["index_type"], "pilot_evidence")
-        self.assertEqual(bundle_index_payload["bundle_file_count"], 13)
-        self.assertEqual(bundle_index_payload["review_step_count"], 14)
+        self.assertEqual(bundle_index_payload["bundle_file_count"], 15)
+        self.assertEqual(bundle_index_payload["review_step_count"], 16)
         self.assertEqual(bundle_index_payload["review_order"][3]["path"], "pilot-bundle-index.json")
+        self.assertEqual(
+            bundle_index_payload["review_order"][4]["path"],
+            "pilot-bundle-inventory.json",
+        )
         inventory_csv = build_pilot_bundle_inventory_csv_export(items)
         inventory_rows = list(csv.DictReader(StringIO(inventory_csv.content)))
         self.assertEqual(inventory_csv.filename, "pilot-bundle-inventory.csv")
@@ -672,10 +685,20 @@ class WebUiTests(unittest.TestCase):
             "review_order,path,size_bytes,sha256,sha256_short",
         )
         self.assertEqual(inventory_rows[0]["path"], "pilot-acceptance-checklist.json")
-        self.assertEqual(inventory_rows[0]["review_order"], "10")
+        self.assertEqual(inventory_rows[0]["review_order"], "11")
         self.assertEqual(inventory_rows[1]["path"], "pilot-acceptance-checklist.md")
-        self.assertEqual(inventory_rows[1]["review_order"], "9")
+        self.assertEqual(inventory_rows[1]["review_order"], "10")
         self.assertEqual(len(inventory_rows[0]["sha256_short"]), 12)
+        inventory_json = build_pilot_bundle_inventory_json_export(items)
+        inventory_payload = json.loads(inventory_json.content)
+        self.assertEqual(inventory_json.filename, "pilot-bundle-inventory.json")
+        self.assertEqual(inventory_json.media_type, "application/json")
+        self.assertEqual(inventory_payload, inventory_json.payload)
+        self.assertEqual(inventory_payload["schema_version"], 1)
+        self.assertEqual(inventory_payload["bundle_type"], "pilot_evidence")
+        self.assertEqual(inventory_payload["expected_file_count"], 15)
+        self.assertEqual(inventory_payload["files"][0]["path"], "pilot-acceptance-checklist.json")
+        self.assertEqual(inventory_payload["files"][0]["review_order"], 11)
         acceptance_json = build_pilot_acceptance_json_export(view)
         acceptance_payload = json.loads(acceptance_json.content)
         self.assertEqual(acceptance_json.filename, "pilot-acceptance-checklist.json")
@@ -706,6 +729,8 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("pilot-attention.json", delivery_payload["delivered_files"])
         self.assertIn("pilot-acceptance-checklist.json", delivery_payload["delivered_files"])
         self.assertIn("pilot-bundle-index.json", delivery_payload["delivered_files"])
+        self.assertIn("pilot-bundle-inventory.json", delivery_payload["delivered_files"])
+        self.assertIn("pilot-runbook.json", delivery_payload["delivered_files"])
         self.assertIn("client_representative", delivery_payload["sign_off_fields"])
         readiness_json = build_pilot_readiness_json_export(items)
         readiness_payload = json.loads(readiness_json.content)
@@ -715,6 +740,15 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(readiness_payload["rollup"]["status"], "warning")
         self.assertEqual(readiness_payload["rollup"]["attention_items"], 1)
         self.assertEqual(readiness_payload["items"][0]["label"], "Web authentication")
+        runbook_json = build_pilot_runbook_json_export(view)
+        runbook_payload = json.loads(runbook_json.content)
+        self.assertEqual(runbook_json.filename, "pilot-runbook.json")
+        self.assertEqual(runbook_json.media_type, "application/json")
+        self.assertEqual(runbook_payload, runbook_json.payload)
+        self.assertEqual(runbook_payload["schema_version"], 1)
+        self.assertEqual(runbook_payload["runbook_type"], "pilot")
+        self.assertEqual(runbook_payload["sections"][0]["title"], "Setup")
+        self.assertEqual(runbook_payload["readiness"]["status"], "warning")
 
         markdown = format_pilot_readiness_markdown(items)
         self.assertIn("# Pilot Readiness Summary", markdown)
@@ -741,6 +775,9 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("def pilot_runbook_markdown(", web)
         self.assertIn("format_pilot_runbook_markdown()", web)
         self.assertIn('filename="pilot-runbook.md"', web)
+        self.assertIn('@app.get("/pilot/runbook.json"', web)
+        self.assertIn("def pilot_runbook_json(", web)
+        self.assertIn("build_pilot_runbook_json_export()", web)
         self.assertIn('@app.get("/pilot/handoff-summary.md"', web)
         self.assertIn("def pilot_handoff_summary_markdown(", web)
         self.assertIn("build_pilot_handoff_summary_export(readiness_items)", web)
@@ -756,6 +793,9 @@ class WebUiTests(unittest.TestCase):
         self.assertIn('@app.get("/pilot/bundle-inventory.csv"', web)
         self.assertIn("def pilot_bundle_inventory_csv(", web)
         self.assertIn("build_pilot_bundle_inventory_csv_export(readiness_items)", web)
+        self.assertIn('@app.get("/pilot/bundle-inventory.json"', web)
+        self.assertIn("def pilot_bundle_inventory_json(", web)
+        self.assertIn("build_pilot_bundle_inventory_json_export(readiness_items)", web)
         self.assertIn('@app.get("/pilot/delivery-receipt.md"', web)
         self.assertIn("def pilot_delivery_receipt_markdown(", web)
         self.assertIn("build_pilot_delivery_receipt_export(readiness_items)", web)
@@ -864,12 +904,14 @@ class WebUiTests(unittest.TestCase):
                     "pilot-attention.md",
                     "pilot-bundle-index.json",
                     "pilot-bundle-index.md",
+                    "pilot-bundle-inventory.json",
                     "pilot-delivery-receipt.json",
                     "pilot-delivery-receipt.md",
                     "pilot-handoff-summary.json",
                     "pilot-handoff-summary.md",
                     "pilot-readiness.json",
                     "pilot-readiness.md",
+                    "pilot-runbook.json",
                     "pilot-runbook.md",
                 ],
             )
@@ -885,15 +927,17 @@ class WebUiTests(unittest.TestCase):
             self.assertIn("# Pilot Evidence Bundle Verification", verification.content)
             self.assertIn("- Schema version: `3`", verification.content)
             self.assertIn("- Readiness status: `ready`", verification.content)
-            self.assertIn("- File count: `13`", verification.content)
+            self.assertIn("- File count: `15`", verification.content)
             self.assertIn("## Review Order", verification.content)
             self.assertIn("1. `pilot-handoff-summary.md`", verification.content)
             self.assertIn("2. `pilot-handoff-summary.json`", verification.content)
             self.assertIn("4. `pilot-bundle-index.json`", verification.content)
-            self.assertIn("6. `pilot-attention.json`", verification.content)
-            self.assertIn("10. `pilot-acceptance-checklist.json`", verification.content)
-            self.assertIn("13. `pilot-delivery-receipt.json`", verification.content)
-            self.assertIn("14. `manifest.json`", verification.content)
+            self.assertIn("5. `pilot-bundle-inventory.json`", verification.content)
+            self.assertIn("7. `pilot-attention.json`", verification.content)
+            self.assertIn("11. `pilot-acceptance-checklist.json`", verification.content)
+            self.assertIn("13. `pilot-runbook.json`", verification.content)
+            self.assertIn("15. `pilot-delivery-receipt.json`", verification.content)
+            self.assertIn("16. `manifest.json`", verification.content)
             self.assertIn("pilot-bundle-index.md", verification.content)
             self.assertIn("pilot-delivery-receipt.md", verification.content)
             self.assertIn("pilot-readiness.md", verification.content)
@@ -909,7 +953,7 @@ class WebUiTests(unittest.TestCase):
             self.assertEqual(verification_payload["schema_version"], 1)
             self.assertEqual(verification_payload["verification_type"], "pilot_evidence")
             self.assertEqual(verification_payload["manifest_schema_version"], 3)
-            self.assertEqual(verification_payload["file_count"], 13)
+            self.assertEqual(verification_payload["file_count"], 15)
             self.assertEqual(verification_payload["readiness"]["status"], "ready")
             self.assertEqual(verification_payload["review_order"][0], "pilot-handoff-summary.md")
             self.assertEqual(verification_payload["review_order"][1], "pilot-handoff-summary.json")
@@ -918,15 +962,23 @@ class WebUiTests(unittest.TestCase):
                 "pilot-bundle-index.json",
             )
             self.assertEqual(
-                verification_payload["review_order"][5],
+                verification_payload["review_order"][4],
+                "pilot-bundle-inventory.json",
+            )
+            self.assertEqual(
+                verification_payload["review_order"][6],
                 "pilot-attention.json",
             )
             self.assertEqual(
-                verification_payload["review_order"][9],
+                verification_payload["review_order"][10],
                 "pilot-acceptance-checklist.json",
             )
             self.assertEqual(
                 verification_payload["review_order"][12],
+                "pilot-runbook.json",
+            )
+            self.assertEqual(
+                verification_payload["review_order"][14],
                 "pilot-delivery-receipt.json",
             )
             self.assertEqual(verification_payload["checks"][0]["id"], "download_bundle")
@@ -938,7 +990,7 @@ class WebUiTests(unittest.TestCase):
             self.assertEqual(manifest["schema_version"], 3)
             self.assertEqual(manifest["bundle_type"], "pilot_evidence")
             self.assertEqual(manifest["context"], "Client Pilot")
-            self.assertEqual(manifest["file_count"], 13)
+            self.assertEqual(manifest["file_count"], 15)
             self.assertEqual(manifest["source"], "Pilot Runbook")
             self.assertEqual(
                 manifest["review_order"],
@@ -947,6 +999,7 @@ class WebUiTests(unittest.TestCase):
                     "pilot-handoff-summary.json",
                     "pilot-bundle-index.md",
                     "pilot-bundle-index.json",
+                    "pilot-bundle-inventory.json",
                     "pilot-attention.md",
                     "pilot-attention.json",
                     "pilot-readiness.md",
@@ -954,6 +1007,7 @@ class WebUiTests(unittest.TestCase):
                     "pilot-acceptance-checklist.md",
                     "pilot-acceptance-checklist.json",
                     "pilot-runbook.md",
+                    "pilot-runbook.json",
                     "pilot-delivery-receipt.md",
                     "pilot-delivery-receipt.json",
                     "manifest.json",
@@ -980,12 +1034,14 @@ class WebUiTests(unittest.TestCase):
                     "pilot-attention.md",
                     "pilot-bundle-index.json",
                     "pilot-bundle-index.md",
+                    "pilot-bundle-inventory.json",
                     "pilot-delivery-receipt.json",
                     "pilot-delivery-receipt.md",
                     "pilot-handoff-summary.json",
                     "pilot-handoff-summary.md",
                     "pilot-readiness.json",
                     "pilot-readiness.md",
+                    "pilot-runbook.json",
                     "pilot-runbook.md",
                 ],
             )
@@ -1019,7 +1075,12 @@ class WebUiTests(unittest.TestCase):
                 archive.read("pilot-bundle-index.json").decode("utf-8")
             )
             self.assertEqual(archived_index["index_type"], "pilot_evidence")
-            self.assertEqual(archived_index["bundle_file_count"], 13)
+            self.assertEqual(archived_index["bundle_file_count"], 15)
+            archived_inventory = json.loads(
+                archive.read("pilot-bundle-inventory.json").decode("utf-8")
+            )
+            self.assertEqual(archived_inventory["bundle_type"], "pilot_evidence")
+            self.assertEqual(archived_inventory["expected_file_count"], 15)
             self.assertIn(
                 "# Pilot Delivery Receipt",
                 archive.read("pilot-delivery-receipt.md").decode("utf-8"),
@@ -1051,6 +1112,11 @@ class WebUiTests(unittest.TestCase):
                 "# Pilot Runbook",
                 archive.read("pilot-runbook.md").decode("utf-8"),
             )
+            archived_runbook = json.loads(
+                archive.read("pilot-runbook.json").decode("utf-8")
+            )
+            self.assertEqual(archived_runbook["runbook_type"], "pilot")
+            self.assertEqual(archived_runbook["sections"][0]["title"], "Setup")
 
     def test_mission_template_exposes_shortcut_anchors(self) -> None:
         template_path = (

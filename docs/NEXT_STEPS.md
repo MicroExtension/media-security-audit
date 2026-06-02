@@ -632,8 +632,10 @@ Current GUI status:
 - local Pilot page exports a Markdown handoff summary for technician handoff
 - local Pilot page exports a Markdown bundle index for extracted evidence review
 - local Pilot page exports bundle inventory as CSV for spreadsheet review
+- local Pilot page exports bundle inventory as JSON for automation handoff
 - local Pilot page exports a Markdown delivery receipt for client sign-off
 - local Pilot page exports a Markdown runbook for technician handoff
+- local Pilot page exports runbook JSON for automation handoff
 - local Pilot page exports a Markdown acceptance checklist for beta sign-off
 - local Pilot page exports JSON sign-off files for automation handoff
 - local Pilot page summarizes workspace readiness from status, exports, and backup state
@@ -646,6 +648,7 @@ Current GUI status:
 - local Pilot evidence bundle includes the handoff summary JSON file
 - local Pilot evidence bundle includes the review index Markdown file
 - local Pilot evidence bundle includes the review JSON files
+- local Pilot evidence bundle includes the workflow and inventory JSON files
 - local Pilot evidence bundle includes the delivery receipt Markdown file
 - local Pilot evidence bundle includes the sign-off JSON files
 - local Pilot evidence bundle includes the readiness JSON file

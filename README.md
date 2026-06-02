@@ -122,6 +122,7 @@ Implemented so far:
 - local pilot evidence bundle inventory visible before download
 - local pilot evidence bundle inventory shows human and automation file categories
 - local pilot evidence bundle inventory CSV download
+- local pilot evidence bundle inventory exports include human and automation categories
 - local pilot readiness rollup visible before handoff
 - local pilot attention items highlight remaining warnings and blockers
 - local pilot attention Markdown export for handoff follow-up
@@ -697,6 +698,7 @@ Planned screens:
 - local pilot evidence bundle inventory started
 - local pilot evidence bundle inventory category counters started
 - local pilot evidence bundle inventory CSV started
+- local pilot evidence bundle inventory category exports started
 - local pilot readiness rollup started
 - local pilot attention items started
 - local pilot attention Markdown export started

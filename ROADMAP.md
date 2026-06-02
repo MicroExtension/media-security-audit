@@ -316,6 +316,7 @@ Current foundation:
 - local pilot evidence bundle inventory started
 - local pilot evidence bundle inventory category counters started
 - local pilot evidence bundle inventory CSV started
+- local pilot evidence bundle inventory category exports started
 - local pilot readiness rollup started
 - local pilot attention items started
 - local pilot attention Markdown export started

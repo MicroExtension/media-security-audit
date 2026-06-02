@@ -684,20 +684,38 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("pilot-handoff-summary.json", bundle_index.content)
         self.assertIn("pilot-delivery-receipt.md", bundle_index.content)
         self.assertIn("pilot-readiness.json", bundle_index.content)
-        self.assertIn("| manifest.json | File checksums", bundle_index.content)
+        self.assertIn("- Automation files: `8`", bundle_index.content)
+        self.assertIn("- Human-readable files: `7`", bundle_index.content)
+        self.assertIn("- Manifest files: `1`", bundle_index.content)
+        self.assertIn("| File | Kind | Purpose |", bundle_index.content)
+        self.assertIn(
+            "| manifest.json | Manifest JSON | File checksums",
+            bundle_index.content,
+        )
         bundle_index_json = build_pilot_bundle_index_json_export(items)
         bundle_index_payload = json.loads(bundle_index_json.content)
         self.assertEqual(bundle_index_json.filename, "pilot-bundle-index.json")
         self.assertEqual(bundle_index_json.media_type, "application/json")
         self.assertEqual(bundle_index_payload, bundle_index_json.payload)
-        self.assertEqual(bundle_index_payload["schema_version"], 1)
+        self.assertEqual(bundle_index_payload["schema_version"], 2)
         self.assertEqual(bundle_index_payload["index_type"], "pilot_evidence")
         self.assertEqual(bundle_index_payload["bundle_file_count"], 15)
+        self.assertEqual(bundle_index_payload["automation_file_count"], 8)
+        self.assertEqual(bundle_index_payload["human_file_count"], 7)
+        self.assertEqual(bundle_index_payload["manifest_file_count"], 1)
         self.assertEqual(bundle_index_payload["review_step_count"], 16)
         self.assertEqual(bundle_index_payload["review_order"][3]["path"], "pilot-bundle-index.json")
         self.assertEqual(
+            bundle_index_payload["review_order"][3]["kind"],
+            "Automation JSON",
+        )
+        self.assertEqual(
             bundle_index_payload["review_order"][4]["path"],
             "pilot-bundle-inventory.json",
+        )
+        self.assertEqual(
+            bundle_index_payload["review_order"][15]["kind"],
+            "Manifest JSON",
         )
         inventory_csv = build_pilot_bundle_inventory_csv_export(items)
         inventory_rows = list(csv.DictReader(StringIO(inventory_csv.content)))
@@ -1137,6 +1155,11 @@ class WebUiTests(unittest.TestCase):
             )
             self.assertEqual(archived_index["index_type"], "pilot_evidence")
             self.assertEqual(archived_index["bundle_file_count"], 15)
+            self.assertEqual(archived_index["schema_version"], 2)
+            self.assertEqual(archived_index["automation_file_count"], 8)
+            self.assertEqual(archived_index["human_file_count"], 7)
+            self.assertEqual(archived_index["manifest_file_count"], 1)
+            self.assertEqual(archived_index["review_order"][15]["kind"], "Manifest JSON")
             archived_inventory = json.loads(
                 archive.read("pilot-bundle-inventory.json").decode("utf-8")
             )

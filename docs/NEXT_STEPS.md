@@ -631,6 +631,7 @@ Current GUI status:
 - local Pilot page guides first client deployment and closeout review
 - local Pilot page exports a Markdown handoff summary for technician handoff
 - local Pilot page exports a Markdown bundle index for extracted evidence review
+- local Pilot bundle index shows human, automation, and manifest categories
 - local Pilot page exports bundle inventory as CSV for spreadsheet review
 - local Pilot page exports bundle inventory as JSON for automation handoff
 - local Pilot page exports a Markdown delivery receipt for client sign-off

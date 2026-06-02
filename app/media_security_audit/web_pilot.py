@@ -1400,9 +1400,13 @@ def pilot_evidence_verification_payload(
 ) -> dict[str, object]:
     files = manifest_payload.get("files")
     file_entries = files if isinstance(files, list) else []
+    automation_files = manifest_payload.get("automation_files")
+    human_files = manifest_payload.get("human_files")
     readiness = manifest_payload.get("readiness")
     review_order = manifest_payload.get("review_order")
     return {
+        "automation_file_count": manifest_payload.get("automation_file_count", 0),
+        "automation_files": automation_files if isinstance(automation_files, list) else [],
         "bundle_type": manifest_payload.get("bundle_type", ""),
         "checks": [
             {
@@ -1429,6 +1433,8 @@ def pilot_evidence_verification_payload(
         "context": manifest_payload.get("context", ""),
         "file_count": manifest_payload.get("file_count", len(file_entries)),
         "files": file_entries,
+        "human_file_count": manifest_payload.get("human_file_count", 0),
+        "human_files": human_files if isinstance(human_files, list) else [],
         "manifest_schema_version": manifest_payload.get("schema_version", ""),
         "readiness": readiness if isinstance(readiness, dict) else {},
         "review_order": review_order if isinstance(review_order, list) else [],
@@ -1453,6 +1459,8 @@ def format_pilot_evidence_verification_markdown(payload: dict[str, object]) -> s
         f"- Bundle type: `{payload.get('bundle_type', '')}`",
         f"- Schema version: `{payload.get('schema_version', '')}`",
         f"- File count: `{payload.get('file_count', len(file_entries))}`",
+        f"- Automation files: `{payload.get('automation_file_count', 0)}`",
+        f"- Human-readable files: `{payload.get('human_file_count', 0)}`",
         f"- Readiness status: `{readiness_payload.get('status', '')}`",
         f"- Readiness detail: `{readiness_payload.get('detail', '')}`",
         "",
@@ -1539,14 +1547,26 @@ def build_pilot_evidence_manifest_payload(
     evidence_files: dict[str, str],
     view: PilotRunbookView,
 ) -> dict[str, object]:
+    file_entries = [
+        manifest_file_entry(path, content) for path, content in sorted(evidence_files.items())
+    ]
+    automation_files = [
+        str(entry["path"])
+        for entry in file_entries
+        if str(entry["path"]).endswith(".json")
+    ]
+    human_files = [
+        str(entry["path"]) for entry in file_entries if str(entry["path"]).endswith(".md")
+    ]
     return {
+        "automation_file_count": len(automation_files),
+        "automation_files": automation_files,
         "bundle_type": "pilot_evidence",
         "context": view.subtitle,
         "file_count": len(evidence_files),
-        "files": [
-            manifest_file_entry(path, content)
-            for path, content in sorted(evidence_files.items())
-        ],
+        "files": file_entries,
+        "human_file_count": len(human_files),
+        "human_files": human_files,
         "readiness": {
             "attention_items": len(view.attention_items),
             "blocked": view.readiness_rollup.blocked,
@@ -1557,7 +1577,7 @@ def build_pilot_evidence_manifest_payload(
             "warning": view.readiness_rollup.warning,
         },
         "review_order": PILOT_BUNDLE_REVIEW_ORDER,
-        "schema_version": 3,
+        "schema_version": 4,
         "source": view.title,
     }
 

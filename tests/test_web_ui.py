@@ -925,9 +925,11 @@ class WebUiTests(unittest.TestCase):
             self.assertEqual(verification.filename, "pilot-evidence-verification.md")
             self.assertEqual(verification.media_type, "text/markdown; charset=utf-8")
             self.assertIn("# Pilot Evidence Bundle Verification", verification.content)
-            self.assertIn("- Schema version: `3`", verification.content)
+            self.assertIn("- Schema version: `4`", verification.content)
             self.assertIn("- Readiness status: `ready`", verification.content)
             self.assertIn("- File count: `15`", verification.content)
+            self.assertIn("- Automation files: `8`", verification.content)
+            self.assertIn("- Human-readable files: `7`", verification.content)
             self.assertIn("## Review Order", verification.content)
             self.assertIn("1. `pilot-handoff-summary.md`", verification.content)
             self.assertIn("2. `pilot-handoff-summary.json`", verification.content)
@@ -952,8 +954,12 @@ class WebUiTests(unittest.TestCase):
             self.assertEqual(verification_payload, verification_json.payload)
             self.assertEqual(verification_payload["schema_version"], 1)
             self.assertEqual(verification_payload["verification_type"], "pilot_evidence")
-            self.assertEqual(verification_payload["manifest_schema_version"], 3)
+            self.assertEqual(verification_payload["manifest_schema_version"], 4)
             self.assertEqual(verification_payload["file_count"], 15)
+            self.assertEqual(verification_payload["automation_file_count"], 8)
+            self.assertEqual(verification_payload["human_file_count"], 7)
+            self.assertIn("pilot-runbook.json", verification_payload["automation_files"])
+            self.assertIn("pilot-runbook.md", verification_payload["human_files"])
             self.assertEqual(verification_payload["readiness"]["status"], "ready")
             self.assertEqual(verification_payload["review_order"][0], "pilot-handoff-summary.md")
             self.assertEqual(verification_payload["review_order"][1], "pilot-handoff-summary.json")
@@ -987,7 +993,34 @@ class WebUiTests(unittest.TestCase):
                 verification_payload["files"][0]["path"],
                 "pilot-acceptance-checklist.json",
             )
-            self.assertEqual(manifest["schema_version"], 3)
+            self.assertEqual(manifest["schema_version"], 4)
+            self.assertEqual(manifest["automation_file_count"], 8)
+            self.assertEqual(manifest["human_file_count"], 7)
+            self.assertEqual(
+                manifest["automation_files"],
+                [
+                    "pilot-acceptance-checklist.json",
+                    "pilot-attention.json",
+                    "pilot-bundle-index.json",
+                    "pilot-bundle-inventory.json",
+                    "pilot-delivery-receipt.json",
+                    "pilot-handoff-summary.json",
+                    "pilot-readiness.json",
+                    "pilot-runbook.json",
+                ],
+            )
+            self.assertEqual(
+                manifest["human_files"],
+                [
+                    "pilot-acceptance-checklist.md",
+                    "pilot-attention.md",
+                    "pilot-bundle-index.md",
+                    "pilot-delivery-receipt.md",
+                    "pilot-handoff-summary.md",
+                    "pilot-readiness.md",
+                    "pilot-runbook.md",
+                ],
+            )
             self.assertEqual(manifest["bundle_type"], "pilot_evidence")
             self.assertEqual(manifest["context"], "Client Pilot")
             self.assertEqual(manifest["file_count"], 15)

@@ -116,6 +116,7 @@ Implemented so far:
 - local pilot evidence manifest JSON export for pre-handoff review
 - local pilot evidence manifest includes readiness summary
 - local pilot evidence manifest includes recommended review order
+- local pilot evidence manifest classifies automation and human-readable files
 - local pilot evidence verification Markdown export for handoff checks
 - local pilot evidence verification JSON export for automation handoff
 - local pilot evidence bundle inventory visible before download
@@ -681,6 +682,7 @@ Planned screens:
 - local pilot evidence manifest export started
 - local pilot evidence manifest readiness summary started
 - local pilot evidence manifest review order started
+- local pilot evidence manifest file classification started
 - local pilot evidence verification export started
 - local pilot evidence verification JSON export started
 - local pilot handoff summary JSON export started

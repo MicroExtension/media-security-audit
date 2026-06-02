@@ -302,6 +302,7 @@ Current foundation:
 - local pilot evidence manifest export started
 - local pilot evidence manifest readiness summary started
 - local pilot evidence manifest review order started
+- local pilot evidence manifest file classification started
 - local pilot evidence verification export started
 - local pilot evidence verification JSON export started
 - local pilot handoff summary JSON export started

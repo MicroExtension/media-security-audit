@@ -95,6 +95,8 @@ Implemented so far:
 - local pilot delivery receipt Markdown export for client sign-off
 - local pilot runbook Markdown export for technician handoff
 - local pilot acceptance checklist Markdown export for beta sign-off
+- local pilot acceptance checklist JSON export for automation sign-off
+- local pilot delivery receipt JSON export for automation handoff
 - local pilot readiness summary from workspace status, exports, and backup state
 - local pilot readiness Markdown export for beta evidence handoff
 - local pilot readiness JSON export for automation handoff
@@ -104,6 +106,7 @@ Implemented so far:
 - local pilot evidence bundle includes handoff summary JSON
 - local pilot evidence bundle includes review index
 - local pilot evidence bundle includes delivery receipt
+- local pilot evidence bundle includes sign-off JSON files
 - local pilot evidence bundle includes readiness JSON
 - local pilot evidence manifest JSON export for pre-handoff review
 - local pilot evidence manifest includes readiness summary
@@ -677,6 +680,8 @@ Planned screens:
 - local pilot evidence verification JSON export started
 - local pilot handoff summary JSON export started
 - local pilot evidence bundle handoff summary JSON started
+- local pilot sign-off JSON exports started
+- local pilot evidence bundle sign-off JSON started
 - local pilot evidence bundle inventory started
 - local pilot evidence bundle inventory CSV started
 - local pilot readiness rollup started

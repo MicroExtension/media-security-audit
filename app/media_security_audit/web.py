@@ -85,10 +85,12 @@ from media_security_audit.web_exports import (
 )
 from media_security_audit.web_health import build_health_status, health_status_code
 from media_security_audit.web_pilot import (
+    build_pilot_acceptance_json_export,
     build_pilot_attention_export,
     build_pilot_bundle_inventory_csv_export,
     build_pilot_bundle_index_export,
     build_pilot_delivery_receipt_export,
+    build_pilot_delivery_receipt_json_export,
     build_pilot_evidence_bundle,
     build_pilot_evidence_manifest,
     build_pilot_evidence_verification,
@@ -336,6 +338,17 @@ def create_web_app(
             headers={"Content-Disposition": f'attachment; filename="{export.filename}"'},
         )
 
+    @app.get("/pilot/delivery-receipt.json", dependencies=protected)
+    def pilot_delivery_receipt_json() -> Response:
+        system_view = build_system_status(data_dir, reports_dir, settings)
+        readiness_items = build_pilot_readiness_items(store, reports_dir, system_view)
+        export = build_pilot_delivery_receipt_json_export(readiness_items)
+        return Response(
+            content=export.content,
+            media_type=export.media_type,
+            headers={"Content-Disposition": f'attachment; filename="{export.filename}"'},
+        )
+
     @app.get("/pilot/acceptance.md", dependencies=protected)
     def pilot_acceptance_markdown() -> Response:
         return Response(
@@ -344,6 +357,15 @@ def create_web_app(
             headers={
                 "Content-Disposition": 'attachment; filename="pilot-acceptance-checklist.md"'
             },
+        )
+
+    @app.get("/pilot/acceptance.json", dependencies=protected)
+    def pilot_acceptance_json() -> Response:
+        export = build_pilot_acceptance_json_export()
+        return Response(
+            content=export.content,
+            media_type=export.media_type,
+            headers={"Content-Disposition": f'attachment; filename="{export.filename}"'},
         )
 
     @app.get("/pilot/readiness.md", dependencies=protected)

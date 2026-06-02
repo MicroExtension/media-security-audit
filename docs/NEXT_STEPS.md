@@ -641,9 +641,11 @@ Current GUI status:
 - local Pilot page exports workspace readiness as JSON for automation handoff
 - local Pilot page bundles pilot evidence exports as a local ZIP with a manifest
 - local Pilot evidence bundle includes the attention follow-up Markdown file
+- local Pilot page exports JSON review files for bundle index and attention items
 - local Pilot evidence bundle includes the handoff summary Markdown file
 - local Pilot evidence bundle includes the handoff summary JSON file
 - local Pilot evidence bundle includes the review index Markdown file
+- local Pilot evidence bundle includes the review JSON files
 - local Pilot evidence bundle includes the delivery receipt Markdown file
 - local Pilot evidence bundle includes the sign-off JSON files
 - local Pilot evidence bundle includes the readiness JSON file

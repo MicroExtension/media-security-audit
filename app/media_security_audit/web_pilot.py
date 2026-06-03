@@ -999,21 +999,8 @@ def format_pilot_bundle_index_markdown(
         "",
         "## Bundle Files",
         "",
-        "| File | Kind | Purpose |",
-        "| --- | --- | --- |",
     ]
-    for path in PILOT_BUNDLE_REVIEW_ORDER:
-        lines.append(
-            "| "
-            + " | ".join(
-                [
-                    markdown_cell(path),
-                    markdown_cell(pilot_bundle_review_file_kind(path)),
-                    markdown_cell(pilot_bundle_file_purpose(path)),
-                ]
-            )
-            + " |"
-        )
+    lines.extend(format_pilot_bundle_file_table(PILOT_BUNDLE_REVIEW_ORDER))
     return "\n".join(lines).rstrip() + "\n"
 
 

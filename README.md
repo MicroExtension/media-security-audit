@@ -109,6 +109,7 @@ Implemented so far:
 - local pilot evidence bundle inventory page archive bytes align with manifest generation
 - local pilot bundle inventory JSON includes archive summary metrics
 - local pilot bundle inventory CSV and JSON include normalized file categories
+- local pilot handoff exports include normalized file category metadata
 - local pilot delivery receipt Markdown export for client sign-off
 - local pilot delivery receipt includes evidence category counts
 - local pilot delivery receipt JSON includes detailed evidence file metadata
@@ -138,6 +139,7 @@ Implemented so far:
 - local pilot evidence manifest classifies automation and human-readable files
 - local pilot evidence manifest includes manifest and review file counters
 - local pilot evidence manifest includes detailed file review metadata
+- local pilot evidence manifest and verification exports include normalized file categories
 - local pilot evidence verification Markdown export for handoff checks
 - local pilot evidence verification Markdown shows file purpose in checksum table
 - local pilot evidence verification Markdown lists checksum rows in review order

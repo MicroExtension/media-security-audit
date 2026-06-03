@@ -1682,7 +1682,10 @@ def build_pilot_evidence_file_views(
 ) -> list[PilotEvidenceFileView]:
     evidence_files = build_pilot_evidence_files(readiness_items, view)
     file_views: list[PilotEvidenceFileView] = []
-    for path, content in sorted(evidence_files.items()):
+    for path, content in sorted(
+        evidence_files.items(),
+        key=lambda item: pilot_bundle_path_sort_key(item[0]),
+    ):
         entry = manifest_file_entry(path, content)
         sha256_value = str(entry["sha256"])
         file_views.append(

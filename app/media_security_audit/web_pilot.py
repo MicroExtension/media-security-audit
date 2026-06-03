@@ -130,6 +130,7 @@ class PilotRunbookView:
     evidence_automation_file_count: int
     evidence_human_file_count: int
     evidence_manifest_file_count: int
+    evidence_archive_file_count: int
     evidence_total_size_bytes: int
 
 
@@ -339,6 +340,7 @@ def build_pilot_runbook_view(
         evidence_automation_file_count=0,
         evidence_human_file_count=0,
         evidence_manifest_file_count=0,
+        evidence_archive_file_count=0,
         evidence_total_size_bytes=0,
         sections=[
             PilotRunbookSection(
@@ -514,6 +516,9 @@ def build_pilot_runbook_view(
         ],
     )
     evidence_files = build_pilot_evidence_file_views(readiness_items, view)
+    manifest_file_count = len(
+        [path for path in PILOT_BUNDLE_REVIEW_ORDER if path == "manifest.json"]
+    )
     return replace(
         view,
         evidence_files=evidence_files,
@@ -523,9 +528,8 @@ def build_pilot_runbook_view(
         evidence_human_file_count=len(
             [item for item in evidence_files if item.kind == "Human-readable Markdown"]
         ),
-        evidence_manifest_file_count=len(
-            [path for path in PILOT_BUNDLE_REVIEW_ORDER if path == "manifest.json"]
-        ),
+        evidence_manifest_file_count=manifest_file_count,
+        evidence_archive_file_count=len(evidence_files) + manifest_file_count,
         evidence_total_size_bytes=sum(item.size_bytes for item in evidence_files),
     )
 

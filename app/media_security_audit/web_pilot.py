@@ -1285,6 +1285,10 @@ def pilot_bundle_inventory_payload(view: PilotRunbookView) -> dict[str, object]:
         path: index
         for index, path in enumerate(PILOT_BUNDLE_REVIEW_ORDER, start=1)
     }
+    inventory_paths = sorted(
+        (path for path in PILOT_BUNDLE_REVIEW_ORDER if path != "manifest.json"),
+        key=pilot_bundle_path_sort_key,
+    )
     return {
         "automation_file_count": view.evidence_automation_file_count,
         "bundle_type": "pilot_evidence",
@@ -1297,7 +1301,7 @@ def pilot_bundle_inventory_payload(view: PilotRunbookView) -> dict[str, object]:
                 "purpose": pilot_bundle_file_purpose(path),
                 "review_order": review_order.get(path, 0),
             }
-            for path in sorted(path for path in PILOT_BUNDLE_REVIEW_ORDER if path != "manifest.json")
+            for path in inventory_paths
         ],
         "human_file_count": view.evidence_human_file_count,
         "manifest_path": "manifest.json",
@@ -1316,7 +1320,10 @@ def format_pilot_bundle_inventory_csv(
         path: index
         for index, path in enumerate(PILOT_BUNDLE_REVIEW_ORDER, start=1)
     }
-    for item in evidence_files:
+    for item in sorted(
+        evidence_files,
+        key=lambda item: pilot_bundle_path_sort_key(item.path),
+    ):
         writer.writerow(
             [
                 review_order.get(item.path, ""),
@@ -1328,6 +1335,13 @@ def format_pilot_bundle_inventory_csv(
             ]
         )
     return output.getvalue()
+
+
+def pilot_bundle_path_sort_key(path: str) -> tuple[int, str]:
+    review_order = pilot_bundle_review_order(path)
+    if review_order <= 0:
+        review_order = len(PILOT_BUNDLE_REVIEW_ORDER) + 1
+    return (review_order, path)
 
 
 def build_pilot_readiness_json_export(

@@ -98,6 +98,7 @@ Implemented so far:
 - local pilot bundle index Markdown shows review order in its file table
 - local pilot bundle inventory CSV export for spreadsheet review
 - local pilot bundle inventory JSON export for automation handoff
+- local pilot bundle inventory exports list files in review order
 - local pilot delivery receipt Markdown export for client sign-off
 - local pilot delivery receipt includes evidence category counts
 - local pilot delivery receipt JSON includes detailed evidence file metadata
@@ -686,6 +687,7 @@ Planned screens:
 - local pilot bundle index category exports started
 - local pilot bundle index review table started
 - local pilot bundle inventory CSV export started
+- local pilot bundle inventory review-order exports started
 - local pilot delivery receipt export started
 - local pilot delivery receipt category counts started
 - local pilot delivery receipt file details started

@@ -638,6 +638,7 @@ Current GUI status:
 - local Pilot bundle index Markdown shows review order in its file table
 - local Pilot page exports bundle inventory as CSV for spreadsheet review
 - local Pilot page exports bundle inventory as JSON for automation handoff
+- local Pilot bundle inventory exports list files in review order
 - local Pilot page exports a Markdown delivery receipt for client sign-off
 - local Pilot delivery receipt includes evidence category counts
 - local Pilot delivery receipt JSON includes detailed evidence file metadata

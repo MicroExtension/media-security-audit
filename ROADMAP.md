@@ -295,6 +295,7 @@ Current foundation:
 - local pilot bundle inventory review-order exports started
 - local pilot bundle inventory page review order started
 - local pilot bundle inventory page review numbers started
+- local pilot bundle inventory page purpose column started
 - local pilot delivery receipt export started
 - local pilot delivery receipt category counts started
 - local pilot delivery receipt file details started

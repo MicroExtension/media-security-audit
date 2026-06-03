@@ -759,12 +759,14 @@ class WebUiTests(unittest.TestCase):
             inventory_csv.content.splitlines()[0],
             "review_order,path,kind,size_bytes,sha256,sha256_short",
         )
-        self.assertEqual(inventory_rows[0]["path"], "pilot-acceptance-checklist.json")
-        self.assertEqual(inventory_rows[0]["kind"], "Automation JSON")
-        self.assertEqual(inventory_rows[0]["review_order"], "11")
-        self.assertEqual(inventory_rows[1]["path"], "pilot-acceptance-checklist.md")
-        self.assertEqual(inventory_rows[1]["kind"], "Human-readable Markdown")
-        self.assertEqual(inventory_rows[1]["review_order"], "10")
+        self.assertEqual(inventory_rows[0]["path"], "pilot-handoff-summary.md")
+        self.assertEqual(inventory_rows[0]["kind"], "Human-readable Markdown")
+        self.assertEqual(inventory_rows[0]["review_order"], "1")
+        self.assertEqual(inventory_rows[1]["path"], "pilot-handoff-summary.json")
+        self.assertEqual(inventory_rows[1]["kind"], "Automation JSON")
+        self.assertEqual(inventory_rows[1]["review_order"], "2")
+        self.assertEqual(inventory_rows[-1]["path"], "pilot-delivery-receipt.json")
+        self.assertEqual(inventory_rows[-1]["review_order"], "15")
         self.assertEqual(len(inventory_rows[0]["sha256_short"]), 12)
         inventory_json = build_pilot_bundle_inventory_json_export(items)
         inventory_payload = json.loads(inventory_json.content)
@@ -776,9 +778,13 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(inventory_payload["expected_file_count"], 15)
         self.assertEqual(inventory_payload["automation_file_count"], 8)
         self.assertEqual(inventory_payload["human_file_count"], 7)
-        self.assertEqual(inventory_payload["files"][0]["path"], "pilot-acceptance-checklist.json")
-        self.assertEqual(inventory_payload["files"][0]["kind"], "Automation JSON")
-        self.assertEqual(inventory_payload["files"][0]["review_order"], 11)
+        self.assertEqual(inventory_payload["files"][0]["path"], "pilot-handoff-summary.md")
+        self.assertEqual(inventory_payload["files"][0]["kind"], "Human-readable Markdown")
+        self.assertEqual(inventory_payload["files"][0]["review_order"], 1)
+        self.assertEqual(inventory_payload["files"][1]["path"], "pilot-handoff-summary.json")
+        self.assertEqual(inventory_payload["files"][1]["review_order"], 2)
+        self.assertEqual(inventory_payload["files"][-1]["path"], "pilot-delivery-receipt.json")
+        self.assertEqual(inventory_payload["files"][-1]["review_order"], 15)
         acceptance_json = build_pilot_acceptance_json_export(view)
         acceptance_payload = json.loads(acceptance_json.content)
         self.assertEqual(acceptance_json.filename, "pilot-acceptance-checklist.json")
@@ -1291,9 +1297,14 @@ class WebUiTests(unittest.TestCase):
             self.assertEqual(archived_inventory["automation_file_count"], 8)
             self.assertEqual(archived_inventory["human_file_count"], 7)
             self.assertEqual(
-                archived_inventory["files"][0]["kind"],
-                "Automation JSON",
+                archived_inventory["files"][0]["path"],
+                "pilot-handoff-summary.md",
             )
+            self.assertEqual(
+                archived_inventory["files"][0]["kind"],
+                "Human-readable Markdown",
+            )
+            self.assertEqual(archived_inventory["files"][0]["review_order"], 1)
             archived_delivery_markdown = archive.read(
                 "pilot-delivery-receipt.md"
             ).decode("utf-8")

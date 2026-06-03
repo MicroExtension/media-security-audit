@@ -721,9 +721,9 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("- Automation files: `8`", bundle_index.content)
         self.assertIn("- Human-readable files: `7`", bundle_index.content)
         self.assertIn("- Manifest files: `1`", bundle_index.content)
-        self.assertIn("| File | Kind | Purpose |", bundle_index.content)
+        self.assertIn("| File | Kind | Review | Purpose |", bundle_index.content)
         self.assertIn(
-            "| manifest.json | Manifest JSON | File checksums",
+            "| manifest.json | Manifest JSON | 16 | File checksums",
             bundle_index.content,
         )
         bundle_index_json = build_pilot_bundle_index_json_export(items)
@@ -1233,9 +1233,17 @@ class WebUiTests(unittest.TestCase):
             )
             self.assertEqual(archived_attention["attention_type"], "pilot")
             self.assertEqual(archived_attention["open_item_count"], 0)
+            archived_index_markdown = archive.read(
+                "pilot-bundle-index.md"
+            ).decode("utf-8")
+            self.assertIn("# Pilot Evidence Bundle Index", archived_index_markdown)
             self.assertIn(
-                "# Pilot Evidence Bundle Index",
-                archive.read("pilot-bundle-index.md").decode("utf-8"),
+                "| File | Kind | Review | Purpose |",
+                archived_index_markdown,
+            )
+            self.assertIn(
+                "| manifest.json | Manifest JSON | 16 | File checksums",
+                archived_index_markdown,
             )
             archived_index = json.loads(
                 archive.read("pilot-bundle-index.json").decode("utf-8")

@@ -95,6 +95,7 @@ Implemented so far:
 - local pilot handoff summary Markdown shows detailed evidence file tables
 - local pilot bundle index Markdown export for extracted evidence review
 - local pilot bundle index shows human, automation, and manifest categories
+- local pilot bundle index Markdown shows review order in its file table
 - local pilot bundle inventory CSV export for spreadsheet review
 - local pilot bundle inventory JSON export for automation handoff
 - local pilot delivery receipt Markdown export for client sign-off
@@ -681,6 +682,7 @@ Planned screens:
 - local pilot handoff summary file table started
 - local pilot bundle index export started
 - local pilot bundle index category exports started
+- local pilot bundle index review table started
 - local pilot bundle inventory CSV export started
 - local pilot delivery receipt export started
 - local pilot delivery receipt category counts started

@@ -286,11 +286,13 @@ Current foundation:
 - local pilot runbook page started
 - local pilot handoff summary export started
 - local pilot handoff summary category counts started
+- local pilot handoff summary file details started
 - local pilot bundle index export started
 - local pilot bundle index category exports started
 - local pilot bundle inventory CSV export started
 - local pilot delivery receipt export started
 - local pilot delivery receipt category counts started
+- local pilot delivery receipt file details started
 - local pilot runbook Markdown export started
 - local pilot acceptance checklist export started
 - local pilot readiness summary started

@@ -659,13 +659,32 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(handoff_json.filename, "pilot-handoff-summary.json")
         self.assertEqual(handoff_json.media_type, "application/json")
         self.assertEqual(handoff_payload, handoff_json.payload)
-        self.assertEqual(handoff_payload["schema_version"], 2)
+        self.assertEqual(handoff_payload["schema_version"], 3)
         self.assertEqual(handoff_payload["handoff_type"], "pilot")
         self.assertEqual(handoff_payload["context"], "Client Pilot")
         self.assertEqual(handoff_payload["source"], "Pilot Runbook")
         self.assertEqual(handoff_payload["automation_file_count"], 8)
         self.assertEqual(handoff_payload["human_file_count"], 7)
         self.assertEqual(handoff_payload["manifest_file_count"], 1)
+        self.assertEqual(handoff_payload["handoff_file_count"], 15)
+        self.assertEqual(
+            handoff_payload["handoff_file_details"][0],
+            {
+                "kind": "Human-readable Markdown",
+                "path": "pilot-runbook.md",
+                "purpose": "Technician workflow.",
+                "review_order": 12,
+            },
+        )
+        self.assertEqual(
+            handoff_payload["handoff_file_details"][-1],
+            {
+                "kind": "Manifest JSON",
+                "path": "manifest.json",
+                "purpose": "File checksums for integrity review.",
+                "review_order": 16,
+            },
+        )
         self.assertEqual(handoff_payload["readiness"]["status"], "warning")
         self.assertEqual(handoff_payload["readiness"]["warning"], 1)
         self.assertEqual(handoff_payload["next_action_count"], 1)
@@ -777,11 +796,30 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(delivery_json.filename, "pilot-delivery-receipt.json")
         self.assertEqual(delivery_json.media_type, "application/json")
         self.assertEqual(delivery_payload, delivery_json.payload)
-        self.assertEqual(delivery_payload["schema_version"], 2)
+        self.assertEqual(delivery_payload["schema_version"], 3)
         self.assertEqual(delivery_payload["delivery_type"], "pilot")
         self.assertEqual(delivery_payload["automation_file_count"], 8)
         self.assertEqual(delivery_payload["human_file_count"], 7)
         self.assertEqual(delivery_payload["manifest_file_count"], 1)
+        self.assertEqual(delivery_payload["delivered_file_count"], 15)
+        self.assertEqual(
+            delivery_payload["delivered_file_details"][0],
+            {
+                "kind": "Human-readable Markdown",
+                "path": "pilot-handoff-summary.md",
+                "purpose": "Compact handoff state and next actions.",
+                "review_order": 1,
+            },
+        )
+        self.assertEqual(
+            delivery_payload["delivered_file_details"][-1],
+            {
+                "kind": "Manifest JSON",
+                "path": "manifest.json",
+                "purpose": "File checksums for integrity review.",
+                "review_order": 16,
+            },
+        )
         self.assertEqual(delivery_payload["readiness"]["status"], "warning")
         self.assertEqual(delivery_payload["attention_items"], 1)
         self.assertIn("pilot-attention.json", delivery_payload["delivered_files"])
@@ -1199,10 +1237,15 @@ class WebUiTests(unittest.TestCase):
                 archive.read("pilot-delivery-receipt.json").decode("utf-8")
             )
             self.assertEqual(archived_delivery["delivery_type"], "pilot")
-            self.assertEqual(archived_delivery["schema_version"], 2)
+            self.assertEqual(archived_delivery["schema_version"], 3)
             self.assertEqual(archived_delivery["automation_file_count"], 8)
             self.assertEqual(archived_delivery["human_file_count"], 7)
             self.assertEqual(archived_delivery["manifest_file_count"], 1)
+            self.assertEqual(archived_delivery["delivered_file_count"], 15)
+            self.assertEqual(
+                archived_delivery["delivered_file_details"][-1]["kind"],
+                "Manifest JSON",
+            )
             self.assertEqual(archived_delivery["readiness"]["status"], "ready")
             archived_handoff_markdown = archive.read(
                 "pilot-handoff-summary.md"
@@ -1213,10 +1256,15 @@ class WebUiTests(unittest.TestCase):
                 archive.read("pilot-handoff-summary.json").decode("utf-8")
             )
             self.assertEqual(archived_handoff["handoff_type"], "pilot")
-            self.assertEqual(archived_handoff["schema_version"], 2)
+            self.assertEqual(archived_handoff["schema_version"], 3)
             self.assertEqual(archived_handoff["automation_file_count"], 8)
             self.assertEqual(archived_handoff["human_file_count"], 7)
             self.assertEqual(archived_handoff["manifest_file_count"], 1)
+            self.assertEqual(archived_handoff["handoff_file_count"], 15)
+            self.assertEqual(
+                archived_handoff["handoff_file_details"][-1]["kind"],
+                "Manifest JSON",
+            )
             self.assertEqual(archived_handoff["readiness"]["status"], "ready")
             archived_readiness = json.loads(
                 archive.read("pilot-readiness.json").decode("utf-8")

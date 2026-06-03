@@ -1533,9 +1533,11 @@ def format_pilot_evidence_verification_markdown(payload: dict[str, object]) -> s
     ]
     if not file_entries:
         lines.append("| None | - | 0 | - | 0 | - |")
-    for item in file_entries:
-        if not isinstance(item, dict):
-            continue
+    sorted_file_entries = sorted(
+        [item for item in file_entries if isinstance(item, dict)],
+        key=pilot_verification_file_sort_key,
+    )
+    for item in sorted_file_entries:
         lines.append(
             "| "
             + " | ".join(
@@ -1566,6 +1568,17 @@ def format_pilot_evidence_verification_markdown(payload: dict[str, object]) -> s
         ]
     )
     return "\n".join(lines).rstrip() + "\n"
+
+
+def pilot_verification_file_sort_key(item: dict[str, object]) -> tuple[int, str]:
+    review_order = item.get("review_order")
+    try:
+        review_value = int(review_order)
+    except (TypeError, ValueError):
+        review_value = 0
+    if review_value <= 0:
+        review_value = len(PILOT_BUNDLE_REVIEW_ORDER) + 1
+    return (review_value, str(item.get("path", "")))
 
 
 def build_pilot_evidence_files(

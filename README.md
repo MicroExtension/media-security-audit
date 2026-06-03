@@ -129,6 +129,7 @@ Implemented so far:
 - local pilot evidence manifest includes detailed file review metadata
 - local pilot evidence verification Markdown export for handoff checks
 - local pilot evidence verification Markdown shows file purpose in checksum table
+- local pilot evidence verification Markdown lists checksum rows in review order
 - local pilot evidence verification JSON export for automation handoff
 - local pilot evidence bundle inventory visible before download
 - local pilot evidence bundle inventory shows human and automation file categories
@@ -708,6 +709,7 @@ Planned screens:
 - local pilot evidence manifest file metadata started
 - local pilot evidence verification export started
 - local pilot evidence verification purpose table started
+- local pilot evidence verification review-order table started
 - local pilot evidence verification JSON export started
 - local pilot handoff summary JSON export started
 - local pilot evidence bundle handoff summary JSON started

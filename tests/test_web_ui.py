@@ -1054,6 +1054,26 @@ class WebUiTests(unittest.TestCase):
                 "| pilot-acceptance-checklist.json | Automation JSON | 11 | Machine-readable beta acceptance checklist.",
                 verification.content,
             )
+            handoff_row = (
+                "| pilot-handoff-summary.md | Human-readable Markdown | 1 | "
+                "Compact handoff state and next actions."
+            )
+            acceptance_row = (
+                "| pilot-acceptance-checklist.json | Automation JSON | 11 | "
+                "Machine-readable beta acceptance checklist."
+            )
+            delivery_row = (
+                "| pilot-delivery-receipt.json | Automation JSON | 15 | "
+                "Machine-readable delivery receipt."
+            )
+            self.assertLess(
+                verification.content.index(handoff_row),
+                verification.content.index(acceptance_row),
+            )
+            self.assertLess(
+                verification.content.index(acceptance_row),
+                verification.content.index(delivery_row),
+            )
             self.assertIn("## Review Order", verification.content)
             self.assertIn("1. `pilot-handoff-summary.md`", verification.content)
             self.assertIn("2. `pilot-handoff-summary.json`", verification.content)

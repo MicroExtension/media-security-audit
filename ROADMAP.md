@@ -315,6 +315,7 @@ Current foundation:
 - local pilot evidence manifest file metadata started
 - local pilot evidence verification export started
 - local pilot evidence verification purpose table started
+- local pilot evidence verification review-order table started
 - local pilot evidence verification JSON export started
 - local pilot handoff summary JSON export started
 - local pilot evidence bundle handoff summary JSON started

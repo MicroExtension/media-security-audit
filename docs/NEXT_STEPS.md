@@ -668,6 +668,7 @@ Current GUI status:
 - local Pilot evidence manifest includes detailed file review metadata
 - local Pilot page exports a Markdown verification sheet for pilot evidence checks
 - local Pilot evidence verification Markdown shows file purpose in its checksum table
+- local Pilot evidence verification Markdown lists checksum rows in review order
 - local Pilot page exports a JSON verification plan for automation handoff
 - local Pilot page exports a JSON handoff summary for automation handoff
 - local Pilot page shows the pilot evidence bundle file inventory before download

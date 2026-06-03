@@ -890,7 +890,7 @@ def pilot_handoff_summary_payload(view: PilotRunbookView) -> dict[str, object]:
             "total": view.readiness_rollup.total,
             "warning": view.readiness_rollup.warning,
         },
-        "schema_version": 3,
+        "schema_version": 4,
         "source": view.title,
     }
 
@@ -978,6 +978,7 @@ def pilot_bundle_index_payload(view: PilotRunbookView) -> dict[str, object]:
         },
         "review_order": [
             {
+                "category": pilot_evidence_file_category(path),
                 "kind": pilot_bundle_review_file_kind(path),
                 "order": index,
                 "path": path,
@@ -986,7 +987,7 @@ def pilot_bundle_index_payload(view: PilotRunbookView) -> dict[str, object]:
             for index, path in enumerate(PILOT_BUNDLE_REVIEW_ORDER, start=1)
         ],
         "review_step_count": len(PILOT_BUNDLE_REVIEW_ORDER),
-        "schema_version": 2,
+        "schema_version": 3,
         "source": view.title,
     }
 
@@ -1051,6 +1052,7 @@ def pilot_bundle_review_order(path: str) -> int:
 def pilot_bundle_file_details(paths: list[str]) -> list[dict[str, object]]:
     return [
         {
+            "category": pilot_evidence_file_category(path),
             "kind": pilot_bundle_review_file_kind(path),
             "path": path,
             "purpose": pilot_bundle_file_purpose(path),
@@ -1062,8 +1064,8 @@ def pilot_bundle_file_details(paths: list[str]) -> list[dict[str, object]]:
 
 def format_pilot_bundle_file_table(paths: list[str]) -> list[str]:
     lines = [
-        "| File | Kind | Review | Purpose |",
-        "| --- | --- | ---: | --- |",
+        "| File | Category | Kind | Review | Purpose |",
+        "| --- | --- | --- | ---: | --- |",
     ]
     for item in pilot_bundle_file_details(paths):
         lines.append(
@@ -1071,6 +1073,7 @@ def format_pilot_bundle_file_table(paths: list[str]) -> list[str]:
             + " | ".join(
                 [
                     markdown_cell(item["path"]),
+                    markdown_cell(item["category"]),
                     markdown_cell(item["kind"]),
                     markdown_cell(item["review_order"]),
                     markdown_cell(item["purpose"]),
@@ -1224,7 +1227,7 @@ def pilot_delivery_receipt_payload(view: PilotRunbookView) -> dict[str, object]:
             "total": view.readiness_rollup.total,
             "warning": view.readiness_rollup.warning,
         },
-        "schema_version": 3,
+        "schema_version": 4,
         "sign_off_fields": [
             "client_representative",
             "technician",
@@ -1556,7 +1559,7 @@ def pilot_evidence_verification_payload(
             len(review_order_entries),
         ),
         "review_order": review_order_entries,
-        "schema_version": 2,
+        "schema_version": 3,
         "source": manifest_payload.get("source", ""),
         "verification_type": "pilot_evidence",
     }
@@ -1586,11 +1589,11 @@ def format_pilot_evidence_verification_markdown(payload: dict[str, object]) -> s
         "",
         "## Files",
         "",
-        "| File | Kind | Review | Purpose | Bytes | SHA-256 |",
-        "| --- | --- | ---: | --- | ---: | --- |",
+        "| File | Category | Kind | Review | Purpose | Bytes | SHA-256 |",
+        "| --- | --- | --- | ---: | --- | ---: | --- |",
     ]
     if not file_entries:
-        lines.append("| None | - | 0 | - | 0 | - |")
+        lines.append("| None | - | - | 0 | - | 0 | - |")
     sorted_file_entries = sorted(
         [item for item in file_entries if isinstance(item, dict)],
         key=pilot_verification_file_sort_key,
@@ -1601,6 +1604,7 @@ def format_pilot_evidence_verification_markdown(payload: dict[str, object]) -> s
             + " | ".join(
                 [
                     markdown_cell(item.get("path", "")),
+                    markdown_cell(item.get("category", "")),
                     markdown_cell(item.get("kind", "")),
                     markdown_cell(item.get("review_order", "")),
                     markdown_cell(item.get("purpose", "")),
@@ -1722,7 +1726,7 @@ def build_pilot_evidence_manifest_payload_from_entries(
         },
         "review_file_count": len(PILOT_BUNDLE_REVIEW_ORDER),
         "review_order": PILOT_BUNDLE_REVIEW_ORDER,
-        "schema_version": 6,
+        "schema_version": 7,
         "source": view.title,
     }
 
@@ -1733,6 +1737,7 @@ def pilot_visible_manifest_size_bytes(
 ) -> int:
     file_entries = [
         {
+            "category": item.category,
             "kind": pilot_bundle_review_file_kind(item.path),
             "path": item.path,
             "purpose": item.purpose,
@@ -1794,6 +1799,7 @@ def pilot_evidence_file_kind(path: str) -> str:
 def manifest_file_entry(path: str, content: str) -> dict[str, object]:
     content_bytes = content.encode("utf-8")
     return {
+        "category": pilot_evidence_file_category(path),
         "kind": pilot_bundle_review_file_kind(path),
         "path": path,
         "purpose": pilot_bundle_file_purpose(path),

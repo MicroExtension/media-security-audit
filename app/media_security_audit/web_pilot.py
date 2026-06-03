@@ -1528,11 +1528,11 @@ def format_pilot_evidence_verification_markdown(payload: dict[str, object]) -> s
         "",
         "## Files",
         "",
-        "| File | Kind | Review | Bytes | SHA-256 |",
-        "| --- | --- | ---: | ---: | --- |",
+        "| File | Kind | Review | Purpose | Bytes | SHA-256 |",
+        "| --- | --- | ---: | --- | ---: | --- |",
     ]
     if not file_entries:
-        lines.append("| None | 0 | - |")
+        lines.append("| None | - | 0 | - | 0 | - |")
     for item in file_entries:
         if not isinstance(item, dict):
             continue
@@ -1543,6 +1543,7 @@ def format_pilot_evidence_verification_markdown(payload: dict[str, object]) -> s
                     markdown_cell(item.get("path", "")),
                     markdown_cell(item.get("kind", "")),
                     markdown_cell(item.get("review_order", "")),
+                    markdown_cell(item.get("purpose", "")),
                     markdown_cell(item.get("size_bytes", "")),
                     markdown_cell(item.get("sha256", "")),
                 ]

@@ -1046,7 +1046,14 @@ class WebUiTests(unittest.TestCase):
             self.assertIn("- Human-readable files: `7`", verification.content)
             self.assertIn("- Manifest files: `1`", verification.content)
             self.assertIn("- Review files: `16`", verification.content)
-            self.assertIn("| File | Kind | Review | Bytes | SHA-256 |", verification.content)
+            self.assertIn(
+                "| File | Kind | Review | Purpose | Bytes | SHA-256 |",
+                verification.content,
+            )
+            self.assertIn(
+                "| pilot-acceptance-checklist.json | Automation JSON | 11 | Machine-readable beta acceptance checklist.",
+                verification.content,
+            )
             self.assertIn("## Review Order", verification.content)
             self.assertIn("1. `pilot-handoff-summary.md`", verification.content)
             self.assertIn("2. `pilot-handoff-summary.json`", verification.content)

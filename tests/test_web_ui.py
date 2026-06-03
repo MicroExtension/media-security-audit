@@ -824,11 +824,22 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(inventory_json.filename, "pilot-bundle-inventory.json")
         self.assertEqual(inventory_json.media_type, "application/json")
         self.assertEqual(inventory_payload, inventory_json.payload)
-        self.assertEqual(inventory_payload["schema_version"], 2)
+        self.assertEqual(inventory_payload["schema_version"], 3)
         self.assertEqual(inventory_payload["bundle_type"], "pilot_evidence")
         self.assertEqual(inventory_payload["expected_file_count"], 15)
+        self.assertEqual(inventory_payload["evidence_file_count"], 15)
+        self.assertEqual(inventory_payload["manifest_file_count"], 1)
+        self.assertEqual(inventory_payload["archive_file_count"], 16)
         self.assertEqual(inventory_payload["automation_file_count"], 8)
         self.assertEqual(inventory_payload["human_file_count"], 7)
+        self.assertEqual(
+            inventory_payload["evidence_total_size_bytes"],
+            view.evidence_total_size_bytes,
+        )
+        self.assertEqual(
+            inventory_payload["archive_total_size_bytes"],
+            view.evidence_archive_total_size_bytes,
+        )
         self.assertEqual(inventory_payload["files"][0]["path"], "pilot-handoff-summary.md")
         self.assertEqual(inventory_payload["files"][0]["kind"], "Human-readable Markdown")
         self.assertEqual(inventory_payload["files"][0]["review_order"], 1)
@@ -1344,9 +1355,16 @@ class WebUiTests(unittest.TestCase):
             )
             self.assertEqual(archived_inventory["bundle_type"], "pilot_evidence")
             self.assertEqual(archived_inventory["expected_file_count"], 15)
-            self.assertEqual(archived_inventory["schema_version"], 2)
+            self.assertEqual(archived_inventory["schema_version"], 3)
             self.assertEqual(archived_inventory["automation_file_count"], 8)
             self.assertEqual(archived_inventory["human_file_count"], 7)
+            self.assertEqual(archived_inventory["evidence_file_count"], 15)
+            self.assertEqual(archived_inventory["manifest_file_count"], 1)
+            self.assertEqual(archived_inventory["archive_file_count"], 16)
+            self.assertGreater(
+                archived_inventory["archive_total_size_bytes"],
+                archived_inventory["evidence_total_size_bytes"],
+            )
             self.assertEqual(
                 archived_inventory["files"][0]["path"],
                 "pilot-handoff-summary.md",

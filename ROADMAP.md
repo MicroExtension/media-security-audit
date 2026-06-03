@@ -302,6 +302,7 @@ Current foundation:
 - local pilot bundle inventory page archive bytes started
 - local pilot bundle inventory page archive bytes manifest alignment started
 - local pilot bundle inventory JSON archive summary metrics started
+- local pilot bundle inventory normalized file categories started
 - local pilot delivery receipt export started
 - local pilot delivery receipt category counts started
 - local pilot delivery receipt file details started

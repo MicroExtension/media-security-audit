@@ -820,6 +820,7 @@ def build_pilot_handoff_summary_json_export(
 def pilot_handoff_summary_payload(view: PilotRunbookView) -> dict[str, object]:
     return {
         "acceptance_items": len(view.acceptance_items),
+        "automation_file_count": view.evidence_automation_file_count,
         "attention_items": [
             {
                 "detail": item.detail,
@@ -848,6 +849,8 @@ def pilot_handoff_summary_payload(view: PilotRunbookView) -> dict[str, object]:
             "manifest.json",
         ],
         "handoff_type": "pilot",
+        "human_file_count": view.evidence_human_file_count,
+        "manifest_file_count": 1,
         "next_action_count": len(view.attention_items),
         "readiness": {
             "blocked": view.readiness_rollup.blocked,
@@ -857,7 +860,7 @@ def pilot_handoff_summary_payload(view: PilotRunbookView) -> dict[str, object]:
             "total": view.readiness_rollup.total,
             "warning": view.readiness_rollup.warning,
         },
-        "schema_version": 1,
+        "schema_version": 2,
         "source": view.title,
     }
 
@@ -875,6 +878,9 @@ def format_pilot_handoff_summary_markdown(
         f"- Readiness detail: `{view.readiness_rollup.detail}`",
         f"- Attention items: `{len(view.attention_items)}`",
         f"- Acceptance items: `{len(view.acceptance_items)}`",
+        f"- Automation files: `{view.evidence_automation_file_count}`",
+        f"- Human-readable files: `{view.evidence_human_file_count}`",
+        "- Manifest files: `1`",
         "",
         "## Next Actions",
         "",
@@ -1137,6 +1143,7 @@ def build_pilot_delivery_receipt_json_export(
 
 def pilot_delivery_receipt_payload(view: PilotRunbookView) -> dict[str, object]:
     return {
+        "automation_file_count": view.evidence_automation_file_count,
         "attention_items": len(view.attention_items),
         "context": view.subtitle,
         "delivery_type": "pilot",
@@ -1157,6 +1164,8 @@ def pilot_delivery_receipt_payload(view: PilotRunbookView) -> dict[str, object]:
             "pilot-delivery-receipt.json",
             "manifest.json",
         ],
+        "human_file_count": view.evidence_human_file_count,
+        "manifest_file_count": 1,
         "readiness": {
             "blocked": view.readiness_rollup.blocked,
             "detail": view.readiness_rollup.detail,
@@ -1165,7 +1174,7 @@ def pilot_delivery_receipt_payload(view: PilotRunbookView) -> dict[str, object]:
             "total": view.readiness_rollup.total,
             "warning": view.readiness_rollup.warning,
         },
-        "schema_version": 1,
+        "schema_version": 2,
         "sign_off_fields": [
             "client_representative",
             "technician",
@@ -1190,6 +1199,9 @@ def format_pilot_delivery_receipt_markdown(
         f"- Readiness status: `{view.readiness_rollup.status}`",
         f"- Readiness detail: `{view.readiness_rollup.detail}`",
         f"- Attention items: `{len(view.attention_items)}`",
+        f"- Automation files: `{view.evidence_automation_file_count}`",
+        f"- Human-readable files: `{view.evidence_human_file_count}`",
+        "- Manifest files: `1`",
         "",
         "## Delivered Files",
         "",

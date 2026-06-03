@@ -431,6 +431,7 @@ class WebUiTests(unittest.TestCase):
         self.assertIn('aria-label="Pilot evidence file categories"', template)
         self.assertIn("view.evidence_automation_file_count", template)
         self.assertIn("view.evidence_human_file_count", template)
+        self.assertIn("view.evidence_manifest_file_count", template)
         self.assertIn("view.evidence_total_size_bytes", template)
         self.assertIn('aria-label="Pilot runbook shortcuts"', template)
         self.assertIn('id="pilot-attention"', template)
@@ -529,6 +530,7 @@ class WebUiTests(unittest.TestCase):
         )
         self.assertEqual(view.evidence_automation_file_count, 8)
         self.assertEqual(view.evidence_human_file_count, 7)
+        self.assertEqual(view.evidence_manifest_file_count, 1)
         self.assertEqual(
             view.evidence_total_size_bytes,
             sum(item.size_bytes for item in view.evidence_files),

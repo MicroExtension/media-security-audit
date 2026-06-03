@@ -1668,6 +1668,13 @@ def build_pilot_evidence_manifest_payload(
     file_entries = [
         manifest_file_entry(path, content) for path, content in sorted(evidence_files.items())
     ]
+    return build_pilot_evidence_manifest_payload_from_entries(file_entries, view)
+
+
+def build_pilot_evidence_manifest_payload_from_entries(
+    file_entries: list[dict[str, object]],
+    view: PilotRunbookView,
+) -> dict[str, object]:
     automation_files = [
         str(entry["path"])
         for entry in file_entries
@@ -1681,7 +1688,7 @@ def build_pilot_evidence_manifest_payload(
         "automation_files": automation_files,
         "bundle_type": "pilot_evidence",
         "context": view.subtitle,
-        "file_count": len(evidence_files),
+        "file_count": len(file_entries),
         "files": file_entries,
         "human_file_count": len(human_files),
         "human_files": human_files,
@@ -1717,36 +1724,7 @@ def pilot_visible_manifest_size_bytes(
         }
         for item in sorted(evidence_files, key=lambda item: item.path)
     ]
-    payload = {
-        "automation_file_count": view.evidence_automation_file_count,
-        "automation_files": [
-            item.path for item in evidence_files if item.kind == "Automation JSON"
-        ],
-        "bundle_type": "pilot_evidence",
-        "context": view.subtitle,
-        "file_count": len(evidence_files),
-        "files": file_entries,
-        "human_file_count": view.evidence_human_file_count,
-        "human_files": [
-            item.path
-            for item in evidence_files
-            if item.kind == "Human-readable Markdown"
-        ],
-        "manifest_file_count": view.evidence_manifest_file_count,
-        "readiness": {
-            "attention_items": len(view.attention_items),
-            "blocked": view.readiness_rollup.blocked,
-            "detail": view.readiness_rollup.detail,
-            "ready": view.readiness_rollup.ready,
-            "status": view.readiness_rollup.status,
-            "total": view.readiness_rollup.total,
-            "warning": view.readiness_rollup.warning,
-        },
-        "review_file_count": len(PILOT_BUNDLE_REVIEW_ORDER),
-        "review_order": PILOT_BUNDLE_REVIEW_ORDER,
-        "schema_version": 6,
-        "source": view.title,
-    }
+    payload = build_pilot_evidence_manifest_payload_from_entries(file_entries, view)
     return len((json.dumps(payload, indent=2, sort_keys=True) + "\n").encode("utf-8"))
 
 

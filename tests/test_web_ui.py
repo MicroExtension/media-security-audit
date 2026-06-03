@@ -549,6 +549,12 @@ class WebUiTests(unittest.TestCase):
             view.evidence_archive_total_size_bytes,
             view.evidence_total_size_bytes,
         )
+        public_manifest = build_pilot_evidence_manifest([], view)
+        self.assertEqual(
+            view.evidence_archive_total_size_bytes,
+            view.evidence_total_size_bytes
+            + len(public_manifest.content.encode("utf-8")),
+        )
         self.assertEqual(view.evidence_files[0].kind, "Human-readable Markdown")
         self.assertEqual(view.evidence_files[0].review_order, 1)
         self.assertEqual(

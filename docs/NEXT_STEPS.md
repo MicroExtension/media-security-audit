@@ -674,6 +674,7 @@ Current GUI status:
 - local Pilot page exports a JSON handoff summary for automation handoff
 - local Pilot page shows the pilot evidence bundle file inventory before download
 - local Pilot page lists pilot evidence bundle files in review order before download
+- local Pilot page shows pilot evidence bundle review order numbers before download
 - local Pilot page shows human and automation categories for pilot evidence files
 - local Pilot page downloads the pilot evidence bundle inventory as CSV
 - local Pilot page exports bundle inventory categories in CSV and JSON

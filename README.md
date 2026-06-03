@@ -100,6 +100,7 @@ Implemented so far:
 - local pilot bundle inventory JSON export for automation handoff
 - local pilot bundle inventory exports list files in review order
 - local pilot evidence bundle inventory page lists files in review order
+- local pilot evidence bundle inventory page shows review order numbers
 - local pilot delivery receipt Markdown export for client sign-off
 - local pilot delivery receipt includes evidence category counts
 - local pilot delivery receipt JSON includes detailed evidence file metadata
@@ -727,6 +728,7 @@ Planned screens:
 - local pilot evidence bundle inventory CSV started
 - local pilot evidence bundle inventory category exports started
 - local pilot evidence bundle inventory page review order started
+- local pilot evidence bundle inventory page review numbers started
 - local pilot readiness rollup started
 - local pilot attention items started
 - local pilot attention Markdown export started

@@ -1536,8 +1536,8 @@ def format_pilot_evidence_verification_markdown(payload: dict[str, object]) -> s
         "",
         "## Files",
         "",
-        "| File | Bytes | SHA-256 |",
-        "| --- | ---: | --- |",
+        "| File | Kind | Review | Bytes | SHA-256 |",
+        "| --- | --- | ---: | ---: | --- |",
     ]
     if not file_entries:
         lines.append("| None | 0 | - |")
@@ -1549,6 +1549,8 @@ def format_pilot_evidence_verification_markdown(payload: dict[str, object]) -> s
             + " | ".join(
                 [
                     markdown_cell(item.get("path", "")),
+                    markdown_cell(item.get("kind", "")),
+                    markdown_cell(item.get("review_order", "")),
                     markdown_cell(item.get("size_bytes", "")),
                     markdown_cell(item.get("sha256", "")),
                 ]
@@ -1649,7 +1651,7 @@ def build_pilot_evidence_manifest_payload(
         },
         "review_file_count": len(PILOT_BUNDLE_REVIEW_ORDER),
         "review_order": PILOT_BUNDLE_REVIEW_ORDER,
-        "schema_version": 5,
+        "schema_version": 6,
         "source": view.title,
     }
 
@@ -1686,7 +1688,10 @@ def pilot_evidence_file_kind(path: str) -> str:
 def manifest_file_entry(path: str, content: str) -> dict[str, object]:
     content_bytes = content.encode("utf-8")
     return {
+        "kind": pilot_bundle_review_file_kind(path),
         "path": path,
+        "purpose": pilot_bundle_file_purpose(path),
+        "review_order": pilot_bundle_review_order(path),
         "sha256": sha256(content_bytes).hexdigest(),
         "size_bytes": len(content_bytes),
     }

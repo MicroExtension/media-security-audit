@@ -900,23 +900,13 @@ def format_pilot_handoff_summary_markdown(
             "",
             "## Handoff Files",
             "",
-            "- `pilot-runbook.md`: technician workflow.",
-            "- `pilot-acceptance-checklist.md`: beta sign-off checklist.",
-            "- `pilot-acceptance-checklist.json`: machine-readable acceptance checklist.",
-            "- `pilot-handoff-summary.json`: machine-readable handoff summary.",
-            "- `pilot-bundle-index.md`: bundle review order.",
-            "- `pilot-bundle-index.json`: machine-readable bundle review order.",
-            "- `pilot-bundle-inventory.json`: machine-readable bundle inventory.",
-            "- `pilot-delivery-receipt.md`: delivery sign-off receipt.",
-            "- `pilot-delivery-receipt.json`: machine-readable delivery receipt.",
-            "- `pilot-readiness.md`: workspace readiness details.",
-            "- `pilot-readiness.json`: machine-readable readiness evidence.",
-            "- `pilot-attention.md`: remaining warnings and blockers.",
-            "- `pilot-attention.json`: machine-readable attention items.",
-            "- `pilot-runbook.json`: machine-readable technician workflow.",
-            "- `manifest.json`: bundle file checksums.",
         ]
     )
+    handoff_files = pilot_handoff_summary_payload(view)["handoff_files"]
+    if isinstance(handoff_files, list):
+        lines.extend(
+            format_pilot_bundle_file_table([str(path) for path in handoff_files])
+        )
     return "\n".join(lines).rstrip() + "\n"
 
 
@@ -1054,6 +1044,27 @@ def pilot_bundle_file_details(paths: list[str]) -> list[dict[str, object]]:
         }
         for path in paths
     ]
+
+
+def format_pilot_bundle_file_table(paths: list[str]) -> list[str]:
+    lines = [
+        "| File | Kind | Review | Purpose |",
+        "| --- | --- | ---: | --- |",
+    ]
+    for item in pilot_bundle_file_details(paths):
+        lines.append(
+            "| "
+            + " | ".join(
+                [
+                    markdown_cell(item["path"]),
+                    markdown_cell(item["kind"]),
+                    markdown_cell(item["review_order"]),
+                    markdown_cell(item["purpose"]),
+                ]
+            )
+            + " |"
+        )
+    return lines
 
 
 def build_pilot_attention_export(
@@ -1230,35 +1241,29 @@ def format_pilot_delivery_receipt_markdown(
         "",
         "## Delivered Files",
         "",
-        "- `pilot-handoff-summary.md`",
-        "- `pilot-handoff-summary.json`",
-        "- `pilot-bundle-index.md`",
-        "- `pilot-bundle-index.json`",
-        "- `pilot-bundle-inventory.json`",
-        "- `pilot-readiness.md`",
-        "- `pilot-readiness.json`",
-        "- `pilot-attention.md`",
-        "- `pilot-attention.json`",
-        "- `pilot-acceptance-checklist.md`",
-        "- `pilot-acceptance-checklist.json`",
-        "- `pilot-runbook.md`",
-        "- `pilot-runbook.json`",
-        "- `pilot-delivery-receipt.json`",
-        "- `manifest.json`",
-        "",
-        "## Sign-off",
-        "",
-        "- Client representative: ______________________________",
-        "- Technician: ______________________________",
-        "- Delivery date: ______________________________",
-        "- Delivery channel: ______________________________",
-        "- Remaining attention items reviewed: [ ] yes  [ ] no",
-        "- Evidence bundle retained by MSP: [ ] yes  [ ] no",
-        "",
-        "## Notes",
-        "",
-        "- ______________________________",
     ]
+    delivered_files = pilot_delivery_receipt_payload(view)["delivered_files"]
+    if isinstance(delivered_files, list):
+        lines.extend(
+            format_pilot_bundle_file_table([str(path) for path in delivered_files])
+        )
+    lines.extend(
+        [
+            "",
+            "## Sign-off",
+            "",
+            "- Client representative: ______________________________",
+            "- Technician: ______________________________",
+            "- Delivery date: ______________________________",
+            "- Delivery channel: ______________________________",
+            "- Remaining attention items reviewed: [ ] yes  [ ] no",
+            "- Evidence bundle retained by MSP: [ ] yes  [ ] no",
+            "",
+            "## Notes",
+            "",
+            "- ______________________________",
+        ]
+    )
     return "\n".join(lines).rstrip() + "\n"
 
 

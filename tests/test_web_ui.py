@@ -654,6 +654,15 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("pilot-handoff-summary.json", handoff_summary.content)
         self.assertIn("pilot-readiness.json", handoff_summary.content)
         self.assertIn("pilot-attention.md", handoff_summary.content)
+        self.assertIn("| File | Kind | Review | Purpose |", handoff_summary.content)
+        self.assertIn(
+            "| pilot-runbook.md | Human-readable Markdown | 12 | Technician workflow. |",
+            handoff_summary.content,
+        )
+        self.assertIn(
+            "| manifest.json | Manifest JSON | 16 | File checksums for integrity review. |",
+            handoff_summary.content,
+        )
         handoff_json = build_pilot_handoff_summary_json_export(items)
         handoff_payload = json.loads(handoff_json.content)
         self.assertEqual(handoff_json.filename, "pilot-handoff-summary.json")
@@ -789,6 +798,15 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("- Manifest files: `1`", delivery_receipt.content)
         self.assertIn("pilot-acceptance-checklist.json", delivery_receipt.content)
         self.assertIn("pilot-delivery-receipt.json", delivery_receipt.content)
+        self.assertIn("| File | Kind | Review | Purpose |", delivery_receipt.content)
+        self.assertIn(
+            "| pilot-handoff-summary.md | Human-readable Markdown | 1 | Compact handoff state and next actions. |",
+            delivery_receipt.content,
+        )
+        self.assertIn(
+            "| manifest.json | Manifest JSON | 16 | File checksums for integrity review. |",
+            delivery_receipt.content,
+        )
         self.assertIn("Client representative:", delivery_receipt.content)
         self.assertIn("Remaining attention items reviewed", delivery_receipt.content)
         delivery_json = build_pilot_delivery_receipt_json_export(items)
@@ -1246,6 +1264,11 @@ class WebUiTests(unittest.TestCase):
             ).decode("utf-8")
             self.assertIn("# Pilot Delivery Receipt", archived_delivery_markdown)
             self.assertIn("- Automation files: `8`", archived_delivery_markdown)
+            self.assertIn("| File | Kind | Review | Purpose |", archived_delivery_markdown)
+            self.assertIn(
+                "| manifest.json | Manifest JSON | 16 | File checksums for integrity review. |",
+                archived_delivery_markdown,
+            )
             archived_delivery = json.loads(
                 archive.read("pilot-delivery-receipt.json").decode("utf-8")
             )
@@ -1265,6 +1288,11 @@ class WebUiTests(unittest.TestCase):
             ).decode("utf-8")
             self.assertIn("# Pilot Handoff Summary", archived_handoff_markdown)
             self.assertIn("- Automation files: `8`", archived_handoff_markdown)
+            self.assertIn("| File | Kind | Review | Purpose |", archived_handoff_markdown)
+            self.assertIn(
+                "| manifest.json | Manifest JSON | 16 | File checksums for integrity review. |",
+                archived_handoff_markdown,
+            )
             archived_handoff = json.loads(
                 archive.read("pilot-handoff-summary.json").decode("utf-8")
             )

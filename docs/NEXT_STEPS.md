@@ -687,6 +687,7 @@ Current GUI status:
 - local Pilot page exports normalized bundle inventory categories in CSV and JSON
 - local Pilot handoff, index, receipt, manifest, and verification exports include normalized file categories
 - local Pilot page shows readiness rollup counters before pilot handoff
+- local Pilot page shows a handoff decision and next action before bundle delivery
 - local Pilot page highlights non-ready attention items before pilot handoff
 - local Pilot page exports non-ready attention items as Markdown for handoff follow-up
 - CLI mission export manifest output reads ZIP manifests after handoff

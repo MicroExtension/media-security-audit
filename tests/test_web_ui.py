@@ -421,6 +421,7 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("view.readiness_items", template)
         self.assertIn("view.attention_items", template)
         self.assertIn("view.readiness_rollup", template)
+        self.assertIn("view.handoff_decision", template)
         self.assertIn("view.evidence_files", template)
         self.assertIn('aria-label="Pilot runbook summary"', template)
         self.assertIn('aria-label="Pilot readiness rollup"', template)
@@ -428,6 +429,13 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("view.readiness_rollup.ready", template)
         self.assertIn("view.readiness_rollup.warning", template)
         self.assertIn("view.readiness_rollup.blocked", template)
+        self.assertIn('id="pilot-handoff-decision"', template)
+        self.assertIn('aria-label="Pilot handoff decision actions"', template)
+        self.assertIn("view.handoff_decision.status", template)
+        self.assertIn("view.handoff_decision.title", template)
+        self.assertIn("view.handoff_decision.detail", template)
+        self.assertIn("view.handoff_decision.action_href", template)
+        self.assertIn("view.handoff_decision.action_label", template)
         self.assertIn('aria-label="Pilot evidence file categories"', template)
         self.assertIn("view.evidence_automation_file_count", template)
         self.assertIn("view.evidence_human_file_count", template)
@@ -438,6 +446,7 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("Evidence Bytes", template)
         self.assertIn("Archive Bytes", template)
         self.assertIn('aria-label="Pilot runbook shortcuts"', template)
+        self.assertIn('href="#pilot-handoff-decision"', template)
         self.assertIn('id="pilot-attention"', template)
         self.assertIn('aria-label="Pilot attention links"', template)
         self.assertIn('id="pilot-bundle"', template)
@@ -514,6 +523,10 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(view.readiness_rollup.status, "warning")
         self.assertEqual(view.readiness_rollup.total, 0)
         self.assertEqual(view.readiness_rollup.detail, "No readiness item was generated.")
+        self.assertEqual(view.handoff_decision.status, "warning")
+        self.assertEqual(view.handoff_decision.title, "Readiness review required")
+        self.assertEqual(view.handoff_decision.action_label, "Review System")
+        self.assertEqual(view.handoff_decision.action_href, "/system")
         self.assertEqual(
             [item.path for item in view.evidence_files],
             [
@@ -693,6 +706,8 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(handoff_summary.media_type, "text/markdown; charset=utf-8")
         self.assertIn("# Pilot Handoff Summary", handoff_summary.content)
         self.assertIn("- Readiness status: `warning`", handoff_summary.content)
+        self.assertIn("- Handoff decision: `warning`", handoff_summary.content)
+        self.assertIn("- Handoff action: `Review Attention`", handoff_summary.content)
         self.assertIn("- Attention items: `1`", handoff_summary.content)
         self.assertIn("- Automation files: `8`", handoff_summary.content)
         self.assertIn("- Human-readable files: `7`", handoff_summary.content)
@@ -716,8 +731,13 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(handoff_json.filename, "pilot-handoff-summary.json")
         self.assertEqual(handoff_json.media_type, "application/json")
         self.assertEqual(handoff_payload, handoff_json.payload)
-        self.assertEqual(handoff_payload["schema_version"], 4)
+        self.assertEqual(handoff_payload["schema_version"], 5)
         self.assertEqual(handoff_payload["handoff_type"], "pilot")
+        self.assertEqual(handoff_payload["handoff_decision"]["status"], "warning")
+        self.assertEqual(
+            handoff_payload["handoff_decision"]["action_href"],
+            "#pilot-attention",
+        )
         self.assertEqual(handoff_payload["context"], "Client Pilot")
         self.assertEqual(handoff_payload["source"], "Pilot Runbook")
         self.assertEqual(handoff_payload["automation_file_count"], 8)
@@ -924,7 +944,12 @@ class WebUiTests(unittest.TestCase):
         readiness_payload = json.loads(readiness_json.content)
         self.assertEqual(readiness_json.filename, "pilot-readiness.json")
         self.assertEqual(readiness_json.media_type, "application/json")
-        self.assertEqual(readiness_payload["schema_version"], 1)
+        self.assertEqual(readiness_payload["schema_version"], 2)
+        self.assertEqual(readiness_payload["handoff_decision"]["status"], "warning")
+        self.assertEqual(
+            readiness_payload["handoff_decision"]["action_label"],
+            "Review Attention",
+        )
         self.assertEqual(readiness_payload["rollup"]["status"], "warning")
         self.assertEqual(readiness_payload["rollup"]["attention_items"], 1)
         self.assertEqual(readiness_payload["items"][0]["label"], "Web authentication")
@@ -933,13 +958,16 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(runbook_json.filename, "pilot-runbook.json")
         self.assertEqual(runbook_json.media_type, "application/json")
         self.assertEqual(runbook_payload, runbook_json.payload)
-        self.assertEqual(runbook_payload["schema_version"], 1)
+        self.assertEqual(runbook_payload["schema_version"], 2)
         self.assertEqual(runbook_payload["runbook_type"], "pilot")
+        self.assertEqual(runbook_payload["handoff_decision"]["status"], "warning")
         self.assertEqual(runbook_payload["sections"][0]["title"], "Setup")
         self.assertEqual(runbook_payload["readiness"]["status"], "warning")
 
         markdown = format_pilot_readiness_markdown(items)
         self.assertIn("# Pilot Readiness Summary", markdown)
+        self.assertIn("- Handoff decision: `warning`", markdown)
+        self.assertIn("- Handoff action: `Review Attention`", markdown)
         self.assertIn("- Ready: `6`", markdown)
         self.assertIn("- Warning: `1`", markdown)
         self.assertIn("| Web authentication | ready |", markdown)
@@ -1426,7 +1454,8 @@ class WebUiTests(unittest.TestCase):
                 archive.read("pilot-handoff-summary.json").decode("utf-8")
             )
             self.assertEqual(archived_handoff["handoff_type"], "pilot")
-            self.assertEqual(archived_handoff["schema_version"], 4)
+            self.assertEqual(archived_handoff["schema_version"], 5)
+            self.assertEqual(archived_handoff["handoff_decision"]["status"], "ready")
             self.assertEqual(archived_handoff["automation_file_count"], 8)
             self.assertEqual(archived_handoff["human_file_count"], 7)
             self.assertEqual(archived_handoff["manifest_file_count"], 1)
@@ -1443,6 +1472,8 @@ class WebUiTests(unittest.TestCase):
             archived_readiness = json.loads(
                 archive.read("pilot-readiness.json").decode("utf-8")
             )
+            self.assertEqual(archived_readiness["schema_version"], 2)
+            self.assertEqual(archived_readiness["handoff_decision"]["status"], "ready")
             self.assertEqual(archived_readiness["rollup"]["status"], "ready")
             self.assertEqual(archived_readiness["items"][0]["status"], "ready")
             self.assertIn(
@@ -1456,6 +1487,8 @@ class WebUiTests(unittest.TestCase):
             archived_runbook = json.loads(
                 archive.read("pilot-runbook.json").decode("utf-8")
             )
+            self.assertEqual(archived_runbook["schema_version"], 2)
+            self.assertEqual(archived_runbook["handoff_decision"]["status"], "ready")
             self.assertEqual(archived_runbook["runbook_type"], "pilot")
             self.assertEqual(archived_runbook["sections"][0]["title"], "Setup")
 

@@ -1441,6 +1441,7 @@ def pilot_evidence_verification_payload(
     human_files = manifest_payload.get("human_files")
     readiness = manifest_payload.get("readiness")
     review_order = manifest_payload.get("review_order")
+    review_order_entries = review_order if isinstance(review_order, list) else []
     return {
         "automation_file_count": manifest_payload.get("automation_file_count", 0),
         "automation_files": automation_files if isinstance(automation_files, list) else [],
@@ -1472,10 +1473,15 @@ def pilot_evidence_verification_payload(
         "files": file_entries,
         "human_file_count": manifest_payload.get("human_file_count", 0),
         "human_files": human_files if isinstance(human_files, list) else [],
+        "manifest_file_count": manifest_payload.get("manifest_file_count", 0),
         "manifest_schema_version": manifest_payload.get("schema_version", ""),
         "readiness": readiness if isinstance(readiness, dict) else {},
-        "review_order": review_order if isinstance(review_order, list) else [],
-        "schema_version": 1,
+        "review_file_count": manifest_payload.get(
+            "review_file_count",
+            len(review_order_entries),
+        ),
+        "review_order": review_order_entries,
+        "schema_version": 2,
         "source": manifest_payload.get("source", ""),
         "verification_type": "pilot_evidence",
     }
@@ -1498,6 +1504,8 @@ def format_pilot_evidence_verification_markdown(payload: dict[str, object]) -> s
         f"- File count: `{payload.get('file_count', len(file_entries))}`",
         f"- Automation files: `{payload.get('automation_file_count', 0)}`",
         f"- Human-readable files: `{payload.get('human_file_count', 0)}`",
+        f"- Manifest files: `{payload.get('manifest_file_count', 0)}`",
+        f"- Review files: `{payload.get('review_file_count', len(review_order_entries))}`",
         f"- Readiness status: `{readiness_payload.get('status', '')}`",
         f"- Readiness detail: `{readiness_payload.get('detail', '')}`",
         "",
@@ -1604,6 +1612,7 @@ def build_pilot_evidence_manifest_payload(
         "files": file_entries,
         "human_file_count": len(human_files),
         "human_files": human_files,
+        "manifest_file_count": 1,
         "readiness": {
             "attention_items": len(view.attention_items),
             "blocked": view.readiness_rollup.blocked,
@@ -1613,8 +1622,9 @@ def build_pilot_evidence_manifest_payload(
             "total": view.readiness_rollup.total,
             "warning": view.readiness_rollup.warning,
         },
+        "review_file_count": len(PILOT_BUNDLE_REVIEW_ORDER),
         "review_order": PILOT_BUNDLE_REVIEW_ORDER,
-        "schema_version": 4,
+        "schema_version": 5,
         "source": view.title,
     }
 

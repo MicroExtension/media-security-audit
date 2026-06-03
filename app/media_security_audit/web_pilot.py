@@ -132,6 +132,7 @@ class PilotRunbookView:
     evidence_manifest_file_count: int
     evidence_archive_file_count: int
     evidence_total_size_bytes: int
+    evidence_archive_total_size_bytes: int
 
 
 @dataclass(frozen=True)
@@ -342,6 +343,7 @@ def build_pilot_runbook_view(
         evidence_manifest_file_count=0,
         evidence_archive_file_count=0,
         evidence_total_size_bytes=0,
+        evidence_archive_total_size_bytes=0,
         sections=[
             PilotRunbookSection(
                 anchor="pilot-setup",
@@ -519,18 +521,28 @@ def build_pilot_runbook_view(
     manifest_file_count = len(
         [path for path in PILOT_BUNDLE_REVIEW_ORDER if path == "manifest.json"]
     )
-    return replace(
+    automation_file_count = len(
+        [item for item in evidence_files if item.kind == "Automation JSON"]
+    )
+    human_file_count = len(
+        [item for item in evidence_files if item.kind == "Human-readable Markdown"]
+    )
+    evidence_total_size_bytes = sum(item.size_bytes for item in evidence_files)
+    view = replace(
         view,
         evidence_files=evidence_files,
-        evidence_automation_file_count=len(
-            [item for item in evidence_files if item.kind == "Automation JSON"]
-        ),
-        evidence_human_file_count=len(
-            [item for item in evidence_files if item.kind == "Human-readable Markdown"]
-        ),
+        evidence_automation_file_count=automation_file_count,
+        evidence_human_file_count=human_file_count,
         evidence_manifest_file_count=manifest_file_count,
         evidence_archive_file_count=len(evidence_files) + manifest_file_count,
-        evidence_total_size_bytes=sum(item.size_bytes for item in evidence_files),
+        evidence_total_size_bytes=evidence_total_size_bytes,
+    )
+    return replace(
+        view,
+        evidence_archive_total_size_bytes=(
+            evidence_total_size_bytes
+            + pilot_visible_manifest_size_bytes(evidence_files, view)
+        ),
     )
 
 
@@ -1688,6 +1700,54 @@ def build_pilot_evidence_manifest_payload(
         "schema_version": 6,
         "source": view.title,
     }
+
+
+def pilot_visible_manifest_size_bytes(
+    evidence_files: list[PilotEvidenceFileView],
+    view: PilotRunbookView,
+) -> int:
+    file_entries = [
+        {
+            "kind": pilot_bundle_review_file_kind(item.path),
+            "path": item.path,
+            "purpose": item.purpose,
+            "review_order": item.review_order,
+            "sha256": item.sha256,
+            "size_bytes": item.size_bytes,
+        }
+        for item in sorted(evidence_files, key=lambda item: item.path)
+    ]
+    payload = {
+        "automation_file_count": view.evidence_automation_file_count,
+        "automation_files": [
+            item.path for item in evidence_files if item.kind == "Automation JSON"
+        ],
+        "bundle_type": "pilot_evidence",
+        "context": view.subtitle,
+        "file_count": len(evidence_files),
+        "files": file_entries,
+        "human_file_count": view.evidence_human_file_count,
+        "human_files": [
+            item.path
+            for item in evidence_files
+            if item.kind == "Human-readable Markdown"
+        ],
+        "manifest_file_count": view.evidence_manifest_file_count,
+        "readiness": {
+            "attention_items": len(view.attention_items),
+            "blocked": view.readiness_rollup.blocked,
+            "detail": view.readiness_rollup.detail,
+            "ready": view.readiness_rollup.ready,
+            "status": view.readiness_rollup.status,
+            "total": view.readiness_rollup.total,
+            "warning": view.readiness_rollup.warning,
+        },
+        "review_file_count": len(PILOT_BUNDLE_REVIEW_ORDER),
+        "review_order": PILOT_BUNDLE_REVIEW_ORDER,
+        "schema_version": 6,
+        "source": view.title,
+    }
+    return len((json.dumps(payload, indent=2, sort_keys=True) + "\n").encode("utf-8"))
 
 
 def build_pilot_evidence_file_views(

@@ -434,6 +434,9 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("view.evidence_manifest_file_count", template)
         self.assertIn("view.evidence_archive_file_count", template)
         self.assertIn("view.evidence_total_size_bytes", template)
+        self.assertIn("view.evidence_archive_total_size_bytes", template)
+        self.assertIn("Evidence Bytes", template)
+        self.assertIn("Archive Bytes", template)
         self.assertIn('aria-label="Pilot runbook shortcuts"', template)
         self.assertIn('id="pilot-attention"', template)
         self.assertIn('aria-label="Pilot attention links"', template)
@@ -542,6 +545,10 @@ class WebUiTests(unittest.TestCase):
             sum(item.size_bytes for item in view.evidence_files),
         )
         self.assertGreater(view.evidence_total_size_bytes, 0)
+        self.assertGreater(
+            view.evidence_archive_total_size_bytes,
+            view.evidence_total_size_bytes,
+        )
         self.assertEqual(view.evidence_files[0].kind, "Human-readable Markdown")
         self.assertEqual(view.evidence_files[0].review_order, 1)
         self.assertEqual(

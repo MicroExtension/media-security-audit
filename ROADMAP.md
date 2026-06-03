@@ -298,6 +298,7 @@ Current foundation:
 - local pilot bundle inventory page purpose column started
 - local pilot bundle inventory page total bytes started
 - local pilot bundle inventory page manifest count started
+- local pilot bundle inventory page archive count started
 - local pilot delivery receipt export started
 - local pilot delivery receipt category counts started
 - local pilot delivery receipt file details started

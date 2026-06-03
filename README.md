@@ -104,6 +104,7 @@ Implemented so far:
 - local pilot evidence bundle inventory page shows file purposes
 - local pilot evidence bundle inventory page summarizes total evidence bytes
 - local pilot evidence bundle inventory page shows manifest file count
+- local pilot evidence bundle inventory page shows archive file count
 - local pilot delivery receipt Markdown export for client sign-off
 - local pilot delivery receipt includes evidence category counts
 - local pilot delivery receipt JSON includes detailed evidence file metadata
@@ -735,6 +736,7 @@ Planned screens:
 - local pilot evidence bundle inventory page purpose column started
 - local pilot evidence bundle inventory page total bytes started
 - local pilot evidence bundle inventory page manifest count started
+- local pilot evidence bundle inventory page archive count started
 - local pilot readiness rollup started
 - local pilot attention items started
 - local pilot attention Markdown export started

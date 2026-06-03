@@ -678,6 +678,7 @@ Current GUI status:
 - local Pilot page shows pilot evidence bundle file purposes before download
 - local Pilot page summarizes total pilot evidence bytes before download
 - local Pilot page shows the pilot evidence manifest count before download
+- local Pilot page shows the total pilot evidence archive file count before download
 - local Pilot page shows human and automation categories for pilot evidence files
 - local Pilot page downloads the pilot evidence bundle inventory as CSV
 - local Pilot page exports bundle inventory categories in CSV and JSON

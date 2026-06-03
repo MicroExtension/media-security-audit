@@ -98,6 +98,15 @@ class PilotReadinessRollup:
 
 
 @dataclass(frozen=True)
+class PilotHandoffDecision:
+    status: str
+    title: str
+    detail: str
+    action_label: str
+    action_href: str
+
+
+@dataclass(frozen=True)
 class PilotRunbookSection:
     anchor: str
     title: str
@@ -127,6 +136,7 @@ class PilotRunbookView:
     readiness_items: list[PilotReadinessItem]
     attention_items: list[PilotReadinessItem]
     readiness_rollup: PilotReadinessRollup
+    handoff_decision: PilotHandoffDecision
     evidence_files: list[PilotEvidenceFileView]
     evidence_automation_file_count: int
     evidence_human_file_count: int
@@ -269,6 +279,8 @@ def build_pilot_runbook_view(
     readiness_items: list[PilotReadinessItem] | None = None,
 ) -> PilotRunbookView:
     readiness_items = readiness_items or []
+    attention_items = build_pilot_attention_items(readiness_items)
+    readiness_rollup = build_pilot_readiness_rollup(readiness_items)
     view = PilotRunbookView(
         title="Pilot Runbook",
         subtitle="Client Pilot",
@@ -336,8 +348,12 @@ def build_pilot_runbook_view(
             ),
         ],
         readiness_items=readiness_items,
-        attention_items=build_pilot_attention_items(readiness_items),
-        readiness_rollup=build_pilot_readiness_rollup(readiness_items),
+        attention_items=attention_items,
+        readiness_rollup=readiness_rollup,
+        handoff_decision=build_pilot_handoff_decision(
+            readiness_rollup,
+            attention_items,
+        ),
         evidence_files=[],
         evidence_automation_file_count=0,
         evidence_human_file_count=0,
@@ -581,6 +597,55 @@ def build_pilot_readiness_rollup(
     )
 
 
+def build_pilot_handoff_decision(
+    readiness_rollup: PilotReadinessRollup,
+    attention_items: list[PilotReadinessItem],
+) -> PilotHandoffDecision:
+    if readiness_rollup.status == "ready":
+        return PilotHandoffDecision(
+            status="ready",
+            title="Ready for pilot handoff",
+            detail=(
+                "All Pilot readiness checks are ready. Download the evidence "
+                "bundle, verify checksums, and complete the delivery receipt."
+            ),
+            action_label="Download Bundle",
+            action_href="/pilot/bundle.zip",
+        )
+    if readiness_rollup.status == "blocked":
+        return PilotHandoffDecision(
+            status="blocked",
+            title="Blocked before pilot handoff",
+            detail=(
+                f"{readiness_rollup.blocked} blocked readiness check(s) must "
+                "be resolved before the Pilot bundle is delivered."
+            ),
+            action_label="Resolve Blockers",
+            action_href="#pilot-attention" if attention_items else "/system",
+        )
+    if attention_items:
+        return PilotHandoffDecision(
+            status="warning",
+            title="Review before pilot handoff",
+            detail=(
+                f"{len(attention_items)} attention item(s) should be reviewed "
+                "before the Pilot bundle is delivered."
+            ),
+            action_label="Review Attention",
+            action_href="#pilot-attention",
+        )
+    return PilotHandoffDecision(
+        status="warning",
+        title="Readiness review required",
+        detail=(
+            "No Pilot readiness item was generated yet. Review system status "
+            "and workspace exports before delivering the Pilot bundle."
+        ),
+        action_label="Review System",
+        action_href="/system",
+    )
+
+
 def build_pilot_readiness_items(
     store: JsonStore,
     reports_dir: Path,
@@ -694,6 +759,7 @@ def pilot_runbook_payload(view: PilotRunbookView) -> dict[str, object]:
     return {
         "acceptance_item_count": len(view.acceptance_items),
         "context": view.subtitle,
+        "handoff_decision": pilot_handoff_decision_payload(view.handoff_decision),
         "metrics": [
             {"label": metric.label, "value": metric.value}
             for metric in view.metrics
@@ -707,7 +773,7 @@ def pilot_runbook_payload(view: PilotRunbookView) -> dict[str, object]:
             "warning": view.readiness_rollup.warning,
         },
         "runbook_type": "pilot",
-        "schema_version": 1,
+        "schema_version": 2,
         "sections": [
             {
                 "anchor": section.anchor,
@@ -724,6 +790,18 @@ def pilot_runbook_payload(view: PilotRunbookView) -> dict[str, object]:
             for section in view.sections
         ],
         "source": view.title,
+    }
+
+
+def pilot_handoff_decision_payload(
+    decision: PilotHandoffDecision,
+) -> dict[str, object]:
+    return {
+        "action_href": decision.action_href,
+        "action_label": decision.action_label,
+        "detail": decision.detail,
+        "status": decision.status,
+        "title": decision.title,
     }
 
 
@@ -791,6 +869,8 @@ def format_pilot_readiness_markdown(
         "",
         f"- Context: `{view.subtitle}`",
         f"- Source: `{view.title}`",
+        f"- Handoff decision: `{view.handoff_decision.status}`",
+        f"- Handoff action: `{view.handoff_decision.action_label}`",
         f"- Ready: `{counts['ready']}`",
         f"- Warning: `{counts['warning']}`",
         f"- Blocked: `{counts['blocked']}`",
@@ -875,6 +955,7 @@ def pilot_handoff_summary_payload(view: PilotRunbookView) -> dict[str, object]:
             for item in view.attention_items
         ],
         "context": view.subtitle,
+        "handoff_decision": pilot_handoff_decision_payload(view.handoff_decision),
         "handoff_file_count": len(handoff_files),
         "handoff_file_details": pilot_bundle_file_details(handoff_files),
         "handoff_files": handoff_files,
@@ -890,7 +971,7 @@ def pilot_handoff_summary_payload(view: PilotRunbookView) -> dict[str, object]:
             "total": view.readiness_rollup.total,
             "warning": view.readiness_rollup.warning,
         },
-        "schema_version": 4,
+        "schema_version": 5,
         "source": view.title,
     }
 
@@ -906,6 +987,8 @@ def format_pilot_handoff_summary_markdown(
         f"- Source: `{view.title}`",
         f"- Readiness status: `{view.readiness_rollup.status}`",
         f"- Readiness detail: `{view.readiness_rollup.detail}`",
+        f"- Handoff decision: `{view.handoff_decision.status}`",
+        f"- Handoff action: `{view.handoff_decision.action_label}`",
         f"- Attention items: `{len(view.attention_items)}`",
         f"- Acceptance items: `{len(view.acceptance_items)}`",
         f"- Automation files: `{view.evidence_automation_file_count}`",
@@ -1411,6 +1494,7 @@ def pilot_readiness_payload(
 ) -> dict[str, object]:
     return {
         "context": view.subtitle,
+        "handoff_decision": pilot_handoff_decision_payload(view.handoff_decision),
         "items": [
             {
                 "detail": item.detail,
@@ -1429,7 +1513,7 @@ def pilot_readiness_payload(
             "total": view.readiness_rollup.total,
             "warning": view.readiness_rollup.warning,
         },
-        "schema_version": 1,
+        "schema_version": 2,
         "source": view.title,
     }
 

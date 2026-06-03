@@ -343,6 +343,7 @@ Current foundation:
 - local pilot evidence bundle inventory CSV started
 - local pilot evidence bundle inventory category exports started
 - local pilot readiness rollup started
+- local pilot handoff decision started
 - local pilot attention items started
 - local pilot attention Markdown export started
 - mission export integrity verification started

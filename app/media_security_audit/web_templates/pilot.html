@@ -44,6 +44,24 @@
   <div class="metric"><span>Blocked</span><strong>{{ view.readiness_rollup.blocked }}</strong></div>
 </section>
 
+<section class="section" id="pilot-handoff-decision">
+  <div class="section-title">
+    <h2>Handoff Decision</h2>
+    <div class="report-links" aria-label="Pilot handoff decision actions">
+      <a href="{{ view.handoff_decision.action_href }}">{{ view.handoff_decision.action_label }}</a>
+      <a href="/pilot/handoff-summary.md">Summary</a>
+      <a href="/pilot/bundle-verification.md">Verify</a>
+    </div>
+  </div>
+  <div class="status-panel">
+    <span class="badge status-{{ view.handoff_decision.status }}">{{ view.handoff_decision.status }}</span>
+    <div>
+      <strong>{{ view.handoff_decision.title }}</strong>
+      <p>{{ view.handoff_decision.detail }}</p>
+    </div>
+  </div>
+</section>
+
 <section class="metrics" aria-label="Pilot evidence file categories">
   <div class="metric"><span>Bundle Files</span><strong>{{ view.evidence_files|length }}</strong></div>
   <div class="metric"><span>Archive Files</span><strong>{{ view.evidence_archive_file_count }}</strong></div>
@@ -55,6 +73,7 @@
 </section>
 
 <section class="page-shortcuts" aria-label="Pilot runbook shortcuts">
+  <a href="#pilot-handoff-decision">Decision <span>{{ view.handoff_decision.status }}</span></a>
   {% if view.attention_items %}
   <a href="#pilot-attention">Attention <span>{{ view.attention_items|length }}</span></a>
   {% endif %}

@@ -437,6 +437,8 @@ class WebUiTests(unittest.TestCase):
         self.assertIn('id="pilot-bundle"', template)
         self.assertIn('aria-label="Pilot evidence bundle links"', template)
         self.assertIn('<caption class="sr-only">Pilot evidence bundle files</caption>', template)
+        self.assertIn("<th>Review</th>", template)
+        self.assertIn("item.review_order", template)
         self.assertIn("<th>Kind</th>", template)
         self.assertIn("item.kind", template)
         self.assertIn("item.sha256_short", template)
@@ -525,8 +527,15 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(view.evidence_automation_file_count, 8)
         self.assertEqual(view.evidence_human_file_count, 7)
         self.assertEqual(view.evidence_files[0].kind, "Human-readable Markdown")
+        self.assertEqual(view.evidence_files[0].review_order, 1)
         self.assertEqual(view.evidence_files[1].kind, "Automation JSON")
+        self.assertEqual(view.evidence_files[1].review_order, 2)
         self.assertEqual(view.evidence_files[-1].path, "pilot-delivery-receipt.json")
+        self.assertEqual(view.evidence_files[-1].review_order, 15)
+        self.assertEqual(
+            [item.review_order for item in view.evidence_files],
+            list(range(1, 16)),
+        )
         self.assertEqual(
             len([item for item in view.evidence_files if item.kind == "Automation JSON"]),
             8,

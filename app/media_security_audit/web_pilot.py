@@ -109,6 +109,7 @@ class PilotRunbookSection:
 class PilotEvidenceFileView:
     path: str
     kind: str
+    review_order: int
     size_bytes: int
     sha256: str
     sha256_short: str
@@ -1692,6 +1693,7 @@ def build_pilot_evidence_file_views(
             PilotEvidenceFileView(
                 path=str(entry["path"]),
                 kind=pilot_evidence_file_kind(str(entry["path"])),
+                review_order=pilot_bundle_review_order(str(entry["path"])),
                 size_bytes=int(entry["size_bytes"]),
                 sha256=sha256_value,
                 sha256_short=sha256_value[:12],

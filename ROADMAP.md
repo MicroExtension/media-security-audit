@@ -294,6 +294,7 @@ Current foundation:
 - local pilot bundle inventory CSV export started
 - local pilot bundle inventory review-order exports started
 - local pilot bundle inventory page review order started
+- local pilot bundle inventory page review numbers started
 - local pilot delivery receipt export started
 - local pilot delivery receipt category counts started
 - local pilot delivery receipt file details started

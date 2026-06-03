@@ -646,6 +646,9 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("# Pilot Handoff Summary", handoff_summary.content)
         self.assertIn("- Readiness status: `warning`", handoff_summary.content)
         self.assertIn("- Attention items: `1`", handoff_summary.content)
+        self.assertIn("- Automation files: `8`", handoff_summary.content)
+        self.assertIn("- Human-readable files: `7`", handoff_summary.content)
+        self.assertIn("- Manifest files: `1`", handoff_summary.content)
         self.assertIn("pilot-bundle-index.md", handoff_summary.content)
         self.assertIn("pilot-delivery-receipt.md", handoff_summary.content)
         self.assertIn("pilot-handoff-summary.json", handoff_summary.content)
@@ -656,10 +659,13 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(handoff_json.filename, "pilot-handoff-summary.json")
         self.assertEqual(handoff_json.media_type, "application/json")
         self.assertEqual(handoff_payload, handoff_json.payload)
-        self.assertEqual(handoff_payload["schema_version"], 1)
+        self.assertEqual(handoff_payload["schema_version"], 2)
         self.assertEqual(handoff_payload["handoff_type"], "pilot")
         self.assertEqual(handoff_payload["context"], "Client Pilot")
         self.assertEqual(handoff_payload["source"], "Pilot Runbook")
+        self.assertEqual(handoff_payload["automation_file_count"], 8)
+        self.assertEqual(handoff_payload["human_file_count"], 7)
+        self.assertEqual(handoff_payload["manifest_file_count"], 1)
         self.assertEqual(handoff_payload["readiness"]["status"], "warning")
         self.assertEqual(handoff_payload["readiness"]["warning"], 1)
         self.assertEqual(handoff_payload["next_action_count"], 1)
@@ -759,6 +765,9 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(delivery_receipt.media_type, "text/markdown; charset=utf-8")
         self.assertIn("# Pilot Delivery Receipt", delivery_receipt.content)
         self.assertIn("- Readiness status: `warning`", delivery_receipt.content)
+        self.assertIn("- Automation files: `8`", delivery_receipt.content)
+        self.assertIn("- Human-readable files: `7`", delivery_receipt.content)
+        self.assertIn("- Manifest files: `1`", delivery_receipt.content)
         self.assertIn("pilot-acceptance-checklist.json", delivery_receipt.content)
         self.assertIn("pilot-delivery-receipt.json", delivery_receipt.content)
         self.assertIn("Client representative:", delivery_receipt.content)
@@ -768,8 +777,11 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(delivery_json.filename, "pilot-delivery-receipt.json")
         self.assertEqual(delivery_json.media_type, "application/json")
         self.assertEqual(delivery_payload, delivery_json.payload)
-        self.assertEqual(delivery_payload["schema_version"], 1)
+        self.assertEqual(delivery_payload["schema_version"], 2)
         self.assertEqual(delivery_payload["delivery_type"], "pilot")
+        self.assertEqual(delivery_payload["automation_file_count"], 8)
+        self.assertEqual(delivery_payload["human_file_count"], 7)
+        self.assertEqual(delivery_payload["manifest_file_count"], 1)
         self.assertEqual(delivery_payload["readiness"]["status"], "warning")
         self.assertEqual(delivery_payload["attention_items"], 1)
         self.assertIn("pilot-attention.json", delivery_payload["delivered_files"])
@@ -1172,23 +1184,33 @@ class WebUiTests(unittest.TestCase):
                 archived_inventory["files"][0]["kind"],
                 "Automation JSON",
             )
-            self.assertIn(
-                "# Pilot Delivery Receipt",
-                archive.read("pilot-delivery-receipt.md").decode("utf-8"),
-            )
+            archived_delivery_markdown = archive.read(
+                "pilot-delivery-receipt.md"
+            ).decode("utf-8")
+            self.assertIn("# Pilot Delivery Receipt", archived_delivery_markdown)
+            self.assertIn("- Automation files: `8`", archived_delivery_markdown)
             archived_delivery = json.loads(
                 archive.read("pilot-delivery-receipt.json").decode("utf-8")
             )
             self.assertEqual(archived_delivery["delivery_type"], "pilot")
+            self.assertEqual(archived_delivery["schema_version"], 2)
+            self.assertEqual(archived_delivery["automation_file_count"], 8)
+            self.assertEqual(archived_delivery["human_file_count"], 7)
+            self.assertEqual(archived_delivery["manifest_file_count"], 1)
             self.assertEqual(archived_delivery["readiness"]["status"], "ready")
-            self.assertIn(
-                "# Pilot Handoff Summary",
-                archive.read("pilot-handoff-summary.md").decode("utf-8"),
-            )
+            archived_handoff_markdown = archive.read(
+                "pilot-handoff-summary.md"
+            ).decode("utf-8")
+            self.assertIn("# Pilot Handoff Summary", archived_handoff_markdown)
+            self.assertIn("- Automation files: `8`", archived_handoff_markdown)
             archived_handoff = json.loads(
                 archive.read("pilot-handoff-summary.json").decode("utf-8")
             )
             self.assertEqual(archived_handoff["handoff_type"], "pilot")
+            self.assertEqual(archived_handoff["schema_version"], 2)
+            self.assertEqual(archived_handoff["automation_file_count"], 8)
+            self.assertEqual(archived_handoff["human_file_count"], 7)
+            self.assertEqual(archived_handoff["manifest_file_count"], 1)
             self.assertEqual(archived_handoff["readiness"]["status"], "ready")
             archived_readiness = json.loads(
                 archive.read("pilot-readiness.json").decode("utf-8")

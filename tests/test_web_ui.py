@@ -447,6 +447,8 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("item.review_order", template)
         self.assertIn("<th>Purpose</th>", template)
         self.assertIn("item.purpose", template)
+        self.assertIn("<th>Category</th>", template)
+        self.assertIn("item.category", template)
         self.assertIn("<th>Kind</th>", template)
         self.assertIn("item.kind", template)
         self.assertIn("item.sha256_short", template)
@@ -562,6 +564,7 @@ class WebUiTests(unittest.TestCase):
             "Compact handoff state and next actions.",
         )
         self.assertEqual(view.evidence_files[1].kind, "Automation JSON")
+        self.assertEqual(view.evidence_files[1].category, "automation")
         self.assertEqual(view.evidence_files[1].review_order, 2)
         self.assertEqual(
             view.evidence_files[1].purpose,
@@ -578,17 +581,11 @@ class WebUiTests(unittest.TestCase):
             list(range(1, 16)),
         )
         self.assertEqual(
-            len([item for item in view.evidence_files if item.kind == "Automation JSON"]),
+            len([item for item in view.evidence_files if item.category == "automation"]),
             8,
         )
         self.assertEqual(
-            len(
-                [
-                    item
-                    for item in view.evidence_files
-                    if item.kind == "Human-readable Markdown"
-                ]
-            ),
+            len([item for item in view.evidence_files if item.category == "human"]),
             7,
         )
         self.assertTrue(all(len(item.sha256_short) == 12 for item in view.evidence_files))
@@ -808,12 +805,14 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(inventory_csv.media_type, "text/csv; charset=utf-8")
         self.assertEqual(
             inventory_csv.content.splitlines()[0],
-            "review_order,path,kind,size_bytes,sha256,sha256_short",
+            "review_order,path,category,kind,size_bytes,sha256,sha256_short",
         )
         self.assertEqual(inventory_rows[0]["path"], "pilot-handoff-summary.md")
+        self.assertEqual(inventory_rows[0]["category"], "human")
         self.assertEqual(inventory_rows[0]["kind"], "Human-readable Markdown")
         self.assertEqual(inventory_rows[0]["review_order"], "1")
         self.assertEqual(inventory_rows[1]["path"], "pilot-handoff-summary.json")
+        self.assertEqual(inventory_rows[1]["category"], "automation")
         self.assertEqual(inventory_rows[1]["kind"], "Automation JSON")
         self.assertEqual(inventory_rows[1]["review_order"], "2")
         self.assertEqual(inventory_rows[-1]["path"], "pilot-delivery-receipt.json")
@@ -824,7 +823,7 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(inventory_json.filename, "pilot-bundle-inventory.json")
         self.assertEqual(inventory_json.media_type, "application/json")
         self.assertEqual(inventory_payload, inventory_json.payload)
-        self.assertEqual(inventory_payload["schema_version"], 3)
+        self.assertEqual(inventory_payload["schema_version"], 4)
         self.assertEqual(inventory_payload["bundle_type"], "pilot_evidence")
         self.assertEqual(inventory_payload["expected_file_count"], 15)
         self.assertEqual(inventory_payload["evidence_file_count"], 15)
@@ -841,9 +840,11 @@ class WebUiTests(unittest.TestCase):
             view.evidence_archive_total_size_bytes,
         )
         self.assertEqual(inventory_payload["files"][0]["path"], "pilot-handoff-summary.md")
+        self.assertEqual(inventory_payload["files"][0]["category"], "human")
         self.assertEqual(inventory_payload["files"][0]["kind"], "Human-readable Markdown")
         self.assertEqual(inventory_payload["files"][0]["review_order"], 1)
         self.assertEqual(inventory_payload["files"][1]["path"], "pilot-handoff-summary.json")
+        self.assertEqual(inventory_payload["files"][1]["category"], "automation")
         self.assertEqual(inventory_payload["files"][1]["review_order"], 2)
         self.assertEqual(inventory_payload["files"][-1]["path"], "pilot-delivery-receipt.json")
         self.assertEqual(inventory_payload["files"][-1]["review_order"], 15)
@@ -1355,7 +1356,7 @@ class WebUiTests(unittest.TestCase):
             )
             self.assertEqual(archived_inventory["bundle_type"], "pilot_evidence")
             self.assertEqual(archived_inventory["expected_file_count"], 15)
-            self.assertEqual(archived_inventory["schema_version"], 3)
+            self.assertEqual(archived_inventory["schema_version"], 4)
             self.assertEqual(archived_inventory["automation_file_count"], 8)
             self.assertEqual(archived_inventory["human_file_count"], 7)
             self.assertEqual(archived_inventory["evidence_file_count"], 15)
@@ -1369,6 +1370,7 @@ class WebUiTests(unittest.TestCase):
                 archived_inventory["files"][0]["path"],
                 "pilot-handoff-summary.md",
             )
+            self.assertEqual(archived_inventory["files"][0]["category"], "human")
             self.assertEqual(
                 archived_inventory["files"][0]["kind"],
                 "Human-readable Markdown",

@@ -108,6 +108,7 @@ Implemented so far:
 - local pilot evidence bundle inventory page summarizes archive bytes
 - local pilot evidence bundle inventory page archive bytes align with manifest generation
 - local pilot bundle inventory JSON includes archive summary metrics
+- local pilot bundle inventory CSV and JSON include normalized file categories
 - local pilot delivery receipt Markdown export for client sign-off
 - local pilot delivery receipt includes evidence category counts
 - local pilot delivery receipt JSON includes detailed evidence file metadata

@@ -684,7 +684,7 @@ Current GUI status:
 - local Pilot bundle inventory JSON exposes archive summary metrics for automation
 - local Pilot page shows human and automation categories for pilot evidence files
 - local Pilot page downloads the pilot evidence bundle inventory as CSV
-- local Pilot page exports bundle inventory categories in CSV and JSON
+- local Pilot page exports normalized bundle inventory categories in CSV and JSON
 - local Pilot page shows readiness rollup counters before pilot handoff
 - local Pilot page highlights non-ready attention items before pilot handoff
 - local Pilot page exports non-ready attention items as Markdown for handoff follow-up

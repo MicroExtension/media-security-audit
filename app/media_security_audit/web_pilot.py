@@ -818,6 +818,23 @@ def build_pilot_handoff_summary_json_export(
 
 
 def pilot_handoff_summary_payload(view: PilotRunbookView) -> dict[str, object]:
+    handoff_files = [
+        "pilot-runbook.md",
+        "pilot-acceptance-checklist.md",
+        "pilot-acceptance-checklist.json",
+        "pilot-handoff-summary.json",
+        "pilot-bundle-index.md",
+        "pilot-bundle-index.json",
+        "pilot-bundle-inventory.json",
+        "pilot-delivery-receipt.md",
+        "pilot-delivery-receipt.json",
+        "pilot-readiness.md",
+        "pilot-readiness.json",
+        "pilot-attention.md",
+        "pilot-attention.json",
+        "pilot-runbook.json",
+        "manifest.json",
+    ]
     return {
         "acceptance_items": len(view.acceptance_items),
         "automation_file_count": view.evidence_automation_file_count,
@@ -831,23 +848,9 @@ def pilot_handoff_summary_payload(view: PilotRunbookView) -> dict[str, object]:
             for item in view.attention_items
         ],
         "context": view.subtitle,
-        "handoff_files": [
-            "pilot-runbook.md",
-            "pilot-acceptance-checklist.md",
-            "pilot-acceptance-checklist.json",
-            "pilot-handoff-summary.json",
-            "pilot-bundle-index.md",
-            "pilot-bundle-index.json",
-            "pilot-bundle-inventory.json",
-            "pilot-delivery-receipt.md",
-            "pilot-delivery-receipt.json",
-            "pilot-readiness.md",
-            "pilot-readiness.json",
-            "pilot-attention.md",
-            "pilot-attention.json",
-            "pilot-runbook.json",
-            "manifest.json",
-        ],
+        "handoff_file_count": len(handoff_files),
+        "handoff_file_details": pilot_bundle_file_details(handoff_files),
+        "handoff_files": handoff_files,
         "handoff_type": "pilot",
         "human_file_count": view.evidence_human_file_count,
         "manifest_file_count": 1,
@@ -860,7 +863,7 @@ def pilot_handoff_summary_payload(view: PilotRunbookView) -> dict[str, object]:
             "total": view.readiness_rollup.total,
             "warning": view.readiness_rollup.warning,
         },
-        "schema_version": 2,
+        "schema_version": 3,
         "source": view.title,
     }
 
@@ -1034,6 +1037,25 @@ def pilot_bundle_review_file_kind(path: str) -> str:
     return pilot_evidence_file_kind(path)
 
 
+def pilot_bundle_review_order(path: str) -> int:
+    try:
+        return PILOT_BUNDLE_REVIEW_ORDER.index(path) + 1
+    except ValueError:
+        return 0
+
+
+def pilot_bundle_file_details(paths: list[str]) -> list[dict[str, object]]:
+    return [
+        {
+            "kind": pilot_bundle_review_file_kind(path),
+            "path": path,
+            "purpose": pilot_bundle_file_purpose(path),
+            "review_order": pilot_bundle_review_order(path),
+        }
+        for path in paths
+    ]
+
+
 def build_pilot_attention_export(
     readiness_items: list[PilotReadinessItem],
     view: PilotRunbookView | None = None,
@@ -1142,28 +1164,31 @@ def build_pilot_delivery_receipt_json_export(
 
 
 def pilot_delivery_receipt_payload(view: PilotRunbookView) -> dict[str, object]:
+    delivered_files = [
+        "pilot-handoff-summary.md",
+        "pilot-handoff-summary.json",
+        "pilot-bundle-index.md",
+        "pilot-bundle-index.json",
+        "pilot-bundle-inventory.json",
+        "pilot-readiness.md",
+        "pilot-readiness.json",
+        "pilot-attention.md",
+        "pilot-attention.json",
+        "pilot-acceptance-checklist.md",
+        "pilot-acceptance-checklist.json",
+        "pilot-runbook.md",
+        "pilot-runbook.json",
+        "pilot-delivery-receipt.json",
+        "manifest.json",
+    ]
     return {
         "automation_file_count": view.evidence_automation_file_count,
         "attention_items": len(view.attention_items),
         "context": view.subtitle,
         "delivery_type": "pilot",
-        "delivered_files": [
-            "pilot-handoff-summary.md",
-            "pilot-handoff-summary.json",
-            "pilot-bundle-index.md",
-            "pilot-bundle-index.json",
-            "pilot-bundle-inventory.json",
-            "pilot-readiness.md",
-            "pilot-readiness.json",
-            "pilot-attention.md",
-            "pilot-attention.json",
-            "pilot-acceptance-checklist.md",
-            "pilot-acceptance-checklist.json",
-            "pilot-runbook.md",
-            "pilot-runbook.json",
-            "pilot-delivery-receipt.json",
-            "manifest.json",
-        ],
+        "delivered_file_count": len(delivered_files),
+        "delivered_file_details": pilot_bundle_file_details(delivered_files),
+        "delivered_files": delivered_files,
         "human_file_count": view.evidence_human_file_count,
         "manifest_file_count": 1,
         "readiness": {
@@ -1174,7 +1199,7 @@ def pilot_delivery_receipt_payload(view: PilotRunbookView) -> dict[str, object]:
             "total": view.readiness_rollup.total,
             "warning": view.readiness_rollup.warning,
         },
-        "schema_version": 2,
+        "schema_version": 3,
         "sign_off_fields": [
             "client_representative",
             "technician",

@@ -505,27 +505,28 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(
             [item.path for item in view.evidence_files],
             [
-                "pilot-acceptance-checklist.json",
-                "pilot-acceptance-checklist.md",
-                "pilot-attention.json",
-                "pilot-attention.md",
-                "pilot-bundle-index.json",
-                "pilot-bundle-index.md",
-                "pilot-bundle-inventory.json",
-                "pilot-delivery-receipt.json",
-                "pilot-delivery-receipt.md",
-                "pilot-handoff-summary.json",
                 "pilot-handoff-summary.md",
-                "pilot-readiness.json",
+                "pilot-handoff-summary.json",
+                "pilot-bundle-index.md",
+                "pilot-bundle-index.json",
+                "pilot-bundle-inventory.json",
+                "pilot-attention.md",
+                "pilot-attention.json",
                 "pilot-readiness.md",
-                "pilot-runbook.json",
+                "pilot-readiness.json",
+                "pilot-acceptance-checklist.md",
+                "pilot-acceptance-checklist.json",
                 "pilot-runbook.md",
+                "pilot-runbook.json",
+                "pilot-delivery-receipt.md",
+                "pilot-delivery-receipt.json",
             ],
         )
         self.assertEqual(view.evidence_automation_file_count, 8)
         self.assertEqual(view.evidence_human_file_count, 7)
-        self.assertEqual(view.evidence_files[0].kind, "Automation JSON")
-        self.assertEqual(view.evidence_files[1].kind, "Human-readable Markdown")
+        self.assertEqual(view.evidence_files[0].kind, "Human-readable Markdown")
+        self.assertEqual(view.evidence_files[1].kind, "Automation JSON")
+        self.assertEqual(view.evidence_files[-1].path, "pilot-delivery-receipt.json")
         self.assertEqual(
             len([item for item in view.evidence_files if item.kind == "Automation JSON"]),
             8,

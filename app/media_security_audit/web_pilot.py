@@ -1316,9 +1316,13 @@ def pilot_bundle_inventory_payload(view: PilotRunbookView) -> dict[str, object]:
         key=pilot_bundle_path_sort_key,
     )
     return {
+        "archive_file_count": view.evidence_archive_file_count,
+        "archive_total_size_bytes": view.evidence_archive_total_size_bytes,
         "automation_file_count": view.evidence_automation_file_count,
         "bundle_type": "pilot_evidence",
         "context": view.subtitle,
+        "evidence_file_count": len(view.evidence_files),
+        "evidence_total_size_bytes": view.evidence_total_size_bytes,
         "expected_file_count": len(PILOT_BUNDLE_REVIEW_ORDER) - 1,
         "files": [
             {
@@ -1330,8 +1334,9 @@ def pilot_bundle_inventory_payload(view: PilotRunbookView) -> dict[str, object]:
             for path in inventory_paths
         ],
         "human_file_count": view.evidence_human_file_count,
+        "manifest_file_count": view.evidence_manifest_file_count,
         "manifest_path": "manifest.json",
-        "schema_version": 2,
+        "schema_version": 3,
         "source": view.title,
     }
 

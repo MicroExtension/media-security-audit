@@ -148,7 +148,7 @@ Codex action:
 - keep Debian VM maintenance bundles limited to maintenance reports and sidecar manifests
 - keep Debian VM bundle manifest verification checksum-only and restore-free
 - keep Debian VM bundle inventory read-only and restore-free
-- keep Debian VM service startup guarded by strict preflight
+- keep Debian VM service startup guarded by deployment preflight
 - keep Debian VM status checks log-free and scanner-free
 - keep Debian VM stop helpers explicit and data-preserving
 - keep Debian VM restart helpers explicit, data-preserving, and preflighted
@@ -163,7 +163,7 @@ Codex action:
 - keep Debian VM support bundles limited to diagnostics reports and sidecar manifests
 - keep Debian VM update planning read-only and maintenance-window focused
 - keep Debian VM offline update planning package-verification-only until apply workflow is designed
-- keep Debian VM update helpers guarded by backup, manifest verification, and strict preflight
+- keep Debian VM update helpers guarded by backup, manifest verification, and deployment preflight
 
 ## Step 2.2 - Nmap Dry-Run Planning
 
@@ -483,16 +483,16 @@ Use `bash scripts/debian-vm-bundle-inventory.sh --verify-manifests` to list
 handoff, maintenance, and support bundles with manifest status without deleting
 or extracting anything.
 Use `bash scripts/debian-vm-preflight.sh` after `.env` is configured to validate
-Docker Compose, persistent folders, image build, and strict preflight before
+Docker Compose, persistent folders, image build, and deployment preflight before
 starting the service.
-Use `bash scripts/debian-vm-start.sh` to run strict preflight and start Docker
+Use `bash scripts/debian-vm-start.sh` to run deployment preflight and start Docker
 Compose only if deployment checks pass.
 Use `bash scripts/debian-vm-status.sh` for a quick log-free status check of
 `.env`, Docker Compose, service state, and deployment preflight JSON.
 Use `bash scripts/debian-vm-stop.sh --confirm` to stop the service without
 removing containers, volumes, or persistent folders.
 Use `bash scripts/debian-vm-restart.sh --confirm` after approved maintenance to
-stop without removing data and start again through strict preflight.
+stop without removing data and start again through deployment preflight.
 Use `bash scripts/debian-vm-backup.sh` before customer-impacting updates to
 archive `data`, `runs`, `reports`, and `evidence` without starting services or
 running scanners.
@@ -546,7 +546,7 @@ workflow. It verifies package and preview metadata, runs the offline plan, and
 still records `application=not_implemented`.
 Use `bash scripts/debian-vm-update.sh` for approved updates on `main`; it backs
 up first, writes and verifies a sidecar manifest, requires a clean tracked
-worktree, pulls with `--ff-only`, rebuilds, runs strict preflight, then restarts
+worktree, pulls with `--ff-only`, rebuilds, runs deployment preflight, then restarts
 Docker Compose.
 
 ## Step 6 - Build The GUI

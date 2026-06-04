@@ -254,9 +254,10 @@ bash scripts/debian-vm-preflight.sh
 
 Expected result:
 
-- strict preflight passes
+- deployment preflight completes
 - persistent folders are ready
 - Docker Compose can build the app
+- missing optional scanner tooling may be reported as a warning
 - no scanner is executed
 
 ### 6. Start The Service
@@ -482,7 +483,8 @@ Run:
 
 ```bash
 mkdir -p data runs reports evidence
-sudo chown -R 10001:10001 data runs reports evidence
+sed -i "s/^MEDIA_AUDIT_UID=.*/MEDIA_AUDIT_UID=$(id -u)/" .env
+sed -i "s/^MEDIA_AUDIT_GID=.*/MEDIA_AUDIT_GID=$(id -g)/" .env
 bash scripts/debian-vm-preflight.sh
 ```
 

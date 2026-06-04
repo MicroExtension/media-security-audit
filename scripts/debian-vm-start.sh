@@ -20,7 +20,7 @@ docker compose version >/dev/null 2>&1 || fail "docker compose v2 is required be
 grep -Eq '^MEDIA_AUDIT_WEB_PASSWORD=.+$' ".env" \
   || fail "set MEDIA_AUDIT_WEB_PASSWORD in .env before starting the service"
 
-info "running strict deployment preflight before startup"
+info "running deployment preflight before startup"
 bash scripts/debian-vm-preflight.sh
 
 info "starting media-audit service"

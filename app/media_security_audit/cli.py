@@ -854,6 +854,12 @@ def parse_cli_date(value: str) -> date:
         raise argparse.ArgumentTypeError("date must use YYYY-MM-DD format") from error
 
 
+def parse_optional_cli_date(value: str | None) -> date | None:
+    if value is None:
+        return None
+    return parse_cli_date(value)
+
+
 try:
     import typer
 
@@ -942,22 +948,27 @@ try:
         audit_type: AuditType = typer.Option(AuditType.MIXED, "--audit-type"),
         authorization_reference: str | None = typer.Option(None, "--authorization-reference"),
         authorization_contact: str | None = typer.Option(None, "--authorization-contact"),
-        authorization_date: date | None = typer.Option(None, "--authorization-date"),
-        authorization_expires_at: date | None = typer.Option(None, "--authorization-expires-at"),
+        authorization_date: str | None = typer.Option(None, "--authorization-date"),
+        authorization_expires_at: str | None = typer.Option(None, "--authorization-expires-at"),
         emergency_contact: str | None = typer.Option(None, "--emergency-contact"),
         report_recipients: str | None = typer.Option(None, "--report-recipients"),
         evidence_retention_days: int | None = typer.Option(None, "--evidence-retention-days"),
         notes: str | None = typer.Option(None, "--notes"),
         data_dir: Path = typer.Option(Path("data"), "--data-dir"),
     ) -> None:
+        try:
+            parsed_authorization_date = parse_optional_cli_date(authorization_date)
+            parsed_authorization_expires_at = parse_optional_cli_date(authorization_expires_at)
+        except argparse.ArgumentTypeError as error:
+            raise typer.BadParameter(str(error)) from error
         mission = create_mission(
             client_id=client_id,
             name=name,
             audit_type=audit_type,
             authorization_reference=authorization_reference,
             authorization_contact=authorization_contact,
-            authorization_date=authorization_date,
-            authorization_expires_at=authorization_expires_at,
+            authorization_date=parsed_authorization_date,
+            authorization_expires_at=parsed_authorization_expires_at,
             emergency_contact=emergency_contact,
             report_recipients=report_recipients,
             evidence_retention_days=evidence_retention_days,

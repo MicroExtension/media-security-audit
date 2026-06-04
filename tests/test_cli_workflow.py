@@ -58,6 +58,24 @@ from media_security_audit.web_reports import generate_web_reports  # noqa: E402
 
 
 class CliWorkflowTests(unittest.TestCase):
+    def test_typer_options_do_not_use_date_annotations(self) -> None:
+        cli_path = Path(__file__).resolve().parents[1] / "app" / "media_security_audit" / "cli.py"
+        source = cli_path.read_text(encoding="utf-8")
+
+        self.assertNotIn(": date | None = typer.Option", source)
+        self.assertNotIn(": datetime.date | None = typer.Option", source)
+
+    def test_typer_command_graph_builds(self) -> None:
+        try:
+            from typer.main import get_command
+        except ModuleNotFoundError:
+            self.skipTest("typer is not installed")
+
+        command = get_command(app)
+
+        self.assertIn("preflight", command.commands)
+        self.assertIn("mission", command.commands)
+
     def test_creates_basic_local_workflow(self) -> None:
         root_dir = Path(__file__).resolve().parents[1] / ".tmp-tests" / "cli-workflow"
         data_dir = root_dir / "data"

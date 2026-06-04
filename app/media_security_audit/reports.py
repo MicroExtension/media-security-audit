@@ -32,6 +32,68 @@ REVIEWED_DISPOSITION_STATUSES = {
     FindingStatus.FALSE_POSITIVE,
 }
 
+SEVERITY_LABELS_FR = {
+    "critical": "Critique",
+    "high": "Élevée",
+    "medium": "Moyenne",
+    "low": "Faible",
+    "info": "Information",
+}
+
+STATUS_LABELS_FR = {
+    "new": "Nouveau",
+    "confirmed": "Confirmé",
+    "false_positive": "Faux positif",
+    "accepted_risk": "Risque accepté",
+    "remediated": "Corrigé",
+    "counter_test_passed": "Contre-test validé",
+    "counter_test_failed": "Contre-test échoué",
+    "draft": "Brouillon",
+    "blocked": "Bloquée",
+    "ready_to_scan": "Prête à auditer",
+    "in_progress": "En cours",
+    "completed": "Terminée",
+}
+
+RISK_LEVEL_LABELS_FR = {
+    "none": "Aucun",
+    "low": "Faible",
+    "medium": "Moyen",
+    "high": "Élevé",
+    "critical": "Critique",
+}
+
+EXECUTIVE_SUMMARY_LABELS_FR = {
+    "No active findings are included in this report.": (
+        "Aucun constat actif n’est inclus dans ce rapport."
+    ),
+    "Immediate remediation is required for critical security findings.": (
+        "Une remédiation immédiate est requise pour les constats critiques."
+    ),
+    "High-priority remediation should be planned as soon as possible.": (
+        "Les remédiations prioritaires doivent être planifiées dès que possible."
+    ),
+    "The audit identified moderate security improvements to prioritize.": (
+        "L’audit identifie des améliorations de sécurité modérées à prioriser."
+    ),
+    "The audit identified low-risk hygiene improvements and informational observations.": (
+        "L’audit identifie des améliorations d’hygiène à faible risque et des observations informatives."
+    ),
+}
+
+AUDIT_TYPE_LABELS_FR = {
+    "internal": "Interne",
+    "external": "Externe",
+    "mixed": "Mixte",
+}
+
+SCOPE_TYPE_LABELS_FR = {
+    "cidr": "Réseau",
+    "ip": "Adresse IP",
+    "domain": "Domaine",
+    "url": "URL",
+}
+
 
 def active_findings(findings: list[Finding]) -> list[Finding]:
     return [finding for finding in findings if finding.status != FindingStatus.FALSE_POSITIVE]
@@ -114,6 +176,43 @@ def display_value(value: object | None) -> str:
         return "missing"
     text = str(value).strip()
     return " ".join(text.split()) if text else "missing"
+
+
+def display_report_value(value: str) -> str:
+    return "Non renseigné" if value == "missing" else value
+
+
+def display_severity(value: str) -> str:
+    return SEVERITY_LABELS_FR.get(value, value)
+
+
+def display_status(value: str) -> str:
+    return STATUS_LABELS_FR.get(value, value)
+
+
+def display_risk_level(value: object) -> str:
+    text = str(value)
+    return RISK_LEVEL_LABELS_FR.get(text, text)
+
+
+def display_executive_summary(value: object) -> str:
+    text = str(value)
+    return EXECUTIVE_SUMMARY_LABELS_FR.get(text, text)
+
+
+def display_generated_at(value: object) -> str:
+    return str(value).replace("T", " ").replace("+00:00", " UTC")
+
+
+def display_audit_type(value: str) -> str:
+    return AUDIT_TYPE_LABELS_FR.get(value, value)
+
+
+def display_scope_target(target: str) -> str:
+    scope_type, separator, value = target.partition(":")
+    if not separator:
+        return target
+    return f"{SCOPE_TYPE_LABELS_FR.get(scope_type, scope_type)} : {value}"
 
 
 def authorization_summary(mission: Mission) -> dict[str, str]:
@@ -339,14 +438,15 @@ def render_markdown(mission: Mission, findings: list[Finding]) -> str:
 
 def _render_html_remediation_plan(plan: list[dict[str, str]]) -> str:
     if not plan:
-        return "<p>No prioritized remediation items were included.</p>"
+        return '<p class="empty">Aucune action prioritaire n’est incluse dans ce rapport.</p>'
 
     rows = []
-    for item in plan:
+    for index, item in enumerate(plan, start=1):
         rows.append(
             f"""
 <tr>
-  <td>{escape(item["severity"])}</td>
+  <td class="rank">{index}</td>
+  <td><span class="severity-pill severity-{escape(item["severity"])}">{escape(display_severity(item["severity"]))}</span></td>
   <td>{escape(item["asset"])}</td>
   <td>{escape(item["title"])}</td>
   <td>{escape(item["remediation"])}</td>
@@ -359,11 +459,12 @@ def _render_html_remediation_plan(plan: list[dict[str, str]]) -> str:
 <table>
   <thead>
     <tr>
-      <th>Severity</th>
-      <th>Asset</th>
-      <th>Finding</th>
-      <th>Remediation</th>
-      <th>Counter-test</th>
+      <th>#</th>
+      <th>Gravité</th>
+      <th>Actif concerné</th>
+      <th>Constat</th>
+      <th>Remédiation</th>
+      <th>Contre-test</th>
     </tr>
   </thead>
   <tbody>
@@ -382,7 +483,7 @@ def _render_html_disposition_summary(
         note_rows.append(
             f"""
 <tr>
-  <td>{escape(item["status"])}</td>
+  <td>{escape(display_status(item["status"]))}</td>
   <td>{escape(item["asset"])}</td>
   <td>{escape(item["title"])}</td>
   <td>{escape(item["review_note"])}</td>
@@ -392,14 +493,14 @@ def _render_html_disposition_summary(
 
     notes_html = (
         f"""
-<h3>Disposition notes</h3>
+<h3>Notes de revue</h3>
 <table>
   <thead>
     <tr>
-      <th>Status</th>
-      <th>Asset</th>
-      <th>Finding</th>
-      <th>Review note</th>
+      <th>Statut</th>
+      <th>Actif concerné</th>
+      <th>Constat</th>
+      <th>Note de revue</th>
     </tr>
   </thead>
   <tbody>
@@ -408,18 +509,18 @@ def _render_html_disposition_summary(
 </table>
 """.strip()
         if note_rows
-        else "<p>No reviewed disposition notes were included.</p>"
+        else '<p class="empty">Aucune note de revue n’est incluse.</p>'
     )
 
     return f"""
 <div class="summary">
-  <div class="metric"><span>New</span><strong>{status_counts["new"]}</strong></div>
-  <div class="metric"><span>Confirmed</span><strong>{status_counts["confirmed"]}</strong></div>
-  <div class="metric"><span>False positive</span><strong>{status_counts["false_positive"]}</strong></div>
-  <div class="metric"><span>Accepted risk</span><strong>{status_counts["accepted_risk"]}</strong></div>
-  <div class="metric"><span>Remediated</span><strong>{status_counts["remediated"]}</strong></div>
-  <div class="metric"><span>Counter-test passed</span><strong>{status_counts["counter_test_passed"]}</strong></div>
-  <div class="metric"><span>Counter-test failed</span><strong>{status_counts["counter_test_failed"]}</strong></div>
+  <div class="metric"><span>Nouveau</span><strong>{status_counts["new"]}</strong></div>
+  <div class="metric"><span>Confirmé</span><strong>{status_counts["confirmed"]}</strong></div>
+  <div class="metric"><span>Faux positif</span><strong>{status_counts["false_positive"]}</strong></div>
+  <div class="metric"><span>Risque accepté</span><strong>{status_counts["accepted_risk"]}</strong></div>
+  <div class="metric"><span>Corrigé</span><strong>{status_counts["remediated"]}</strong></div>
+  <div class="metric"><span>Contre-test validé</span><strong>{status_counts["counter_test_passed"]}</strong></div>
+  <div class="metric"><span>Contre-test échoué</span><strong>{status_counts["counter_test_failed"]}</strong></div>
 </div>
 {notes_html}
 """.strip()
@@ -435,11 +536,16 @@ def render_html(mission: Mission, findings: list[Finding]) -> str:
     authorization = summary["authorization"]
     plan = remediation_plan(ordered_findings)
     finding_blocks = []
+    risk_level = str(summary["risk_level"])
+    generated_at = display_generated_at(summary["generated_at"])
+    authorization_present = "Oui" if summary["authorization_present"] else "Non"
+    retention_days = display_report_value(authorization["evidence_retention_days"])
+    retention_label = retention_days if retention_days == "Non renseigné" else f"{retention_days} jours"
 
     for finding in ordered_findings:
         review_note = finding_review_note(finding)
         review_note_html = (
-            f"<dt>Review note</dt><dd>{escape(review_note)}</dd>"
+            f"<dt>Note de revue</dt><dd>{escape(review_note)}</dd>"
             if review_note != "missing"
             else ""
         )
@@ -448,118 +554,214 @@ def render_html(mission: Mission, findings: list[Finding]) -> str:
 <article class="finding severity-{escape(finding.severity.value)}">
   <h2>{escape(finding.title)}</h2>
   <dl>
-    <dt>Severity</dt><dd>{escape(finding.severity.value)}</dd>
-    <dt>Asset</dt><dd>{escape(finding.affected_asset)}</dd>
-    <dt>Category</dt><dd>{escape(finding.category)}</dd>
-    <dt>Status</dt><dd>{escape(finding.status.value)}</dd>
-    <dt>Confidence</dt><dd>{finding.confidence:.2f}</dd>
+    <dt>Gravité</dt><dd><span class="severity-pill severity-{escape(finding.severity.value)}">{escape(display_severity(finding.severity.value))}</span></dd>
+    <dt>Actif concerné</dt><dd>{escape(finding.affected_asset)}</dd>
+    <dt>Catégorie</dt><dd>{escape(finding.category)}</dd>
+    <dt>Statut</dt><dd>{escape(display_status(finding.status.value))}</dd>
+    <dt>Confiance</dt><dd>{finding.confidence:.2f}</dd>
     <dt>Sources</dt><dd>{escape(", ".join(finding.sources))}</dd>
     {review_note_html}
   </dl>
-  <h3>Proof</h3>
+  <h3>Preuve</h3>
   <pre>{escape(finding.proof)}</pre>
-  <h3>Risk</h3>
+  <h3>Risque</h3>
   <p>{escape(finding.risk)}</p>
-  <h3>Remediation</h3>
+  <h3>Remédiation</h3>
   <p>{escape(finding.remediation)}</p>
-  <h3>Counter-test</h3>
+  <h3>Contre-test</h3>
   <p>{escape(finding.counter_test)}</p>
 </article>
 """.strip()
         )
 
     if not finding_blocks:
-        finding_blocks.append("<p>No findings were included in this report.</p>")
+        finding_blocks.append('<p class="empty">Aucun constat n’est inclus dans ce rapport.</p>')
 
     approved_targets = scope["approved_targets"]
     approved_targets_html = (
-        "".join(f"<li><code>{escape(target)}</code></li>" for target in approved_targets)
+        "".join(f"<li><code>{escape(display_scope_target(target))}</code></li>" for target in approved_targets)
         if approved_targets
-        else "<li>No approved targets were recorded.</li>"
+        else "<li>Aucune cible approuvée n’est enregistrée.</li>"
     )
 
     return f"""<!doctype html>
-<html lang="en">
+<html lang="fr">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Security Audit Report - {escape(mission.name)}</title>
+  <title>Rapport d’audit sécurité - {escape(mission.name)}</title>
   <style>
-    body {{ font-family: Arial, sans-serif; line-height: 1.5; margin: 2rem; color: #1f2933; background: #ffffff; }}
-    header {{ border-bottom: 1px solid #d9e2ec; margin-bottom: 1.5rem; }}
-    section {{ margin: 1.75rem 0; }}
-    .summary {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: .75rem; }}
-    .metric {{ border: 1px solid #d9e2ec; border-radius: 6px; padding: .75rem; background: #fbfcfd; }}
-    .metric strong {{ display: block; font-size: 1.5rem; }}
-    .executive {{ border-left: 6px solid #1570ef; background: #f8fafc; padding: 1rem; }}
-    .finding {{ border: 1px solid #d9e2ec; border-radius: 6px; padding: 1rem; margin: 1rem 0; }}
-    .severity-critical {{ border-left: 6px solid #b42318; }}
-    .severity-high {{ border-left: 6px solid #d92d20; }}
-    .severity-medium {{ border-left: 6px solid #dc6803; }}
-    .severity-low {{ border-left: 6px solid #1570ef; }}
-    .severity-info {{ border-left: 6px solid #667085; }}
-    dl {{ display: grid; grid-template-columns: 160px 1fr; gap: .25rem .75rem; }}
-    dt {{ font-weight: bold; }}
-    pre {{ background: #f8fafc; border: 1px solid #d9e2ec; padding: .75rem; overflow-x: auto; }}
-    table {{ width: 100%; border-collapse: collapse; }}
-    th, td {{ border: 1px solid #d9e2ec; padding: .5rem; vertical-align: top; text-align: left; }}
-    th {{ background: #f8fafc; }}
-    code {{ background: #eef2f6; padding: .1rem .25rem; border-radius: 4px; }}
+    :root {{
+      color-scheme: light;
+      --ink: #172033;
+      --muted: #5b667a;
+      --line: #d7deea;
+      --surface: #f6f8fb;
+      --panel: #ffffff;
+      --brand: #0b6073;
+      --accent: #2457a6;
+      --critical: #b42318;
+      --high: #d92d20;
+      --medium: #b65c00;
+      --low: #1570ef;
+      --info: #667085;
+    }}
+    * {{ box-sizing: border-box; }}
+    body {{
+      font-family: Arial, Helvetica, sans-serif;
+      line-height: 1.55;
+      margin: 0;
+      color: var(--ink);
+      background: #eef2f6;
+    }}
+    main {{ max-width: 1180px; margin: 0 auto; padding: 24px; }}
+    header {{
+      background: var(--panel);
+      border-bottom: 4px solid var(--brand);
+      padding: 28px 32px;
+    }}
+    header .brand {{ color: var(--brand); font-size: .78rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }}
+    h1 {{ margin: .3rem 0 .35rem; font-size: 2rem; }}
+    h2 {{ margin: 0 0 1rem; font-size: 1.2rem; }}
+    h3 {{ margin: 1rem 0 .45rem; font-size: 1rem; }}
+    p {{ margin: .35rem 0; }}
+    .subtitle {{ color: var(--muted); }}
+    .section {{
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      margin: 18px 0;
+      padding: 20px;
+    }}
+    .executive {{
+      border-left: 6px solid var(--brand);
+      display: grid;
+      grid-template-columns: 1fr 220px;
+      gap: 18px;
+      align-items: start;
+    }}
+    .risk-badge {{
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      background: var(--surface);
+    }}
+    .risk-badge strong {{ display: block; font-size: 2rem; }}
+    .risk-badge span {{ color: var(--muted); }}
+    .summary {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); gap: 10px; }}
+    .metric {{ border: 1px solid var(--line); border-radius: 8px; padding: 12px; background: var(--surface); }}
+    .metric span {{ color: var(--muted); font-size: .82rem; }}
+    .metric strong {{ display: block; font-size: 1.45rem; margin-top: 3px; }}
+    .context-grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }}
+    dl {{ display: grid; grid-template-columns: minmax(150px, 220px) 1fr; gap: .35rem .75rem; margin: 0; }}
+    dt {{ font-weight: 700; color: #253044; }}
+    dd {{ margin: 0; color: #26364f; }}
+    ul {{ margin: .4rem 0 0; padding-left: 1.2rem; }}
+    .empty {{ color: var(--muted); font-style: italic; }}
+    .finding {{ border: 1px solid var(--line); border-radius: 8px; padding: 18px; margin: 14px 0; background: var(--panel); }}
+    .severity-critical {{ border-left: 6px solid var(--critical); }}
+    .severity-high {{ border-left: 6px solid var(--high); }}
+    .severity-medium {{ border-left: 6px solid var(--medium); }}
+    .severity-low {{ border-left: 6px solid var(--low); }}
+    .severity-info {{ border-left: 6px solid var(--info); }}
+    .severity-pill {{ border-radius: 999px; color: #ffffff; display: inline-block; font-size: .78rem; font-weight: 700; padding: .18rem .55rem; }}
+    .severity-pill.severity-critical {{ background: var(--critical); }}
+    .severity-pill.severity-high {{ background: var(--high); }}
+    .severity-pill.severity-medium {{ background: var(--medium); }}
+    .severity-pill.severity-low {{ background: var(--low); }}
+    .severity-pill.severity-info {{ background: var(--info); }}
+    pre {{ background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: .75rem; overflow-x: auto; white-space: pre-wrap; }}
+    table {{ width: 100%; border-collapse: collapse; font-size: .92rem; }}
+    th, td {{ border: 1px solid var(--line); padding: .65rem; vertical-align: top; text-align: left; }}
+    th {{ background: var(--surface); color: #253044; }}
+    .rank {{ font-weight: 700; text-align: center; width: 48px; }}
+    code {{ background: #edf2f7; padding: .1rem .3rem; border-radius: 4px; }}
+    @media (max-width: 760px) {{
+      main {{ padding: 12px; }}
+      header {{ padding: 20px; }}
+      .executive, .context-grid {{ grid-template-columns: 1fr; }}
+      dl {{ grid-template-columns: 1fr; }}
+      table {{ display: block; overflow-x: auto; }}
+    }}
+    @media print {{
+      body {{ background: #ffffff; }}
+      main {{ max-width: none; padding: 0; }}
+      .section {{ break-inside: avoid; }}
+    }}
   </style>
 </head>
 <body>
   <header>
-    <h1>Security Audit Report</h1>
-    <p>{escape(mission.name)} | Mission {escape(mission.id)}</p>
+    <div class="brand">M.E.D.I.A. Security Audit Platform</div>
+    <h1>Rapport d’audit sécurité</h1>
+    <p class="subtitle">{escape(mission.name)} · Mission {escape(mission.id)} · Généré le {escape(generated_at)}</p>
   </header>
-  <section class="executive">
-    <h2>Executive Summary</h2>
-    <p>{escape(str(summary["executive_summary"]))}</p>
-  </section>
-  <section>
-    <h2>Risk Overview</h2>
-    <div class="summary">
-      <div class="metric"><span>Risk score</span><strong>{summary["risk_score"]}/100</strong></div>
-      <div class="metric"><span>Risk level</span><strong>{escape(str(summary["risk_level"]))}</strong></div>
-      <div class="metric"><span>Active findings</span><strong>{summary["active_finding_count"]}</strong></div>
-      <div class="metric"><span>Critical</span><strong>{counts["critical"]}</strong></div>
-      <div class="metric"><span>High</span><strong>{counts["high"]}</strong></div>
-      <div class="metric"><span>Medium</span><strong>{counts["medium"]}</strong></div>
-      <div class="metric"><span>Low</span><strong>{counts["low"]}</strong></div>
-      <div class="metric"><span>Info</span><strong>{counts["info"]}</strong></div>
-    </div>
-  </section>
-  <section>
-    <h2>Mission Context</h2>
-    <dl>
-      <dt>Client ID</dt><dd>{escape(mission.client_id)}</dd>
-      <dt>Audit type</dt><dd>{escape(mission.audit_type.value)}</dd>
-      <dt>Mission status</dt><dd>{escape(mission.status.value)}</dd>
-      <dt>Authorization</dt><dd>{escape(authorization["reference"])}</dd>
-      <dt>Authorization contact</dt><dd>{escape(authorization["contact"])}</dd>
-      <dt>Authorization date</dt><dd>{escape(authorization["authorization_date"])}</dd>
-      <dt>Authorization expires</dt><dd>{escape(authorization["authorization_expires_at"])}</dd>
-      <dt>Emergency contact</dt><dd>{escape(authorization["emergency_contact"])}</dd>
-      <dt>Report recipients</dt><dd>{escape(authorization["report_recipients"])}</dd>
-      <dt>Evidence retention days</dt><dd>{escape(authorization["evidence_retention_days"])}</dd>
-      <dt>Approved targets</dt><dd>{scope["approved_count"]}</dd>
-      <dt>Excluded targets</dt><dd>{scope["excluded_count"]}</dd>
-    </dl>
-    <h3>Approved target list</h3>
-    <ul>{approved_targets_html}</ul>
-  </section>
-  <section>
-    <h2>Remediation Plan</h2>
-    {_render_html_remediation_plan(plan)}
-  </section>
-  <section>
-    <h2>Finding Dispositions</h2>
-    {_render_html_disposition_summary(status_counts, disposition_items)}
-  </section>
-  <section>
-    <h2>Findings</h2>
-    {"".join(finding_blocks)}
-  </section>
+  <main>
+    <section class="section executive">
+      <div>
+        <h2>Synthèse direction</h2>
+        <p>{escape(display_executive_summary(summary["executive_summary"]))}</p>
+        <p>Ce rapport présente uniquement les éléments observés dans le périmètre autorisé et les actions de remédiation associées.</p>
+      </div>
+      <div class="risk-badge">
+        <span>Score de risque</span>
+        <strong>{summary["risk_score"]}/100</strong>
+        <span>Niveau : {escape(display_risk_level(risk_level))}</span>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Vue d’ensemble du risque</h2>
+      <div class="summary">
+        <div class="metric"><span>Constats actifs</span><strong>{summary["active_finding_count"]}</strong></div>
+        <div class="metric"><span>Critiques</span><strong>{counts["critical"]}</strong></div>
+        <div class="metric"><span>Élevés</span><strong>{counts["high"]}</strong></div>
+        <div class="metric"><span>Moyens</span><strong>{counts["medium"]}</strong></div>
+        <div class="metric"><span>Faibles</span><strong>{counts["low"]}</strong></div>
+        <div class="metric"><span>Information</span><strong>{counts["info"]}</strong></div>
+        <div class="metric"><span>Autorisation</span><strong>{authorization_present}</strong></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Contexte de mission et périmètre</h2>
+      <div class="context-grid">
+        <dl>
+          <dt>Client</dt><dd>{escape(mission.client_id)}</dd>
+          <dt>Type d’audit</dt><dd>{escape(display_audit_type(mission.audit_type.value))}</dd>
+          <dt>Statut mission</dt><dd>{escape(display_status(mission.status.value))}</dd>
+          <dt>Référence autorisation</dt><dd>{escape(display_report_value(authorization["reference"]))}</dd>
+          <dt>Contact autorisation</dt><dd>{escape(display_report_value(authorization["contact"]))}</dd>
+          <dt>Date autorisation</dt><dd>{escape(display_report_value(authorization["authorization_date"]))}</dd>
+          <dt>Expiration autorisation</dt><dd>{escape(display_report_value(authorization["authorization_expires_at"]))}</dd>
+        </dl>
+        <dl>
+          <dt>Contact urgence</dt><dd>{escape(display_report_value(authorization["emergency_contact"]))}</dd>
+          <dt>Destinataires rapport</dt><dd>{escape(display_report_value(authorization["report_recipients"]))}</dd>
+          <dt>Conservation preuves</dt><dd>{escape(retention_label)}</dd>
+          <dt>Cibles approuvées</dt><dd>{scope["approved_count"]}</dd>
+          <dt>Cibles exclues</dt><dd>{scope["excluded_count"]}</dd>
+        </dl>
+      </div>
+      <h3>Périmètre approuvé</h3>
+      <ul>{approved_targets_html}</ul>
+    </section>
+
+    <section class="section">
+      <h2>Plan de remédiation priorisé</h2>
+      {_render_html_remediation_plan(plan)}
+    </section>
+
+    <section class="section">
+      <h2>Statut de traitement des constats</h2>
+      {_render_html_disposition_summary(status_counts, disposition_items)}
+    </section>
+
+    <section class="section">
+      <h2>Détails techniques des constats</h2>
+      {"".join(finding_blocks)}
+    </section>
+  </main>
 </body>
 </html>
 """

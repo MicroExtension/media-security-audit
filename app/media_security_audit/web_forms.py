@@ -225,8 +225,9 @@ def parse_checkbox(form: dict[str, str], field: str) -> bool:
 def parse_confidence(value: str | None) -> float:
     if value is None:
         return 0.8
+    normalized_value = value.replace(",", ".")
     try:
-        return float(value)
+        return float(normalized_value)
     except ValueError as error:
         raise ValueError("confidence must be a number between 0 and 1") from error
 

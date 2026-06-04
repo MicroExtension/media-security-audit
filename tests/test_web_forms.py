@@ -551,6 +551,7 @@ class WebFormTests(unittest.TestCase):
     def test_parse_confidence(self) -> None:
         self.assertEqual(parse_confidence(None), 0.8)
         self.assertEqual(parse_confidence("0.4"), 0.4)
+        self.assertEqual(parse_confidence("0,4"), 0.4)
         with self.assertRaises(ValueError):
             parse_confidence("high")
 

@@ -75,6 +75,18 @@ def clean_data_dir(name: str) -> Path:
 
 
 class WebUiTests(unittest.TestCase):
+    def test_web_app_binds_fastapi_annotation_types(self) -> None:
+        web = (
+            Path(__file__).resolve().parents[1]
+            / "app"
+            / "media_security_audit"
+            / "web.py"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("globals().update", web)
+        self.assertIn('"Request": Request', web)
+        self.assertIn('"HTTPBasicCredentials": HTTPBasicCredentials', web)
+
     def test_base_template_marks_active_top_navigation(self) -> None:
         template_path = (
             Path(__file__).resolve().parents[1]

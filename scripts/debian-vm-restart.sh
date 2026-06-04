@@ -35,5 +35,5 @@ CONFIRM="${1:-}"
 info "stopping service without removing persistent data"
 bash scripts/debian-vm-stop.sh --confirm
 
-info "running guarded startup with strict preflight"
+info "running guarded startup with deployment preflight"
 bash scripts/debian-vm-start.sh

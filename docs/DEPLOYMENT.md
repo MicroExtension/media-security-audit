@@ -106,16 +106,21 @@ MEDIA_AUDIT_WEB_USERNAME=admin
 MEDIA_AUDIT_WEB_PASSWORD=replace-with-the-generated-password
 ```
 
-Create persistent folders and assign them to the default container user:
+Create persistent folders. On a Debian/Ubuntu VM, prefer running the service
+with the local technician UID/GID so bind-mounted folders remain writable from
+both the host shell and the container. `scripts/debian-vm-init-env.sh` fills
+`MEDIA_AUDIT_UID` and `MEDIA_AUDIT_GID` automatically with `id -u` and `id -g`.
 
 ```bash
 mkdir -p data runs reports evidence
-sudo chown -R 10001:10001 data runs reports evidence
 ```
 
-Alternative for a technician-owned lab VM: set `MEDIA_AUDIT_UID` and
-`MEDIA_AUDIT_GID` in `.env` to the output of `id -u` and `id -g`, then keep the
-folders owned by that technician account.
+If `.env` was created before this behavior existed, update it once:
+
+```bash
+sed -i "s/^MEDIA_AUDIT_UID=.*/MEDIA_AUDIT_UID=$(id -u)/" .env
+sed -i "s/^MEDIA_AUDIT_GID=.*/MEDIA_AUDIT_GID=$(id -g)/" .env
+```
 
 Run a local preflight before customer use:
 
@@ -126,7 +131,7 @@ docker compose run --rm media-audit media-audit preflight \
 ```
 
 For a Debian/Ubuntu VM, the guarded helper performs the Compose validation,
-local folder checks, image build, and strict preflight in one step:
+local folder checks, image build, and deployment preflight in one step:
 
 ```bash
 bash scripts/debian-vm-preflight.sh
@@ -138,9 +143,11 @@ Use `--format json` when an install script or monitoring wrapper needs a
 machine-readable result. JSON output includes `schema_version`, overall
 `status`, per-status `summary` counts, and the detailed check `items`. Each
 item includes a short `action` field for the technician or install script.
-Use `--strict` when warnings should fail a pre-production install gate.
+Use `bash scripts/debian-vm-preflight.sh --strict` when warnings should fail a
+pre-production install gate. The default helper remains suitable for pilot VMs
+where optional scanner tooling may still be absent but the web UI can start.
 
-Build and start the service after strict preflight:
+Build and start the service after deployment preflight:
 
 ```bash
 bash scripts/debian-vm-start.sh
@@ -172,7 +179,7 @@ bash scripts/debian-vm-restart.sh --confirm
 ```
 
 The restart helper calls the guarded stop helper, then starts the service
-through the strict preflight start helper.
+through the deployment preflight start helper.
 
 Default local URL:
 
@@ -526,7 +533,7 @@ services, collect logs, or run scanners; it records
 
 The update helper requires the VM clone to be on `main` with no tracked local
 changes. It creates a backup first, writes and verifies a sidecar manifest,
-pulls with `git pull --ff-only`, rebuilds the image, runs strict preflight, and
+pulls with `git pull --ff-only`, rebuilds the image, runs deployment preflight, and
 only then restarts Docker Compose.
 
 Back up persistent folders before customer-impacting updates:

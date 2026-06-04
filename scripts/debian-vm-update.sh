@@ -58,11 +58,10 @@ docker compose config --quiet
 info "building updated media-audit image"
 docker compose build media-audit
 
-info "running strict deployment preflight"
+info "running deployment preflight"
 docker compose run --rm media-audit media-audit preflight \
   --data-dir /var/lib/media-audit/data \
-  --reports-dir /var/lib/media-audit/reports \
-  --strict
+  --reports-dir /var/lib/media-audit/reports
 
 info "starting updated service"
 docker compose up -d

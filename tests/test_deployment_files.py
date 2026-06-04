@@ -51,8 +51,9 @@ class DeploymentFileTests(unittest.TestCase):
 
         self.assertIn("MEDIA_AUDIT_BIND=127.0.0.1", env_example)
         self.assertIn("MEDIA_AUDIT_PORT=8080", env_example)
-        self.assertIn("MEDIA_AUDIT_UID=10001", env_example)
-        self.assertIn("MEDIA_AUDIT_GID=10001", env_example)
+        self.assertIn("MEDIA_AUDIT_UID=1000", env_example)
+        self.assertIn("MEDIA_AUDIT_GID=1000", env_example)
+        self.assertIn("scripts/debian-vm-init-env.sh fills these automatically", env_example)
         self.assertIn("MEDIA_AUDIT_REQUIRE_AUTH=true", env_example)
         self.assertIn("MEDIA_AUDIT_WEB_USERNAME=admin", env_example)
         self.assertIn("MEDIA_AUDIT_WEB_PASSWORD=", env_example)
@@ -77,6 +78,10 @@ class DeploymentFileTests(unittest.TestCase):
         self.assertIn("MEDIA_AUDIT_REQUIRE_AUTH=true", script)
         self.assertIn("MEDIA_AUDIT_WEB_USERNAME=admin", script)
         self.assertIn("MEDIA_AUDIT_WEB_PASSWORD=${PASSWORD}", script)
+        self.assertIn('HOST_UID="$(id -u)"', script)
+        self.assertIn('HOST_GID="$(id -g)"', script)
+        self.assertIn("MEDIA_AUDIT_UID=${HOST_UID}", script)
+        self.assertIn("MEDIA_AUDIT_GID=${HOST_GID}", script)
         self.assertIn("chmod 600", script)
         self.assertIn("maintenance password vault", script)
         self.assertNotIn("MEDIA_AUDIT_BIND=0.0.0.0", script.splitlines())
@@ -373,7 +378,9 @@ class DeploymentFileTests(unittest.TestCase):
         self.assertIn("docker compose config --quiet", script)
         self.assertIn("docker compose build media-audit", script)
         self.assertIn("docker compose run --rm media-audit media-audit preflight", script)
-        self.assertIn("--strict", script)
+        self.assertIn("[--strict]", script)
+        self.assertIn("preflight_flags", script)
+        self.assertIn('"${preflight_flags[@]}"', script)
         self.assertNotIn("docker compose run --rm media-audit preflight", script)
         self.assertNotIn("apt-get", script)
         self.assertNotIn("sudo", script)
@@ -438,7 +445,7 @@ class DeploymentFileTests(unittest.TestCase):
         self.assertIn("bash scripts/debian-vm-stop.sh --confirm", script)
         self.assertIn("bash scripts/debian-vm-start.sh", script)
         self.assertIn("without removing persistent data", script)
-        self.assertIn("strict preflight", script)
+        self.assertIn("deployment preflight", script)
         self.assertLess(
             script.index("bash scripts/debian-vm-stop.sh --confirm"),
             script.index("bash scripts/debian-vm-start.sh"),
@@ -506,7 +513,6 @@ class DeploymentFileTests(unittest.TestCase):
         self.assertIn("git pull --ff-only", script)
         self.assertIn("docker compose build media-audit", script)
         self.assertIn("docker compose run --rm media-audit media-audit preflight", script)
-        self.assertIn("--strict", script)
         self.assertIn("docker compose up -d", script)
         self.assertNotIn("docker compose run --rm media-audit preflight", script)
         self.assertLess(

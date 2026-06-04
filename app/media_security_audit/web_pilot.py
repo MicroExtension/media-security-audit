@@ -31,6 +31,8 @@ PILOT_BUNDLE_REVIEW_ORDER = [
     "pilot-runbook.json",
     "pilot-delivery-receipt.md",
     "pilot-delivery-receipt.json",
+    "pilot-final-handoff-checklist.md",
+    "pilot-final-handoff-checklist.json",
     "manifest.json",
 ]
 
@@ -45,6 +47,8 @@ PILOT_BUNDLE_FILE_PURPOSES = {
     "pilot-bundle-inventory.json": "Machine-readable bundle inventory.",
     "pilot-delivery-receipt.md": "Delivery sign-off receipt.",
     "pilot-delivery-receipt.json": "Machine-readable delivery receipt.",
+    "pilot-final-handoff-checklist.md": "Final handoff checklist for delivery review.",
+    "pilot-final-handoff-checklist.json": "Machine-readable final handoff checklist.",
     "pilot-handoff-summary.md": "Compact handoff state and next actions.",
     "pilot-handoff-summary.json": "Machine-readable handoff state.",
     "pilot-readiness.md": "Detailed local readiness checks.",
@@ -262,6 +266,21 @@ class PilotDeliveryReceiptExport:
 
 @dataclass(frozen=True)
 class PilotDeliveryReceiptJsonExport:
+    filename: str
+    media_type: str
+    content: str
+    payload: dict[str, object]
+
+
+@dataclass(frozen=True)
+class PilotFinalHandoffChecklistExport:
+    filename: str
+    media_type: str
+    content: str
+
+
+@dataclass(frozen=True)
+class PilotFinalHandoffChecklistJsonExport:
     filename: str
     media_type: str
     content: str
@@ -940,6 +959,8 @@ def pilot_handoff_summary_payload(view: PilotRunbookView) -> dict[str, object]:
         "pilot-attention.md",
         "pilot-attention.json",
         "pilot-runbook.json",
+        "pilot-final-handoff-checklist.md",
+        "pilot-final-handoff-checklist.json",
         "manifest.json",
     ]
     return {
@@ -1106,7 +1127,9 @@ def format_pilot_bundle_index_markdown(
         "12. Use `pilot-runbook.json` when automation needs workflow steps.",
         "13. Complete `pilot-delivery-receipt.md` after client handoff.",
         "14. Use `pilot-delivery-receipt.json` for structured delivery evidence.",
-        "15. Compare extracted files with `manifest.json` before archiving.",
+        "15. Complete `pilot-final-handoff-checklist.md` before archiving.",
+        "16. Use `pilot-final-handoff-checklist.json` for structured closeout.",
+        "17. Compare extracted files with `manifest.json` before archiving.",
         "",
         "## Bundle Files",
         "",
@@ -1290,6 +1313,8 @@ def pilot_delivery_receipt_payload(view: PilotRunbookView) -> dict[str, object]:
         "pilot-runbook.md",
         "pilot-runbook.json",
         "pilot-delivery-receipt.json",
+        "pilot-final-handoff-checklist.md",
+        "pilot-final-handoff-checklist.json",
         "manifest.json",
     ]
     return {
@@ -1364,6 +1389,174 @@ def format_pilot_delivery_receipt_markdown(
             "- ______________________________",
         ]
     )
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def build_pilot_final_handoff_checklist_export(
+    readiness_items: list[PilotReadinessItem],
+    view: PilotRunbookView | None = None,
+) -> PilotFinalHandoffChecklistExport:
+    view = view or build_pilot_runbook_view(readiness_items=readiness_items)
+    return PilotFinalHandoffChecklistExport(
+        filename="pilot-final-handoff-checklist.md",
+        media_type="text/markdown; charset=utf-8",
+        content=format_pilot_final_handoff_checklist_markdown(view),
+    )
+
+
+def build_pilot_final_handoff_checklist_json_export(
+    readiness_items: list[PilotReadinessItem],
+    view: PilotRunbookView | None = None,
+) -> PilotFinalHandoffChecklistJsonExport:
+    view = view or build_pilot_runbook_view(readiness_items=readiness_items)
+    payload = pilot_final_handoff_checklist_payload(view)
+    return PilotFinalHandoffChecklistJsonExport(
+        filename="pilot-final-handoff-checklist.json",
+        media_type="application/json",
+        content=json.dumps(payload, indent=2, sort_keys=True) + "\n",
+        payload=payload,
+    )
+
+
+def pilot_final_handoff_checklist_payload(
+    view: PilotRunbookView,
+) -> dict[str, object]:
+    items = pilot_final_handoff_checklist_items(view)
+    return {
+        "attention_item_count": len(
+            [item for item in items if item["status"] == "attention"]
+        ),
+        "checklist_type": "pilot_final_handoff",
+        "context": view.subtitle,
+        "handoff_decision": pilot_handoff_decision_payload(view.handoff_decision),
+        "item_count": len(items),
+        "items": items,
+        "manual_item_count": len([item for item in items if item["status"] == "manual"]),
+        "readiness": {
+            "attention_items": len(view.attention_items),
+            "blocked": view.readiness_rollup.blocked,
+            "detail": view.readiness_rollup.detail,
+            "ready": view.readiness_rollup.ready,
+            "status": view.readiness_rollup.status,
+            "total": view.readiness_rollup.total,
+            "warning": view.readiness_rollup.warning,
+        },
+        "ready_item_count": len([item for item in items if item["status"] == "ready"]),
+        "schema_version": 1,
+        "source": view.title,
+    }
+
+
+def pilot_final_handoff_checklist_items(
+    view: PilotRunbookView,
+) -> list[dict[str, str]]:
+    return [
+        {
+            "action_href": view.handoff_decision.action_href,
+            "action_label": view.handoff_decision.action_label,
+            "detail": view.handoff_decision.detail,
+            "id": "review_handoff_decision",
+            "label": "Review handoff decision",
+            "status": "ready"
+            if view.handoff_decision.status == "ready"
+            else "attention",
+        },
+        {
+            "action_href": "/pilot/readiness.md",
+            "action_label": "Readiness",
+            "detail": view.readiness_rollup.detail,
+            "id": "verify_readiness",
+            "label": "Verify readiness",
+            "status": "ready"
+            if view.readiness_rollup.status == "ready"
+            else "attention",
+        },
+        {
+            "action_href": "/pilot/attention.md",
+            "action_label": "Attention",
+            "detail": "No attention item is open."
+            if not view.attention_items
+            else f"{len(view.attention_items)} attention item(s) require review.",
+            "id": "review_attention_items",
+            "label": "Review attention items",
+            "status": "ready" if not view.attention_items else "attention",
+        },
+        {
+            "action_href": "/pilot/bundle.zip",
+            "action_label": "Bundle",
+            "detail": "Download the pilot evidence bundle from the local Pilot page.",
+            "id": "download_evidence_bundle",
+            "label": "Download evidence bundle",
+            "status": "manual",
+        },
+        {
+            "action_href": "/pilot/bundle-verification.md",
+            "action_label": "Verify",
+            "detail": "Compare extracted files with manifest hashes before archiving.",
+            "id": "verify_bundle_manifest",
+            "label": "Verify bundle manifest",
+            "status": "manual",
+        },
+        {
+            "action_href": "/pilot/delivery-receipt.md",
+            "action_label": "Receipt",
+            "detail": "Complete the delivery receipt after client handoff.",
+            "id": "complete_delivery_receipt",
+            "label": "Complete delivery receipt",
+            "status": "manual",
+        },
+        {
+            "action_href": "/pilot/bundle-manifest.json",
+            "action_label": "Manifest",
+            "detail": "Archive the manifest, verification output, and signed receipt.",
+            "id": "archive_evidence",
+            "label": "Archive evidence",
+            "status": "manual",
+        },
+    ]
+
+
+def format_pilot_final_handoff_checklist_markdown(
+    view: PilotRunbookView | None = None,
+) -> str:
+    view = view or build_pilot_runbook_view()
+    payload = pilot_final_handoff_checklist_payload(view)
+    items = payload["items"] if isinstance(payload["items"], list) else []
+    lines = [
+        "# Pilot Final Handoff Checklist",
+        "",
+        f"- Context: `{view.subtitle}`",
+        f"- Source: `{view.title}`",
+        f"- Handoff decision: `{view.handoff_decision.status}`",
+        f"- Handoff action: `{view.handoff_decision.action_label}`",
+        f"- Readiness status: `{view.readiness_rollup.status}`",
+        f"- Readiness detail: `{view.readiness_rollup.detail}`",
+        f"- Attention items: `{len(view.attention_items)}`",
+        f"- Ready checklist items: `{payload['ready_item_count']}`",
+        f"- Attention checklist items: `{payload['attention_item_count']}`",
+        f"- Manual checklist items: `{payload['manual_item_count']}`",
+        "",
+        "## Checklist",
+        "",
+        "| Item | Status | Detail | Action |",
+        "| --- | --- | --- | --- |",
+    ]
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        action = f"[{item.get('action_label', '')}]({item.get('action_href', '')})"
+        lines.append(
+            "| "
+            + " | ".join(
+                [
+                    markdown_cell(item.get("label", "")),
+                    markdown_cell(item.get("status", "")),
+                    markdown_cell(item.get("detail", "")),
+                    markdown_cell(action),
+                ]
+            )
+            + " |"
+        )
     return "\n".join(lines).rstrip() + "\n"
 
 
@@ -1755,6 +1948,15 @@ def build_pilot_evidence_files(
             view,
         ).content,
         "pilot-delivery-receipt.md": format_pilot_delivery_receipt_markdown(view),
+        "pilot-final-handoff-checklist.json": (
+            build_pilot_final_handoff_checklist_json_export(
+                readiness_items,
+                view,
+            ).content
+        ),
+        "pilot-final-handoff-checklist.md": (
+            format_pilot_final_handoff_checklist_markdown(view)
+        ),
         "pilot-handoff-summary.json": build_pilot_handoff_summary_json_export(
             readiness_items,
             view,

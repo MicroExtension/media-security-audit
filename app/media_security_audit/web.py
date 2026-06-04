@@ -98,6 +98,8 @@ from media_security_audit.web_pilot import (
     build_pilot_evidence_manifest,
     build_pilot_evidence_verification,
     build_pilot_evidence_verification_json,
+    build_pilot_final_handoff_checklist_export,
+    build_pilot_final_handoff_checklist_json_export,
     build_pilot_handoff_summary_export,
     build_pilot_handoff_summary_json_export,
     build_pilot_readiness_json_export,
@@ -378,6 +380,28 @@ def create_web_app(
         system_view = build_system_status(data_dir, reports_dir, settings)
         readiness_items = build_pilot_readiness_items(store, reports_dir, system_view)
         export = build_pilot_delivery_receipt_json_export(readiness_items)
+        return Response(
+            content=export.content,
+            media_type=export.media_type,
+            headers={"Content-Disposition": f'attachment; filename="{export.filename}"'},
+        )
+
+    @app.get("/pilot/final-handoff-checklist.md", dependencies=protected)
+    def pilot_final_handoff_checklist_markdown() -> Response:
+        system_view = build_system_status(data_dir, reports_dir, settings)
+        readiness_items = build_pilot_readiness_items(store, reports_dir, system_view)
+        export = build_pilot_final_handoff_checklist_export(readiness_items)
+        return Response(
+            content=export.content,
+            media_type=export.media_type,
+            headers={"Content-Disposition": f'attachment; filename="{export.filename}"'},
+        )
+
+    @app.get("/pilot/final-handoff-checklist.json", dependencies=protected)
+    def pilot_final_handoff_checklist_json() -> Response:
+        system_view = build_system_status(data_dir, reports_dir, settings)
+        readiness_items = build_pilot_readiness_items(store, reports_dir, system_view)
+        export = build_pilot_final_handoff_checklist_json_export(readiness_items)
         return Response(
             content=export.content,
             media_type=export.media_type,

@@ -47,6 +47,8 @@ from media_security_audit.web_pilot import (  # noqa: E402
     build_pilot_evidence_manifest,
     build_pilot_evidence_verification,
     build_pilot_evidence_verification_json,
+    build_pilot_final_handoff_checklist_export,
+    build_pilot_final_handoff_checklist_json_export,
     build_pilot_handoff_summary_export,
     build_pilot_handoff_summary_json_export,
     build_pilot_readiness_json_export,
@@ -472,6 +474,8 @@ class WebUiTests(unittest.TestCase):
         self.assertIn('href="/pilot/bundle-index.md"', template)
         self.assertIn('href="/pilot/delivery-receipt.md"', template)
         self.assertIn('href="/pilot/delivery-receipt.json"', template)
+        self.assertIn('href="/pilot/final-handoff-checklist.md"', template)
+        self.assertIn('href="/pilot/final-handoff-checklist.json"', template)
         self.assertIn('href="/pilot/handoff-summary.md"', template)
         self.assertIn('href="/pilot/handoff-summary.json"', template)
         self.assertIn('href="/pilot/readiness.json"', template)
@@ -545,12 +549,14 @@ class WebUiTests(unittest.TestCase):
                 "pilot-runbook.json",
                 "pilot-delivery-receipt.md",
                 "pilot-delivery-receipt.json",
+                "pilot-final-handoff-checklist.md",
+                "pilot-final-handoff-checklist.json",
             ],
         )
-        self.assertEqual(view.evidence_automation_file_count, 8)
-        self.assertEqual(view.evidence_human_file_count, 7)
+        self.assertEqual(view.evidence_automation_file_count, 9)
+        self.assertEqual(view.evidence_human_file_count, 8)
         self.assertEqual(view.evidence_manifest_file_count, 1)
-        self.assertEqual(view.evidence_archive_file_count, 16)
+        self.assertEqual(view.evidence_archive_file_count, 18)
         self.assertEqual(
             view.evidence_archive_file_count,
             len(view.evidence_files) + view.evidence_manifest_file_count,
@@ -583,23 +589,23 @@ class WebUiTests(unittest.TestCase):
             view.evidence_files[1].purpose,
             "Machine-readable handoff state.",
         )
-        self.assertEqual(view.evidence_files[-1].path, "pilot-delivery-receipt.json")
-        self.assertEqual(view.evidence_files[-1].review_order, 15)
+        self.assertEqual(view.evidence_files[-1].path, "pilot-final-handoff-checklist.json")
+        self.assertEqual(view.evidence_files[-1].review_order, 17)
         self.assertEqual(
             view.evidence_files[-1].purpose,
-            "Machine-readable delivery receipt.",
+            "Machine-readable final handoff checklist.",
         )
         self.assertEqual(
             [item.review_order for item in view.evidence_files],
-            list(range(1, 16)),
+            list(range(1, 18)),
         )
         self.assertEqual(
             len([item for item in view.evidence_files if item.category == "automation"]),
-            8,
+            9,
         )
         self.assertEqual(
             len([item for item in view.evidence_files if item.category == "human"]),
-            7,
+            8,
         )
         self.assertTrue(all(len(item.sha256_short) == 12 for item in view.evidence_files))
         acceptance_titles = [item.title for item in view.acceptance_items]
@@ -647,7 +653,7 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(view.readiness_items, [])
         self.assertEqual(view.attention_items, [])
         self.assertEqual(view.readiness_rollup.warning, 0)
-        self.assertEqual(len(view.evidence_files), 15)
+        self.assertEqual(len(view.evidence_files), 17)
 
     def test_pilot_readiness_items_summarize_workspace_state(self) -> None:
         root_dir = clean_data_dir("web-ui-pilot-readiness")
@@ -709,21 +715,23 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("- Handoff decision: `warning`", handoff_summary.content)
         self.assertIn("- Handoff action: `Review Attention`", handoff_summary.content)
         self.assertIn("- Attention items: `1`", handoff_summary.content)
-        self.assertIn("- Automation files: `8`", handoff_summary.content)
-        self.assertIn("- Human-readable files: `7`", handoff_summary.content)
+        self.assertIn("- Automation files: `9`", handoff_summary.content)
+        self.assertIn("- Human-readable files: `8`", handoff_summary.content)
         self.assertIn("- Manifest files: `1`", handoff_summary.content)
         self.assertIn("pilot-bundle-index.md", handoff_summary.content)
         self.assertIn("pilot-delivery-receipt.md", handoff_summary.content)
         self.assertIn("pilot-handoff-summary.json", handoff_summary.content)
         self.assertIn("pilot-readiness.json", handoff_summary.content)
         self.assertIn("pilot-attention.md", handoff_summary.content)
+        self.assertIn("pilot-final-handoff-checklist.md", handoff_summary.content)
+        self.assertIn("pilot-final-handoff-checklist.json", handoff_summary.content)
         self.assertIn("| File | Category | Kind | Review | Purpose |", handoff_summary.content)
         self.assertIn(
             "| pilot-runbook.md | human | Human-readable Markdown | 12 | Technician workflow. |",
             handoff_summary.content,
         )
         self.assertIn(
-            "| manifest.json | manifest | Manifest JSON | 16 | File checksums for integrity review. |",
+            "| manifest.json | manifest | Manifest JSON | 18 | File checksums for integrity review. |",
             handoff_summary.content,
         )
         handoff_json = build_pilot_handoff_summary_json_export(items)
@@ -740,10 +748,10 @@ class WebUiTests(unittest.TestCase):
         )
         self.assertEqual(handoff_payload["context"], "Client Pilot")
         self.assertEqual(handoff_payload["source"], "Pilot Runbook")
-        self.assertEqual(handoff_payload["automation_file_count"], 8)
-        self.assertEqual(handoff_payload["human_file_count"], 7)
+        self.assertEqual(handoff_payload["automation_file_count"], 9)
+        self.assertEqual(handoff_payload["human_file_count"], 8)
         self.assertEqual(handoff_payload["manifest_file_count"], 1)
-        self.assertEqual(handoff_payload["handoff_file_count"], 15)
+        self.assertEqual(handoff_payload["handoff_file_count"], 17)
         self.assertEqual(
             handoff_payload["handoff_file_details"][0],
             {
@@ -761,7 +769,7 @@ class WebUiTests(unittest.TestCase):
                 "kind": "Manifest JSON",
                 "path": "manifest.json",
                 "purpose": "File checksums for integrity review.",
-                "review_order": 16,
+                "review_order": 18,
             },
         )
         self.assertEqual(handoff_payload["readiness"]["status"], "warning")
@@ -773,6 +781,7 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("pilot-bundle-index.json", handoff_payload["handoff_files"])
         self.assertIn("pilot-bundle-inventory.json", handoff_payload["handoff_files"])
         self.assertIn("pilot-handoff-summary.json", handoff_payload["handoff_files"])
+        self.assertIn("pilot-final-handoff-checklist.json", handoff_payload["handoff_files"])
         self.assertIn("pilot-readiness.json", handoff_payload["handoff_files"])
         self.assertIn("pilot-runbook.json", handoff_payload["handoff_files"])
         bundle_index = build_pilot_bundle_index_export(items)
@@ -785,15 +794,16 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("pilot-bundle-index.json", bundle_index.content)
         self.assertIn("pilot-bundle-inventory.json", bundle_index.content)
         self.assertIn("pilot-delivery-receipt.json", bundle_index.content)
+        self.assertIn("pilot-final-handoff-checklist.json", bundle_index.content)
         self.assertIn("pilot-handoff-summary.json", bundle_index.content)
         self.assertIn("pilot-delivery-receipt.md", bundle_index.content)
         self.assertIn("pilot-readiness.json", bundle_index.content)
-        self.assertIn("- Automation files: `8`", bundle_index.content)
-        self.assertIn("- Human-readable files: `7`", bundle_index.content)
+        self.assertIn("- Automation files: `9`", bundle_index.content)
+        self.assertIn("- Human-readable files: `8`", bundle_index.content)
         self.assertIn("- Manifest files: `1`", bundle_index.content)
         self.assertIn("| File | Category | Kind | Review | Purpose |", bundle_index.content)
         self.assertIn(
-            "| manifest.json | manifest | Manifest JSON | 16 | File checksums",
+            "| manifest.json | manifest | Manifest JSON | 18 | File checksums",
             bundle_index.content,
         )
         bundle_index_json = build_pilot_bundle_index_json_export(items)
@@ -803,11 +813,11 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(bundle_index_payload, bundle_index_json.payload)
         self.assertEqual(bundle_index_payload["schema_version"], 3)
         self.assertEqual(bundle_index_payload["index_type"], "pilot_evidence")
-        self.assertEqual(bundle_index_payload["bundle_file_count"], 15)
-        self.assertEqual(bundle_index_payload["automation_file_count"], 8)
-        self.assertEqual(bundle_index_payload["human_file_count"], 7)
+        self.assertEqual(bundle_index_payload["bundle_file_count"], 17)
+        self.assertEqual(bundle_index_payload["automation_file_count"], 9)
+        self.assertEqual(bundle_index_payload["human_file_count"], 8)
         self.assertEqual(bundle_index_payload["manifest_file_count"], 1)
-        self.assertEqual(bundle_index_payload["review_step_count"], 16)
+        self.assertEqual(bundle_index_payload["review_step_count"], 18)
         self.assertEqual(bundle_index_payload["review_order"][3]["path"], "pilot-bundle-index.json")
         self.assertEqual(bundle_index_payload["review_order"][3]["category"], "automation")
         self.assertEqual(
@@ -819,7 +829,7 @@ class WebUiTests(unittest.TestCase):
             "pilot-bundle-inventory.json",
         )
         self.assertEqual(
-            bundle_index_payload["review_order"][15]["kind"],
+            bundle_index_payload["review_order"][17]["kind"],
             "Manifest JSON",
         )
         inventory_csv = build_pilot_bundle_inventory_csv_export(items)
@@ -838,8 +848,8 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(inventory_rows[1]["category"], "automation")
         self.assertEqual(inventory_rows[1]["kind"], "Automation JSON")
         self.assertEqual(inventory_rows[1]["review_order"], "2")
-        self.assertEqual(inventory_rows[-1]["path"], "pilot-delivery-receipt.json")
-        self.assertEqual(inventory_rows[-1]["review_order"], "15")
+        self.assertEqual(inventory_rows[-1]["path"], "pilot-final-handoff-checklist.json")
+        self.assertEqual(inventory_rows[-1]["review_order"], "17")
         self.assertEqual(len(inventory_rows[0]["sha256_short"]), 12)
         inventory_json = build_pilot_bundle_inventory_json_export(items)
         inventory_payload = json.loads(inventory_json.content)
@@ -848,12 +858,12 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(inventory_payload, inventory_json.payload)
         self.assertEqual(inventory_payload["schema_version"], 4)
         self.assertEqual(inventory_payload["bundle_type"], "pilot_evidence")
-        self.assertEqual(inventory_payload["expected_file_count"], 15)
-        self.assertEqual(inventory_payload["evidence_file_count"], 15)
+        self.assertEqual(inventory_payload["expected_file_count"], 17)
+        self.assertEqual(inventory_payload["evidence_file_count"], 17)
         self.assertEqual(inventory_payload["manifest_file_count"], 1)
-        self.assertEqual(inventory_payload["archive_file_count"], 16)
-        self.assertEqual(inventory_payload["automation_file_count"], 8)
-        self.assertEqual(inventory_payload["human_file_count"], 7)
+        self.assertEqual(inventory_payload["archive_file_count"], 18)
+        self.assertEqual(inventory_payload["automation_file_count"], 9)
+        self.assertEqual(inventory_payload["human_file_count"], 8)
         self.assertEqual(
             inventory_payload["evidence_total_size_bytes"],
             view.evidence_total_size_bytes,
@@ -869,8 +879,8 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(inventory_payload["files"][1]["path"], "pilot-handoff-summary.json")
         self.assertEqual(inventory_payload["files"][1]["category"], "automation")
         self.assertEqual(inventory_payload["files"][1]["review_order"], 2)
-        self.assertEqual(inventory_payload["files"][-1]["path"], "pilot-delivery-receipt.json")
-        self.assertEqual(inventory_payload["files"][-1]["review_order"], 15)
+        self.assertEqual(inventory_payload["files"][-1]["path"], "pilot-final-handoff-checklist.json")
+        self.assertEqual(inventory_payload["files"][-1]["review_order"], 17)
         acceptance_json = build_pilot_acceptance_json_export(view)
         acceptance_payload = json.loads(acceptance_json.content)
         self.assertEqual(acceptance_json.filename, "pilot-acceptance-checklist.json")
@@ -885,18 +895,19 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(delivery_receipt.media_type, "text/markdown; charset=utf-8")
         self.assertIn("# Pilot Delivery Receipt", delivery_receipt.content)
         self.assertIn("- Readiness status: `warning`", delivery_receipt.content)
-        self.assertIn("- Automation files: `8`", delivery_receipt.content)
-        self.assertIn("- Human-readable files: `7`", delivery_receipt.content)
+        self.assertIn("- Automation files: `9`", delivery_receipt.content)
+        self.assertIn("- Human-readable files: `8`", delivery_receipt.content)
         self.assertIn("- Manifest files: `1`", delivery_receipt.content)
         self.assertIn("pilot-acceptance-checklist.json", delivery_receipt.content)
         self.assertIn("pilot-delivery-receipt.json", delivery_receipt.content)
+        self.assertIn("pilot-final-handoff-checklist.md", delivery_receipt.content)
         self.assertIn("| File | Category | Kind | Review | Purpose |", delivery_receipt.content)
         self.assertIn(
             "| pilot-handoff-summary.md | human | Human-readable Markdown | 1 | Compact handoff state and next actions. |",
             delivery_receipt.content,
         )
         self.assertIn(
-            "| manifest.json | manifest | Manifest JSON | 16 | File checksums for integrity review. |",
+            "| manifest.json | manifest | Manifest JSON | 18 | File checksums for integrity review. |",
             delivery_receipt.content,
         )
         self.assertIn("Client representative:", delivery_receipt.content)
@@ -908,10 +919,10 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(delivery_payload, delivery_json.payload)
         self.assertEqual(delivery_payload["schema_version"], 4)
         self.assertEqual(delivery_payload["delivery_type"], "pilot")
-        self.assertEqual(delivery_payload["automation_file_count"], 8)
-        self.assertEqual(delivery_payload["human_file_count"], 7)
+        self.assertEqual(delivery_payload["automation_file_count"], 9)
+        self.assertEqual(delivery_payload["human_file_count"], 8)
         self.assertEqual(delivery_payload["manifest_file_count"], 1)
-        self.assertEqual(delivery_payload["delivered_file_count"], 15)
+        self.assertEqual(delivery_payload["delivered_file_count"], 17)
         self.assertEqual(
             delivery_payload["delivered_file_details"][0],
             {
@@ -929,7 +940,7 @@ class WebUiTests(unittest.TestCase):
                 "kind": "Manifest JSON",
                 "path": "manifest.json",
                 "purpose": "File checksums for integrity review.",
-                "review_order": 16,
+                "review_order": 18,
             },
         )
         self.assertEqual(delivery_payload["readiness"]["status"], "warning")
@@ -938,8 +949,44 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("pilot-acceptance-checklist.json", delivery_payload["delivered_files"])
         self.assertIn("pilot-bundle-index.json", delivery_payload["delivered_files"])
         self.assertIn("pilot-bundle-inventory.json", delivery_payload["delivered_files"])
+        self.assertIn("pilot-final-handoff-checklist.json", delivery_payload["delivered_files"])
         self.assertIn("pilot-runbook.json", delivery_payload["delivered_files"])
         self.assertIn("client_representative", delivery_payload["sign_off_fields"])
+        final_checklist = build_pilot_final_handoff_checklist_export(items)
+        self.assertEqual(final_checklist.filename, "pilot-final-handoff-checklist.md")
+        self.assertEqual(final_checklist.media_type, "text/markdown; charset=utf-8")
+        self.assertIn("# Pilot Final Handoff Checklist", final_checklist.content)
+        self.assertIn("- Handoff decision: `warning`", final_checklist.content)
+        self.assertIn("- Readiness status: `warning`", final_checklist.content)
+        self.assertIn("- Attention checklist items: `3`", final_checklist.content)
+        self.assertIn("- Manual checklist items: `4`", final_checklist.content)
+        self.assertIn("| Verify bundle manifest | manual |", final_checklist.content)
+        final_checklist_json = build_pilot_final_handoff_checklist_json_export(items)
+        final_checklist_payload = json.loads(final_checklist_json.content)
+        self.assertEqual(
+            final_checklist_json.filename,
+            "pilot-final-handoff-checklist.json",
+        )
+        self.assertEqual(final_checklist_json.media_type, "application/json")
+        self.assertEqual(final_checklist_payload, final_checklist_json.payload)
+        self.assertEqual(final_checklist_payload["schema_version"], 1)
+        self.assertEqual(
+            final_checklist_payload["checklist_type"],
+            "pilot_final_handoff",
+        )
+        self.assertEqual(final_checklist_payload["item_count"], 7)
+        self.assertEqual(final_checklist_payload["attention_item_count"], 3)
+        self.assertEqual(final_checklist_payload["manual_item_count"], 4)
+        self.assertEqual(final_checklist_payload["handoff_decision"]["status"], "warning")
+        self.assertEqual(final_checklist_payload["readiness"]["status"], "warning")
+        self.assertEqual(
+            final_checklist_payload["items"][0]["id"],
+            "review_handoff_decision",
+        )
+        self.assertEqual(
+            final_checklist_payload["items"][-1]["id"],
+            "archive_evidence",
+        )
         readiness_json = build_pilot_readiness_json_export(items)
         readiness_payload = json.loads(readiness_json.content)
         self.assertEqual(readiness_json.filename, "pilot-readiness.json")
@@ -1018,6 +1065,12 @@ class WebUiTests(unittest.TestCase):
         self.assertIn('@app.get("/pilot/delivery-receipt.json"', web)
         self.assertIn("def pilot_delivery_receipt_json(", web)
         self.assertIn("build_pilot_delivery_receipt_json_export(readiness_items)", web)
+        self.assertIn('@app.get("/pilot/final-handoff-checklist.md"', web)
+        self.assertIn("def pilot_final_handoff_checklist_markdown(", web)
+        self.assertIn("build_pilot_final_handoff_checklist_export(readiness_items)", web)
+        self.assertIn('@app.get("/pilot/final-handoff-checklist.json"', web)
+        self.assertIn("def pilot_final_handoff_checklist_json(", web)
+        self.assertIn("build_pilot_final_handoff_checklist_json_export(readiness_items)", web)
         self.assertIn('@app.get("/pilot/acceptance.md"', web)
         self.assertIn("def pilot_acceptance_markdown(", web)
         self.assertIn("format_pilot_acceptance_markdown()", web)
@@ -1123,6 +1176,8 @@ class WebUiTests(unittest.TestCase):
                     "pilot-bundle-inventory.json",
                     "pilot-delivery-receipt.json",
                     "pilot-delivery-receipt.md",
+                    "pilot-final-handoff-checklist.json",
+                    "pilot-final-handoff-checklist.md",
                     "pilot-handoff-summary.json",
                     "pilot-handoff-summary.md",
                     "pilot-readiness.json",
@@ -1143,11 +1198,11 @@ class WebUiTests(unittest.TestCase):
             self.assertIn("# Pilot Evidence Bundle Verification", verification.content)
             self.assertIn("- Schema version: `7`", verification.content)
             self.assertIn("- Readiness status: `ready`", verification.content)
-            self.assertIn("- File count: `15`", verification.content)
-            self.assertIn("- Automation files: `8`", verification.content)
-            self.assertIn("- Human-readable files: `7`", verification.content)
+            self.assertIn("- File count: `17`", verification.content)
+            self.assertIn("- Automation files: `9`", verification.content)
+            self.assertIn("- Human-readable files: `8`", verification.content)
             self.assertIn("- Manifest files: `1`", verification.content)
-            self.assertIn("- Review files: `16`", verification.content)
+            self.assertIn("- Review files: `18`", verification.content)
             self.assertIn(
                 "| File | Category | Kind | Review | Purpose | Bytes | SHA-256 |",
                 verification.content,
@@ -1168,6 +1223,10 @@ class WebUiTests(unittest.TestCase):
                 "| pilot-delivery-receipt.json | automation | Automation JSON | 15 | "
                 "Machine-readable delivery receipt."
             )
+            final_checklist_row = (
+                "| pilot-final-handoff-checklist.json | automation | Automation JSON | 17 | "
+                "Machine-readable final handoff checklist."
+            )
             self.assertLess(
                 verification.content.index(handoff_row),
                 verification.content.index(acceptance_row),
@@ -1175,6 +1234,10 @@ class WebUiTests(unittest.TestCase):
             self.assertLess(
                 verification.content.index(acceptance_row),
                 verification.content.index(delivery_row),
+            )
+            self.assertLess(
+                verification.content.index(delivery_row),
+                verification.content.index(final_checklist_row),
             )
             self.assertIn("## Review Order", verification.content)
             self.assertIn("1. `pilot-handoff-summary.md`", verification.content)
@@ -1185,7 +1248,9 @@ class WebUiTests(unittest.TestCase):
             self.assertIn("11. `pilot-acceptance-checklist.json`", verification.content)
             self.assertIn("13. `pilot-runbook.json`", verification.content)
             self.assertIn("15. `pilot-delivery-receipt.json`", verification.content)
-            self.assertIn("16. `manifest.json`", verification.content)
+            self.assertIn("16. `pilot-final-handoff-checklist.md`", verification.content)
+            self.assertIn("17. `pilot-final-handoff-checklist.json`", verification.content)
+            self.assertIn("18. `manifest.json`", verification.content)
             self.assertIn("pilot-bundle-index.md", verification.content)
             self.assertIn("pilot-delivery-receipt.md", verification.content)
             self.assertIn("pilot-readiness.md", verification.content)
@@ -1201,13 +1266,21 @@ class WebUiTests(unittest.TestCase):
             self.assertEqual(verification_payload["schema_version"], 3)
             self.assertEqual(verification_payload["verification_type"], "pilot_evidence")
             self.assertEqual(verification_payload["manifest_schema_version"], 7)
-            self.assertEqual(verification_payload["file_count"], 15)
-            self.assertEqual(verification_payload["automation_file_count"], 8)
-            self.assertEqual(verification_payload["human_file_count"], 7)
+            self.assertEqual(verification_payload["file_count"], 17)
+            self.assertEqual(verification_payload["automation_file_count"], 9)
+            self.assertEqual(verification_payload["human_file_count"], 8)
             self.assertEqual(verification_payload["manifest_file_count"], 1)
-            self.assertEqual(verification_payload["review_file_count"], 16)
+            self.assertEqual(verification_payload["review_file_count"], 18)
             self.assertIn("pilot-runbook.json", verification_payload["automation_files"])
+            self.assertIn(
+                "pilot-final-handoff-checklist.json",
+                verification_payload["automation_files"],
+            )
             self.assertIn("pilot-runbook.md", verification_payload["human_files"])
+            self.assertIn(
+                "pilot-final-handoff-checklist.md",
+                verification_payload["human_files"],
+            )
             self.assertEqual(verification_payload["readiness"]["status"], "ready")
             self.assertEqual(verification_payload["review_order"][0], "pilot-handoff-summary.md")
             self.assertEqual(verification_payload["review_order"][1], "pilot-handoff-summary.json")
@@ -1235,6 +1308,10 @@ class WebUiTests(unittest.TestCase):
                 verification_payload["review_order"][14],
                 "pilot-delivery-receipt.json",
             )
+            self.assertEqual(
+                verification_payload["review_order"][16],
+                "pilot-final-handoff-checklist.json",
+            )
             self.assertEqual(verification_payload["checks"][0]["id"], "download_bundle")
             self.assertEqual(verification_payload["checks"][0]["status"], "manual")
             self.assertEqual(
@@ -1249,10 +1326,10 @@ class WebUiTests(unittest.TestCase):
                 "Machine-readable beta acceptance checklist.",
             )
             self.assertEqual(manifest["schema_version"], 7)
-            self.assertEqual(manifest["automation_file_count"], 8)
-            self.assertEqual(manifest["human_file_count"], 7)
+            self.assertEqual(manifest["automation_file_count"], 9)
+            self.assertEqual(manifest["human_file_count"], 8)
             self.assertEqual(manifest["manifest_file_count"], 1)
-            self.assertEqual(manifest["review_file_count"], 16)
+            self.assertEqual(manifest["review_file_count"], 18)
             self.assertEqual(
                 manifest["automation_files"],
                 [
@@ -1261,6 +1338,7 @@ class WebUiTests(unittest.TestCase):
                     "pilot-bundle-index.json",
                     "pilot-bundle-inventory.json",
                     "pilot-delivery-receipt.json",
+                    "pilot-final-handoff-checklist.json",
                     "pilot-handoff-summary.json",
                     "pilot-readiness.json",
                     "pilot-runbook.json",
@@ -1273,6 +1351,7 @@ class WebUiTests(unittest.TestCase):
                     "pilot-attention.md",
                     "pilot-bundle-index.md",
                     "pilot-delivery-receipt.md",
+                    "pilot-final-handoff-checklist.md",
                     "pilot-handoff-summary.md",
                     "pilot-readiness.md",
                     "pilot-runbook.md",
@@ -1280,7 +1359,7 @@ class WebUiTests(unittest.TestCase):
             )
             self.assertEqual(manifest["bundle_type"], "pilot_evidence")
             self.assertEqual(manifest["context"], "Client Pilot")
-            self.assertEqual(manifest["file_count"], 15)
+            self.assertEqual(manifest["file_count"], 17)
             self.assertEqual(manifest["source"], "Pilot Runbook")
             self.assertEqual(manifest["files"][0]["category"], "automation")
             self.assertEqual(manifest["files"][0]["kind"], "Automation JSON")
@@ -1307,6 +1386,8 @@ class WebUiTests(unittest.TestCase):
                     "pilot-runbook.json",
                     "pilot-delivery-receipt.md",
                     "pilot-delivery-receipt.json",
+                    "pilot-final-handoff-checklist.md",
+                    "pilot-final-handoff-checklist.json",
                     "manifest.json",
                 ],
             )
@@ -1334,6 +1415,8 @@ class WebUiTests(unittest.TestCase):
                     "pilot-bundle-inventory.json",
                     "pilot-delivery-receipt.json",
                     "pilot-delivery-receipt.md",
+                    "pilot-final-handoff-checklist.json",
+                    "pilot-final-handoff-checklist.md",
                     "pilot-handoff-summary.json",
                     "pilot-handoff-summary.md",
                     "pilot-readiness.json",
@@ -1373,31 +1456,31 @@ class WebUiTests(unittest.TestCase):
                 archived_index_markdown,
             )
             self.assertIn(
-                "| manifest.json | manifest | Manifest JSON | 16 | File checksums",
+                "| manifest.json | manifest | Manifest JSON | 18 | File checksums",
                 archived_index_markdown,
             )
             archived_index = json.loads(
                 archive.read("pilot-bundle-index.json").decode("utf-8")
             )
             self.assertEqual(archived_index["index_type"], "pilot_evidence")
-            self.assertEqual(archived_index["bundle_file_count"], 15)
+            self.assertEqual(archived_index["bundle_file_count"], 17)
             self.assertEqual(archived_index["schema_version"], 3)
-            self.assertEqual(archived_index["automation_file_count"], 8)
-            self.assertEqual(archived_index["human_file_count"], 7)
+            self.assertEqual(archived_index["automation_file_count"], 9)
+            self.assertEqual(archived_index["human_file_count"], 8)
             self.assertEqual(archived_index["manifest_file_count"], 1)
-            self.assertEqual(archived_index["review_order"][15]["category"], "manifest")
-            self.assertEqual(archived_index["review_order"][15]["kind"], "Manifest JSON")
+            self.assertEqual(archived_index["review_order"][17]["category"], "manifest")
+            self.assertEqual(archived_index["review_order"][17]["kind"], "Manifest JSON")
             archived_inventory = json.loads(
                 archive.read("pilot-bundle-inventory.json").decode("utf-8")
             )
             self.assertEqual(archived_inventory["bundle_type"], "pilot_evidence")
-            self.assertEqual(archived_inventory["expected_file_count"], 15)
+            self.assertEqual(archived_inventory["expected_file_count"], 17)
             self.assertEqual(archived_inventory["schema_version"], 4)
-            self.assertEqual(archived_inventory["automation_file_count"], 8)
-            self.assertEqual(archived_inventory["human_file_count"], 7)
-            self.assertEqual(archived_inventory["evidence_file_count"], 15)
+            self.assertEqual(archived_inventory["automation_file_count"], 9)
+            self.assertEqual(archived_inventory["human_file_count"], 8)
+            self.assertEqual(archived_inventory["evidence_file_count"], 17)
             self.assertEqual(archived_inventory["manifest_file_count"], 1)
-            self.assertEqual(archived_inventory["archive_file_count"], 16)
+            self.assertEqual(archived_inventory["archive_file_count"], 18)
             self.assertGreater(
                 archived_inventory["archive_total_size_bytes"],
                 archived_inventory["evidence_total_size_bytes"],
@@ -1416,10 +1499,10 @@ class WebUiTests(unittest.TestCase):
                 "pilot-delivery-receipt.md"
             ).decode("utf-8")
             self.assertIn("# Pilot Delivery Receipt", archived_delivery_markdown)
-            self.assertIn("- Automation files: `8`", archived_delivery_markdown)
+            self.assertIn("- Automation files: `9`", archived_delivery_markdown)
             self.assertIn("| File | Category | Kind | Review | Purpose |", archived_delivery_markdown)
             self.assertIn(
-                "| manifest.json | manifest | Manifest JSON | 16 | File checksums for integrity review. |",
+                "| manifest.json | manifest | Manifest JSON | 18 | File checksums for integrity review. |",
                 archived_delivery_markdown,
             )
             archived_delivery = json.loads(
@@ -1427,10 +1510,10 @@ class WebUiTests(unittest.TestCase):
             )
             self.assertEqual(archived_delivery["delivery_type"], "pilot")
             self.assertEqual(archived_delivery["schema_version"], 4)
-            self.assertEqual(archived_delivery["automation_file_count"], 8)
-            self.assertEqual(archived_delivery["human_file_count"], 7)
+            self.assertEqual(archived_delivery["automation_file_count"], 9)
+            self.assertEqual(archived_delivery["human_file_count"], 8)
             self.assertEqual(archived_delivery["manifest_file_count"], 1)
-            self.assertEqual(archived_delivery["delivered_file_count"], 15)
+            self.assertEqual(archived_delivery["delivered_file_count"], 17)
             self.assertEqual(
                 archived_delivery["delivered_file_details"][-1]["category"],
                 "manifest",
@@ -1444,10 +1527,10 @@ class WebUiTests(unittest.TestCase):
                 "pilot-handoff-summary.md"
             ).decode("utf-8")
             self.assertIn("# Pilot Handoff Summary", archived_handoff_markdown)
-            self.assertIn("- Automation files: `8`", archived_handoff_markdown)
+            self.assertIn("- Automation files: `9`", archived_handoff_markdown)
             self.assertIn("| File | Category | Kind | Review | Purpose |", archived_handoff_markdown)
             self.assertIn(
-                "| manifest.json | manifest | Manifest JSON | 16 | File checksums for integrity review. |",
+                "| manifest.json | manifest | Manifest JSON | 18 | File checksums for integrity review. |",
                 archived_handoff_markdown,
             )
             archived_handoff = json.loads(
@@ -1456,10 +1539,10 @@ class WebUiTests(unittest.TestCase):
             self.assertEqual(archived_handoff["handoff_type"], "pilot")
             self.assertEqual(archived_handoff["schema_version"], 5)
             self.assertEqual(archived_handoff["handoff_decision"]["status"], "ready")
-            self.assertEqual(archived_handoff["automation_file_count"], 8)
-            self.assertEqual(archived_handoff["human_file_count"], 7)
+            self.assertEqual(archived_handoff["automation_file_count"], 9)
+            self.assertEqual(archived_handoff["human_file_count"], 8)
             self.assertEqual(archived_handoff["manifest_file_count"], 1)
-            self.assertEqual(archived_handoff["handoff_file_count"], 15)
+            self.assertEqual(archived_handoff["handoff_file_count"], 17)
             self.assertEqual(
                 archived_handoff["handoff_file_details"][-1]["category"],
                 "manifest",

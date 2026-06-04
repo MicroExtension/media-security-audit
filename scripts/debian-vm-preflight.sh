@@ -35,7 +35,7 @@ info "building local media-audit image"
 docker compose build media-audit
 
 info "running strict deployment preflight"
-docker compose run --rm media-audit preflight \
+docker compose run --rm media-audit media-audit preflight \
   --data-dir /var/lib/media-audit/data \
   --reports-dir /var/lib/media-audit/reports \
   --strict

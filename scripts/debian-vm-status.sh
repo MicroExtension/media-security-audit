@@ -39,7 +39,7 @@ info "compose services"
 docker compose ps || true
 
 info "deployment preflight json"
-docker compose run --rm media-audit preflight \
+docker compose run --rm media-audit media-audit preflight \
   --data-dir /var/lib/media-audit/data \
   --reports-dir /var/lib/media-audit/reports \
   --format json || true

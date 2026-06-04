@@ -61,7 +61,7 @@ info "writing VM diagnostics report ${REPORT}"
   echo
 
   echo "## Deployment Preflight JSON"
-  docker compose run --rm media-audit preflight \
+  docker compose run --rm media-audit media-audit preflight \
     --data-dir /var/lib/media-audit/data \
     --reports-dir /var/lib/media-audit/reports \
     --format json 2>/dev/null || echo '{"status":"blocked","detail":"preflight command failed"}'

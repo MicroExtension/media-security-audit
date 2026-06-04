@@ -12,6 +12,10 @@ Recommended first target:
 - persistent local folders for data, evidence, runs, and reports
 - local `/healthz` endpoint for Docker and VM readiness monitoring
 
+For the first V1 validation, follow
+[`V1_TEST_DEPLOYMENT_PROCEDURE.md`](V1_TEST_DEPLOYMENT_PROCEDURE.md) before any
+real customer scan.
+
 ## Hosting Model
 
 Use GitHub only to host the private source repository.

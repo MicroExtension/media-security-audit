@@ -536,6 +536,9 @@ Private GitHub repository -> local customer VM -> Docker Compose -> local web UI
 Do not host the application as a public SaaS service for V1. Deploy it on a
 local Debian/Ubuntu VM in the customer or audit environment.
 
+For the first V1 validation, use
+[`docs/V1_TEST_DEPLOYMENT_PROCEDURE.md`](docs/V1_TEST_DEPLOYMENT_PROCEDURE.md).
+
 Local Docker launch:
 
 ```bash

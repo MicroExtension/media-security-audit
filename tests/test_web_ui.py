@@ -87,6 +87,19 @@ class WebUiTests(unittest.TestCase):
         self.assertIn('"Request": Request', web)
         self.assertIn('"HTTPBasicCredentials": HTTPBasicCredentials', web)
 
+    def test_mission_template_accepts_localized_confidence_input(self) -> None:
+        template = (
+            Path(__file__).resolve().parents[1]
+            / "app"
+            / "media_security_audit"
+            / "web_templates"
+            / "mission.html"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn('name="confidence" inputmode="decimal"', template)
+        self.assertIn('pattern="[0-1]([,.][0-9]+)?"', template)
+        self.assertNotIn('name="confidence" type="number"', template)
+
     def test_base_template_marks_active_top_navigation(self) -> None:
         template_path = (
             Path(__file__).resolve().parents[1]

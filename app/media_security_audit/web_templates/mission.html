@@ -553,7 +553,7 @@
       </label>
       <label>
         <span>Confidence</span>
-        <input name="confidence" type="number" min="0" max="1" step="0.05" value="0.8">
+        <input name="confidence" inputmode="decimal" pattern="[0-1]([,.][0-9]+)?" value="0.8">
       </label>
       <label>
         <span>Affected Asset</span>
@@ -638,7 +638,7 @@
           </label>
           <label>
             <span>Confidence</span>
-            <input name="confidence" type="number" min="0" max="1" step="0.05" value="{{ finding.confidence }}">
+            <input name="confidence" inputmode="decimal" pattern="[0-1]([,.][0-9]+)?" value="{{ finding.confidence }}">
           </label>
           <label>
             <span>Affected Asset</span>

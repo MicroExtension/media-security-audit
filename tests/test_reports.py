@@ -53,11 +53,17 @@ class ReportTests(unittest.TestCase):
         html = render_html(sample_mission(), sample_findings())
 
         self.assertIn("<!doctype html>", html)
-        self.assertIn("Risk Overview", html)
-        self.assertIn("Remediation Plan", html)
+        self.assertIn('html lang="fr"', html)
+        self.assertIn("M.E.D.I.A. Security Audit Platform", html)
+        self.assertIn("Rapport d’audit sécurité", html)
+        self.assertIn("Vue d’ensemble du risque", html)
+        self.assertIn("Plan de remédiation priorisé", html)
+        self.assertIn("Synthèse direction", html)
+        self.assertIn("L’audit identifie des améliorations", html)
         self.assertIn("Sample Sponsor", html)
         self.assertIn("security@example.invalid", html)
         self.assertIn("Missing HTTP Strict Transport Security header", html)
+        self.assertIn("Domaine : example.invalid", html)
 
     def test_builds_report_summary_and_remediation_plan(self) -> None:
         summary = build_report_summary(sample_mission(), sample_findings())
@@ -113,8 +119,9 @@ class ReportTests(unittest.TestCase):
         self.assertIn("Accepted by the client risk owner.", markdown)
         self.assertIn("Banner belongs to the upstream WAF.", markdown)
         self.assertIn("**Review note**", markdown)
-        self.assertIn("Finding Dispositions", html)
-        self.assertIn("Review note", html)
+        self.assertIn("Statut de traitement des constats", html)
+        self.assertIn("Note de revue", html)
+        self.assertIn("Notes de revue", html)
         self.assertIn("Accepted by the client risk owner.", html)
 
     def test_writes_report_file(self) -> None:

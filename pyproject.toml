@@ -34,10 +34,6 @@ media-audit = "media_security_audit.cli:app"
 [tool.hatch.build.targets.wheel]
 packages = ["app/media_security_audit"]
 
-[tool.hatch.build.targets.wheel.force-include]
-"app/media_security_audit/web_templates" = "media_security_audit/web_templates"
-"app/media_security_audit/web_static" = "media_security_audit/web_static"
-
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 

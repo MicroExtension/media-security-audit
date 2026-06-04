@@ -6,6 +6,14 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class DeploymentFileTests(unittest.TestCase):
+    def test_pyproject_does_not_force_include_packaged_asset_directories(self) -> None:
+        pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+
+        self.assertIn('packages = ["app/media_security_audit"]', pyproject)
+        self.assertNotIn("[tool.hatch.build.targets.wheel.force-include]", pyproject)
+        self.assertNotIn('"app/media_security_audit/web_templates"', pyproject)
+        self.assertNotIn('"app/media_security_audit/web_static"', pyproject)
+
     def test_shell_scripts_are_forced_to_lf_line_endings(self) -> None:
         attributes = (ROOT / ".gitattributes").read_text(encoding="utf-8")
 

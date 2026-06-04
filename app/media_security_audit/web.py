@@ -172,6 +172,17 @@ def create_web_app(
             f"missing {missing}; install the project with web dependencies before running the UI"
         ) from error
 
+    globals().update(
+        {
+            "Request": Request,
+            "HTMLResponse": HTMLResponse,
+            "JSONResponse": JSONResponse,
+            "RedirectResponse": RedirectResponse,
+            "Response": Response,
+            "HTTPBasicCredentials": HTTPBasicCredentials,
+        }
+    )
+
     store = JsonStore(data_dir)
     templates = template_environment()
     settings = auth_settings or web_auth_settings_from_env()

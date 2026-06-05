@@ -125,10 +125,13 @@ class WebUiTests(unittest.TestCase):
 
         self.assertIn('href="/exports"', template)
         self.assertIn(">Exports</a>", template)
+        self.assertIn('href="/wizard"', template)
+        self.assertIn(">New Audit</a>", template)
         self.assertIn('href="/pilot"', template)
         self.assertIn(">Pilot</a>", template)
 
         for prefix in [
+            "/wizard",
             "/activity",
             "/exports",
             "/templates",
@@ -312,6 +315,8 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("client.next_action_href", template)
         self.assertIn("client.export_inventory_url", template)
         self.assertIn("mission.preparation_action_href", template)
+        self.assertIn('href="/wizard"', template)
+        self.assertIn("New Guided Audit", template)
         self.assertIn("view.onboarding_steps", template)
         self.assertIn("view.onboarding_next_action_href", template)
         self.assertIn("step.action_href", template)
@@ -331,6 +336,63 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("data-audit-type-select", template)
         self.assertIn("selectedOption.dataset.auditType", template)
         self.assertIn('templateSelect.addEventListener("change", syncAuditType)', template)
+
+    def test_wizard_template_exposes_guided_audit_flow(self) -> None:
+        template_path = (
+            Path(__file__).resolve().parents[1]
+            / "app"
+            / "media_security_audit"
+            / "web_templates"
+            / "wizard.html"
+        )
+        css_path = (
+            Path(__file__).resolve().parents[1]
+            / "app"
+            / "media_security_audit"
+            / "web_static"
+            / "app.css"
+        )
+        web_path = (
+            Path(__file__).resolve().parents[1]
+            / "app"
+            / "media_security_audit"
+            / "web.py"
+        )
+        template = template_path.read_text(encoding="utf-8")
+        css = css_path.read_text(encoding="utf-8")
+        web = web_path.read_text(encoding="utf-8")
+
+        self.assertIn('@app.get("/wizard"', web)
+        self.assertIn('@app.post("/wizard"', web)
+        self.assertIn("create_guided_audit_from_form", web)
+        self.assertIn("wizard.audit_created", web)
+        self.assertIn('aria-label="Create guided audit"', template)
+        self.assertIn('id="wizard-client"', template)
+        self.assertIn('id="wizard-mission"', template)
+        self.assertIn('id="wizard-scope"', template)
+        self.assertIn('id="wizard-checks"', template)
+
+        for field in [
+            'name="client_id"',
+            'name="client_name"',
+            'name="mission_name"',
+            'name="authorization_reference"',
+            'name="internal_targets"',
+            'name="external_domains"',
+            'name="web_urls"',
+            'name="ad_servers"',
+            'name="scope_approved"',
+        ]:
+            self.assertIn(field, template)
+
+        self.assertIn("data-wizard-template-select", template)
+        self.assertIn("data-wizard-audit-type-select", template)
+        self.assertIn("data-wizard-check", template)
+        self.assertIn("Authorized scope confirmed", template)
+        self.assertIn("templateSelect.addEventListener(\"change\", syncTemplate)", template)
+        self.assertIn(".wizard-form", css)
+        self.assertIn(".wizard-step", css)
+        self.assertIn(".wizard-confirmation", css)
 
     def test_client_template_exposes_preparation_action_links(self) -> None:
         template_path = (

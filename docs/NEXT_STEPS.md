@@ -598,6 +598,8 @@ Codex action:
 - prevent scans without approved scope
 
 Current GUI status:
+- guided audit wizard can create a client, mission, approved scope, and check
+  selection in one workflow
 - dashboard can show clients and missions
 - client detail pages show client mission history and risk metrics
 - mission pages can show scope, findings, remediation plan, and reports

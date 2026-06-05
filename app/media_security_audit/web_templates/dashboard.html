@@ -6,6 +6,9 @@
     <p class="eyebrow">Workspace</p>
     <h1>Audit Dashboard</h1>
   </div>
+  <div class="actions">
+    <a class="button" href="/wizard">New Guided Audit</a>
+  </div>
 </section>
 
 <section class="metrics" aria-label="Workspace summary">
@@ -21,6 +24,7 @@
 
 <section class="dashboard-shortcuts" aria-label="Dashboard shortcuts">
   <a href="#onboarding">Onboarding <span>{{ view.onboarding_ready_count }}/{{ view.onboarding_total_count }}</span></a>
+  <a href="/wizard">New Audit <span>+</span></a>
   <a href="#ready-missions">Ready Missions <span>{{ view.ready_missions|length }}</span></a>
   <a href="#review-missions">Review Missions <span>{{ view.review_missions|length }}</span></a>
   <a href="#blocked-missions">Blocked Missions <span>{{ view.blocked_missions|length }}</span></a>

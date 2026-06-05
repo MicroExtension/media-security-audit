@@ -487,6 +487,39 @@ a.filter-chip:hover {
   margin-bottom: 12px;
 }
 
+.wizard-form {
+  display: grid;
+  gap: 22px;
+}
+
+.wizard-step {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 18px;
+}
+
+.wizard-step:last-of-type {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.wizard-confirmation {
+  margin-top: 14px;
+}
+
+.wizard-confirmation label {
+  align-items: center;
+  color: #344054;
+  display: flex;
+  font-size: 13px;
+  font-weight: 700;
+  gap: 8px;
+}
+
+.wizard-confirmation input {
+  min-height: auto;
+  width: auto;
+}
+
 .field-grid {
   display: grid;
   gap: 12px;

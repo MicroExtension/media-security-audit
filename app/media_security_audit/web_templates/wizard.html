@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+{% block title %}New Audit | MEDIA Security Audit{% endblock %}
+{% block content %}
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">Audit setup</p>
+    <h1>New Guided Audit</h1>
+  </div>
+  <div class="actions">
+    <a class="button secondary-button" href="/">Dashboard</a>
+  </div>
+</section>
+
+<section class="page-shortcuts" aria-label="Guided audit shortcuts">
+  <a href="#wizard-client">Client <span>1</span></a>
+  <a href="#wizard-mission">Mission <span>2</span></a>
+  <a href="#wizard-scope">Targets <span>3</span></a>
+  <a href="#wizard-checks">Checks <span>4</span></a>
+</section>
+
+<form class="form-panel wizard-form" method="post" action="/wizard" aria-label="Create guided audit">
+  <input type="hidden" name="_csrf" value="{{ form_token }}">
+
+  <section class="wizard-step" id="wizard-client">
+    <div class="section-title">
+      <h2>Client</h2>
+      <span class="muted">Existing or new</span>
+    </div>
+    <div class="field-grid">
+      <label>
+        <span>Existing Client</span>
+        <select name="client_id">
+          <option value=""></option>
+          {% for client in clients %}
+          <option value="{{ client.id }}">{{ client.name }}{% if client.internal_reference %} | {{ client.internal_reference }}{% endif %}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>
+        <span>New Client Name</span>
+        <input name="client_name">
+      </label>
+      <label>
+        <span>New Client Reference</span>
+        <input name="client_reference">
+      </label>
+      <label>
+        <span>Client Notes</span>
+        <input name="client_notes">
+      </label>
+    </div>
+  </section>
+
+  <section class="wizard-step" id="wizard-mission">
+    <div class="section-title">
+      <h2>Mission</h2>
+      <span class="muted">Authorization required</span>
+    </div>
+    <div class="field-grid">
+      <label>
+        <span>Template</span>
+        <select name="audit_template_id" data-wizard-template-select>
+          <option value=""></option>
+          {% for template in audit_templates %}
+          <option value="{{ template.id }}" data-audit-type="{{ template.audit_type }}" data-checks="{{ template.recommended_checks | join(',') }}">{{ template.title }} | {{ template.audit_type }} | {{ template.cadence }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>
+        <span>Audit Type</span>
+        <select name="audit_type" required data-wizard-audit-type-select>
+          {% for audit_type in audit_types %}
+          <option value="{{ audit_type }}">{{ audit_type }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label class="span-2">
+        <span>Mission Name</span>
+        <input name="mission_name" required>
+      </label>
+      <label class="span-2">
+        <span>Authorization Reference</span>
+        <input name="authorization_reference" required>
+      </label>
+      <label>
+        <span>Authorization Contact</span>
+        <input name="authorization_contact">
+      </label>
+      <label>
+        <span>Authorization Date</span>
+        <input name="authorization_date" type="date">
+      </label>
+      <label>
+        <span>Authorization Expires</span>
+        <input name="authorization_expires_at" type="date">
+      </label>
+      <label>
+        <span>Evidence Retention Days</span>
+        <input name="evidence_retention_days" type="number" min="0" step="1">
+      </label>
+      <label>
+        <span>Emergency Contact</span>
+        <input name="emergency_contact">
+      </label>
+      <label>
+        <span>Report Recipients</span>
+        <input name="report_recipients">
+      </label>
+    </div>
+  </section>
+
+  <section class="wizard-step" id="wizard-scope">
+    <div class="section-title">
+      <h2>Targets</h2>
+      <span class="muted">Approved scope</span>
+    </div>
+    <div class="field-grid">
+      <label>
+        <span>Internal Networks, IPs, Hosts</span>
+        <textarea name="internal_targets" rows="5" placeholder="192.168.1.0/24&#10;server01.local"></textarea>
+      </label>
+      <label>
+        <span>Public Domains</span>
+        <textarea name="external_domains" rows="5" placeholder="example.fr&#10;mail.example.fr"></textarea>
+      </label>
+      <label>
+        <span>Web URLs</span>
+        <textarea name="web_urls" rows="5" placeholder="https://www.example.fr"></textarea>
+      </label>
+      <label>
+        <span>AD / LDAP Servers</span>
+        <textarea name="ad_servers" rows="5" placeholder="dc01.example.local"></textarea>
+      </label>
+      <label class="span-2">
+        <span>Mission Notes</span>
+        <textarea name="mission_notes" rows="3"></textarea>
+      </label>
+    </div>
+  </section>
+
+  <section class="wizard-step" id="wizard-checks">
+    <div class="section-title">
+      <h2>Checks</h2>
+      <span class="muted">Plan first, execute later</span>
+    </div>
+    <fieldset class="field-group">
+      <legend>Audit Checks</legend>
+      <div class="check-selection-grid">
+        {% for check in check_options %}
+        <label class="check-selection-option">
+          <input type="checkbox" name="check_{{ check.value }}" value="1" data-wizard-check="{{ check.value }}" {% if check.default %}checked{% endif %}>
+          <span>
+            <strong>{{ check.label }}</strong>
+            <small>{{ check.description }}</small>
+          </span>
+        </label>
+        {% endfor %}
+      </div>
+    </fieldset>
+    <fieldset class="field-group wizard-confirmation">
+      <legend>Scope Confirmation</legend>
+      <label>
+        <input type="checkbox" name="scope_approved" value="1" required>
+        <span>Authorized scope confirmed</span>
+      </label>
+    </fieldset>
+  </section>
+
+  <div class="form-actions">
+    <button class="button" type="submit">Create Guided Audit</button>
+  </div>
+</form>
+
+<script>
+  (() => {
+    const templateSelect = document.querySelector("[data-wizard-template-select]");
+    const auditTypeSelect = document.querySelector("[data-wizard-audit-type-select]");
+    const checkboxes = [...document.querySelectorAll("[data-wizard-check]")];
+    if (!templateSelect || !auditTypeSelect || !checkboxes.length) {
+      return;
+    }
+    const syncTemplate = () => {
+      const selectedOption = templateSelect.selectedOptions[0];
+      if (!selectedOption) {
+        return;
+      }
+      const auditType = selectedOption.dataset.auditType || "";
+      if (auditType) {
+        auditTypeSelect.value = auditType;
+      }
+      const checks = (selectedOption.dataset.checks || "").split(",").filter(Boolean);
+      if (checks.length) {
+        checkboxes.forEach((checkbox) => {
+          checkbox.checked = checks.includes(checkbox.dataset.wizardCheck);
+        });
+      }
+    };
+    templateSelect.addEventListener("change", syncTemplate);
+  })();
+</script>
+{% endblock %}

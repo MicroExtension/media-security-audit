@@ -267,6 +267,7 @@ class WebUiTests(unittest.TestCase):
         template = template_path.read_text(encoding="utf-8")
 
         for anchor in [
+            "onboarding",
             "ready-missions",
             "review-missions",
             "blocked-missions",
@@ -277,11 +278,15 @@ class WebUiTests(unittest.TestCase):
             "counter-tests",
             "failed-counter-tests",
             "preparation",
+            "missions",
+            "clients",
         ]:
             self.assertIn(f'href="#{anchor}"', template)
             self.assertIn(f'id="{anchor}"', template)
 
         for counter in [
+            "view.onboarding_ready_count",
+            "view.onboarding_total_count",
             "view.ready_missions|length",
             "view.review_missions|length",
             "view.blocked_missions|length",
@@ -307,6 +312,9 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("client.next_action_href", template)
         self.assertIn("client.export_inventory_url", template)
         self.assertIn("mission.preparation_action_href", template)
+        self.assertIn("view.onboarding_steps", template)
+        self.assertIn("view.onboarding_next_action_href", template)
+        self.assertIn("step.action_href", template)
 
     def test_dashboard_template_syncs_template_audit_type(self) -> None:
         template_path = (
@@ -1770,6 +1778,21 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(view.blocked_preparation_count, 0)
         self.assertEqual(view.warning_preparation_count, 1)
         self.assertEqual(view.ready_preparation_count, 0)
+        self.assertEqual(view.onboarding_ready_count, 6)
+        self.assertEqual(view.onboarding_total_count, 6)
+        onboarding = {item.label: item for item in view.onboarding_steps}
+        self.assertEqual(onboarding["Client record"].status, "ready")
+        self.assertEqual(onboarding["Mission setup"].status, "ready")
+        self.assertEqual(onboarding["Authorization"].status, "ready")
+        self.assertEqual(onboarding["Approved scope"].status, "ready")
+        self.assertEqual(onboarding["Check selection"].status, "ready")
+        self.assertEqual(onboarding["Finding review"].status, "ready")
+        self.assertEqual(
+            view.onboarding_next_action,
+            "Pilot workflow is ready for evidence handoff review.",
+        )
+        self.assertEqual(view.onboarding_next_action_label, "Open Pilot")
+        self.assertEqual(view.onboarding_next_action_href, "/pilot")
         priority_counts = {
             item.status: item.count for item in view.client_priority_items
         }
@@ -1794,6 +1817,39 @@ class WebUiTests(unittest.TestCase):
             view.preparation_items[0].next_action_href,
             f"/missions/{mission.id}#findings",
         )
+
+    def test_dashboard_onboarding_guides_empty_and_partial_workspaces(self) -> None:
+        empty_store = JsonStore(clean_data_dir("web-ui-dashboard-onboarding-empty"))
+        empty_view = build_dashboard_view(empty_store)
+
+        self.assertEqual(empty_view.onboarding_ready_count, 0)
+        self.assertEqual(empty_view.onboarding_total_count, 6)
+        self.assertEqual(empty_view.onboarding_next_action_label, "Create Client")
+        self.assertEqual(empty_view.onboarding_next_action_href, "#new-client")
+        empty_steps = {item.label: item for item in empty_view.onboarding_steps}
+        self.assertEqual(empty_steps["Client record"].status, "warning")
+        self.assertEqual(empty_steps["Mission setup"].status, "blocked")
+        self.assertEqual(empty_steps["Finding review"].status, "blocked")
+
+        store = JsonStore(clean_data_dir("web-ui-dashboard-onboarding-partial"))
+        client = store.create_client(Client(name="Client Onboarding"))
+        mission = store.create_mission(Mission(client_id=client.id, name="Pilot"))
+
+        view = build_dashboard_view(store)
+        steps = {item.label: item for item in view.onboarding_steps}
+
+        self.assertEqual(view.onboarding_ready_count, 2)
+        self.assertEqual(view.onboarding_next_action_label, "Review Setup")
+        self.assertEqual(
+            view.onboarding_next_action_href,
+            f"/missions/{mission.id}#mission-setup",
+        )
+        self.assertEqual(steps["Client record"].status, "ready")
+        self.assertEqual(steps["Mission setup"].status, "ready")
+        self.assertEqual(steps["Authorization"].status, "warning")
+        self.assertEqual(steps["Approved scope"].status, "blocked")
+        self.assertEqual(steps["Check selection"].status, "blocked")
+        self.assertEqual(steps["Finding review"].status, "blocked")
 
     def test_dashboard_view_builds_workspace_preparation_summary(self) -> None:
         store = JsonStore(clean_data_dir("web-ui-dashboard-preparation"))

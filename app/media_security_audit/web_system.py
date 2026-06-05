@@ -29,6 +29,21 @@ class ToolStatus:
     status: str
     detail: str
     path: str
+    phase: str
+    requirement: str
+    pilot_blocking: bool
+    action: str
+
+
+@dataclass(frozen=True)
+class ToolCheck:
+    label: str
+    command: str
+    purpose: str
+    phase: str
+    requirement: str
+    pilot_blocking: bool
+    missing_action: str
 
 
 @dataclass(frozen=True)
@@ -48,12 +63,61 @@ class SystemStatus:
     inventory: WorkspaceInventory
 
 
-TOOL_CHECKS: tuple[tuple[str, str, str], ...] = (
-    ("Nmap", "nmap", "Required for guarded Nmap execution."),
-    ("testssl.sh", "testssl.sh", "Required for guarded TLS execution."),
-    ("Nuclei", "nuclei", "Optional future template checks."),
-    ("smbclient", "smbclient", "Required for guarded SMB execution."),
-    ("ldapsearch", "ldapsearch", "Required for guarded LDAP execution."),
+TOOL_READY_ACTION = "No action required."
+
+
+TOOL_CHECKS: tuple[ToolCheck, ...] = (
+    ToolCheck(
+        label="Nmap",
+        command="nmap",
+        purpose="Required for guarded Nmap execution.",
+        phase="V1 network inventory",
+        requirement="pilot required",
+        pilot_blocking=True,
+        missing_action="Install nmap before enabling guarded Nmap execution.",
+    ),
+    ToolCheck(
+        label="testssl.sh",
+        command="testssl.sh",
+        purpose="Required only when guarded TLS checks are enabled.",
+        phase="TLS scanner module",
+        requirement="module required",
+        pilot_blocking=False,
+        missing_action=(
+            "Install testssl.sh before TLS live checks; the V1 pilot UI "
+            "can continue without it."
+        ),
+    ),
+    ToolCheck(
+        label="Nuclei",
+        command="nuclei",
+        purpose="Optional future template checks.",
+        phase="Future web template module",
+        requirement="future optional",
+        pilot_blocking=False,
+        missing_action=(
+            "Install nuclei only when the Nuclei module is enabled and "
+            "approved templates are maintained."
+        ),
+    ),
+    ToolCheck(
+        label="smbclient",
+        command="smbclient",
+        purpose="Required for guarded SMB execution.",
+        phase="V1 SMB checks",
+        requirement="pilot required",
+        pilot_blocking=True,
+        missing_action="Install smbclient before enabling guarded SMB execution.",
+    ),
+    ToolCheck(
+        label="ldapsearch",
+        command="ldapsearch",
+        purpose="Required for guarded LDAP execution.",
+        phase="V1 LDAP checks",
+        requirement="pilot required",
+        pilot_blocking=True,
+        missing_action="Install ldapsearch before enabling guarded LDAP execution.",
+    ),
 )
 
 
@@ -70,10 +134,7 @@ def build_system_status(
             path_status("Data directory", data_dir),
             path_status("Reports directory", reports_dir),
         ],
-        tools=[
-            tool_status(label, command, purpose, tool_resolver)
-            for label, command, purpose in TOOL_CHECKS
-        ],
+        tools=[tool_status(check, tool_resolver) for check in TOOL_CHECKS],
         workspace_backup=list_workspace_backup(reports_dir),
         inventory=build_workspace_inventory(store, reports_dir),
     )
@@ -133,24 +194,30 @@ def path_status(label: str, path: Path) -> PathStatus:
 
 
 def tool_status(
-    label: str,
-    command: str,
-    purpose: str,
+    check: ToolCheck,
     tool_resolver: Callable[[str], str | None],
 ) -> ToolStatus:
-    resolved_path = tool_resolver(command)
+    resolved_path = tool_resolver(check.command)
     if resolved_path:
         return ToolStatus(
-            label=label,
-            command=command,
+            label=check.label,
+            command=check.command,
             status="ready",
-            detail=purpose,
+            detail=check.purpose,
             path=resolved_path,
+            phase=check.phase,
+            requirement=check.requirement,
+            pilot_blocking=check.pilot_blocking,
+            action=TOOL_READY_ACTION,
         )
     return ToolStatus(
-        label=label,
-        command=command,
+        label=check.label,
+        command=check.command,
         status="missing",
-        detail=purpose,
+        detail=check.purpose,
         path="not found in PATH",
+        phase=check.phase,
+        requirement=check.requirement,
+        pilot_blocking=check.pilot_blocking,
+        action=check.missing_action,
     )

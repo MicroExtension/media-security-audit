@@ -36,6 +36,7 @@
   <a href="#system-storage">Storage <span>{{ view.paths | length }}</span></a>
   <a href="#system-inventory">Inventory <span>{{ view.inventory.status }}</span></a>
   <a href="#system-backup">Backup <span>{{ "ready" if view.workspace_backup else "none" }}</span></a>
+  <a href="#system-tooling-plan">Tooling <span>plan</span></a>
   <a href="#system-tools">Tools <span>{{ view.tools | length }}</span></a>
 </section>
 
@@ -139,6 +140,47 @@
   </div>
 </section>
 
+<section class="section" id="system-tooling-plan">
+  <div class="section-title">
+    <h2>Tooling Plan</h2>
+    <span class="muted">Pilot readiness</span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <caption class="sr-only">External tooling pilot impact</caption>
+      <thead>
+        <tr>
+          <th>Tool</th>
+          <th>Phase</th>
+          <th>Requirement</th>
+          <th>Pilot impact</th>
+          <th>Next action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for tool in view.tools %}
+        <tr>
+          <td>
+            <strong>{{ tool.label }}</strong>
+            <code class="block">{{ tool.command }}</code>
+          </td>
+          <td>{{ tool.phase }}</td>
+          <td><span class="badge">{{ tool.requirement }}</span></td>
+          <td>
+            {% if tool.pilot_blocking %}
+            Blocks related guarded checks when missing
+            {% else %}
+            Does not block pilot UI/reporting
+            {% endif %}
+          </td>
+          <td>{{ tool.action }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
 <section class="section" id="system-tools">
   <div class="section-title">
     <h2>External Tools</h2>
@@ -151,7 +193,10 @@
         <tr>
           <th>Tool</th>
           <th>Status</th>
+          <th>Phase</th>
+          <th>Requirement</th>
           <th>Purpose</th>
+          <th>Action</th>
           <th>Resolved Path</th>
         </tr>
       </thead>
@@ -163,7 +208,10 @@
             <code class="block">{{ tool.command }}</code>
           </td>
           <td><span class="badge status-{{ tool.status }}">{{ tool.status }}</span></td>
+          <td>{{ tool.phase }}</td>
+          <td><span class="badge">{{ tool.requirement }}</span></td>
           <td>{{ tool.detail }}</td>
+          <td>{{ tool.action }}</td>
           <td><code>{{ tool.path }}</code></td>
         </tr>
         {% endfor %}

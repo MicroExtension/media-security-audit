@@ -113,6 +113,8 @@ class DeploymentPreflightTests(unittest.TestCase):
         output = format_deployment_preflight(preflight)
         self.assertIn("Action: Enable MEDIA_AUDIT_REQUIRE_AUTH=true", output)
         self.assertIn("Action: Install nmap", output)
+        self.assertIn("V1 pilot UI can continue without it", output)
+        self.assertIn("Install nuclei only when the Nuclei module is enabled", output)
 
     def test_preflight_formats_json_for_automation(self) -> None:
         root = clean_dir("deployment-preflight-json")

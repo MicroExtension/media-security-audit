@@ -131,7 +131,7 @@ def inventory_action(status: str) -> str:
 def tool_action(tool: ToolStatus) -> str:
     if tool.status == "ready":
         return NO_ACTION_REQUIRED
-    return f"Install {tool.command} on the VM or document why it is intentionally unavailable."
+    return tool.action
 
 
 def overall_status(items: list[PreflightItem]) -> str:

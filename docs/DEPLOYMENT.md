@@ -146,6 +146,10 @@ item includes a short `action` field for the technician or install script.
 Use `bash scripts/debian-vm-preflight.sh --strict` when warnings should fail a
 pre-production install gate. The default helper remains suitable for pilot VMs
 where optional scanner tooling may still be absent but the web UI can start.
+During the V1 pilot, missing `testssl.sh` limits TLS live checks and missing
+`nuclei` only affects a future template module; neither prevents the local UI,
+manual findings, report generation, exports, or workspace backups from being
+tested.
 
 Build and start the service after deployment preflight:
 

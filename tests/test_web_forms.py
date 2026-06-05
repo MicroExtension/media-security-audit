@@ -117,6 +117,22 @@ class WebFormTests(unittest.TestCase):
             [AuditCheck.HTTP_HEADERS, AuditCheck.DNS_MAIL, AuditCheck.TLS],
         )
 
+    def test_create_mission_template_overrides_conflicting_audit_type(self) -> None:
+        store = JsonStore(clean_data_dir("web-form-mission-template-conflict"))
+        client = create_client_from_form(store, {"name": "Client Template"})
+
+        mission = create_mission_from_form(
+            store,
+            {
+                "client_id": client.id,
+                "name": "Web Mail Hygiene",
+                "audit_template_id": "tpl_web_mail_hygiene",
+                "audit_type": "internal",
+            },
+        )
+
+        self.assertEqual(mission.audit_type, AuditType.EXTERNAL)
+
     def test_create_mission_rejects_unknown_template(self) -> None:
         store = JsonStore(clean_data_dir("web-form-mission-template-missing"))
         client = create_client_from_form(store, {"name": "Client Template"})

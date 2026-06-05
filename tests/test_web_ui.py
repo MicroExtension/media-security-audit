@@ -308,6 +308,22 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("client.export_inventory_url", template)
         self.assertIn("mission.preparation_action_href", template)
 
+    def test_dashboard_template_syncs_template_audit_type(self) -> None:
+        template_path = (
+            Path(__file__).resolve().parents[1]
+            / "app"
+            / "media_security_audit"
+            / "web_templates"
+            / "dashboard.html"
+        )
+        template = template_path.read_text(encoding="utf-8")
+
+        self.assertIn("data-template-audit-select", template)
+        self.assertIn('data-audit-type="{{ template.audit_type }}"', template)
+        self.assertIn("data-audit-type-select", template)
+        self.assertIn("selectedOption.dataset.auditType", template)
+        self.assertIn('templateSelect.addEventListener("change", syncAuditType)', template)
+
     def test_client_template_exposes_preparation_action_links(self) -> None:
         template_path = (
             Path(__file__).resolve().parents[1]

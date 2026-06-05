@@ -167,6 +167,37 @@ class DeploymentFileTests(unittest.TestCase):
         self.assertNotIn("testssl.sh --", script)
         self.assertNotIn("rm -rf", script)
 
+    def test_debian_vm_v1_readiness_report_is_safe_aggregate_only(self) -> None:
+        script = (ROOT / "scripts" / "debian-vm-v1-readiness-report.sh").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn("set -euo pipefail", script)
+        self.assertIn("MEDIA_AUDIT_V1_READINESS_DIR", script)
+        self.assertIn("reports/v1-readiness", script)
+        self.assertIn("media-audit-v1-readiness-", script)
+        self.assertIn("scanner_execution=not_performed", script)
+        self.assertIn("package_installation=not_performed", script)
+        self.assertIn("application_logs=not_collected", script)
+        self.assertIn("customer_file_contents=not_collected", script)
+        self.assertIn("bash scripts/debian-vm-security-review.sh", script)
+        self.assertIn("bash scripts/debian-vm-tooling-plan.sh", script)
+        self.assertIn("bash scripts/debian-vm-status.sh", script)
+        self.assertIn("bash scripts/debian-vm-bundle-inventory.sh --verify-manifests", script)
+        self.assertIn("v1_readiness=ready", script)
+        self.assertIn("v1_readiness=blocked", script)
+        self.assertIn("Nuclei remains disabled until template governance is approved", script)
+        self.assertIn("no scanner was executed by this readiness report", script)
+        self.assertNotIn("docker compose logs", script)
+        self.assertNotIn("docker compose up", script)
+        self.assertNotIn("docker compose build", script)
+        self.assertNotIn("docker compose run", script)
+        self.assertNotIn("apt-get", script)
+        self.assertNotIn("\nsudo ", script)
+        self.assertNotIn("testssl.sh --", script)
+        self.assertNotIn("nuclei -update-templates", script)
+        self.assertNotIn("rm -rf", script)
+
     def test_debian_vm_firewall_plan_is_plan_only(self) -> None:
         script = (ROOT / "scripts" / "debian-vm-firewall-plan.sh").read_text(encoding="utf-8")
 

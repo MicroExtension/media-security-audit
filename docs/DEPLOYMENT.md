@@ -246,6 +246,18 @@ runs the security review, deployment status, and bundle inventory helpers, then
 records technician review reminders without collecting application logs or
 customer file contents.
 
+Generate a V1 readiness report before the first pilot:
+
+```bash
+bash scripts/debian-vm-v1-readiness-report.sh
+```
+
+Readiness reports are written to `reports/v1-readiness` by default. Set
+`MEDIA_AUDIT_V1_READINESS_DIR=/path/to/readiness` to write them elsewhere. The
+helper records Git state, security review, tooling plan, deployment status,
+bundle inventory, and pilot acceptance reminders. It does not install packages,
+run scanners, collect application logs, or read customer file contents.
+
 Create a shareable handoff bundle:
 
 ```bash

@@ -399,6 +399,12 @@ bash scripts/debian-vm-handoff-bundle.sh
 bash scripts/debian-vm-bundle-inventory.sh
 ```
 
+21. Generate the V1 readiness report:
+
+```bash
+bash scripts/debian-vm-v1-readiness-report.sh
+```
+
 Expected result:
 
 - pilot files are downloadable
@@ -406,6 +412,7 @@ Expected result:
 - mission export package is generated
 - handoff report and bundle are generated
 - bundle inventory shows manifest status
+- V1 readiness report is generated under `reports/v1-readiness`
 - no live scan is required for this V1 validation
 
 ## Phase 4 - V1 Acceptance Criteria
@@ -433,6 +440,7 @@ Mark V1 as ready for a controlled internal pilot only if all criteria are true:
 - workspace backup can be generated
 - handoff report can be generated
 - handoff bundle can be generated
+- V1 readiness report ends with `v1_readiness=ready`
 - no customer scan was run without explicit authorization
 
 ## Phase 5 - Stop Or Restart The VM Service

@@ -33,6 +33,7 @@ class ToolStatus:
     requirement: str
     pilot_blocking: bool
     action: str
+    install_hint: str
 
 
 @dataclass(frozen=True)
@@ -44,6 +45,7 @@ class ToolCheck:
     requirement: str
     pilot_blocking: bool
     missing_action: str
+    install_hint: str
 
 
 @dataclass(frozen=True)
@@ -75,6 +77,7 @@ TOOL_CHECKS: tuple[ToolCheck, ...] = (
         requirement="pilot required",
         pilot_blocking=True,
         missing_action="Install nmap before enabling guarded Nmap execution.",
+        install_hint="sudo apt install -y nmap",
     ),
     ToolCheck(
         label="testssl.sh",
@@ -87,6 +90,7 @@ TOOL_CHECKS: tuple[ToolCheck, ...] = (
             "Install testssl.sh before TLS live checks; the V1 pilot UI "
             "can continue without it."
         ),
+        install_hint="sudo apt install -y testssl.sh",
     ),
     ToolCheck(
         label="Nuclei",
@@ -99,6 +103,10 @@ TOOL_CHECKS: tuple[ToolCheck, ...] = (
             "Install nuclei only when the Nuclei module is enabled and "
             "approved templates are maintained."
         ),
+        install_hint=(
+            "Future module only: install through an approved pinned package or "
+            "release process when Nuclei templates are governed."
+        ),
     ),
     ToolCheck(
         label="smbclient",
@@ -108,6 +116,7 @@ TOOL_CHECKS: tuple[ToolCheck, ...] = (
         requirement="pilot required",
         pilot_blocking=True,
         missing_action="Install smbclient before enabling guarded SMB execution.",
+        install_hint="sudo apt install -y smbclient",
     ),
     ToolCheck(
         label="ldapsearch",
@@ -117,6 +126,7 @@ TOOL_CHECKS: tuple[ToolCheck, ...] = (
         requirement="pilot required",
         pilot_blocking=True,
         missing_action="Install ldapsearch before enabling guarded LDAP execution.",
+        install_hint="sudo apt install -y ldap-utils",
     ),
 )
 
@@ -209,6 +219,7 @@ def tool_status(
             requirement=check.requirement,
             pilot_blocking=check.pilot_blocking,
             action=TOOL_READY_ACTION,
+            install_hint=check.install_hint,
         )
     return ToolStatus(
         label=check.label,
@@ -220,4 +231,5 @@ def tool_status(
         requirement=check.requirement,
         pilot_blocking=check.pilot_blocking,
         action=check.missing_action,
+        install_hint=check.install_hint,
     )

@@ -53,12 +53,18 @@ Decide safe defaults:
 - whether UDP checks are excluded by default
 - allowed audit windows
 - customer notification procedure
+- whether `testssl.sh` is installed during VM preparation or only before TLS
+  live checks
+- whether the future Nuclei module is approved, including pinned install source
+  and reviewed template governance
 
 Default assumption until decided:
 - conservative TCP-only checks
 - no UDP by default
 - no aggressive timing
 - no intrusive scripts
+- `testssl.sh` is installed only when TLS live checks are approved
+- Nuclei remains disabled until template governance is approved
 
 ## Needed Before GUI V2
 

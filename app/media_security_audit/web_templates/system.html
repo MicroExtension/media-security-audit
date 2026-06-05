@@ -154,6 +154,7 @@
           <th>Phase</th>
           <th>Requirement</th>
           <th>Pilot impact</th>
+          <th>Install review</th>
           <th>Next action</th>
         </tr>
       </thead>
@@ -173,6 +174,7 @@
             Does not block pilot UI/reporting
             {% endif %}
           </td>
+          <td><code class="block">{{ tool.install_hint }}</code></td>
           <td>{{ tool.action }}</td>
         </tr>
         {% endfor %}
@@ -196,6 +198,7 @@
           <th>Phase</th>
           <th>Requirement</th>
           <th>Purpose</th>
+          <th>Install review</th>
           <th>Action</th>
           <th>Resolved Path</th>
         </tr>
@@ -211,6 +214,7 @@
           <td>{{ tool.phase }}</td>
           <td><span class="badge">{{ tool.requirement }}</span></td>
           <td>{{ tool.detail }}</td>
+          <td><code class="block">{{ tool.install_hint }}</code></td>
           <td>{{ tool.action }}</td>
           <td><code>{{ tool.path }}</code></td>
         </tr>

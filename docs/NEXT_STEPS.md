@@ -164,6 +164,7 @@ Codex action:
 - keep Debian VM update planning read-only and maintenance-window focused
 - keep Debian VM offline update planning package-verification-only until apply workflow is designed
 - keep Debian VM update helpers guarded by backup, manifest verification, and deployment preflight
+- keep Debian VM scanner tooling plans read-only, technician-reviewed, and optional-module aware
 
 ## Step 2.2 - Nmap Dry-Run Planning
 
@@ -265,6 +266,8 @@ Owner action:
 - no action required yet
 - later, confirm whether `testssl.sh` should be installed in the VM image or
   documented as a required customer appliance dependency
+- for the V1 pilot, use `bash scripts/debian-vm-tooling-plan.sh` before enabling
+  TLS live checks on a VM
 
 Codex action:
 - test TLS behavior with mocked runners
@@ -485,6 +488,9 @@ or extracting anything.
 Use `bash scripts/debian-vm-preflight.sh` after `.env` is configured to validate
 Docker Compose, persistent folders, image build, and deployment preflight before
 starting the service.
+Use `bash scripts/debian-vm-tooling-plan.sh` when preflight reports missing
+scanner tools; it prints reviewed installation commands without installing
+packages, running scanners, updating templates, or touching Docker.
 Use `bash scripts/debian-vm-start.sh` to run deployment preflight and start Docker
 Compose only if deployment checks pass.
 Use `bash scripts/debian-vm-status.sh` for a quick log-free status check of

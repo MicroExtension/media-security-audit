@@ -151,6 +151,32 @@ During the V1 pilot, missing `testssl.sh` limits TLS live checks and missing
 manual findings, report generation, exports, or workspace backups from being
 tested.
 
+Review VM scanner tooling before enabling live checks:
+
+```bash
+bash scripts/debian-vm-tooling-plan.sh
+```
+
+The tooling plan prints current availability and reviewed installation
+commands. It does not execute package installs, Docker commands, scanners, or
+template updates. After installing required tools during an approved maintenance
+window, run:
+
+```bash
+bash scripts/debian-vm-preflight.sh
+bash scripts/debian-vm-security-review.sh
+```
+
+Use strict preflight only when every warning should fail the handoff gate:
+
+```bash
+bash scripts/debian-vm-preflight.sh --strict
+```
+
+Use `bash scripts/debian-vm-tooling-plan.sh --include-nuclei` only when the
+future Nuclei module is approved and its templates are governed, reviewed, and
+versioned.
+
 Build and start the service after deployment preflight:
 
 ```bash

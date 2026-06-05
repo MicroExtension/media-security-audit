@@ -143,15 +143,18 @@ From the web UI:
    - human and automation file categories
    - manifest file count
 6. Return to the dashboard.
-7. Create a test client named `V1 Pilot Client`.
-8. Create a test mission named `V1 Pilot Audit`.
-9. Add authorization details on the mission page.
-10. Add one approved scope item, for example:
-    - type: `domain`
-    - value: `example.test`
-    - environment: `external`
-    - approved: yes
-11. Select safe checks from the mission page.
+7. Open `New Audit`.
+8. Create a guided test audit:
+   - client: `V1 Pilot Client`
+   - mission: `V1 Pilot Audit`
+   - authorization reference: `V1-PILOT-AUTH`
+   - target: `example.test`
+   - checks: HTTP headers and DNS/Mail
+   - approved scope confirmation: yes
+9. Confirm the created mission page shows authorization, approved scope, and
+   selected checks.
+10. Review the scan plan preview.
+11. Optionally adjust safe checks from the mission page.
 12. Add a manual finding or sample finding.
 13. Review the finding status and notes.
 14. Generate reports from the mission page.

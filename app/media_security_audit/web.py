@@ -10,6 +10,7 @@ from pydantic import ValidationError
 
 from media_security_audit.models import (
     ActivityEvent,
+    AuditCheck,
     AuditType,
     FindingStatus,
     ReportFormat,
@@ -46,6 +47,8 @@ from media_security_audit.web_remediations import (
 )
 from media_security_audit.scan_plan_exports import ScanPlanExportFormat, build_scan_plan_export
 from media_security_audit.web_ui import (
+    CHECK_DESCRIPTIONS,
+    CHECK_LABELS,
     build_client_view,
     build_dashboard_view,
     build_mission_view,
@@ -56,6 +59,7 @@ from media_security_audit.web_ui import (
 from media_security_audit.web_forms import (
     add_manual_finding_from_form,
     add_scope_from_form,
+    create_guided_audit_from_form,
     create_client_from_form,
     create_mission_from_form,
     new_form_token,
@@ -286,6 +290,43 @@ def create_web_app(
                             system_view,
                         ),
                     ),
+                    "message": message,
+                    "error": error,
+                },
+            )
+        )
+
+    @app.get("/wizard", response_class=HTMLResponse, dependencies=protected)
+    def guided_audit_wizard(
+        request: Request,
+        message: str | None = None,
+        error: str | None = None,
+    ) -> HTMLResponse:
+        return HTMLResponse(
+            render_template(
+                templates,
+                "wizard.html",
+                {
+                    "request": request,
+                    "data_dir": data_dir,
+                    "clients": sorted(store.list_clients(), key=lambda client: client.name.lower()),
+                    "audit_types": [item.value for item in AuditType],
+                    "audit_templates": build_audit_template_library_view().templates,
+                    "check_options": [
+                        {
+                            "value": check.value,
+                            "label": CHECK_LABELS[check],
+                            "description": CHECK_DESCRIPTIONS[check],
+                            "default": check
+                            in {
+                                AuditCheck.NMAP,
+                                AuditCheck.HTTP_HEADERS,
+                                AuditCheck.DNS_MAIL,
+                            },
+                        }
+                        for check in AuditCheck
+                    ],
+                    "form_token": form_token,
                     "message": message,
                     "error": error,
                 },
@@ -825,6 +866,29 @@ def create_web_app(
         except (FileNotFoundError, RuntimeError, ValueError, ValidationError) as error:
             return redirect_with_status("/", error=format_web_error(error))
         return redirect_with_status(f"/missions/{mission.id}", message="mission created")
+
+    @app.post("/wizard", dependencies=protected)
+    async def guided_audit_create(request: Request):
+        try:
+            form = parse_urlencoded_form(await request.body())
+            validate_form_token(form, form_token)
+            client, mission = create_guided_audit_from_form(store, form)
+            record_activity(
+                mission.id,
+                "wizard.audit_created",
+                f"Guided audit prepared for {client.name}: {mission.name}",
+                {
+                    "client_id": client.id,
+                    "scope_count": str(len(mission.scope)),
+                    "selected_checks": ", ".join(check.value for check in mission.selected_checks),
+                },
+            )
+        except (FileNotFoundError, RuntimeError, ValueError, ValidationError) as error:
+            return redirect_with_status("/wizard", error=format_web_error(error))
+        return redirect_with_status(
+            f"/missions/{mission.id}",
+            message="guided audit prepared",
+        )
 
     @app.get("/missions/{mission_id}", response_class=HTMLResponse, dependencies=protected)
     def mission_detail(

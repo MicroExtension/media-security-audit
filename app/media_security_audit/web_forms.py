@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import date
+from ipaddress import ip_address
 import secrets
 from urllib.parse import parse_qs
 
@@ -69,6 +70,67 @@ def create_mission_from_form(store: JsonStore, form: dict[str, str]) -> Mission:
     )
 
 
+def create_guided_audit_from_form(store: JsonStore, form: dict[str, str]) -> tuple[Client, Mission]:
+    selected_checks = selected_checks_from_form(form)
+    if not selected_checks:
+        raise ValueError("at least one audit check is required")
+
+    if not parse_checkbox(form, "scope_approved"):
+        raise ValueError("approved scope confirmation is required")
+
+    scope_items = guided_scope_items_from_form(form)
+    if not scope_items:
+        raise ValueError("at least one target is required")
+
+    template_id = optional_text(form, "audit_template_id")
+    template = get_audit_template(template_id)
+    if template_id and template is None:
+        raise ValueError(f"audit template not found: {template_id}")
+
+    client_id = optional_text(form, "client_id")
+    created_client = False
+    if client_id:
+        client = store.get_client(client_id)
+    else:
+        client = store.create_client(
+            Client(
+                name=required_text(form, "client_name", "client name"),
+                internal_reference=optional_text(form, "client_reference"),
+                notes=optional_text(form, "client_notes"),
+            )
+        )
+        created_client = True
+
+    mission = store.create_mission(
+        Mission(
+            client_id=client.id,
+            name=required_text(form, "mission_name", "mission name"),
+            audit_type=template.audit_type
+            if template
+            else AuditType(required_text(form, "audit_type", "audit type")),
+            audit_template_id=template.id if template else None,
+            authorization_reference=required_text(
+                form,
+                "authorization_reference",
+                "authorization reference",
+            ),
+            authorization_contact=optional_text(form, "authorization_contact"),
+            authorization_date=parse_optional_date(form, "authorization_date"),
+            authorization_expires_at=parse_optional_date(form, "authorization_expires_at"),
+            emergency_contact=optional_text(form, "emergency_contact"),
+            report_recipients=optional_text(form, "report_recipients"),
+            evidence_retention_days=parse_optional_int(form, "evidence_retention_days"),
+            selected_checks=selected_checks,
+            notes=guided_mission_notes(form, created_client),
+        )
+    )
+
+    for item in scope_items:
+        mission = store.add_scope_item(mission.id, item)
+
+    return client, mission
+
+
 def update_mission_from_form(store: JsonStore, mission_id: str, form: dict[str, str]) -> Mission:
     mission = store.get_mission(mission_id)
     updates = {
@@ -93,9 +155,7 @@ def update_mission_checks_from_form(
     form: dict[str, str],
 ) -> Mission:
     mission = store.get_mission(mission_id)
-    selected_checks = [
-        check for check in AuditCheck if parse_checkbox(form, f"check_{check.value}")
-    ]
+    selected_checks = selected_checks_from_form(form)
     updated = mission.model_copy(update={"selected_checks": selected_checks})
     return store.save_mission(updated)
 
@@ -211,6 +271,86 @@ def required_text(form: dict[str, str], field: str, label: str) -> str:
     if value is None:
         raise ValueError(f"{label} is required")
     return value
+
+
+def selected_checks_from_form(form: dict[str, str]) -> list[AuditCheck]:
+    return [check for check in AuditCheck if parse_checkbox(form, f"check_{check.value}")]
+
+
+def guided_scope_items_from_form(form: dict[str, str]) -> list[ScopeItem]:
+    items: list[ScopeItem] = []
+    items.extend(
+        ScopeItem(
+            type=infer_host_scope_type(value),
+            value=value,
+            environment=ScopeEnvironment.INTERNAL,
+            approved=True,
+            notes="Guided audit internal target.",
+        )
+        for value in split_targets(optional_text(form, "internal_targets"))
+    )
+    items.extend(
+        ScopeItem(
+            type=ScopeType.URL if value.startswith(("http://", "https://")) else ScopeType.DOMAIN,
+            value=value,
+            environment=ScopeEnvironment.EXTERNAL,
+            approved=True,
+            notes="Guided audit external domain.",
+        )
+        for value in split_targets(optional_text(form, "external_domains"))
+    )
+    items.extend(
+        ScopeItem(
+            type=ScopeType.URL,
+            value=normalize_url_target(value),
+            environment=ScopeEnvironment.EXTERNAL,
+            approved=True,
+            notes="Guided audit web URL.",
+        )
+        for value in split_targets(optional_text(form, "web_urls"))
+    )
+    items.extend(
+        ScopeItem(
+            type=infer_host_scope_type(value),
+            value=value,
+            environment=ScopeEnvironment.INTERNAL,
+            approved=True,
+            notes="Guided audit AD or LDAP target.",
+        )
+        for value in split_targets(optional_text(form, "ad_servers"))
+    )
+    return items
+
+
+def split_targets(value: str | None) -> list[str]:
+    if value is None:
+        return []
+    normalized = value.replace(",", "\n")
+    return [line.strip() for line in normalized.splitlines() if line.strip()]
+
+
+def infer_host_scope_type(value: str) -> ScopeType:
+    if "/" in value:
+        return ScopeType.CIDR
+    try:
+        ip_address(value)
+    except ValueError:
+        return ScopeType.HOST
+    return ScopeType.IP
+
+
+def normalize_url_target(value: str) -> str:
+    if value.startswith(("http://", "https://")):
+        return value
+    return f"https://{value}"
+
+
+def guided_mission_notes(form: dict[str, str], created_client: bool) -> str | None:
+    notes = optional_text(form, "mission_notes")
+    context = "Created from guided audit wizard."
+    if created_client:
+        context = f"{context} New client created during audit setup."
+    return f"{context}\n\n{notes}" if notes else context
 
 
 def optional_text(form: dict[str, str], field: str) -> str | None:

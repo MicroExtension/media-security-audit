@@ -13,6 +13,7 @@ from media_security_audit.models import (  # noqa: E402
     AuditType,
     Finding,
     FindingStatus,
+    ScopeEnvironment,
     ScopeType,
     Severity,
 )
@@ -21,6 +22,7 @@ from media_security_audit.web_forms import (  # noqa: E402
     add_manual_finding_from_form,
     add_scope_from_form,
     create_client_from_form,
+    create_guided_audit_from_form,
     create_mission_from_form,
     new_form_token,
     parse_checkbox,
@@ -149,6 +151,131 @@ class WebFormTests(unittest.TestCase):
             )
 
         self.assertIn("audit template not found", str(error.exception))
+
+    def test_create_guided_audit_from_form_builds_client_mission_and_scope(self) -> None:
+        store = JsonStore(clean_data_dir("web-form-guided-audit"))
+
+        client, mission = create_guided_audit_from_form(
+            store,
+            {
+                "client_name": " Client Pilot ",
+                "client_reference": " PILOT-001 ",
+                "client_notes": " First pilot ",
+                "mission_name": " Guided external audit ",
+                "audit_template_id": "tpl_web_mail_hygiene",
+                "audit_type": "internal",
+                "authorization_reference": " AUTH-GUIDED-001 ",
+                "authorization_contact": " William / M.E.D.I.A. ",
+                "authorization_date": "2026-06-05",
+                "authorization_expires_at": "2026-06-30",
+                "evidence_retention_days": "90",
+                "external_domains": "example.fr, https://mail.example.fr",
+                "web_urls": "portal.example.fr",
+                "internal_targets": "192.168.1.0/24\nserver01.local",
+                "ad_servers": "10.0.0.5",
+                "mission_notes": " Validate guided workflow. ",
+                "check_http_headers": "on",
+                "check_dns_mail": "on",
+                "scope_approved": "on",
+            },
+        )
+
+        self.assertEqual(client.name, "Client Pilot")
+        self.assertEqual(client.internal_reference, "PILOT-001")
+        self.assertEqual(mission.name, "Guided external audit")
+        self.assertEqual(mission.audit_template_id, "tpl_web_mail_hygiene")
+        self.assertEqual(mission.audit_type, AuditType.EXTERNAL)
+        self.assertEqual(mission.authorization_reference, "AUTH-GUIDED-001")
+        self.assertEqual(mission.authorization_contact, "William / M.E.D.I.A.")
+        self.assertEqual(mission.authorization_date.isoformat(), "2026-06-05")
+        self.assertEqual(mission.authorization_expires_at.isoformat(), "2026-06-30")
+        self.assertEqual(mission.evidence_retention_days, 90)
+        self.assertEqual(mission.selected_checks, [AuditCheck.HTTP_HEADERS, AuditCheck.DNS_MAIL])
+        self.assertEqual(mission.status.value, "ready_to_scan")
+        self.assertIn("Created from guided audit wizard.", mission.notes or "")
+        self.assertIn("New client created during audit setup.", mission.notes or "")
+        self.assertIn("Validate guided workflow.", mission.notes or "")
+
+        scope = [(item.type, item.environment, item.value, item.approved) for item in mission.scope]
+        self.assertEqual(
+            scope,
+            [
+                (ScopeType.CIDR, ScopeEnvironment.INTERNAL, "192.168.1.0/24", True),
+                (ScopeType.HOST, ScopeEnvironment.INTERNAL, "server01.local", True),
+                (ScopeType.DOMAIN, ScopeEnvironment.EXTERNAL, "example.fr", True),
+                (ScopeType.URL, ScopeEnvironment.EXTERNAL, "https://mail.example.fr", True),
+                (ScopeType.URL, ScopeEnvironment.EXTERNAL, "https://portal.example.fr", True),
+                (ScopeType.IP, ScopeEnvironment.INTERNAL, "10.0.0.5", True),
+            ],
+        )
+        self.assertEqual(store.get_mission(mission.id).scope[0].value, "192.168.1.0/24")
+
+    def test_create_guided_audit_from_form_uses_existing_client(self) -> None:
+        store = JsonStore(clean_data_dir("web-form-guided-existing-client"))
+        existing = create_client_from_form(store, {"name": "Existing Client"})
+
+        client, mission = create_guided_audit_from_form(
+            store,
+            {
+                "client_id": existing.id,
+                "client_name": "Ignored Client",
+                "mission_name": "Internal guided audit",
+                "audit_type": "internal",
+                "authorization_reference": "AUTH-GUIDED-002",
+                "internal_targets": "10.10.10.0/24",
+                "check_nmap": "on",
+                "scope_approved": "on",
+            },
+        )
+
+        self.assertEqual(client.id, existing.id)
+        self.assertEqual(mission.client_id, existing.id)
+        self.assertNotIn("New client created", mission.notes or "")
+
+    def test_create_guided_audit_from_form_requires_checks_scope_and_targets(self) -> None:
+        store = JsonStore(clean_data_dir("web-form-guided-invalid"))
+
+        with self.assertRaises(ValueError) as no_check_error:
+            create_guided_audit_from_form(
+                store,
+                {
+                    "client_name": "Client X",
+                    "mission_name": "Audit",
+                    "audit_type": "external",
+                    "authorization_reference": "AUTH-001",
+                    "external_domains": "example.fr",
+                    "scope_approved": "on",
+                },
+            )
+        self.assertIn("at least one audit check", str(no_check_error.exception))
+
+        with self.assertRaises(ValueError) as no_scope_confirmation:
+            create_guided_audit_from_form(
+                store,
+                {
+                    "client_name": "Client X",
+                    "mission_name": "Audit",
+                    "audit_type": "external",
+                    "authorization_reference": "AUTH-001",
+                    "external_domains": "example.fr",
+                    "check_dns_mail": "on",
+                },
+            )
+        self.assertIn("approved scope confirmation", str(no_scope_confirmation.exception))
+
+        with self.assertRaises(ValueError) as no_target_error:
+            create_guided_audit_from_form(
+                store,
+                {
+                    "client_name": "Client X",
+                    "mission_name": "Audit",
+                    "audit_type": "external",
+                    "authorization_reference": "AUTH-001",
+                    "check_dns_mail": "on",
+                    "scope_approved": "on",
+                },
+            )
+        self.assertIn("at least one target", str(no_target_error.exception))
 
     def test_add_scope_from_form(self) -> None:
         store = JsonStore(clean_data_dir("web-form-scope"))

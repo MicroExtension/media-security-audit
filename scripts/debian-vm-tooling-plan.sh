@@ -13,9 +13,10 @@ usage() {
   cat <<'USAGE'
 Usage: bash scripts/debian-vm-tooling-plan.sh [--strict] [--include-nuclei]
 
-Reviews VM tool availability and prints installation commands for technician
-approval. No package command, scanner, template update, or Docker command is
-executed by this helper.
+Reviews host-visible VM tool availability and prints installation commands for
+technician approval. Default mode is advisory because the Docker deployment
+preflight is the source of truth for runtime tool availability. No package
+command, scanner, template update, or Docker command is executed by this helper.
 USAGE
 }
 
@@ -112,14 +113,13 @@ Nuclei remains future optional for V1:
   - do not run template updates during an audit without authorization
 PLAN
 
-if [[ "${BLOCKED}" -gt 0 ]]; then
-  info "tooling plan blocked: ${BLOCKED} required tool(s) missing, ${WARNINGS} warning(s)"
+if [[ "${STRICT}" == "true" && $((BLOCKED + WARNINGS)) -gt 0 ]]; then
+  info "tooling plan strict mode failed: ${BLOCKED} required host tool gap(s), ${WARNINGS} warning(s)"
   exit 1
 fi
 
-if [[ "${STRICT}" == "true" && "${WARNINGS}" -gt 0 ]]; then
-  info "tooling plan strict mode failed: ${WARNINGS} warning(s)"
-  exit 1
+if [[ "${BLOCKED}" -gt 0 ]]; then
+  info "tooling plan completed with ${BLOCKED} host tool gap(s); Docker preflight remains the runtime readiness gate"
 fi
 
 if [[ "${WARNINGS}" -gt 0 ]]; then

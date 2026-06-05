@@ -273,10 +273,11 @@ bash scripts/debian-vm-tooling-plan.sh
 
 Expected result:
 
-- pilot-required tools are marked ready or clearly blocked
+- pilot-required host tools are marked ready or clearly documented
 - `testssl.sh` is marked as TLS-module tooling when missing
 - `nuclei` is marked future optional unless explicitly included
 - reviewed installation commands are printed for technician approval
+- Docker deployment preflight remains the runtime readiness gate
 - no package install, Docker command, scanner, or template update is executed
 
 After installing required tools during an approved maintenance window, run:

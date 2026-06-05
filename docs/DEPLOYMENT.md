@@ -157,10 +157,12 @@ Review VM scanner tooling before enabling live checks:
 bash scripts/debian-vm-tooling-plan.sh
 ```
 
-The tooling plan prints current availability and reviewed installation
-commands. It does not execute package installs, Docker commands, scanners, or
-template updates. After installing required tools during an approved maintenance
-window, run:
+The tooling plan prints host-visible availability and reviewed installation
+commands. Default mode is advisory because Docker deployment preflight is the
+runtime readiness gate. Missing tools on the VM host can be documented when the
+Docker runtime preflight is ready. It does not execute package installs, Docker
+commands, scanners, or template updates. After installing required tools during
+an approved maintenance window, run:
 
 ```bash
 bash scripts/debian-vm-preflight.sh

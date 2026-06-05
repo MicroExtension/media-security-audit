@@ -503,16 +503,16 @@
       </label>
       <label>
         <span>Template</span>
-        <select name="audit_template_id">
+        <select name="audit_template_id" data-template-audit-select>
           <option value=""></option>
           {% for template in audit_templates %}
-          <option value="{{ template.id }}">{{ template.title }} | {{ template.audit_type }} | {{ template.cadence }}</option>
+          <option value="{{ template.id }}" data-audit-type="{{ template.audit_type }}">{{ template.title }} | {{ template.audit_type }} | {{ template.cadence }}</option>
           {% endfor %}
         </select>
       </label>
       <label>
         <span>Audit Type</span>
-        <select name="audit_type" required>
+        <select name="audit_type" required data-audit-type-select>
           {% for audit_type in audit_types %}
           <option value="{{ audit_type }}">{{ audit_type }}</option>
           {% endfor %}
@@ -675,4 +675,22 @@
     </table>
   </div>
 </section>
+<script>
+  (() => {
+    const templateSelect = document.querySelector("[data-template-audit-select]");
+    const auditTypeSelect = document.querySelector("[data-audit-type-select]");
+    if (!templateSelect || !auditTypeSelect) {
+      return;
+    }
+    const syncAuditType = () => {
+      const selectedOption = templateSelect.selectedOptions[0];
+      const auditType = selectedOption ? selectedOption.dataset.auditType : "";
+      if (auditType) {
+        auditTypeSelect.value = auditType;
+      }
+    };
+    templateSelect.addEventListener("change", syncAuditType);
+    syncAuditType();
+  })();
+</script>
 {% endblock %}

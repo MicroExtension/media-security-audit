@@ -165,6 +165,7 @@ Codex action:
 - keep Debian VM offline update planning package-verification-only until apply workflow is designed
 - keep Debian VM update helpers guarded by backup, manifest verification, and deployment preflight
 - keep Debian VM scanner tooling plans read-only, technician-reviewed, and optional-module aware
+- keep Debian VM V1 readiness reports scanner-free, package-free, log-free, and tied to pilot acceptance
 
 ## Step 2.2 - Nmap Dry-Run Planning
 
@@ -466,6 +467,11 @@ them.
 Use `bash scripts/debian-vm-handoff-report.sh` before customer handoff to write
 a local readiness report with bundle inventory under `reports/handoff` without
 collecting logs or customer file contents.
+Use `bash scripts/debian-vm-v1-readiness-report.sh` before the first controlled
+pilot to record Git state, security review, tooling plan, deployment status,
+bundle inventory, and pilot acceptance reminders under `reports/v1-readiness`
+without package installs, scanner execution, application logs, or customer file
+contents.
 Use `bash scripts/debian-vm-handoff-bundle.sh` to generate a fresh handoff
 report and package only that report for handoff review. Review the generated
 sidecar manifest before sharing the bundle.

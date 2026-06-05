@@ -577,14 +577,14 @@ Current local development command:
 
 ```powershell
 $env:PYTHONPATH='app'
-python -m media_security_audit.cli web --data-dir data --reports-dir reports --host 127.0.0.1 --port 8080
+python -m media_security_audit.cli web --data-dir data --reports-dir reports --runs-dir runs --host 127.0.0.1 --port 8080
 ```
 
 Installed environment command:
 
 ```powershell
 python -m pip install -e .
-media-audit web --data-dir data --reports-dir reports --host 127.0.0.1 --port 8080
+media-audit web --data-dir data --reports-dir reports --runs-dir runs --host 127.0.0.1 --port 8080
 ```
 
 Owner action:
@@ -593,7 +593,8 @@ Owner action:
 
 Codex action:
 - build FastAPI/Jinja2 interface incrementally
-- keep scan execution out of the UI until browser execution controls are approved
+- keep browser scan execution guarded by explicit confirmation, authorization,
+  approved scope, and selected checks
 - keep CLI and GUI on the same domain engine
 - prevent scans without approved scope
 
@@ -756,7 +757,8 @@ Current GUI status:
 - TLS testssl.sh scan plan previews are available when the TLS check is selected
 - SMB scan plan previews are available when the SMB check is selected
 - LDAP scan plan previews are available when the LDAP check is selected
-- scan execution remains CLI-only
+- selected ready scan checks can be launched from mission pages after explicit
+  authorization confirmation
 
 ## Step 7 - Add Safe Scanner Modules
 

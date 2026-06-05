@@ -127,7 +127,8 @@ Run a local preflight before customer use:
 ```bash
 docker compose run --rm media-audit media-audit preflight \
   --data-dir /var/lib/media-audit/data \
-  --reports-dir /var/lib/media-audit/reports
+  --reports-dir /var/lib/media-audit/reports \
+  --runs-dir /var/lib/media-audit/runs
 ```
 
 For a Debian/Ubuntu VM, the guarded helper performs the Compose validation,
@@ -673,7 +674,9 @@ bash scripts/debian-vm-verify-bundle-manifest.sh reports/support/media-audit-sup
 
 ## Current Limitations
 
-- The web UI does not execute scans yet.
+- The web UI can execute only selected checks that are ready in the scan plan,
+  after explicit authorization confirmation. The same guarded CLI runners still
+  enforce mission authorization, approved scope, and safe adapter rules.
 - Full user management is not implemented yet.
 - Docker image signing is not implemented yet.
 - Offline update package application is not implemented yet.

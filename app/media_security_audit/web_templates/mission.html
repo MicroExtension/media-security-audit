@@ -104,7 +104,7 @@
 <section class="section" id="scan-plan">
   <div class="section-title">
     <h2>Scan Plan Preview</h2>
-    <span class="muted">CLI execution only</span>
+    <span class="muted">Guarded execution</span>
   </div>
   <div class="report-links" aria-label="Scan plan exports">
     <a href="/missions/{{ view.mission.id }}/scan-plan/markdown">markdown</a>
@@ -125,6 +125,21 @@
         {% endfor %}
       </ul>
       {% endif %}
+      <div class="plan-actions">
+        {% if plan.status == "ready" %}
+        <form method="post" action="/missions/{{ view.mission.id }}/scan-runs" aria-label="Run {{ plan.label }} check">
+          <input type="hidden" name="_csrf" value="{{ form_token }}">
+          <input type="hidden" name="check" value="{{ plan.check }}">
+          <label class="run-confirmation">
+            <input type="checkbox" name="execute_confirm" required>
+            <span>Authorization confirmed</span>
+          </label>
+          <button class="button secondary-button" type="submit">Run Check</button>
+        </form>
+        {% else %}
+        <span class="empty">Resolve the blocked plan before execution.</span>
+        {% endif %}
+      </div>
     </article>
     {% endfor %}
   </div>
@@ -133,7 +148,7 @@
 <section class="section" id="run-monitor">
   <div class="section-title">
     <h2>Run Monitor</h2>
-    <span class="muted">CLI executions only</span>
+    <span class="muted">CLI and web executions</span>
   </div>
   <div class="table-wrap">
     <table>

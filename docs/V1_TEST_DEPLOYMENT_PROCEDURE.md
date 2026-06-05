@@ -105,7 +105,7 @@ Set temporary authentication for the local test session:
 $env:MEDIA_AUDIT_REQUIRE_AUTH='true'
 $env:MEDIA_AUDIT_WEB_USERNAME='admin'
 $env:MEDIA_AUDIT_WEB_PASSWORD='ChangeMe-Local-Test-Only'
-python -m media_security_audit.cli web --data-dir data --reports-dir reports --host 127.0.0.1 --port 8080
+python -m media_security_audit.cli web --data-dir data --reports-dir reports --runs-dir runs --host 127.0.0.1 --port 8080
 ```
 
 Open:
@@ -436,6 +436,8 @@ Mark V1 as ready for a controlled internal pilot only if all criteria are true:
 - authorization details can be recorded
 - approved scope can be recorded
 - check selection can be recorded
+- a ready selected check can be launched from the mission scan plan only after
+  explicit authorization confirmation
 - manual/sample finding workflow works
 - reports can be generated
 - mission export package can be generated
@@ -476,7 +478,7 @@ Store the new password in the maintenance password vault.
 Windows local test:
 
 ```powershell
-python -m media_security_audit.cli web --data-dir data --reports-dir reports --host 127.0.0.1 --port 8081
+python -m media_security_audit.cli web --data-dir data --reports-dir reports --runs-dir runs --host 127.0.0.1 --port 8081
 ```
 
 Debian/Ubuntu VM:

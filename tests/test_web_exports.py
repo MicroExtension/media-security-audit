@@ -305,19 +305,34 @@ class WebExportTests(unittest.TestCase):
         items = build_mission_export_inventory(store, reports_dir, include_missing=True)
         payload = mission_export_inventory_payload(items)
         statuses = {item["mission_id"]: item["status"] for item in payload["items"]}
+        handoff_statuses = {
+            item["mission_id"]: item["handoff_status"] for item in payload["items"]
+        }
+        handoff_actions = {
+            item["mission_id"]: item["handoff_action"] for item in payload["items"]
+        }
         names = {item["mission_id"]: item["client_name"] for item in payload["items"]}
         missing_items = filter_mission_export_inventory(items, status="missing")
         packaged_items = filter_mission_export_inventory(items, query="packaged")
+        handoff_items = filter_mission_export_inventory(items, query="Download handoff")
 
+        self.assertEqual(payload["schema_version"], 2)
         self.assertEqual(payload["summary"]["items"], 2)
         self.assertEqual(payload["summary"]["packages"], 1)
         self.assertEqual(payload["summary"]["ready"], 1)
         self.assertEqual(payload["summary"]["missing"], 1)
+        self.assertEqual(payload["summary"]["handoff_ready"], 1)
+        self.assertEqual(payload["summary"]["handoff_attention"], 1)
         self.assertEqual(statuses[packaged.id], "ready")
         self.assertEqual(statuses[missing.id], "missing")
+        self.assertEqual(handoff_statuses[packaged.id], "ready")
+        self.assertEqual(handoff_statuses[missing.id], "missing")
+        self.assertEqual(handoff_actions[packaged.id], "Download handoff package")
+        self.assertEqual(handoff_actions[missing.id], "Generate package")
         self.assertEqual(names[packaged.id], "Client Inventory")
         self.assertEqual([item.mission_id for item in missing_items], [missing.id])
         self.assertEqual([item.mission_id for item in packaged_items], [packaged.id])
+        self.assertEqual([item.mission_id for item in handoff_items], [packaged.id])
 
         json_export = build_mission_export_inventory_export(
             store,
@@ -349,10 +364,14 @@ class WebExportTests(unittest.TestCase):
         self.assertEqual(json_payload["summary"]["items"], 1)
         self.assertEqual(json_payload["filters"]["query"], "Packaged")
         self.assertEqual(json_payload["filters"]["status"], "ready")
+        self.assertEqual(json_payload["items"][0]["handoff_status"], "ready")
+        self.assertEqual(json_payload["items"][0]["handoff_action"], "Download handoff package")
         self.assertEqual(markdown_export.filename, "mission-export-inventory.md")
         self.assertIn("# Mission Export Inventory", markdown_export.content)
         self.assertIn("- Execution: `not_executed`", markdown_export.content)
         self.assertIn("- Status: `missing`", markdown_export.content)
+        self.assertIn("- Handoff attention: `1`", markdown_export.content)
+        self.assertIn("Generate package", markdown_export.content)
         self.assertIn("Missing Audit", markdown_export.content)
         self.assertNotIn("Packaged Audit", markdown_export.content)
         self.assertEqual(csv_export.filename, "mission-export-inventory.csv")
@@ -360,6 +379,8 @@ class WebExportTests(unittest.TestCase):
         self.assertEqual(len(csv_rows), 1)
         self.assertEqual(csv_rows[0]["mission_id"], missing.id)
         self.assertEqual(csv_rows[0]["status"], "missing")
+        self.assertEqual(csv_rows[0]["handoff_status"], "missing")
+        self.assertEqual(csv_rows[0]["handoff_action"], "Generate package")
 
     def test_mission_export_inventory_filters_exports_by_client(self) -> None:
         data_dir = clean_dir("web-export-inventory-client-data")

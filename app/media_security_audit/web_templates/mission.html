@@ -306,6 +306,13 @@
       <span class="muted">{{ view.mission_export.filename }} | {{ view.mission_export.size_bytes }} bytes</span>
       <span class="badge status-{{ view.mission_export.integrity_status }}">{{ view.mission_export.integrity_status }}</span>
       <span class="muted">{{ view.mission_export.integrity_detail }}</span>
+      <div class="status-panel">
+        <span class="badge status-{{ view.mission_export.handoff_status }}">{{ view.mission_export.handoff_status }}</span>
+        <div>
+          <strong>{{ view.mission_export.handoff_action }}</strong>
+          <p>{{ view.mission_export.handoff_detail }}</p>
+        </div>
+      </div>
       <div class="export-integrity-summary" aria-label="Mission export integrity details">
         <span>checked {{ view.mission_export.checked_files }}</span>
         <span>missing {{ view.mission_export.missing_count }}</span>

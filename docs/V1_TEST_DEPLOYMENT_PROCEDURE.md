@@ -257,7 +257,10 @@ Expected result:
 - deployment preflight completes
 - persistent folders are ready
 - Docker Compose can build the app
-- missing optional scanner tooling may be reported as a warning
+- missing `testssl.sh` means TLS live checks are not ready yet, but the V1
+  pilot UI, manual findings, reports, exports, and backup workflow can continue
+- missing `nuclei` is expected until the future Nuclei module and approved
+  templates are enabled
 - no scanner is executed
 
 ### 6. Start The Service

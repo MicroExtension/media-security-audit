@@ -32,6 +32,7 @@ class WebSystemTests(unittest.TestCase):
             "system-storage",
             "system-inventory",
             "system-backup",
+            "system-tooling-plan",
             "system-tools",
         ]:
             self.assertIn(f'href="#{anchor}"', template)
@@ -45,6 +46,13 @@ class WebSystemTests(unittest.TestCase):
             "view.tools | length",
         ]:
             self.assertIn(f"{{{{ {counter} }}}}", template)
+        for tool_field in [
+            "tool.phase",
+            "tool.requirement",
+            "tool.pilot_blocking",
+            "tool.action",
+        ]:
+            self.assertIn(tool_field, template)
 
     def test_builds_local_system_status_without_running_tools(self) -> None:
         data_dir = clean_data_dir("web-system-status")
@@ -73,7 +81,12 @@ class WebSystemTests(unittest.TestCase):
         self.assertIn("nmap", calls)
         self.assertEqual(status.tools[0].label, "Nmap")
         self.assertEqual(status.tools[0].status, "ready")
+        self.assertEqual(status.tools[0].requirement, "pilot required")
+        self.assertTrue(status.tools[0].pilot_blocking)
         self.assertEqual(status.tools[1].status, "missing")
+        self.assertEqual(status.tools[1].requirement, "module required")
+        self.assertFalse(status.tools[1].pilot_blocking)
+        self.assertIn("V1 pilot UI", status.tools[1].action)
         self.assertIsNone(status.workspace_backup)
         self.assertEqual(status.inventory.status, "ready")
         self.assertEqual(status.inventory.metrics[0].label, "Clients")
@@ -91,6 +104,8 @@ class WebSystemTests(unittest.TestCase):
         self.assertEqual(status.auth.status, "warning")
         self.assertTrue(all(item.status == "blocked" for item in status.paths))
         self.assertTrue(all(tool.status == "missing" for tool in status.tools))
+        self.assertFalse(status.tools[2].pilot_blocking)
+        self.assertEqual(status.tools[2].requirement, "future optional")
         self.assertIsNone(status.workspace_backup)
         self.assertEqual(status.inventory.status, "ready")
 

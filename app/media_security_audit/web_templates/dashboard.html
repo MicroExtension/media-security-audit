@@ -16,9 +16,11 @@
   <div class="metric"><span>Blocked Prep</span><strong>{{ view.blocked_preparation_count }}</strong></div>
   <div class="metric"><span>Review Prep</span><strong>{{ view.warning_preparation_count }}</strong></div>
   <div class="metric"><span>Ready Prep</span><strong>{{ view.ready_preparation_count }}</strong></div>
+  <div class="metric"><span>Onboarding</span><strong>{{ view.onboarding_ready_count }}/{{ view.onboarding_total_count }}</strong></div>
 </section>
 
 <section class="dashboard-shortcuts" aria-label="Dashboard shortcuts">
+  <a href="#onboarding">Onboarding <span>{{ view.onboarding_ready_count }}/{{ view.onboarding_total_count }}</span></a>
   <a href="#ready-missions">Ready Missions <span>{{ view.ready_missions|length }}</span></a>
   <a href="#review-missions">Review Missions <span>{{ view.review_missions|length }}</span></a>
   <a href="#blocked-missions">Blocked Missions <span>{{ view.blocked_missions|length }}</span></a>
@@ -29,6 +31,38 @@
   <a href="#counter-tests">Counter-tests <span>{{ view.counter_test_summary|length }}</span></a>
   <a href="#failed-counter-tests">Failed Retests <span>{{ view.failed_counter_test_missions|length }}</span></a>
   <a href="#preparation">Preparation <span>{{ view.preparation_items|length }}</span></a>
+  <a href="#missions">Missions <span>{{ view.missions|length }}</span></a>
+  <a href="#clients">Clients <span>{{ view.clients|length }}</span></a>
+</section>
+
+<section class="section" id="onboarding">
+  <div class="section-title">
+    <h2>Pilot Onboarding</h2>
+    <div class="report-links" aria-label="Pilot onboarding actions">
+      <a href="{{ view.onboarding_next_action_href }}">{{ view.onboarding_next_action_label }}</a>
+      <a href="/pilot">Pilot</a>
+      <a href="/system">System</a>
+    </div>
+  </div>
+  <div class="status-panel">
+    <span class="badge status-{{ 'ready' if view.onboarding_ready_count == view.onboarding_total_count else 'warning' }}">
+      {{ view.onboarding_ready_count }}/{{ view.onboarding_total_count }}
+    </span>
+    <div>
+      <strong>{{ view.onboarding_next_action_label }}</strong>
+      <p>{{ view.onboarding_next_action }}</p>
+    </div>
+  </div>
+  <div class="readiness-grid" aria-label="Pilot onboarding steps">
+    {% for step in view.onboarding_steps %}
+    <article class="readiness-item readiness-{{ step.status }}">
+      <span class="badge readiness-badge">{{ step.status }}</span>
+      <strong>{{ step.label }}</strong>
+      <p>{{ step.detail }}</p>
+      <a class="readiness-action" href="{{ step.action_href }}">{{ step.action_label }}</a>
+    </article>
+    {% endfor %}
+  </div>
 </section>
 
 <section class="section" id="client-priorities">
@@ -553,7 +587,7 @@
   </form>
 </section>
 
-<section class="section">
+<section class="section" id="missions">
   <div class="section-title">
     <h2>Missions</h2>
   </div>
@@ -613,7 +647,7 @@
   </div>
 </section>
 
-<section class="section">
+<section class="section" id="clients">
   <div class="section-title">
     <h2>Clients</h2>
   </div>

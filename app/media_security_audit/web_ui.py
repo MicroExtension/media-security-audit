@@ -186,6 +186,15 @@ class CounterTestSummaryRow:
 
 
 @dataclass(frozen=True)
+class DashboardOnboardingStep:
+    label: str
+    status: str
+    detail: str
+    action_label: str
+    action_href: str
+
+
+@dataclass(frozen=True)
 class ActivityEventRow:
     id: str
     action: str
@@ -284,6 +293,12 @@ class DashboardView:
     finding_dispositions: list[FindingDispositionRow]
     counter_test_summary: list[CounterTestSummaryRow]
     failed_counter_test_missions: list[MissionRow]
+    onboarding_steps: list[DashboardOnboardingStep]
+    onboarding_ready_count: int
+    onboarding_total_count: int
+    onboarding_next_action: str
+    onboarding_next_action_label: str
+    onboarding_next_action_href: str
     total_clients: int
     total_missions: int
     total_findings: int
@@ -796,6 +811,129 @@ def mission_activity_log_url(mission_id: str) -> str:
     return f"/activity?{urlencode({'mission_id': mission_id})}"
 
 
+def latest_mission(missions: list[Mission]) -> Mission | None:
+    if not missions:
+        return None
+    return sorted(missions, key=lambda item: (item.created_at, item.id), reverse=True)[0]
+
+
+def mission_anchor_href(mission: Mission | None, anchor: str) -> str:
+    if mission is None:
+        return "#new-mission"
+    return f"/missions/{mission.id}#{anchor}"
+
+
+def onboarding_step_status(is_ready: bool, is_enabled: bool) -> str:
+    if is_ready:
+        return "ready"
+    return "warning" if is_enabled else "blocked"
+
+
+def build_dashboard_onboarding_steps(
+    clients: list[Client],
+    missions: list[Mission],
+    total_findings: int,
+) -> list[DashboardOnboardingStep]:
+    mission = latest_mission(missions)
+    client_count = len(clients)
+    mission_count = len(missions)
+    authorized_mission_count = len([item for item in missions if item.is_authorized])
+    approved_scope_count = len(
+        [
+            scope
+            for item in missions
+            for scope in item.scope
+            if scope.approved and not scope.excluded
+        ]
+    )
+    selected_check_count = sum(len(item.selected_checks) for item in missions)
+
+    client_ready = client_count > 0
+    mission_ready = mission_count > 0
+    authorization_ready = authorized_mission_count > 0
+    scope_ready = approved_scope_count > 0
+    checks_ready = selected_check_count > 0 and scope_ready
+    findings_ready = total_findings > 0 and checks_ready
+
+    return [
+        DashboardOnboardingStep(
+            label="Client record",
+            status=onboarding_step_status(client_ready, True),
+            detail=(
+                f"{client_count} client record(s) available."
+                if client_ready
+                else "Create the first maintenance client record."
+            ),
+            action_label="Review Clients" if client_ready else "Create Client",
+            action_href="#clients" if client_ready else "#new-client",
+        ),
+        DashboardOnboardingStep(
+            label="Mission setup",
+            status=onboarding_step_status(mission_ready, client_ready),
+            detail=(
+                f"{mission_count} mission record(s) available."
+                if mission_ready
+                else "Create a mission attached to the pilot client."
+            ),
+            action_label="Review Missions" if mission_ready else "Create Mission",
+            action_href="#missions" if mission_ready else "#new-mission",
+        ),
+        DashboardOnboardingStep(
+            label="Authorization",
+            status=onboarding_step_status(authorization_ready, mission_ready),
+            detail=(
+                f"{authorized_mission_count} authorized mission(s) available."
+                if authorization_ready
+                else "Record written authorization reference, contact, and dates."
+            ),
+            action_label="Review Setup",
+            action_href=mission_anchor_href(mission, "mission-setup"),
+        ),
+        DashboardOnboardingStep(
+            label="Approved scope",
+            status=onboarding_step_status(scope_ready, authorization_ready),
+            detail=(
+                f"{approved_scope_count} approved target(s) available."
+                if scope_ready
+                else "Approve at least one in-scope target before planning checks."
+            ),
+            action_label="Review Scope",
+            action_href=mission_anchor_href(mission, "scope"),
+        ),
+        DashboardOnboardingStep(
+            label="Check selection",
+            status=onboarding_step_status(checks_ready, scope_ready),
+            detail=(
+                f"{selected_check_count} selected check(s) available."
+                if checks_ready
+                else "Select audit checks aligned with the approved scope."
+            ),
+            action_label="Select Checks",
+            action_href=mission_anchor_href(mission, "check-selection"),
+        ),
+        DashboardOnboardingStep(
+            label="Finding review",
+            status=onboarding_step_status(findings_ready, checks_ready),
+            detail=(
+                f"{total_findings} finding(s) ready for review."
+                if findings_ready
+                else "Add or import reviewed findings before report handoff."
+            ),
+            action_label="Review Findings",
+            action_href=mission_anchor_href(mission, "findings"),
+        ),
+    ]
+
+
+def onboarding_next_action(
+    steps: list[DashboardOnboardingStep],
+) -> tuple[str, str, str]:
+    for step in steps:
+        if step.status != "ready":
+            return (step.detail, step.action_label, step.action_href)
+    return ("Pilot workflow is ready for evidence handoff review.", "Open Pilot", "/pilot")
+
+
 def client_preparation_row(mission: Mission, findings: list[Finding]) -> ClientPreparationRow:
     preparation = mission_preparation_summary(mission, findings)
 
@@ -1040,6 +1178,16 @@ def build_dashboard_view(store: JsonStore) -> DashboardView:
     mission_rows.sort(key=lambda item: item.created_at, reverse=True)
     preparation_rows.sort(key=lambda item: (item[0], item[1], item[2]))
     preparation_items = [row for _, _, _, row in preparation_rows]
+    onboarding_steps = build_dashboard_onboarding_steps(
+        clients=clients,
+        missions=missions,
+        total_findings=total_findings,
+    )
+    (
+        onboarding_next_action_text,
+        onboarding_next_action_label,
+        onboarding_next_action_href,
+    ) = onboarding_next_action(onboarding_steps)
 
     return DashboardView(
         clients=client_rows,
@@ -1057,6 +1205,14 @@ def build_dashboard_view(store: JsonStore) -> DashboardView:
         finding_dispositions=finding_disposition_rows(all_findings),
         counter_test_summary=counter_test_summary_rows(all_findings),
         failed_counter_test_missions=failed_counter_test_mission_rows(mission_rows),
+        onboarding_steps=onboarding_steps,
+        onboarding_ready_count=len(
+            [item for item in onboarding_steps if item.status == "ready"]
+        ),
+        onboarding_total_count=len(onboarding_steps),
+        onboarding_next_action=onboarding_next_action_text,
+        onboarding_next_action_label=onboarding_next_action_label,
+        onboarding_next_action_href=onboarding_next_action_href,
         total_clients=len(client_rows),
         total_missions=len(mission_rows),
         total_findings=total_findings,

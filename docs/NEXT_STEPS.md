@@ -496,7 +496,9 @@ Docker Compose, persistent folders, image build, and deployment preflight before
 starting the service.
 Use `bash scripts/debian-vm-tooling-plan.sh` when preflight reports missing
 scanner tools; it prints reviewed installation commands without installing
-packages, running scanners, updating templates, or touching Docker.
+packages, running scanners, updating templates, or touching Docker. Its default
+mode is advisory for host-visible tools; Docker deployment preflight remains the
+runtime readiness gate.
 Use `bash scripts/debian-vm-start.sh` to run deployment preflight and start Docker
 Compose only if deployment checks pass.
 Use `bash scripts/debian-vm-status.sh` for a quick log-free status check of

@@ -13,6 +13,8 @@ services:
       - /var/lib/media-audit/data
       - --reports-dir
       - /var/lib/media-audit/reports
+      - --runs-dir
+      - /var/lib/media-audit/runs
       - --host
       - 0.0.0.0
       - --port

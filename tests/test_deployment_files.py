@@ -30,6 +30,7 @@ class DeploymentFileTests(unittest.TestCase):
         self.assertIn("/var/lib/media-audit/data", dockerfile)
         self.assertIn("/var/lib/media-audit/reports", dockerfile)
         self.assertIn('"--reports-dir", "/var/lib/media-audit/reports"', dockerfile)
+        self.assertIn('"--runs-dir", "/var/lib/media-audit/runs"', dockerfile)
         self.assertIn('"--host", "0.0.0.0"', dockerfile)
         self.assertIn("HEALTHCHECK", dockerfile)
 
@@ -43,6 +44,8 @@ class DeploymentFileTests(unittest.TestCase):
         self.assertIn("./evidence:/var/lib/media-audit/evidence", compose)
         self.assertIn("--reports-dir", compose)
         self.assertIn("/var/lib/media-audit/reports", compose)
+        self.assertIn("--runs-dir", compose)
+        self.assertIn("/var/lib/media-audit/runs", compose)
         self.assertIn("restart: unless-stopped", compose)
         self.assertIn('user: "${MEDIA_AUDIT_UID:-10001}:${MEDIA_AUDIT_GID:-10001}"', compose)
 

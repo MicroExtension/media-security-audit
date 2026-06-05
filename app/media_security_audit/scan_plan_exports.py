@@ -55,6 +55,7 @@ def scan_plan_payload(
         },
         "plans": [
             {
+                "check": plan.check,
                 "label": plan.label,
                 "status": plan.status,
                 "detail": plan.detail,

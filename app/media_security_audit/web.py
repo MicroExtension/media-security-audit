@@ -115,6 +115,7 @@ from media_security_audit.web_pilot import (
     format_pilot_runbook_markdown,
 )
 from media_security_audit.web_reports import generate_web_reports, generated_report_file
+from media_security_audit.web_scan_runs import run_web_scan_check_from_form
 from media_security_audit.web_system import build_system_status
 
 
@@ -147,9 +148,14 @@ def render_template(environment: Any, name: str, context: dict[str, Any]) -> str
 def redirect_with_status(path: str, message: str | None = None, error: str | None = None):
     from fastapi.responses import RedirectResponse
 
+    fragment = ""
+    if "#" in path:
+        path, fragment = path.split("#", 1)
     query = {key: value for key, value in {"message": message, "error": error}.items() if value}
     separator = "&" if "?" in path else "?"
     target = f"{path}{separator}{urlencode(query)}" if query else path
+    if fragment:
+        target = f"{target}#{fragment}"
     return RedirectResponse(url=target, status_code=303)
 
 
@@ -163,6 +169,7 @@ def format_web_error(error: Exception) -> str:
 def create_web_app(
     data_dir: Path = Path("data"),
     reports_dir: Path = Path("reports"),
+    runs_dir: Path = Path("runs"),
     auth_settings: WebAuthSettings | None = None,
 ):
     try:
@@ -953,6 +960,41 @@ def create_web_app(
             return redirect_with_status(f"/missions/{mission_id}", error=format_web_error(error))
         return redirect_with_status(f"/missions/{mission_id}", message="check selection updated")
 
+    @app.post("/missions/{mission_id}/scan-runs", dependencies=protected)
+    async def mission_scan_run_create(request: Request, mission_id: str):
+        try:
+            form = parse_urlencoded_form(await request.body())
+            validate_form_token(form, form_token)
+            result = run_web_scan_check_from_form(
+                mission_id=mission_id,
+                data_dir=data_dir,
+                runs_dir=runs_dir,
+                form=form,
+            )
+            record_activity(
+                mission_id,
+                "scan.web_executed",
+                f"Executed {result.label} from the web UI",
+                {
+                    "check": result.check.value,
+                    "status": result.run_status,
+                    "command_count": str(result.command_count),
+                    "finding_count": str(result.finding_count),
+                },
+            )
+        except (FileNotFoundError, RuntimeError, OSError, ValueError, ValidationError) as error:
+            return redirect_with_status(
+                f"/missions/{mission_id}#scan-plan",
+                error=format_web_error(error),
+            )
+        return redirect_with_status(
+            f"/missions/{mission_id}#run-monitor",
+            message=(
+                f"{result.label} completed: "
+                f"{result.command_count} command(s), {result.finding_count} finding(s)"
+            ),
+        )
+
     @app.post("/missions/{mission_id}/scope", dependencies=protected)
     async def scope_create(request: Request, mission_id: str):
         try:
@@ -1216,6 +1258,7 @@ def create_web_app(
 def run_web_server(
     data_dir: Path = Path("data"),
     reports_dir: Path = Path("reports"),
+    runs_dir: Path = Path("runs"),
     host: str = "127.0.0.1",
     port: int = 8080,
 ) -> None:
@@ -1226,7 +1269,11 @@ def run_web_server(
             "missing uvicorn; install the project dependencies before running the UI"
         ) from error
 
-    uvicorn.run(create_web_app(data_dir=data_dir, reports_dir=reports_dir), host=host, port=port)
+    uvicorn.run(
+        create_web_app(data_dir=data_dir, reports_dir=reports_dir, runs_dir=runs_dir),
+        host=host,
+        port=port,
+    )
 
 
 def main() -> None:

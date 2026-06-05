@@ -113,12 +113,19 @@ def generate_sample_reports(output: Path) -> None:
 def run_web_interface(
     data_dir: Path,
     reports_dir: Path,
+    runs_dir: Path = Path("runs"),
     host: str = "127.0.0.1",
     port: int = 8080,
 ) -> None:
     from media_security_audit.web import run_web_server
 
-    run_web_server(data_dir=data_dir, reports_dir=reports_dir, host=host, port=port)
+    run_web_server(
+        data_dir=data_dir,
+        reports_dir=reports_dir,
+        runs_dir=runs_dir,
+        host=host,
+        port=port,
+    )
 
 
 def create_client(name: str, data_dir: Path, reference: str | None = None, notes: str | None = None) -> Client:
@@ -897,12 +904,19 @@ try:
     def web(
         data_dir: Path = typer.Option(Path("data"), "--data-dir"),
         reports_dir: Path = typer.Option(Path("reports"), "--reports-dir"),
+        runs_dir: Path = typer.Option(Path("runs"), "--runs-dir"),
         host: str = typer.Option("127.0.0.1", "--host"),
         port: int = typer.Option(8080, "--port"),
     ) -> None:
         """Start the local web interface."""
         try:
-            run_web_interface(data_dir=data_dir, reports_dir=reports_dir, host=host, port=port)
+            run_web_interface(
+                data_dir=data_dir,
+                reports_dir=reports_dir,
+                runs_dir=runs_dir,
+                host=host,
+                port=port,
+            )
         except RuntimeError as error:
             typer.echo(f"error: {error}", err=True)
             raise typer.Exit(code=2) from error
@@ -1359,6 +1373,7 @@ except ModuleNotFoundError:
         )
         web_parser.add_argument("--data-dir", type=Path, default=Path("data"))
         web_parser.add_argument("--reports-dir", type=Path, default=Path("reports"))
+        web_parser.add_argument("--runs-dir", type=Path, default=Path("runs"))
         web_parser.add_argument("--host", default="127.0.0.1")
         web_parser.add_argument("--port", type=int, default=8080)
 
@@ -1595,6 +1610,7 @@ except ModuleNotFoundError:
                 run_web_interface(
                     data_dir=args.data_dir,
                     reports_dir=args.reports_dir,
+                    runs_dir=args.runs_dir,
                     host=args.host,
                     port=args.port,
                 )

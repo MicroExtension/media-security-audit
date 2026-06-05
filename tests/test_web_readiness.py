@@ -77,9 +77,12 @@ class WebReadinessTests(unittest.TestCase):
         plans = {plan.label: plan for plan in build_scan_plan_previews(mission)}
 
         self.assertEqual(plans["Nmap"].status, "ready")
+        self.assertEqual(plans["Nmap"].check, "nmap")
         self.assertTrue(any(command.startswith("nmap -sV") for command in plans["Nmap"].commands))
         self.assertEqual(plans["HTTP Headers"].commands, ["HEAD/GET https://client.example"])
+        self.assertEqual(plans["HTTP Headers"].check, "http_headers")
         self.assertEqual(plans["DNS/Mail"].commands, ["TXT client.example", "TXT _dmarc.client.example"])
+        self.assertEqual(plans["DNS/Mail"].check, "dns_mail")
 
     def test_blocks_unavailable_scan_plan_previews(self) -> None:
         mission = Mission(client_id="client_1", name="Audit")
@@ -105,6 +108,7 @@ class WebReadinessTests(unittest.TestCase):
         plans = build_scan_plan_previews(mission)
 
         self.assertEqual([plan.label for plan in plans], ["HTTP Headers"])
+        self.assertEqual(plans[0].check, "http_headers")
         self.assertEqual(plans[0].status, "ready")
 
     def test_tls_scan_plan_preview_is_available_when_selected(self) -> None:
@@ -120,6 +124,7 @@ class WebReadinessTests(unittest.TestCase):
         plans = build_scan_plan_previews(mission)
 
         self.assertEqual([plan.label for plan in plans], ["TLS"])
+        self.assertEqual(plans[0].check, "tls")
         self.assertEqual(plans[0].status, "ready")
         self.assertTrue(plans[0].commands[0].startswith("testssl.sh --warnings batch"))
         self.assertIn("client.example", plans[0].commands[0])
@@ -137,6 +142,7 @@ class WebReadinessTests(unittest.TestCase):
         plans = build_scan_plan_previews(mission)
 
         self.assertEqual([plan.label for plan in plans], ["SMB"])
+        self.assertEqual(plans[0].check, "smb")
         self.assertEqual(plans[0].status, "ready")
         self.assertTrue(plans[0].commands[0].startswith("smbclient -L //fs01.client.local"))
         self.assertIn("-N", plans[0].commands[0])
@@ -154,6 +160,7 @@ class WebReadinessTests(unittest.TestCase):
         plans = build_scan_plan_previews(mission)
 
         self.assertEqual([plan.label for plan in plans], ["LDAP"])
+        self.assertEqual(plans[0].check, "ldap")
         self.assertEqual(plans[0].status, "ready")
         self.assertTrue(plans[0].commands[0].startswith("ldapsearch -x -LLL"))
         self.assertIn("ldap://dc01.client.local", plans[0].commands[0])
@@ -167,6 +174,7 @@ class WebReadinessTests(unittest.TestCase):
 
         self.assertEqual(statuses["Check Selection"], "blocked")
         self.assertEqual(plans[0].label, "Check Selection")
+        self.assertEqual(plans[0].check, "check_selection")
         self.assertEqual(plans[0].status, "blocked")
 
 

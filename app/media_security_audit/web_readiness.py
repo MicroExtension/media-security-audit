@@ -25,6 +25,7 @@ class ReadinessItem:
 
 @dataclass(frozen=True)
 class ScanPlanPreview:
+    check: str
     label: str
     status: str
     detail: str
@@ -58,7 +59,13 @@ def build_scan_plan_previews(mission: Mission) -> list[ScanPlanPreview]:
         AuditCheck.LDAP: _ldap_preview,
     }
     if not mission.selected_checks:
-        return [_blocked_plan("Check Selection", "No audit check is selected for this mission.")]
+        return [
+            _blocked_plan(
+                "check_selection",
+                "Check Selection",
+                "No audit check is selected for this mission.",
+            )
+        ]
     return [plan_builders[check](mission) for check in mission.selected_checks]
 
 
@@ -157,13 +164,14 @@ def _nmap_preview(mission: Mission) -> ScanPlanPreview:
             output_dir=Path("runs") / mission.id / "evidence",
         )
     except ValueError as error:
-        return _blocked_plan("Nmap", str(error))
+        return _blocked_plan(AuditCheck.NMAP.value, "Nmap", str(error))
 
     if not commands:
-        return _blocked_plan("Nmap", "No approved Nmap-compatible target.")
+        return _blocked_plan(AuditCheck.NMAP.value, "Nmap", "No approved Nmap-compatible target.")
 
     rendered = [render_command(command) for command in commands]
     return ScanPlanPreview(
+        check=AuditCheck.NMAP.value,
         label="Nmap",
         status="ready",
         detail=f"{len(rendered)} planned command(s).",
@@ -175,12 +183,13 @@ def _http_preview(mission: Mission) -> ScanPlanPreview:
     try:
         targets = approved_http_targets(mission.scope)
     except ValueError as error:
-        return _blocked_plan("HTTP Headers", str(error))
+        return _blocked_plan(AuditCheck.HTTP_HEADERS.value, "HTTP Headers", str(error))
 
     if not targets:
-        return _blocked_plan("HTTP Headers", "No approved URL target.")
+        return _blocked_plan(AuditCheck.HTTP_HEADERS.value, "HTTP Headers", "No approved URL target.")
 
     return ScanPlanPreview(
+        check=AuditCheck.HTTP_HEADERS.value,
         label="HTTP Headers",
         status="ready",
         detail=f"{len(targets)} approved URL target(s).",
@@ -193,12 +202,13 @@ def _dns_mail_preview(mission: Mission) -> ScanPlanPreview:
         domains = approved_dns_domains(mission.scope)
         queries = dns_mail_query_plan(domains)
     except ValueError as error:
-        return _blocked_plan("DNS/Mail", str(error))
+        return _blocked_plan(AuditCheck.DNS_MAIL.value, "DNS/Mail", str(error))
 
     if not queries:
-        return _blocked_plan("DNS/Mail", "No approved domain target.")
+        return _blocked_plan(AuditCheck.DNS_MAIL.value, "DNS/Mail", "No approved domain target.")
 
     return ScanPlanPreview(
+        check=AuditCheck.DNS_MAIL.value,
         label="DNS/Mail",
         status="ready",
         detail=f"{len(queries)} planned TXT lookup(s).",
@@ -213,13 +223,14 @@ def _tls_preview(mission: Mission) -> ScanPlanPreview:
             output_dir=Path("runs") / mission.id / "evidence",
         )
     except ValueError as error:
-        return _blocked_plan("TLS", str(error))
+        return _blocked_plan(AuditCheck.TLS.value, "TLS", str(error))
 
     if not commands:
-        return _blocked_plan("TLS", "No approved TLS-compatible target.")
+        return _blocked_plan(AuditCheck.TLS.value, "TLS", "No approved TLS-compatible target.")
 
     rendered = [render_testssl_command(command) for command in commands]
     return ScanPlanPreview(
+        check=AuditCheck.TLS.value,
         label="TLS",
         status="ready",
         detail=f"{len(rendered)} planned testssl.sh command(s).",
@@ -231,13 +242,14 @@ def _smb_preview(mission: Mission) -> ScanPlanPreview:
     try:
         commands = SmbCommandBuilder().build_for_scope(mission.scope)
     except ValueError as error:
-        return _blocked_plan("SMB", str(error))
+        return _blocked_plan(AuditCheck.SMB.value, "SMB", str(error))
 
     if not commands:
-        return _blocked_plan("SMB", "No approved SMB-compatible target.")
+        return _blocked_plan(AuditCheck.SMB.value, "SMB", "No approved SMB-compatible target.")
 
     rendered = [render_smb_command(command) for command in commands]
     return ScanPlanPreview(
+        check=AuditCheck.SMB.value,
         label="SMB",
         status="ready",
         detail=f"{len(rendered)} planned smbclient command(s).",
@@ -249,13 +261,14 @@ def _ldap_preview(mission: Mission) -> ScanPlanPreview:
     try:
         commands = LdapCommandBuilder().build_for_scope(mission.scope)
     except ValueError as error:
-        return _blocked_plan("LDAP", str(error))
+        return _blocked_plan(AuditCheck.LDAP.value, "LDAP", str(error))
 
     if not commands:
-        return _blocked_plan("LDAP", "No approved LDAP-compatible target.")
+        return _blocked_plan(AuditCheck.LDAP.value, "LDAP", "No approved LDAP-compatible target.")
 
     rendered = [render_ldap_command(command) for command in commands]
     return ScanPlanPreview(
+        check=AuditCheck.LDAP.value,
         label="LDAP",
         status="ready",
         detail=f"{len(rendered)} planned ldapsearch command(s).",
@@ -263,5 +276,5 @@ def _ldap_preview(mission: Mission) -> ScanPlanPreview:
     )
 
 
-def _blocked_plan(label: str, detail: str) -> ScanPlanPreview:
-    return ScanPlanPreview(label=label, status="blocked", detail=detail, commands=[])
+def _blocked_plan(check: str, label: str, detail: str) -> ScanPlanPreview:
+    return ScanPlanPreview(check=check, label=label, status="blocked", detail=detail, commands=[])

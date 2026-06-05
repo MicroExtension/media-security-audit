@@ -41,6 +41,8 @@ class ScanPlanExportTests(unittest.TestCase):
         self.assertEqual(json_payload["summary"]["execution"], "not_executed")
         self.assertEqual(json_payload["summary"]["ready"], 2)
         self.assertEqual(json_payload["summary"]["planned_commands"], 3)
+        self.assertEqual(json_payload["plans"][0]["check"], "http_headers")
+        self.assertEqual(json_payload["plans"][1]["check"], "dns_mail")
         self.assertIn("Execution: not executed by this command", text)
         self.assertIn("[ready] HTTP Headers", text)
         self.assertIn("# Scan Plan", markdown)

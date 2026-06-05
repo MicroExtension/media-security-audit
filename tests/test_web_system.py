@@ -51,6 +51,7 @@ class WebSystemTests(unittest.TestCase):
             "tool.requirement",
             "tool.pilot_blocking",
             "tool.action",
+            "tool.install_hint",
         ]:
             self.assertIn(tool_field, template)
 
@@ -83,10 +84,12 @@ class WebSystemTests(unittest.TestCase):
         self.assertEqual(status.tools[0].status, "ready")
         self.assertEqual(status.tools[0].requirement, "pilot required")
         self.assertTrue(status.tools[0].pilot_blocking)
+        self.assertEqual(status.tools[0].install_hint, "sudo apt install -y nmap")
         self.assertEqual(status.tools[1].status, "missing")
         self.assertEqual(status.tools[1].requirement, "module required")
         self.assertFalse(status.tools[1].pilot_blocking)
         self.assertIn("V1 pilot UI", status.tools[1].action)
+        self.assertEqual(status.tools[1].install_hint, "sudo apt install -y testssl.sh")
         self.assertIsNone(status.workspace_backup)
         self.assertEqual(status.inventory.status, "ready")
         self.assertEqual(status.inventory.metrics[0].label, "Clients")
@@ -106,6 +109,7 @@ class WebSystemTests(unittest.TestCase):
         self.assertTrue(all(tool.status == "missing" for tool in status.tools))
         self.assertFalse(status.tools[2].pilot_blocking)
         self.assertEqual(status.tools[2].requirement, "future optional")
+        self.assertIn("approved pinned package", status.tools[2].install_hint)
         self.assertIsNone(status.workspace_backup)
         self.assertEqual(status.inventory.status, "ready")
 

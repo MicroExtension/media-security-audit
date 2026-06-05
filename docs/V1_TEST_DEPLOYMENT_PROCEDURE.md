@@ -263,7 +263,42 @@ Expected result:
   templates are enabled
 - no scanner is executed
 
-### 6. Start The Service
+### 6. Review Scanner Tooling
+
+Run this helper when the preflight reports missing scanner tools:
+
+```bash
+bash scripts/debian-vm-tooling-plan.sh
+```
+
+Expected result:
+
+- pilot-required tools are marked ready or clearly blocked
+- `testssl.sh` is marked as TLS-module tooling when missing
+- `nuclei` is marked future optional unless explicitly included
+- reviewed installation commands are printed for technician approval
+- no package install, Docker command, scanner, or template update is executed
+
+After installing required tools during an approved maintenance window, run:
+
+```bash
+bash scripts/debian-vm-preflight.sh
+bash scripts/debian-vm-security-review.sh
+```
+
+Use strict preflight only when every warning should fail the handoff gate:
+
+```bash
+bash scripts/debian-vm-preflight.sh --strict
+```
+
+Use this only if the future Nuclei module and template governance are approved:
+
+```bash
+bash scripts/debian-vm-tooling-plan.sh --include-nuclei
+```
+
+### 7. Start The Service
 
 ```bash
 bash scripts/debian-vm-start.sh
@@ -287,7 +322,7 @@ Expected result:
 - `/healthz` returns coarse readiness only
 - no customer data is exposed by `/healthz`
 
-### 7. Open The Web UI
+### 8. Open The Web UI
 
 From the VM:
 

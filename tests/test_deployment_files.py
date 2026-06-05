@@ -144,6 +144,29 @@ class DeploymentFileTests(unittest.TestCase):
         self.assertNotIn("sudo", script)
         self.assertNotIn("nmap", script)
 
+    def test_debian_vm_tooling_plan_is_review_only(self) -> None:
+        script = (ROOT / "scripts" / "debian-vm-tooling-plan.sh").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn("set -euo pipefail", script)
+        self.assertIn("--strict", script)
+        self.assertIn("--include-nuclei", script)
+        self.assertIn("tooling plan only; no package command is executed", script)
+        self.assertIn("No package command, scanner, template update, or Docker command", script)
+        self.assertIn("sudo apt install -y nmap smbclient ldap-utils", script)
+        self.assertIn("sudo apt install -y testssl.sh", script)
+        self.assertIn("bash scripts/debian-vm-preflight.sh --strict", script)
+        self.assertIn("bash scripts/debian-vm-security-review.sh", script)
+        self.assertIn("future optional", script)
+        self.assertIn("template governance", script)
+        self.assertNotIn("\nsudo ", script)
+        self.assertNotIn("\napt ", script)
+        self.assertNotIn("docker compose", script)
+        self.assertNotIn("nuclei -update-templates", script)
+        self.assertNotIn("testssl.sh --", script)
+        self.assertNotIn("rm -rf", script)
+
     def test_debian_vm_firewall_plan_is_plan_only(self) -> None:
         script = (ROOT / "scripts" / "debian-vm-firewall-plan.sh").read_text(encoding="utf-8")
 

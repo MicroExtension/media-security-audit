@@ -67,6 +67,21 @@ class MissionExportLink:
     def has_integrity_issues(self) -> bool:
         return bool(self.missing_files or self.mismatched_files or self.unexpected_files)
 
+    @property
+    def handoff_status(self) -> str:
+        return mission_export_handoff_status(self.integrity_status)
+
+    @property
+    def handoff_detail(self) -> str:
+        return mission_export_handoff_detail(
+            status=self.integrity_status,
+            detail=self.integrity_detail,
+        )
+
+    @property
+    def handoff_action(self) -> str:
+        return mission_export_handoff_action(self.integrity_status)
+
 
 @dataclass(frozen=True)
 class ArchiveMember:
@@ -139,9 +154,13 @@ class MissionExportInventoryItem:
     missing_files: int
     mismatched_files: int
     unexpected_files: int
+    handoff_status: str
+    handoff_detail: str
+    handoff_action: str
 
 
 MISSION_EXPORT_INVENTORY_STATUSES = ("ready", "warning", "failed", "missing")
+MISSION_EXPORT_HANDOFF_STATUSES = ("ready", "warning", "failed", "missing")
 
 
 def mission_export_path(reports_dir: Path, mission_id: str) -> Path:
@@ -394,6 +413,9 @@ def mission_export_inventory_search_text(item: MissionExportInventoryItem) -> st
         item.filename or "",
         item.status,
         item.detail,
+        item.handoff_status,
+        item.handoff_detail,
+        item.handoff_action,
     ]
     return " ".join(values).lower()
 
@@ -412,6 +434,7 @@ def mission_export_inventory_item(
     export_link: MissionExportLink | None,
 ) -> MissionExportInventoryItem:
     if export_link is None:
+        handoff_status = mission_export_handoff_status("missing")
         return MissionExportInventoryItem(
             mission_id=mission.id,
             mission_name=mission.name,
@@ -426,7 +449,14 @@ def mission_export_inventory_item(
             missing_files=0,
             mismatched_files=0,
             unexpected_files=0,
+            handoff_status=handoff_status,
+            handoff_detail=mission_export_handoff_detail(
+                status="missing",
+                detail="mission export package not found",
+            ),
+            handoff_action=mission_export_handoff_action("missing"),
         )
+    handoff_status = mission_export_handoff_status(export_link.integrity_status)
     return MissionExportInventoryItem(
         mission_id=mission.id,
         mission_name=mission.name,
@@ -441,7 +471,39 @@ def mission_export_inventory_item(
         missing_files=export_link.missing_count,
         mismatched_files=export_link.mismatched_count,
         unexpected_files=export_link.unexpected_count,
+        handoff_status=handoff_status,
+        handoff_detail=mission_export_handoff_detail(
+            status=export_link.integrity_status,
+            detail=export_link.integrity_detail,
+        ),
+        handoff_action=mission_export_handoff_action(export_link.integrity_status),
     )
+
+
+def mission_export_handoff_status(status: str) -> str:
+    if status in MISSION_EXPORT_HANDOFF_STATUSES:
+        return status
+    return "warning"
+
+
+def mission_export_handoff_action(status: str) -> str:
+    if status == "ready":
+        return "Download handoff package"
+    if status == "missing":
+        return "Generate package"
+    if status == "failed":
+        return "Regenerate package"
+    return "Review verification"
+
+
+def mission_export_handoff_detail(status: str, detail: str) -> str:
+    if status == "ready":
+        return "Package integrity is verified for handoff review."
+    if status == "missing":
+        return "Generate the mission package before handoff."
+    if status == "failed":
+        return f"Do not hand off until integrity is fixed: {detail}"
+    return f"Review package warning before handoff: {detail}"
 
 
 def mission_export_inventory_payload(
@@ -449,10 +511,16 @@ def mission_export_inventory_payload(
     filters: dict[str, object] | None = None,
 ) -> dict[str, object]:
     statuses = {status: 0 for status in ("ready", "warning", "failed", "missing")}
+    handoff_statuses = {
+        status: 0 for status in ("ready", "warning", "failed", "missing")
+    }
     for item in items:
         statuses[item.status] = statuses.get(item.status, 0) + 1
+        handoff_statuses[item.handoff_status] = (
+            handoff_statuses.get(item.handoff_status, 0) + 1
+        )
     payload: dict[str, object] = {
-        "schema_version": 1,
+        "schema_version": 2,
         "summary": {
             "packages": len([item for item in items if item.status != "missing"]),
             "items": len(items),
@@ -460,6 +528,11 @@ def mission_export_inventory_payload(
             "warning": statuses.get("warning", 0),
             "failed": statuses.get("failed", 0),
             "missing": statuses.get("missing", 0),
+            "handoff_ready": handoff_statuses.get("ready", 0),
+            "handoff_attention": sum(
+                handoff_statuses.get(status, 0)
+                for status in ("warning", "failed", "missing")
+            ),
         },
         "items": [
             {
@@ -476,6 +549,9 @@ def mission_export_inventory_payload(
                 "missing_files": item.missing_files,
                 "mismatched_files": item.mismatched_files,
                 "unexpected_files": item.unexpected_files,
+                "handoff_status": item.handoff_status,
+                "handoff_detail": item.handoff_detail,
+                "handoff_action": item.handoff_action,
             }
             for item in items
         ],
@@ -528,6 +604,9 @@ def format_mission_export_inventory_csv(items: list[MissionExportInventoryItem])
             "missing_files",
             "mismatched_files",
             "unexpected_files",
+            "handoff_status",
+            "handoff_detail",
+            "handoff_action",
         ]
     )
     for item in items:
@@ -546,6 +625,9 @@ def format_mission_export_inventory_csv(items: list[MissionExportInventoryItem])
                 item.missing_files,
                 item.mismatched_files,
                 item.unexpected_files,
+                item.handoff_status,
+                item.handoff_detail,
+                item.handoff_action,
             ]
         )
     return output.getvalue()
@@ -566,6 +648,8 @@ def format_mission_export_inventory_markdown(
         f"- Warning: `{summary['warning']}`",
         f"- Failed: `{summary['failed']}`",
         f"- Missing: `{summary['missing']}`",
+        f"- Handoff ready: `{summary['handoff_ready']}`",
+        f"- Handoff attention: `{summary['handoff_attention']}`",
         "- Execution: `not_executed`",
         "",
     ]
@@ -583,12 +667,12 @@ def format_mission_export_inventory_markdown(
         )
     lines.extend(
         [
-            "| Mission | Client | Status | Package | Integrity | Counters |",
-            "| --- | --- | --- | --- | --- | --- |",
+            "| Mission | Client | Status | Package | Integrity | Counters | Handoff | Action |",
+            "| --- | --- | --- | --- | --- | --- | --- | --- |",
         ]
     )
     if not items:
-        lines.append("| None | - | - | - | No mission export package found. | - |")
+        lines.append("| None | - | - | - | No mission export package found. | - | - | - |")
     for item in items:
         package = item.filename or "missing"
         counters = (
@@ -605,6 +689,8 @@ def format_mission_export_inventory_markdown(
                     markdown_cell(package),
                     markdown_cell(item.detail),
                     markdown_cell(counters),
+                    markdown_cell(item.handoff_status),
+                    markdown_cell(item.handoff_action),
                 ]
             )
             + " |"
@@ -627,12 +713,17 @@ def format_mission_export_inventory_text(items: list[MissionExportInventoryItem]
             f"Ready: {summary['ready']} | Warning: {summary['warning']} | "
             f"Failed: {summary['failed']} | Missing: {summary['missing']}"
         ),
+        (
+            f"Handoff ready: {summary['handoff_ready']} | "
+            f"Handoff attention: {summary['handoff_attention']}"
+        ),
         "Execution: not executed by this command",
     ]
     for item in items:
         lines.append(
             f"[{item.status}] {item.mission_id} | {item.mission_name} | "
-            f"{item.filename or '<missing>'} | {item.detail}"
+            f"{item.filename or '<missing>'} | {item.detail} | "
+            f"handoff={item.handoff_status} action={item.handoff_action}"
         )
     return "\n".join(lines)
 

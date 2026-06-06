@@ -27,6 +27,7 @@
 </section>
 
 <section class="page-shortcuts" aria-label="Mission shortcuts">
+  <a href="#mission-cockpit">Cockpit <span>{{ view.cockpit.ready_step_count }}/{{ view.cockpit.total_step_count }}</span></a>
   <a href="#mission-readiness">Readiness <span>{{ view.readiness_items|length }}</span></a>
   <a href="#scan-plan">Scan Plan <span>{{ view.scan_plans|length }}</span></a>
   <a href="#run-monitor">Runs <span>{{ view.scan_runs|length }}</span></a>
@@ -38,6 +39,56 @@
   <a href="#scope">Scope <span>{{ view.scope|length }}</span></a>
   <a href="#counter-test">Counter-test <span>{{ view.counter_test_items|length }}</span></a>
   <a href="#findings">Findings <span>{{ view.findings|length }}</span></a>
+</section>
+
+<section class="section mission-cockpit" id="mission-cockpit">
+  <div class="section-title">
+    <h2>Technician Cockpit</h2>
+    <a class="table-action" href="{{ view.cockpit.next_action_href }}">{{ view.cockpit.next_action_label }}</a>
+  </div>
+  <div class="status-panel cockpit-status">
+    <span class="badge status-{{ view.cockpit.status }}">{{ view.cockpit.status }}</span>
+    <div>
+      <strong>{{ view.cockpit.next_action }}</strong>
+      <p>
+        {{ view.cockpit.ready_step_count }}/{{ view.cockpit.total_step_count }} workflow step(s) ready |
+        {{ view.cockpit.ready_check_count }} service(s) ready |
+        {{ view.cockpit.blocked_check_count }} blocked |
+        handoff {{ view.cockpit.handoff_status }}
+      </p>
+    </div>
+  </div>
+  <div class="cockpit-metrics" aria-label="Technician cockpit metrics">
+    <div class="cockpit-metric"><span>Approved targets</span><strong>{{ view.cockpit.approved_scope_count }}</strong></div>
+    <div class="cockpit-metric"><span>Selected services</span><strong>{{ view.cockpit.selected_check_count }}</strong></div>
+    <div class="cockpit-metric"><span>Ready services</span><strong>{{ view.cockpit.ready_check_count }}</strong></div>
+    <div class="cockpit-metric"><span>Report files</span><strong>{{ view.cockpit.report_count }}</strong></div>
+  </div>
+  <div class="cockpit-grid" aria-label="Mission workflow cockpit">
+    {% for step in view.cockpit.steps %}
+    <article class="cockpit-step cockpit-{{ step.status }}">
+      <span class="badge status-{{ step.status }}">{{ step.status }}</span>
+      <strong>{{ step.label }}</strong>
+      <p>{{ step.detail }}</p>
+      {% if step.action_label %}
+      <a class="readiness-action" href="{{ step.action_href }}">{{ step.action_label }}</a>
+      {% endif %}
+    </article>
+    {% endfor %}
+  </div>
+  <div class="service-cockpit-grid" aria-label="Selected service cockpit">
+    {% for service in view.cockpit.services %}
+    <article class="service-cockpit service-{{ service.status }}">
+      <div>
+        <strong>{{ service.label }}</strong>
+        <span class="muted block">{{ service.value }}</span>
+      </div>
+      <span class="badge status-{{ service.status }}">{{ service.status }}</span>
+      <p>{{ service.detail }}</p>
+      <a class="table-action" href="{{ service.action_href }}">{{ service.action_label }}</a>
+    </article>
+    {% endfor %}
+  </div>
 </section>
 
 <section class="section" id="mission-readiness">

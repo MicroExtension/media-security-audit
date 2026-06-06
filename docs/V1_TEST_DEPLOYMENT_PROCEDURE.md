@@ -378,32 +378,33 @@ From the web UI:
 8. Record authorization details.
 9. Add approved scope.
 10. Select safe checks.
-11. Add manual or sample findings.
-12. Review finding disposition and notes.
-13. Generate mission reports.
-14. Generate mission export package.
-15. Review `Exports`.
-16. Download mission package manifest and verification.
-17. Create a workspace backup from `System`.
-18. Generate a handoff report:
+11. Review the mission technician cockpit.
+12. Add manual or sample findings.
+13. Review finding disposition and notes.
+14. Generate mission reports.
+15. Generate mission export package.
+16. Review `Exports`.
+17. Download mission package manifest and verification.
+18. Create a workspace backup from `System`.
+19. Generate a handoff report:
 
 ```bash
 bash scripts/debian-vm-handoff-report.sh
 ```
 
-19. Generate a handoff bundle:
+20. Generate a handoff bundle:
 
 ```bash
 bash scripts/debian-vm-handoff-bundle.sh
 ```
 
-20. Verify bundle inventory:
+21. Verify bundle inventory:
 
 ```bash
 bash scripts/debian-vm-bundle-inventory.sh
 ```
 
-21. Generate the V1 readiness report:
+22. Generate the V1 readiness report:
 
 ```bash
 bash scripts/debian-vm-v1-readiness-report.sh

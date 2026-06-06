@@ -19,6 +19,7 @@ from media_security_audit.models import (
     Mission,
     ScanRun,
     ScopeItem,
+    Severity,
 )
 from media_security_audit.reports import (
     active_findings,
@@ -44,6 +45,7 @@ from media_security_audit.web_authorization import (
 from media_security_audit.web_exports import MissionExportLink, list_mission_export
 from media_security_audit.web_reports import GeneratedReportLink, list_generated_reports
 from media_security_audit.vulnerability_catalog import (
+    CATALOG_FINDING_SOURCE,
     VulnerabilityMatch,
     correlate_vulnerability_catalog,
     load_vulnerability_catalog,
@@ -394,9 +396,23 @@ class MissionView:
     mission_export: MissionExportLink | None
     readiness_items: list[ReadinessItem]
     scan_plans: list[ScanPlanPreview]
+    vulnerability_summary: VulnerabilitySummary
     vulnerability_catalog_count: int
     vulnerability_matches: list[VulnerabilityMatchRow]
     template_guidance: TemplateGuidance | None
+
+
+@dataclass(frozen=True)
+class VulnerabilitySummary:
+    status: str
+    detail: str
+    action_label: str
+    action_href: str
+    catalog_count: int
+    match_count: int
+    known_exploited_count: int
+    critical_or_high_count: int
+    stored_candidate_count: int
 
 
 @dataclass(frozen=True)
@@ -1606,6 +1622,11 @@ def build_mission_view(
         mission_export=mission_export,
         readiness_items=readiness_items,
         scan_plans=scan_plans,
+        vulnerability_summary=vulnerability_summary(
+            catalog_count=len(vulnerability_catalog.advisories),
+            matches=vulnerability_matches,
+            findings=findings,
+        ),
         vulnerability_catalog_count=len(vulnerability_catalog.advisories),
         vulnerability_matches=[
             vulnerability_match_row(match) for match in vulnerability_matches
@@ -1629,6 +1650,81 @@ def vulnerability_match_row(match: VulnerabilityMatch) -> VulnerabilityMatchRow:
         matched_finding_id=match.finding.id,
         matched_terms=", ".join(match.matched_terms),
         remediation=match.advisory.remediation,
+    )
+
+
+def vulnerability_summary(
+    catalog_count: int,
+    matches: list[VulnerabilityMatch],
+    findings: list[Finding],
+) -> VulnerabilitySummary:
+    stored_candidate_count = len(
+        [finding for finding in findings if finding.source_module == CATALOG_FINDING_SOURCE]
+    )
+    known_exploited_count = len([match for match in matches if match.advisory.known_exploited])
+    critical_or_high_count = len(
+        [
+            match
+            for match in matches
+            if match.advisory.severity in {Severity.CRITICAL, Severity.HIGH}
+        ]
+    )
+
+    if catalog_count == 0:
+        return VulnerabilitySummary(
+            status="missing",
+            detail="Aucun catalogue CVE/KEV local n’est importé.",
+            action_label="Import Catalog",
+            action_href="#vulnerabilities",
+            catalog_count=0,
+            match_count=0,
+            known_exploited_count=0,
+            critical_or_high_count=0,
+            stored_candidate_count=stored_candidate_count,
+        )
+
+    if not matches:
+        return VulnerabilitySummary(
+            status="ready",
+            detail="Catalogue importé, aucune correspondance candidate pour cette mission.",
+            action_label="Review Findings",
+            action_href="#findings",
+            catalog_count=catalog_count,
+            match_count=0,
+            known_exploited_count=0,
+            critical_or_high_count=0,
+            stored_candidate_count=stored_candidate_count,
+        )
+
+    if stored_candidate_count >= len(matches):
+        status = "ready"
+        detail = (
+            f"{len(matches)} correspondance(s) candidate(s), "
+            f"{known_exploited_count} KEV, {critical_or_high_count} critique(s)/élevée(s), "
+            "déjà stockée(s) comme constats."
+        )
+        action_label = "Review Findings"
+        action_href = "#findings"
+    else:
+        status = "warning"
+        detail = (
+            f"{len(matches)} correspondance(s) candidate(s), "
+            f"{known_exploited_count} KEV, {critical_or_high_count} critique(s)/élevée(s), "
+            f"{stored_candidate_count} déjà stockée(s)."
+        )
+        action_label = "Store Candidate Findings"
+        action_href = "#vulnerabilities"
+
+    return VulnerabilitySummary(
+        status=status,
+        detail=detail,
+        action_label=action_label,
+        action_href=action_href,
+        catalog_count=catalog_count,
+        match_count=len(matches),
+        known_exploited_count=known_exploited_count,
+        critical_or_high_count=critical_or_high_count,
+        stored_candidate_count=stored_candidate_count,
     )
 
 

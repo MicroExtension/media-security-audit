@@ -377,6 +377,10 @@ tr:last-child td {
   margin: 4px 0 0;
 }
 
+.vulnerability-summary {
+  margin-bottom: 12px;
+}
+
 .mission-cockpit {
   border-bottom: 1px solid var(--border);
   padding-bottom: 24px;

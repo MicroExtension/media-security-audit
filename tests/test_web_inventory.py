@@ -92,7 +92,7 @@ class WebInventoryTests(unittest.TestCase):
         self.assertEqual(metrics["Findings"], 1)
         self.assertEqual(metrics["Activity events"], 1)
         self.assertEqual(metrics["Scan runs"], 1)
-        self.assertEqual(metrics["Generated reports"], 3)
+        self.assertEqual(metrics["Generated reports"], 4)
         self.assertEqual(metrics["Authorization briefs"], 2)
         self.assertEqual(metrics["Mission exports"], 1)
         self.assertEqual(inventory.issues[0].status, "ready")

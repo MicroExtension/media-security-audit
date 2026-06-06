@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from media_security_audit.models import ReportFormat
-from media_security_audit.reports import write_report
+from media_security_audit.reports import MISSION_REPORT_FORMATS, write_report
 from media_security_audit.storage import JsonStore
 
 
@@ -14,6 +14,7 @@ REPORT_EXTENSIONS: dict[ReportFormat, str] = {
     ReportFormat.JSON: "json",
     ReportFormat.MARKDOWN: "md",
     ReportFormat.HTML: "html",
+    ReportFormat.PDF: "pdf",
 }
 
 
@@ -38,14 +39,14 @@ def generate_web_reports(store: JsonStore, mission_id: str, reports_dir: Path) -
     output_dir = mission_report_dir(reports_dir, mission_id)
     reports = [
         write_report(mission, findings, output_dir, report_format)
-        for report_format in (ReportFormat.JSON, ReportFormat.MARKDOWN, ReportFormat.HTML)
+        for report_format in MISSION_REPORT_FORMATS
     ]
     return [Path(report.output_path or "") for report in reports]
 
 
 def list_generated_reports(mission_id: str, reports_dir: Path) -> list[GeneratedReportLink]:
     links = []
-    for report_format in (ReportFormat.JSON, ReportFormat.MARKDOWN, ReportFormat.HTML):
+    for report_format in MISSION_REPORT_FORMATS:
         path = mission_report_path(reports_dir, mission_id, report_format)
         if path.exists() and path.is_file():
             links.append(

@@ -90,6 +90,7 @@ class ReportFormat(str, Enum):
     JSON = "json"
     MARKDOWN = "markdown"
     HTML = "html"
+    PDF = "pdf"
 
 
 class AuditCheck(str, Enum):

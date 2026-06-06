@@ -15,6 +15,13 @@ from media_security_audit.remediation_library import (
 )
 
 
+REMEDIATION_EXPORT_FORMATS: tuple[ReportFormat, ...] = (
+    ReportFormat.JSON,
+    ReportFormat.MARKDOWN,
+    ReportFormat.HTML,
+)
+
+
 @dataclass(frozen=True)
 class RemediationExportLink:
     format: str
@@ -63,7 +70,7 @@ def remediation_export_links(query: str = "", category: str = "") -> list[Remedi
             label=export_label(report_format),
             url=remediation_export_url(report_format, query=query, category=category),
         )
-        for report_format in (ReportFormat.JSON, ReportFormat.MARKDOWN, ReportFormat.HTML)
+        for report_format in REMEDIATION_EXPORT_FORMATS
     ]
 
 
@@ -87,6 +94,8 @@ def build_remediation_library_export(
     query: str | None = None,
     category: str | None = None,
 ) -> RemediationLibraryExport:
+    if export_format not in REMEDIATION_EXPORT_FORMATS:
+        raise ValueError(f"unsupported remediation export format: {export_format.value}")
     view = build_remediation_library_view(query=query, category=category)
     filename = remediation_export_filename(export_format, view)
     if export_format is ReportFormat.JSON:

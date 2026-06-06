@@ -20,7 +20,7 @@ Sprint 1 foundation started.
 Implemented so far:
 - domain models for clients, missions, scope items, assets, findings, and reports
 - finding deduplication engine
-- JSON, Markdown, and HTML report renderers
+- JSON, Markdown, HTML, and PDF report renderers
 - safe sample data
 - bootstrap CLI with a Typer-compatible fallback
 - unit tests using safe fixture data only
@@ -30,7 +30,7 @@ Implemented so far:
 - Docker Compose deployment foundation for local Debian/Ubuntu VMs
 - first web workflow forms for clients, missions, and scope
 - first web finding review workflow
-- web report generation for JSON, Markdown, and HTML exports
+- web report generation for JSON, Markdown, HTML, and PDF exports
 - reports include finding disposition counts and review notes
 - mission pages show finding disposition counts before report generation
 - web mission readiness checks and safe scan plan previews
@@ -247,7 +247,7 @@ media-audit init --client "Client X"
 media-audit scope add-domain client.example
 media-audit scope add-cidr 192.168.1.0/24
 media-audit run external --safe
-media-audit report generate --format html,json
+media-audit report generate
 ```
 
 Current local bootstrap command:
@@ -602,7 +602,7 @@ Use a generated password and keep `MEDIA_AUDIT_REQUIRE_AUTH=true` for customer
 VMs.
 
 Reviewed mission reports can be generated from the web UI and are written to
-the configured reports directory.
+the configured reports directory as JSON, Markdown, HTML, and PDF files.
 
 Detailed instructions are in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
@@ -642,7 +642,7 @@ media-security-audit/
 - CLI mission readiness check started
 - mission readiness exports started
 - findings engine started
-- JSON, Markdown, and HTML reports
+- JSON, Markdown, HTML, and PDF reports
 
 ## Local Verification
 

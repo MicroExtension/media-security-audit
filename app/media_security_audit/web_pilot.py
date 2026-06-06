@@ -343,7 +343,7 @@ def build_pilot_runbook_view(
             PilotAcceptanceItem(
                 phase="Handoff",
                 title="Reports generated",
-                evidence="JSON, Markdown, and HTML reports are available from the mission.",
+                evidence="JSON, Markdown, HTML, and PDF reports are available from the mission.",
             ),
             PilotAcceptanceItem(
                 phase="Handoff",
@@ -499,7 +499,7 @@ def build_pilot_runbook_view(
                     PilotRunbookStep(
                         title="Generate reports",
                         detail=(
-                            "Create JSON, Markdown, and HTML reports from the "
+                            "Create JSON, Markdown, HTML, and PDF reports from the "
                             "reviewed mission page."
                         ),
                     ),

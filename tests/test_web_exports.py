@@ -134,7 +134,7 @@ class WebExportTests(unittest.TestCase):
         self.assertEqual(manifest["selected_checks"], ["http_headers", "dns_mail"])
         self.assertEqual(manifest["scope"]["approved_count"], 1)
         self.assertEqual(manifest["finding_count"], 1)
-        self.assertEqual(manifest["report_count"], 3)
+        self.assertEqual(manifest["report_count"], 4)
         self.assertEqual(manifest["authorization_brief_count"], 2)
         self.assertEqual(manifest["evidence_path_count"], 1)
         self.assertEqual(manifest["archive_file_count"], len(names) - 1)
@@ -159,7 +159,7 @@ class WebExportTests(unittest.TestCase):
         self.assertEqual(manifest["readiness_export_count"], 2)
         self.assertEqual(manifest["readiness_status"], "warning")
         self.assertEqual(manifest["readiness_summary"]["execution"], "not_executed")
-        self.assertEqual(manifest["readiness_summary"]["generated_reports"], 3)
+        self.assertEqual(manifest["readiness_summary"]["generated_reports"], 4)
         self.assertEqual(
             manifest["scan_plans"],
             [
@@ -186,6 +186,7 @@ class WebExportTests(unittest.TestCase):
         self.assertIn(f"readiness/{mission.id}-readiness.md", names)
         self.assertIn(f"reports/{mission.id}.json", names)
         self.assertIn(f"reports/{mission.id}.html", names)
+        self.assertIn(f"reports/{mission.id}.pdf", names)
 
         manifest_json_export = build_mission_export_manifest_export(
             mission.id,

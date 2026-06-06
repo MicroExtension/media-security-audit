@@ -130,9 +130,10 @@ class CliWorkflowTests(unittest.TestCase):
 
         self.assertEqual(updated.status, MissionStatus.READY_TO_SCAN)
         self.assertEqual(finding.title, "Missing HSTS")
-        self.assertEqual(len(reports), 3)
+        self.assertEqual(len(reports), 4)
         self.assertTrue(all(path.exists() for path in reports))
         self.assertIn("Missing HSTS", (output_dir / f"{mission.id}.md").read_text(encoding="utf-8"))
+        self.assertTrue((output_dir / f"{mission.id}.pdf").read_bytes().startswith(b"%PDF-1.4"))
 
         summary = show_mission(mission_id=mission.id, data_dir=data_dir)
         scope_items = list_scope(mission_id=mission.id, data_dir=data_dir)
@@ -808,7 +809,7 @@ class CliWorkflowTests(unittest.TestCase):
 
         self.assertEqual(payload["schema_version"], 1)
         self.assertEqual(payload["summary"]["execution"], "not_executed")
-        self.assertEqual(payload["summary"]["generated_reports"], 3)
+        self.assertEqual(payload["summary"]["generated_reports"], 4)
         self.assertEqual(payload["scan_plan"]["execution"], "not_executed")
         self.assertEqual(JsonStore(data_dir).list_scan_runs(mission.id), [])
 

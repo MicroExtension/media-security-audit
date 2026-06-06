@@ -105,6 +105,12 @@ class RemediationLibraryTests(unittest.TestCase):
         self.assertIn("<!doctype html>", html_export.content)
         self.assertIn("Disable SMBv1", html_export.content)
 
+    def test_rejects_pdf_remediation_library_export(self) -> None:
+        with self.assertRaises(ValueError) as error:
+            build_remediation_library_export(ReportFormat.PDF)
+
+        self.assertIn("unsupported remediation export format: pdf", str(error.exception))
+
 
 if __name__ == "__main__":
     unittest.main()

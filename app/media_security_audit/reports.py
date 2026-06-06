@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import textwrap
 from collections import Counter
 from html import escape
 from pathlib import Path
@@ -93,6 +94,13 @@ SCOPE_TYPE_LABELS_FR = {
     "domain": "Domaine",
     "url": "URL",
 }
+
+MISSION_REPORT_FORMATS: tuple[ReportFormat, ...] = (
+    ReportFormat.JSON,
+    ReportFormat.MARKDOWN,
+    ReportFormat.HTML,
+    ReportFormat.PDF,
+)
 
 
 def active_findings(findings: list[Finding]) -> list[Finding]:
@@ -767,6 +775,276 @@ def render_html(mission: Mission, findings: list[Finding]) -> str:
 """
 
 
+class PdfReport:
+    """Small PDF writer for dependency-free, text-focused mission reports."""
+
+    page_width = 595.0
+    page_height = 842.0
+    margin = 48.0
+
+    def __init__(self) -> None:
+        self.pages: list[list[str]] = []
+        self.current: list[str] = []
+        self.y = 0.0
+        self.add_page()
+
+    def add_page(self) -> None:
+        self.current = []
+        self.pages.append(self.current)
+        self.y = self.page_height - self.margin
+
+    def add_rule(self, color: tuple[float, float, float] = (0.04, 0.38, 0.45)) -> None:
+        self.ensure_space(10)
+        x = self.margin
+        width = self.page_width - (self.margin * 2)
+        self.current.append(
+            f"q {color[0]:.3f} {color[1]:.3f} {color[2]:.3f} rg "
+            f"{x:.1f} {self.y:.1f} {width:.1f} 2 re f Q"
+        )
+        self.y -= 10
+
+    def add_heading(self, text: str, size: int = 16) -> None:
+        self.ensure_space(size + 12)
+        self.add_text(text, size=size, bold=True, leading=size + 6)
+
+    def add_section_heading(self, text: str) -> None:
+        self.ensure_space(28)
+        self.y -= 6
+        self.add_text(text, size=13, bold=True, color=(0.04, 0.38, 0.45), leading=18)
+
+    def add_text(
+        self,
+        text: str,
+        size: int = 10,
+        bold: bool = False,
+        indent: float = 0.0,
+        leading: float | None = None,
+        color: tuple[float, float, float] = (0.09, 0.13, 0.20),
+    ) -> None:
+        leading = leading or size + 4
+        available_width = self.page_width - (self.margin * 2) - indent
+        wrap_width = max(24, int(available_width / (size * 0.52)))
+        paragraphs = str(text).splitlines() or [""]
+        for paragraph in paragraphs:
+            lines = textwrap.wrap(
+                paragraph.strip(),
+                width=wrap_width,
+                break_long_words=True,
+                replace_whitespace=True,
+            ) or [""]
+            for line in lines:
+                self.ensure_space(leading)
+                font = "F2" if bold else "F1"
+                escaped = pdf_escape(line)
+                x = self.margin + indent
+                self.current.append(
+                    "q "
+                    f"{color[0]:.3f} {color[1]:.3f} {color[2]:.3f} rg "
+                    f"BT /{font} {size} Tf {x:.1f} {self.y:.1f} Td ({escaped}) Tj ET Q"
+                )
+                self.y -= leading
+
+    def ensure_space(self, needed: float) -> None:
+        if self.y - needed < self.margin:
+            self.add_page()
+
+    def to_bytes(self) -> bytes:
+        objects: list[bytes] = []
+        page_count = len(self.pages)
+        font_regular_id = 3
+        font_bold_id = 4
+        first_page_id = 5
+        first_content_id = first_page_id + page_count
+        page_ids = [first_page_id + index for index in range(page_count)]
+        content_ids = [first_content_id + index for index in range(page_count)]
+
+        objects.append(b"<< /Type /Catalog /Pages 2 0 R >>")
+        kids = " ".join(f"{page_id} 0 R" for page_id in page_ids)
+        objects.append(
+            f"<< /Type /Pages /Kids [{kids}] /Count {page_count} >>".encode("ascii")
+        )
+        objects.append(b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>")
+        objects.append(b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>")
+
+        for content_id in content_ids:
+            objects.append(
+                (
+                    "<< /Type /Page /Parent 2 0 R "
+                    f"/MediaBox [0 0 {self.page_width:.0f} {self.page_height:.0f}] "
+                    f"/Resources << /Font << /F1 {font_regular_id} 0 R "
+                    f"/F2 {font_bold_id} 0 R >> >> "
+                    f"/Contents {content_id} 0 R >>"
+                ).encode("ascii")
+            )
+
+        for page in self.pages:
+            stream = "\n".join(page).encode("cp1252", errors="replace")
+            objects.append(
+                b"<< /Length " + str(len(stream)).encode("ascii") + b" >>\nstream\n"
+                + stream
+                + b"\nendstream"
+            )
+
+        return build_pdf(objects)
+
+
+def build_pdf(objects: list[bytes]) -> bytes:
+    output = bytearray(b"%PDF-1.4\n%\xe2\xe3\xcf\xd3\n")
+    offsets = [0]
+    for object_id, body in enumerate(objects, start=1):
+        offsets.append(len(output))
+        output.extend(f"{object_id} 0 obj\n".encode("ascii"))
+        output.extend(body)
+        output.extend(b"\nendobj\n")
+    xref_offset = len(output)
+    output.extend(f"xref\n0 {len(objects) + 1}\n".encode("ascii"))
+    output.extend(b"0000000000 65535 f \n")
+    for offset in offsets[1:]:
+        output.extend(f"{offset:010d} 00000 n \n".encode("ascii"))
+    output.extend(
+        (
+            "trailer\n"
+            f"<< /Size {len(objects) + 1} /Root 1 0 R >>\n"
+            "startxref\n"
+            f"{xref_offset}\n"
+            "%%EOF\n"
+        ).encode("ascii")
+    )
+    return bytes(output)
+
+
+def pdf_escape(text: str) -> str:
+    normalized = " ".join(str(text).split())
+    return normalized.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
+
+
+def render_pdf(mission: Mission, findings: list[Finding]) -> bytes:
+    ordered_findings = sorted_findings(findings)
+    summary = build_report_summary(mission, ordered_findings)
+    counts = summary["severity_counts"]
+    status_counts = summary["status_counts"]
+    scope = summary["scope"]
+    authorization = summary["authorization"]
+    plan = remediation_plan(ordered_findings)
+    generated_at = display_generated_at(summary["generated_at"])
+    authorization_present = "oui" if summary["authorization_present"] else "non"
+
+    pdf = PdfReport()
+    pdf.add_text(
+        "M.E.D.I.A. Security Audit Platform",
+        size=10,
+        bold=True,
+        color=(0.04, 0.38, 0.45),
+    )
+    pdf.add_heading("Rapport d'audit securite", size=20)
+    pdf.add_text(f"{mission.name} - Mission {mission.id}", size=11)
+    pdf.add_text(f"Genere le {generated_at}", size=9, color=(0.35, 0.40, 0.48))
+    pdf.add_rule()
+
+    pdf.add_section_heading("Synthese direction")
+    pdf.add_text(display_executive_summary(summary["executive_summary"]), size=11)
+    pdf.add_text(
+        f"Score de risque: {summary['risk_score']}/100 - "
+        f"Niveau: {display_risk_level(summary['risk_level'])}",
+        size=12,
+        bold=True,
+    )
+
+    pdf.add_section_heading("Vue d'ensemble du risque")
+    pdf.add_text(
+        " | ".join(
+            [
+                f"Constats actifs: {summary['active_finding_count']}",
+                f"Critiques: {counts['critical']}",
+                f"Eleves: {counts['high']}",
+                f"Moyens: {counts['medium']}",
+                f"Faibles: {counts['low']}",
+                f"Info: {counts['info']}",
+            ]
+        )
+    )
+
+    pdf.add_section_heading("Contexte de mission")
+    context_lines = [
+        f"Client: {mission.client_id}",
+        f"Type d'audit: {display_audit_type(mission.audit_type.value)}",
+        f"Statut: {display_status(mission.status.value)}",
+        f"Autorisation presente: {authorization_present}",
+        f"Reference autorisation: {display_report_value(authorization['reference'])}",
+        f"Contact autorisation: {display_report_value(authorization['contact'])}",
+        f"Date autorisation: {display_report_value(authorization['authorization_date'])}",
+        (
+            "Expiration autorisation: "
+            f"{display_report_value(authorization['authorization_expires_at'])}"
+        ),
+        f"Contact urgence: {display_report_value(authorization['emergency_contact'])}",
+        f"Destinataires rapport: {display_report_value(authorization['report_recipients'])}",
+    ]
+    for line in context_lines:
+        pdf.add_text(f"- {line}")
+
+    pdf.add_section_heading("Perimetre approuve")
+    approved_targets = scope["approved_targets"]
+    if approved_targets:
+        for target in approved_targets:
+            pdf.add_text(f"- {display_scope_target(str(target))}")
+    else:
+        pdf.add_text("Aucune cible approuvee n'est enregistree.")
+
+    pdf.add_section_heading("Plan de remediation priorise")
+    if plan:
+        for index, item in enumerate(plan, start=1):
+            pdf.add_text(
+                (
+                    f"{index}. [{display_severity(item['severity'])}] "
+                    f"{item['title']} - {item['asset']}"
+                ),
+                bold=True,
+            )
+            pdf.add_text(f"Remediation: {item['remediation']}", indent=12)
+            pdf.add_text(f"Contre-test: {item['counter_test']}", indent=12)
+    else:
+        pdf.add_text("Aucune action prioritaire n'est incluse dans ce rapport.")
+
+    pdf.add_section_heading("Statut de traitement")
+    pdf.add_text(
+        " | ".join(
+            [
+                f"Nouveau: {status_counts['new']}",
+                f"Confirme: {status_counts['confirmed']}",
+                f"Faux positif: {status_counts['false_positive']}",
+                f"Risque accepte: {status_counts['accepted_risk']}",
+                f"Corrige: {status_counts['remediated']}",
+                f"Contre-test OK: {status_counts['counter_test_passed']}",
+                f"Contre-test KO: {status_counts['counter_test_failed']}",
+            ]
+        )
+    )
+
+    pdf.add_section_heading("Details techniques des constats")
+    if not ordered_findings:
+        pdf.add_text("Aucun constat n'est inclus dans ce rapport.")
+    for finding in ordered_findings:
+        pdf.add_text(
+            f"{finding.title} - {display_severity(finding.severity.value)}",
+            size=12,
+            bold=True,
+            color=(0.04, 0.38, 0.45),
+        )
+        pdf.add_text(f"Actif: {finding.affected_asset}")
+        pdf.add_text(f"Statut: {display_status(finding.status.value)}")
+        pdf.add_text(f"Preuve: {finding.proof}")
+        pdf.add_text(f"Risque: {finding.risk}")
+        pdf.add_text(f"Remediation: {finding.remediation}")
+        pdf.add_text(f"Contre-test: {finding.counter_test}")
+        review_note = finding_review_note(finding)
+        if review_note != "missing":
+            pdf.add_text(f"Note de revue: {review_note}")
+        pdf.add_text("")
+
+    return pdf.to_bytes()
+
+
 def write_report(
     mission: Mission,
     findings: list[Finding],
@@ -784,11 +1062,17 @@ def write_report(
     elif report_format == ReportFormat.HTML:
         content = render_html(mission, findings)
         extension = "html"
+    elif report_format == ReportFormat.PDF:
+        content = render_pdf(mission, findings)
+        extension = "pdf"
     else:
         raise ValueError(f"unsupported report format: {report_format}")
 
     output_path = output_dir / f"{mission.id}.{extension}"
-    output_path.write_text(content, encoding="utf-8")
+    if isinstance(content, bytes):
+        output_path.write_bytes(content)
+    else:
+        output_path.write_text(content, encoding="utf-8")
 
     return Report(
         mission_id=mission.id,

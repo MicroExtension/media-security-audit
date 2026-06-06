@@ -35,7 +35,7 @@ from media_security_audit.models import (
     Severity,
     utc_now,
 )
-from media_security_audit.reports import write_report
+from media_security_audit.reports import MISSION_REPORT_FORMATS, write_report
 from media_security_audit.sample_data import sample_findings, sample_mission
 from media_security_audit.scanners.dns_mail import (
     DnsPythonTxtResolver,
@@ -116,7 +116,7 @@ from media_security_audit.web_readiness import ScanPlanPreview, build_scan_plan_
 def generate_sample_reports(output: Path) -> None:
     mission = sample_mission()
     findings = sample_findings()
-    for report_format in (ReportFormat.JSON, ReportFormat.MARKDOWN, ReportFormat.HTML):
+    for report_format in MISSION_REPORT_FORMATS:
         write_report(mission, findings, output, report_format)
 
 
@@ -247,7 +247,7 @@ def generate_mission_reports(mission_id: str, data_dir: Path, output: Path | Non
     findings = store.list_findings(mission_id)
     reports = [
         write_report(mission, findings, output_dir, report_format)
-        for report_format in (ReportFormat.JSON, ReportFormat.MARKDOWN, ReportFormat.HTML)
+        for report_format in MISSION_REPORT_FORMATS
     ]
     return [Path(report.output_path or "") for report in reports]
 

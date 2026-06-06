@@ -18,6 +18,7 @@ from media_security_audit.reports import (  # noqa: E402
     render_html,
     render_json,
     render_markdown,
+    render_pdf,
     remediation_plan,
     write_report,
 )
@@ -64,6 +65,14 @@ class ReportTests(unittest.TestCase):
         self.assertIn("security@example.invalid", html)
         self.assertIn("Missing HTTP Strict Transport Security header", html)
         self.assertIn("Domaine : example.invalid", html)
+
+    def test_renders_pdf_report(self) -> None:
+        pdf = render_pdf(sample_mission(), sample_findings())
+
+        self.assertTrue(pdf.startswith(b"%PDF-1.4"))
+        self.assertIn(b"/Type /Catalog", pdf)
+        self.assertIn(b"Rapport d'audit securite", pdf)
+        self.assertIn(b"Missing HTTP Strict Transport Security header", pdf)
 
     def test_builds_report_summary_and_remediation_plan(self) -> None:
         summary = build_report_summary(sample_mission(), sample_findings())
@@ -136,6 +145,18 @@ class ReportTests(unittest.TestCase):
 
         self.assertTrue(Path(report.output_path or "").exists())
         self.assertEqual(report.finding_count, 2)
+
+        pdf_report = write_report(
+            sample_mission(),
+            sample_findings(),
+            output_dir,
+            ReportFormat.PDF,
+        )
+
+        pdf_path = Path(pdf_report.output_path or "")
+        self.assertTrue(pdf_path.exists())
+        self.assertEqual(pdf_path.suffix, ".pdf")
+        self.assertTrue(pdf_path.read_bytes().startswith(b"%PDF-1.4"))
 
 
 if __name__ == "__main__":

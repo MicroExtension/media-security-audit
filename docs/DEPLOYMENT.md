@@ -285,6 +285,19 @@ helper records Git state, security review, tooling plan, deployment status,
 bundle inventory, and pilot acceptance reminders. It does not install packages,
 run scanners, collect application logs, or read customer file contents.
 
+Generate the final pilot closeout after VM validation:
+
+```bash
+bash scripts/debian-vm-pilot-closeout.sh
+```
+
+Pilot closeout reports are written to `reports/pilot-closeout` by default. Set
+`MEDIA_AUDIT_PILOT_CLOSEOUT_DIR=/path/to/closeout` to write them elsewhere. The
+helper creates the latest V1 readiness report, handoff bundle, verified bundle
+inventory, and a final `pilot_closeout=ready` or `pilot_closeout=blocked` status
+without installing packages, running scanners, collecting application logs, or
+reading customer file contents.
+
 Create a shareable handoff bundle:
 
 ```bash

@@ -240,6 +240,39 @@ class DeploymentFileTests(unittest.TestCase):
         self.assertNotIn("nuclei -update-templates", script)
         self.assertNotIn("rm -rf", script)
 
+    def test_debian_vm_pilot_closeout_is_safe_aggregate_only(self) -> None:
+        script = (ROOT / "scripts" / "debian-vm-pilot-closeout.sh").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn("set -euo pipefail", script)
+        self.assertIn("MEDIA_AUDIT_PILOT_CLOSEOUT_DIR", script)
+        self.assertIn("reports/pilot-closeout", script)
+        self.assertIn("media-audit-pilot-closeout-", script)
+        self.assertIn("scanner_execution=not_performed", script)
+        self.assertIn("package_installation=not_performed", script)
+        self.assertIn("application_logs=not_collected", script)
+        self.assertIn("customer_file_contents=not_collected", script)
+        self.assertIn("bash scripts/debian-vm-v1-readiness-report.sh", script)
+        self.assertIn("bash scripts/debian-vm-handoff-bundle.sh", script)
+        self.assertIn("bash scripts/debian-vm-bundle-inventory.sh --verify-manifests", script)
+        self.assertIn('[[ -d "${directory}" ]] || return 0', script)
+        self.assertIn("latest_v1_readiness_report", script)
+        self.assertIn("latest_v1_readiness=missing", script)
+        self.assertIn("latest_handoff_bundle_manifest=present", script)
+        self.assertIn("pilot_closeout=ready", script)
+        self.assertIn("pilot_closeout=blocked", script)
+        self.assertIn("Confirm any live checks were performed only after written authorization", script)
+        self.assertNotIn("docker compose logs", script)
+        self.assertNotIn("docker compose up", script)
+        self.assertNotIn("docker compose build", script)
+        self.assertNotIn("docker compose run", script)
+        self.assertNotIn("apt-get", script)
+        self.assertNotIn("\nsudo ", script)
+        self.assertNotIn("testssl.sh --", script)
+        self.assertNotIn("nuclei -update-templates", script)
+        self.assertNotIn("rm -rf", script)
+
     def test_debian_vm_firewall_plan_is_plan_only(self) -> None:
         script = (ROOT / "scripts" / "debian-vm-firewall-plan.sh").read_text(encoding="utf-8")
 

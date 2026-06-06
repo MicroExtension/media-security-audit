@@ -246,6 +246,19 @@
     <h2>Known Vulnerability Correlation</h2>
     <span class="muted">{{ view.vulnerability_catalog_count }} catalog item(s)</span>
   </div>
+  <div class="status-panel vulnerability-summary">
+    <span class="badge status-{{ view.vulnerability_summary.status }}">{{ view.vulnerability_summary.status }}</span>
+    <div>
+      <strong>{{ view.vulnerability_summary.detail }}</strong>
+      <p>
+        {{ view.vulnerability_summary.match_count }} candidate(s) |
+        {{ view.vulnerability_summary.known_exploited_count }} KEV |
+        {{ view.vulnerability_summary.critical_or_high_count }} critical/high |
+        {{ view.vulnerability_summary.stored_candidate_count }} stored
+      </p>
+      <a class="readiness-action" href="{{ view.vulnerability_summary.action_href }}">{{ view.vulnerability_summary.action_label }}</a>
+    </div>
+  </div>
   {% if view.vulnerability_matches %}
   <div class="table-wrap">
     <table>

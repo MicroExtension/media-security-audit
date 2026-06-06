@@ -175,6 +175,7 @@ class WebUiTests(unittest.TestCase):
         self.assertIn(".counter-test-summary", css)
         self.assertIn(".counter-test-summary-passed", css)
         self.assertIn(".service-run-summary", css)
+        self.assertIn(".vulnerability-summary", css)
 
     def test_global_styles_expose_anchor_target_context(self) -> None:
         css_path = (
@@ -1798,6 +1799,13 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("CLI and web executions", template)
         self.assertIn("Known Vulnerability Correlation", template)
         self.assertIn("view.vulnerability_catalog_count", template)
+        self.assertIn("view.vulnerability_summary.status", template)
+        self.assertIn("view.vulnerability_summary.detail", template)
+        self.assertIn("view.vulnerability_summary.match_count", template)
+        self.assertIn("view.vulnerability_summary.known_exploited_count", template)
+        self.assertIn("view.vulnerability_summary.critical_or_high_count", template)
+        self.assertIn("view.vulnerability_summary.stored_candidate_count", template)
+        self.assertIn("vulnerability-summary", template)
         self.assertIn("Store Candidate Findings", template)
         self.assertIn(
             'action="/missions/{{ view.mission.id }}/vulnerabilities/correlate"',

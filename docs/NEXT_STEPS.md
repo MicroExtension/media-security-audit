@@ -776,6 +776,8 @@ Current GUI status:
   authorization confirmation
 - a reviewed local vulnerability catalog can be imported, listed, correlated
   with mission findings, and stored as CVE/KEV candidate findings
+- mission pages summarize CVE/KEV candidates, KEV matches, critical/high
+  matches, and stored candidate findings before the detailed table
 
 ## Step 7 - Add Safe Scanner Modules
 

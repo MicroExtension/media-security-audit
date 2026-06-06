@@ -259,6 +259,19 @@
       <a class="readiness-action" href="{{ view.vulnerability_summary.action_href }}">{{ view.vulnerability_summary.action_label }}</a>
     </div>
   </div>
+  <details class="export-integrity-details vulnerability-import">
+    <summary>Import reviewed CVE/KEV catalog</summary>
+    <form class="form-panel compact-form" method="post" action="/missions/{{ view.mission.id }}/vulnerabilities/catalog" aria-label="Import vulnerability catalog">
+      <input type="hidden" name="_csrf" value="{{ form_token }}">
+      <label>
+        <span>Catalog JSON</span>
+        <textarea name="catalog_json" rows="6" required placeholder='{"schema_version":1,"source":"local-reviewed","advisories":[]}'></textarea>
+      </label>
+      <div class="form-actions">
+        <button class="button secondary-button" type="submit">Import Catalog</button>
+      </div>
+    </form>
+  </details>
   {% if view.vulnerability_matches %}
   <div class="table-wrap">
     <table>

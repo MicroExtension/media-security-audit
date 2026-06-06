@@ -117,7 +117,11 @@ from media_security_audit.web_pilot import (
 from media_security_audit.web_reports import generate_web_reports, generated_report_file
 from media_security_audit.web_scan_runs import run_web_scan_check_from_form
 from media_security_audit.web_system import build_system_status
-from media_security_audit.vulnerability_catalog import store_vulnerability_findings_for_mission
+from media_security_audit.vulnerability_catalog import (
+    parse_vulnerability_catalog,
+    save_vulnerability_catalog,
+    store_vulnerability_findings_for_mission,
+)
 
 
 PACKAGE_DIR = Path(__file__).resolve().parent
@@ -1019,6 +1023,35 @@ def create_web_app(
         return redirect_with_status(
             f"/missions/{mission_id}#vulnerabilities",
             message=f"stored {len(stored)} vulnerability finding(s)",
+        )
+
+    @app.post("/missions/{mission_id}/vulnerabilities/catalog", dependencies=protected)
+    async def mission_vulnerability_catalog_import(request: Request, mission_id: str):
+        try:
+            form = parse_urlencoded_form(await request.body())
+            validate_form_token(form, form_token)
+            _ = store.get_mission(mission_id)
+            content = (form.get("catalog_json") or "").strip()
+            if not content:
+                raise ValueError("vulnerability catalog JSON is required")
+            catalog = save_vulnerability_catalog(data_dir, parse_vulnerability_catalog(content))
+            record_activity(
+                mission_id,
+                "vulnerability.catalog_imported",
+                f"Imported {len(catalog.advisories)} vulnerability advisory item(s)",
+                {
+                    "source": catalog.source,
+                    "advisory_count": str(len(catalog.advisories)),
+                },
+            )
+        except (FileNotFoundError, RuntimeError, OSError, ValueError, ValidationError) as error:
+            return redirect_with_status(
+                f"/missions/{mission_id}#vulnerabilities",
+                error=format_web_error(error),
+            )
+        return redirect_with_status(
+            f"/missions/{mission_id}#vulnerabilities",
+            message=f"imported {len(catalog.advisories)} vulnerability advisory item(s)",
         )
 
     @app.post("/missions/{mission_id}/scope", dependencies=protected)

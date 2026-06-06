@@ -176,6 +176,7 @@ class WebUiTests(unittest.TestCase):
         self.assertIn(".counter-test-summary-passed", css)
         self.assertIn(".service-run-summary", css)
         self.assertIn(".vulnerability-summary", css)
+        self.assertIn(".vulnerability-import", css)
 
     def test_global_styles_expose_anchor_target_context(self) -> None:
         css_path = (
@@ -373,6 +374,10 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("scan.web_executed", web)
         self.assertIn("vulnerability.correlated", web)
         self.assertIn('/missions/{mission_id}/vulnerabilities/correlate', web)
+        self.assertIn("vulnerability.catalog_imported", web)
+        self.assertIn('/missions/{mission_id}/vulnerabilities/catalog', web)
+        self.assertIn("parse_vulnerability_catalog", web)
+        self.assertIn("save_vulnerability_catalog", web)
         self.assertIn("#run-monitor", web)
         self.assertIn("#scan-plan", web)
         self.assertIn("#vulnerabilities", web)
@@ -1806,6 +1811,10 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("view.vulnerability_summary.critical_or_high_count", template)
         self.assertIn("view.vulnerability_summary.stored_candidate_count", template)
         self.assertIn("vulnerability-summary", template)
+        self.assertIn("Import reviewed CVE/KEV catalog", template)
+        self.assertIn('name="catalog_json"', template)
+        self.assertIn('aria-label="Import vulnerability catalog"', template)
+        self.assertIn('action="/missions/{{ view.mission.id }}/vulnerabilities/catalog"', template)
         self.assertIn("Store Candidate Findings", template)
         self.assertIn(
             'action="/missions/{{ view.mission.id }}/vulnerabilities/correlate"',

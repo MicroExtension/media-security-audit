@@ -617,6 +617,7 @@ Current GUI status:
 - client detail pages show client mission history and risk metrics
 - mission pages can show scope, findings, remediation plan, and reports
 - mission pages show a technician cockpit for workflow, selected services, and handoff status
+- mission pages show a step-by-step action roadmap from setup to handoff
 - mission cockpit service cards show latest run status, commands, findings, and evidence counts
 - web forms can create clients, missions, and scope items
 - mission setup details can be updated from mission pages

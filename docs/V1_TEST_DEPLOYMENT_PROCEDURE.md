@@ -438,6 +438,8 @@ Mark V1 as ready for a controlled internal pilot only if all criteria are true:
 - check selection can be recorded
 - a ready selected check can be launched from the mission scan plan only after
   explicit authorization confirmation
+- reviewed CVE/KEV catalog matches can be correlated and stored as candidate
+  findings
 - manual/sample finding workflow works
 - reports can be generated
 - mission export package can be generated

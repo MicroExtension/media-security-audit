@@ -117,6 +117,7 @@ from media_security_audit.web_pilot import (
 from media_security_audit.web_reports import generate_web_reports, generated_report_file
 from media_security_audit.web_scan_runs import run_web_scan_check_from_form
 from media_security_audit.web_system import build_system_status
+from media_security_audit.vulnerability_catalog import store_vulnerability_findings_for_mission
 
 
 PACKAGE_DIR = Path(__file__).resolve().parent
@@ -993,6 +994,28 @@ def create_web_app(
                 f"{result.label} completed: "
                 f"{result.command_count} command(s), {result.finding_count} finding(s)"
             ),
+        )
+
+    @app.post("/missions/{mission_id}/vulnerabilities/correlate", dependencies=protected)
+    async def mission_vulnerability_correlate(request: Request, mission_id: str):
+        try:
+            form = parse_urlencoded_form(await request.body())
+            validate_form_token(form, form_token)
+            stored = store_vulnerability_findings_for_mission(mission_id, data_dir)
+            record_activity(
+                mission_id,
+                "vulnerability.correlated",
+                f"Stored {len(stored)} vulnerability finding(s)",
+                {"stored_count": str(len(stored))},
+            )
+        except (FileNotFoundError, RuntimeError, OSError, ValueError, ValidationError) as error:
+            return redirect_with_status(
+                f"/missions/{mission_id}#vulnerabilities",
+                error=format_web_error(error),
+            )
+        return redirect_with_status(
+            f"/missions/{mission_id}#vulnerabilities",
+            message=f"stored {len(stored)} vulnerability finding(s)",
         )
 
     @app.post("/missions/{mission_id}/scope", dependencies=protected)

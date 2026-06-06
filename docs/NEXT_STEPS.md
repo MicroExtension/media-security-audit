@@ -759,6 +759,8 @@ Current GUI status:
 - LDAP scan plan previews are available when the LDAP check is selected
 - selected ready scan checks can be launched from mission pages after explicit
   authorization confirmation
+- a reviewed local vulnerability catalog can be imported, listed, correlated
+  with mission findings, and stored as CVE/KEV candidate findings
 
 ## Step 7 - Add Safe Scanner Modules
 

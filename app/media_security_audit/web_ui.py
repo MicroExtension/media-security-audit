@@ -43,6 +43,11 @@ from media_security_audit.web_authorization import (
 )
 from media_security_audit.web_exports import MissionExportLink, list_mission_export
 from media_security_audit.web_reports import GeneratedReportLink, list_generated_reports
+from media_security_audit.vulnerability_catalog import (
+    VulnerabilityMatch,
+    correlate_vulnerability_catalog,
+    load_vulnerability_catalog,
+)
 
 
 @dataclass(frozen=True)
@@ -348,7 +353,21 @@ class MissionView:
     mission_export: MissionExportLink | None
     readiness_items: list[ReadinessItem]
     scan_plans: list[ScanPlanPreview]
+    vulnerability_catalog_count: int
+    vulnerability_matches: list[VulnerabilityMatchRow]
     template_guidance: TemplateGuidance | None
+
+
+@dataclass(frozen=True)
+class VulnerabilityMatchRow:
+    cve_id: str
+    title: str
+    severity: str
+    known_exploited: bool
+    affected_asset: str
+    matched_finding_id: str
+    matched_terms: str
+    remediation: str
 
 
 @dataclass(frozen=True)
@@ -1312,6 +1331,8 @@ def build_mission_view(
     activity_events = store.list_activity_events(mission_id)
     scan_runs = store.list_scan_runs(mission_id)
     summary = build_report_summary(mission, findings)
+    vulnerability_catalog = load_vulnerability_catalog(store.data_dir)
+    vulnerability_matches = correlate_vulnerability_catalog(mission_id, store.data_dir)
     authorization_briefs = list_authorization_briefs(mission_id, reports_dir) if reports_dir else []
     reports = list_generated_reports(mission_id, reports_dir) if reports_dir else []
     mission_export = list_mission_export(mission_id, reports_dir) if reports_dir else None
@@ -1334,6 +1355,10 @@ def build_mission_view(
         mission_export=mission_export,
         readiness_items=build_readiness_items(mission, findings, len(reports)),
         scan_plans=build_scan_plan_previews(mission),
+        vulnerability_catalog_count=len(vulnerability_catalog.advisories),
+        vulnerability_matches=[
+            vulnerability_match_row(match) for match in vulnerability_matches
+        ],
         template_guidance=template_guidance(mission),
     )
 
@@ -1341,6 +1366,19 @@ def build_mission_view(
 def severity_class(value: str) -> str:
     allowed = {"critical", "high", "medium", "low", "info"}
     return value if value in allowed else "info"
+
+
+def vulnerability_match_row(match: VulnerabilityMatch) -> VulnerabilityMatchRow:
+    return VulnerabilityMatchRow(
+        cve_id=match.advisory.cve_id,
+        title=match.advisory.title,
+        severity=match.advisory.severity.value,
+        known_exploited=match.advisory.known_exploited,
+        affected_asset=match.finding.affected_asset,
+        matched_finding_id=match.finding.id,
+        matched_terms=", ".join(match.matched_terms),
+        remediation=match.advisory.remediation,
+    )
 
 
 def html_escape(value: object) -> str:

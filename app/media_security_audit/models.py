@@ -270,6 +270,56 @@ class Finding(BaseModel):
         return sha256("|".join(stable_parts).encode("utf-8")).hexdigest()
 
 
+class VulnerabilityAdvisory(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: str = Field(default_factory=lambda: new_id("vuln"))
+    cve_id: str
+    title: str
+    severity: Severity
+    known_exploited: bool = False
+    affected_products: list[str] = Field(default_factory=list)
+    affected_versions: list[str] = Field(default_factory=list)
+    risk: str
+    remediation: str
+    counter_test: str
+    references: list[str] = Field(default_factory=list)
+    source: str = "local"
+    published_at: date | None = None
+    updated_at: date | None = None
+    notes: str | None = None
+
+    @field_validator(
+        "cve_id",
+        "title",
+        "risk",
+        "remediation",
+        "counter_test",
+        "source",
+    )
+    @classmethod
+    def require_advisory_text(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("vulnerability advisory text fields cannot be empty")
+        return value
+
+    @field_validator("cve_id")
+    @classmethod
+    def normalize_cve_id(cls, value: str) -> str:
+        return value.strip().upper()
+
+    @field_validator("affected_products", "affected_versions", "references")
+    @classmethod
+    def normalize_text_list(cls, values: list[str]) -> list[str]:
+        cleaned: list[str] = []
+        for value in values:
+            text = value.strip()
+            if text and text not in cleaned:
+                cleaned.append(text)
+        return cleaned
+
+
 class Report(BaseModel):
     model_config = ConfigDict(extra="forbid")
 

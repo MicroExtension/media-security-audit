@@ -909,6 +909,10 @@ textarea:focus {
   width: auto;
 }
 
+.inline-form {
+  margin-top: 12px;
+}
+
 .button {
   background: var(--accent);
   border-radius: 6px;

@@ -442,6 +442,50 @@ Mission export packages can also be generated from the mission page. These ZIP
 files include local mission JSON data, findings, activity, run history, and any
 already generated report files.
 
+## Vulnerability Catalog Correlation
+
+The CVE/KEV workflow uses a reviewed local JSON catalog. It does not download
+feeds or run scans by itself.
+
+Import a catalog:
+
+```bash
+docker compose run --rm media-audit \
+  media-audit vuln import \
+  --data-dir /var/lib/media-audit/data \
+  --input /var/lib/media-audit/evidence/vulnerability-catalog.json
+```
+
+Review the local catalog:
+
+```bash
+docker compose run --rm media-audit \
+  media-audit vuln list \
+  --data-dir /var/lib/media-audit/data
+```
+
+Correlate stored mission findings with the catalog:
+
+```bash
+docker compose run --rm media-audit \
+  media-audit vuln correlate \
+  --data-dir /var/lib/media-audit/data \
+  --mission-id "mission_xxxxx"
+```
+
+Store candidate CVE/KEV matches as remediation-tracked findings:
+
+```bash
+docker compose run --rm media-audit \
+  media-audit vuln correlate \
+  --data-dir /var/lib/media-audit/data \
+  --mission-id "mission_xxxxx" \
+  --store-findings
+```
+
+Mission pages also show current catalog matches and can store them as findings
+after technician review.
+
 ## Safe Scanner Execution
 
 Scanner execution remains guarded by the application.

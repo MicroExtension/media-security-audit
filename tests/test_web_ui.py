@@ -369,8 +369,11 @@ class WebUiTests(unittest.TestCase):
         self.assertIn('@app.post("/missions/{mission_id}/scan-runs"', web)
         self.assertIn("run_web_scan_check_from_form", web)
         self.assertIn("scan.web_executed", web)
+        self.assertIn("vulnerability.correlated", web)
+        self.assertIn('/missions/{mission_id}/vulnerabilities/correlate', web)
         self.assertIn("#run-monitor", web)
         self.assertIn("#scan-plan", web)
+        self.assertIn("#vulnerabilities", web)
         self.assertIn('aria-label="Create guided audit"', template)
         self.assertIn('id="wizard-client"', template)
         self.assertIn('id="wizard-mission"', template)
@@ -1715,6 +1718,7 @@ class WebUiTests(unittest.TestCase):
             "mission-readiness",
             "scan-plan",
             "run-monitor",
+            "vulnerabilities",
             "check-selection",
             "mission-setup",
             "reports",
@@ -1730,6 +1734,7 @@ class WebUiTests(unittest.TestCase):
             "view.readiness_items|length",
             "view.scan_plans|length",
             "view.scan_runs|length",
+            "view.vulnerability_matches|length",
             "view.check_selection|length",
             "view.reports|length",
             "view.activity_events|length",
@@ -1756,6 +1761,13 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("Run Check", template)
         self.assertIn("Guarded execution", template)
         self.assertIn("CLI and web executions", template)
+        self.assertIn("Known Vulnerability Correlation", template)
+        self.assertIn("view.vulnerability_catalog_count", template)
+        self.assertIn("Store Candidate Findings", template)
+        self.assertIn(
+            'action="/missions/{{ view.mission.id }}/vulnerabilities/correlate"',
+            template,
+        )
         self.assertIn('aria-label="Mission export integrity details"', template)
         self.assertIn("view.mission_export.checked_files", template)
         self.assertIn("view.mission_export.missing_count", template)

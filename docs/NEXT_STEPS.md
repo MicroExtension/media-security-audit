@@ -604,6 +604,7 @@ Current GUI status:
 - dashboard can show clients and missions
 - client detail pages show client mission history and risk metrics
 - mission pages can show scope, findings, remediation plan, and reports
+- mission pages show a technician cockpit for workflow, selected services, and handoff status
 - web forms can create clients, missions, and scope items
 - mission setup details can be updated from mission pages
 - scope items can be reviewed, corrected, approved, or excluded from mission pages

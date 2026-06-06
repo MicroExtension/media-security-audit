@@ -282,6 +282,44 @@ class ScanRunRow:
 
 
 @dataclass(frozen=True)
+class MissionCockpitStep:
+    label: str
+    status: str
+    detail: str
+    action_label: str
+    action_href: str
+
+
+@dataclass(frozen=True)
+class MissionCockpitService:
+    value: str
+    label: str
+    status: str
+    selected: bool
+    detail: str
+    action_label: str
+    action_href: str
+
+
+@dataclass(frozen=True)
+class MissionCockpit:
+    status: str
+    next_action: str
+    next_action_label: str
+    next_action_href: str
+    ready_step_count: int
+    total_step_count: int
+    approved_scope_count: int
+    selected_check_count: int
+    ready_check_count: int
+    blocked_check_count: int
+    report_count: int
+    handoff_status: str
+    steps: list[MissionCockpitStep]
+    services: list[MissionCockpitService]
+
+
+@dataclass(frozen=True)
 class DashboardView:
     clients: list[ClientRow]
     missions: list[MissionRow]
@@ -337,6 +375,7 @@ class ClientView:
 @dataclass(frozen=True)
 class MissionView:
     mission: MissionRow
+    cockpit: MissionCockpit
     activity_log_url: str
     scope: list[ScopeRow]
     findings: list[FindingRow]
@@ -1075,6 +1114,172 @@ def scan_run_row(run: ScanRun) -> ScanRunRow:
     )
 
 
+def mission_cockpit(
+    mission: Mission,
+    findings: list[Finding],
+    readiness_items: list[ReadinessItem],
+    scan_plans: list[ScanPlanPreview],
+    check_selection: list[CheckSelectionRow],
+    reports: list[GeneratedReportLink],
+    mission_export: MissionExportLink | None,
+) -> MissionCockpit:
+    preparation = mission_preparation_summary(mission, findings)
+    approved_scope_count = len(
+        [item for item in mission.scope if item.approved and not item.excluded]
+    )
+    selected_check_count = len([item for item in check_selection if item.selected])
+    ready_check_count = len([plan for plan in scan_plans if plan.status == "ready"])
+    blocked_check_count = len([plan for plan in scan_plans if plan.status == "blocked"])
+    readiness_ready_count = len([item for item in readiness_items if item.status == "ready"])
+    handoff_status = (
+        mission_export.handoff_status
+        if mission_export is not None
+        else ("warning" if reports else "missing")
+    )
+
+    return MissionCockpit(
+        status=preparation.status,
+        next_action=preparation.next_action,
+        next_action_label=preparation.next_action_label,
+        next_action_href=f"#{preparation.next_action_anchor}",
+        ready_step_count=readiness_ready_count,
+        total_step_count=len(readiness_items),
+        approved_scope_count=approved_scope_count,
+        selected_check_count=selected_check_count,
+        ready_check_count=ready_check_count,
+        blocked_check_count=blocked_check_count,
+        report_count=len(reports),
+        handoff_status=handoff_status,
+        steps=mission_cockpit_steps(
+            readiness_items=readiness_items,
+            ready_check_count=ready_check_count,
+            blocked_check_count=blocked_check_count,
+            reports=reports,
+            mission_export=mission_export,
+        ),
+        services=mission_cockpit_services(check_selection, scan_plans),
+    )
+
+
+def mission_cockpit_steps(
+    readiness_items: list[ReadinessItem],
+    ready_check_count: int,
+    blocked_check_count: int,
+    reports: list[GeneratedReportLink],
+    mission_export: MissionExportLink | None,
+) -> list[MissionCockpitStep]:
+    readiness = {item.label: item for item in readiness_items}
+    steps = [
+        mission_cockpit_readiness_step(readiness["Authorization"], "Authorization"),
+        mission_cockpit_readiness_step(readiness["Approved Scope"], "Périmètre"),
+        mission_cockpit_readiness_step(readiness["Check Selection"], "Services"),
+        MissionCockpitStep(
+            label="Lancement",
+            status="ready" if ready_check_count else "blocked",
+            detail=(
+                f"{ready_check_count} service(s) prêt(s), {blocked_check_count} bloqué(s)."
+                if ready_check_count
+                else "Aucun service sélectionné n’est prêt à être lancé."
+            ),
+            action_label="Open Scan Plan",
+            action_href="#scan-plan",
+        ),
+        mission_cockpit_readiness_step(readiness["Finding Review"], "Constats"),
+        mission_cockpit_handoff_step(reports, mission_export),
+    ]
+    return steps
+
+
+def mission_cockpit_readiness_step(
+    item: ReadinessItem,
+    label: str,
+) -> MissionCockpitStep:
+    return MissionCockpitStep(
+        label=label,
+        status=item.status,
+        detail=item.detail,
+        action_label=item.action_label,
+        action_href=item.action_href,
+    )
+
+
+def mission_cockpit_handoff_step(
+    reports: list[GeneratedReportLink],
+    mission_export: MissionExportLink | None,
+) -> MissionCockpitStep:
+    if mission_export is not None:
+        return MissionCockpitStep(
+            label="Livrables",
+            status=mission_export.handoff_status,
+            detail=mission_export.handoff_detail,
+            action_label=mission_export.handoff_action,
+            action_href="#reports",
+        )
+    if reports:
+        return MissionCockpitStep(
+            label="Livrables",
+            status="warning",
+            detail=f"{len(reports)} rapport(s) généré(s), package mission en attente.",
+            action_label="Generate Package",
+            action_href="#reports",
+        )
+    return MissionCockpitStep(
+        label="Livrables",
+        status="warning",
+        detail="Rapports et package mission en attente.",
+        action_label="Open Reports",
+        action_href="#reports",
+    )
+
+
+def mission_cockpit_services(
+    check_selection: list[CheckSelectionRow],
+    scan_plans: list[ScanPlanPreview],
+) -> list[MissionCockpitService]:
+    plans_by_check = {plan.check: plan for plan in scan_plans}
+    services: list[MissionCockpitService] = []
+    for check in check_selection:
+        plan = plans_by_check.get(check.value)
+        if not check.selected:
+            services.append(
+                MissionCockpitService(
+                    value=check.value,
+                    label=check.label,
+                    status="none",
+                    selected=False,
+                    detail="Non sélectionné pour cette mission.",
+                    action_label="Select",
+                    action_href="#check-selection",
+                )
+            )
+            continue
+        if plan is None:
+            services.append(
+                MissionCockpitService(
+                    value=check.value,
+                    label=check.label,
+                    status="warning",
+                    selected=True,
+                    detail="Sélectionné, plan non disponible.",
+                    action_label="Review",
+                    action_href="#check-selection",
+                )
+            )
+            continue
+        services.append(
+            MissionCockpitService(
+                value=check.value,
+                label=check.label,
+                status=plan.status,
+                selected=True,
+                detail=plan.detail,
+                action_label="Run" if plan.status == "ready" else "Resolve",
+                action_href="#scan-plan" if plan.status == "ready" else "#scope",
+            )
+        )
+    return services
+
+
 def build_dashboard_view(store: JsonStore) -> DashboardView:
     clients = store.list_clients()
     missions = store.list_missions()
@@ -1336,9 +1541,21 @@ def build_mission_view(
     authorization_briefs = list_authorization_briefs(mission_id, reports_dir) if reports_dir else []
     reports = list_generated_reports(mission_id, reports_dir) if reports_dir else []
     mission_export = list_mission_export(mission_id, reports_dir) if reports_dir else None
+    check_selection = check_selection_rows(mission)
+    scan_plans = build_scan_plan_previews(mission)
+    readiness_items = build_readiness_items(mission, findings, len(reports))
 
     return MissionView(
         mission=mission_row(mission, findings, client_name_by_id(store)),
+        cockpit=mission_cockpit(
+            mission=mission,
+            findings=findings,
+            readiness_items=readiness_items,
+            scan_plans=scan_plans,
+            check_selection=check_selection,
+            reports=reports,
+            mission_export=mission_export,
+        ),
         activity_log_url=mission_activity_log_url(mission.id),
         scope=[scope_row(item) for item in mission.scope],
         findings=[finding_row(finding) for finding in sorted_findings(findings)],
@@ -1346,15 +1563,15 @@ def build_mission_view(
         counter_test_summary=counter_test_summary_rows(findings),
         counter_test_items=[counter_test_row(finding) for finding in counter_test_findings(findings)],
         activity_events=[activity_event_row(event) for event in activity_events],
-        check_selection=check_selection_rows(mission),
+        check_selection=check_selection,
         scan_runs=[scan_run_row(run) for run in scan_runs],
         remediation_items=remediation_plan(findings),
         executive_summary=str(summary["executive_summary"]),
         authorization_briefs=authorization_briefs,
         reports=reports,
         mission_export=mission_export,
-        readiness_items=build_readiness_items(mission, findings, len(reports)),
-        scan_plans=build_scan_plan_previews(mission),
+        readiness_items=readiness_items,
+        scan_plans=scan_plans,
         vulnerability_catalog_count=len(vulnerability_catalog.advisories),
         vulnerability_matches=[
             vulnerability_match_row(match) for match in vulnerability_matches

@@ -1715,6 +1715,7 @@ class WebUiTests(unittest.TestCase):
         template = template_path.read_text(encoding="utf-8")
 
         for anchor in [
+            "mission-cockpit",
             "mission-readiness",
             "scan-plan",
             "run-monitor",
@@ -1731,6 +1732,11 @@ class WebUiTests(unittest.TestCase):
             self.assertIn(f'id="{anchor}"', template)
 
         for counter in [
+            "view.cockpit.ready_step_count",
+            "view.cockpit.total_step_count",
+            "view.cockpit.selected_check_count",
+            "view.cockpit.ready_check_count",
+            "view.cockpit.blocked_check_count",
             "view.readiness_items|length",
             "view.scan_plans|length",
             "view.scan_runs|length",
@@ -1744,6 +1750,12 @@ class WebUiTests(unittest.TestCase):
         ]:
             self.assertIn(f"{{{{ {counter} }}}}", template)
 
+        self.assertIn("Technician Cockpit", template)
+        self.assertIn("view.cockpit.steps", template)
+        self.assertIn("view.cockpit.services", template)
+        self.assertIn('aria-label="Technician cockpit metrics"', template)
+        self.assertIn('aria-label="Mission workflow cockpit"', template)
+        self.assertIn('aria-label="Selected service cockpit"', template)
         self.assertIn("view.counter_test_summary", template)
         self.assertIn('aria-label="Counter-test summary"', template)
         self.assertIn('href="/clients/{{ view.mission.client_id }}"', template)
@@ -2856,10 +2868,31 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(view.reports, [])
         self.assertIsNone(view.mission_export)
         self.assertEqual(len(view.readiness_items), 5)
+        self.assertEqual(view.cockpit.status, "warning")
+        self.assertEqual(view.cockpit.next_action, "Review 1 new finding(s).")
+        self.assertEqual(view.cockpit.next_action_label, "Review Findings")
+        self.assertEqual(view.cockpit.next_action_href, "#findings")
+        self.assertEqual(view.cockpit.ready_step_count, 3)
+        self.assertEqual(view.cockpit.total_step_count, 5)
+        self.assertEqual(view.cockpit.approved_scope_count, 1)
+        self.assertEqual(view.cockpit.selected_check_count, 3)
+        self.assertEqual(view.cockpit.ready_check_count, 1)
+        self.assertEqual(view.cockpit.blocked_check_count, 2)
+        self.assertEqual(view.cockpit.report_count, 0)
+        self.assertEqual(view.cockpit.handoff_status, "missing")
+        self.assertEqual(
+            [step.label for step in view.cockpit.steps],
+            ["Authorization", "Périmètre", "Services", "Lancement", "Constats", "Livrables"],
+        )
         self.assertEqual(view.check_selection[0].value, "nmap")
         self.assertTrue(view.check_selection[0].selected)
         self.assertEqual(view.scan_plans[0].label, "Nmap")
         self.assertEqual(view.scan_plans[0].status, "ready")
+        service_statuses = {service.value: service.status for service in view.cockpit.services}
+        self.assertEqual(service_statuses["nmap"], "ready")
+        self.assertEqual(service_statuses["http_headers"], "blocked")
+        self.assertEqual(service_statuses["dns_mail"], "blocked")
+        self.assertEqual(service_statuses["tls"], "none")
         self.assertEqual(view.counter_test_items, [])
         self.assertEqual(view.activity_events, [])
         self.assertEqual(len(view.remediation_items), 1)

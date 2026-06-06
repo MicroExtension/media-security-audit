@@ -16,6 +16,7 @@ from media_security_audit.models import (  # noqa: E402
 from media_security_audit.reports import (  # noqa: E402
     build_report_summary,
     critical_attention_items,
+    known_vulnerability_items,
     render_html,
     render_json,
     render_markdown,
@@ -131,6 +132,70 @@ class ReportTests(unittest.TestCase):
         self.assertIn("Remédiation prioritaire", html)
         self.assertIn(b"Points critiques a traiter", pdf)
         self.assertIn(b"Exposed firewall admin portal", pdf)
+
+    def test_reports_include_known_vulnerability_rollups(self) -> None:
+        findings = sample_findings() + [
+            Finding(
+                title="Known vulnerability candidate: CVE-2099-0001",
+                severity=Severity.CRITICAL,
+                affected_asset="https://gateway.example.invalid",
+                category="known_vulnerability",
+                source_module="vulnerability_catalog",
+                proof=(
+                    "CVE-2099-0001 matched evidence from finding finding_1: "
+                    "Example Web Gateway 1.2.3"
+                ),
+                risk=(
+                    "Known exploited gateway vulnerability. This advisory is "
+                    "marked as known exploited."
+                ),
+                remediation="Upgrade Example Web Gateway to the fixed vendor release.",
+                counter_test="Repeat the approved service inventory and CVE correlation.",
+                confidence=0.65,
+                metadata={"cve_id": "CVE-2099-0001", "known_exploited": "true"},
+            ),
+            Finding(
+                title="Rejected known vulnerability candidate",
+                severity=Severity.HIGH,
+                affected_asset="https://gateway.example.invalid",
+                category="known_vulnerability",
+                source_module="vulnerability_catalog",
+                proof="Technician review rejected the correlation.",
+                risk="No active risk after review.",
+                remediation="No remediation required.",
+                counter_test="Keep the review note in the audit record.",
+                confidence=0.45,
+                status=FindingStatus.FALSE_POSITIVE,
+                metadata={
+                    "cve_id": "CVE-2099-9999",
+                    "known_exploited": "true",
+                    "review_note": "Version evidence did not match the advisory.",
+                },
+            ),
+        ]
+
+        items = known_vulnerability_items(findings)
+        payload = json.loads(render_json(sample_mission(), findings))
+        markdown = render_markdown(sample_mission(), findings)
+        html = render_html(sample_mission(), findings)
+        pdf = render_pdf(sample_mission(), findings)
+
+        self.assertEqual(len(items), 1)
+        self.assertEqual(items[0]["cve_id"], "CVE-2099-0001")
+        self.assertEqual(payload["summary"]["known_vulnerabilities"]["candidates"], 1)
+        self.assertEqual(payload["summary"]["known_vulnerabilities"]["known_exploited"], 1)
+        self.assertEqual(payload["summary"]["known_vulnerabilities"]["critical_or_high"], 1)
+        self.assertEqual(len(payload["known_vulnerabilities"]), 1)
+        self.assertEqual(payload["known_vulnerabilities"][0]["cve_id"], "CVE-2099-0001")
+        self.assertIn("## CVE/KEV Candidates", markdown)
+        self.assertIn("Known exploited: 1", markdown)
+        self.assertIn("CVE-2099-0001", markdown)
+        self.assertNotIn("CVE-2099-9999", markdown)
+        self.assertIn("CVE/KEV candidates", html)
+        self.assertIn("CVE-2099-0001", html)
+        self.assertNotIn("CVE-2099-9999</strong>", html)
+        self.assertIn(b"CVE/KEV candidates", pdf)
+        self.assertIn(b"CVE-2099-0001", pdf)
 
     def test_reports_include_reviewed_disposition_notes(self) -> None:
         findings = sample_findings() + [

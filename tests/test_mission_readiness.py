@@ -113,10 +113,10 @@ class MissionReadinessTests(unittest.TestCase):
 
         self.assertEqual(payload["status"], "ready")
         self.assertEqual(payload["summary"]["ready"], 5)
-        self.assertEqual(payload["summary"]["generated_reports"], 3)
+        self.assertEqual(payload["summary"]["generated_reports"], 4)
         self.assertEqual(payload["scan_plan"]["ready"], 3)
         self.assertEqual(payload["scan_plan"]["planned_commands"], 4)
-        self.assertIn("Generated reports: `3`", markdown)
+        self.assertIn("Generated reports: `4`", markdown)
         self.assertEqual(export.filename, f"{mission.id}-readiness.json")
         self.assertEqual(export.media_type, "application/json")
         self.assertEqual(mission_readiness_exit_code(payload, strict=True), 0)

@@ -21,7 +21,7 @@ from media_security_audit.mission_readiness import (
     build_mission_readiness_payload,
 )
 from media_security_audit.models import Client, Mission, ReportFormat, ScanRun, utc_now
-from media_security_audit.reports import scope_summary
+from media_security_audit.reports import MISSION_REPORT_FORMATS, scope_summary
 from media_security_audit.scan_plan_exports import (
     ScanPlanExport,
     ScanPlanExportFormat,
@@ -182,7 +182,7 @@ def generate_mission_export(store: JsonStore, mission_id: str, reports_dir: Path
         path
         for path in (
             mission_report_path(reports_dir, mission_id, report_format)
-            for report_format in ReportFormat
+            for report_format in MISSION_REPORT_FORMATS
         )
         if path.exists() and path.is_file()
     ]

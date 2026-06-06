@@ -49,13 +49,17 @@ class WebReportTests(unittest.TestCase):
         paths = generate_web_reports(store, mission.id, reports_dir)
         links = list_generated_reports(mission.id, reports_dir)
 
-        self.assertEqual(len(paths), 3)
+        self.assertEqual(len(paths), 4)
         self.assertTrue(all(path.exists() for path in paths))
-        self.assertEqual([link.format for link in links], ["json", "markdown", "html"])
+        self.assertEqual([link.format for link in links], ["json", "markdown", "html", "pdf"])
         self.assertTrue(all(link.size_bytes > 0 for link in links))
         self.assertEqual(
             generated_report_file(reports_dir, mission.id, ReportFormat.HTML),
             mission_report_path(reports_dir, mission.id, ReportFormat.HTML),
+        )
+        self.assertEqual(
+            generated_report_file(reports_dir, mission.id, ReportFormat.PDF),
+            mission_report_path(reports_dir, mission.id, ReportFormat.PDF),
         )
 
     def test_missing_generated_report_file_raises_named_error(self) -> None:

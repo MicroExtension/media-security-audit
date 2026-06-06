@@ -709,11 +709,14 @@ def create_web_app(
         q: str | None = None,
         category: str | None = None,
     ) -> Response:
-        export = build_remediation_library_export(
-            export_format=export_format,
-            query=q,
-            category=category,
-        )
+        try:
+            export = build_remediation_library_export(
+                export_format=export_format,
+                query=q,
+                category=category,
+            )
+        except ValueError as error:
+            raise HTTPException(status_code=400, detail=str(error)) from error
         return Response(
             content=export.content,
             media_type=export.media_type,

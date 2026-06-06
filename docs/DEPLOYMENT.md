@@ -437,7 +437,8 @@ docker compose run --rm media-audit \
 ```
 
 Reviewed reports can also be generated from the mission page in the web UI.
-Web-generated report files are written under the mounted `reports/` folder.
+Web-generated report files are written under the mounted `reports/` folder as
+JSON, Markdown, HTML, and PDF files.
 Mission export packages can also be generated from the mission page. These ZIP
 files include local mission JSON data, findings, activity, run history, and any
 already generated report files.

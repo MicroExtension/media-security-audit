@@ -166,7 +166,7 @@ Expected result:
 
 - the UI remains responsive
 - no live scan is required
-- reports are generated
+- JSON, Markdown, HTML, and PDF reports are generated
 - export package is generated
 - manifest and verification pages are downloadable
 - Pilot evidence bundle is downloadable
@@ -412,7 +412,7 @@ bash scripts/debian-vm-v1-readiness-report.sh
 Expected result:
 
 - pilot files are downloadable
-- mission reports are generated
+- mission reports are generated, including PDF
 - mission export package is generated
 - handoff report and bundle are generated
 - bundle inventory shows manifest status
@@ -441,7 +441,7 @@ Mark V1 as ready for a controlled internal pilot only if all criteria are true:
 - reviewed CVE/KEV catalog matches can be correlated and stored as candidate
   findings
 - manual/sample finding workflow works
-- reports can be generated
+- reports can be generated, including PDF
 - mission export package can be generated
 - export inventory lists the package
 - manifest and verification downloads work

@@ -50,6 +50,7 @@ Implemented so far:
 - web check selection for mission planning
 - web system status page for appliance readiness
 - web run monitor for CLI scan execution history
+- local vulnerability catalog import and CVE/KEV correlation against mission findings
 - guarded TLS testssl.sh plan, execution wrapper, and JSON parser
 - guarded SMB anonymous listing plan, execution wrapper, and parser
 - guarded LDAP RootDSE plan, execution wrapper, and parser

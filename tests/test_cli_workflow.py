@@ -75,6 +75,7 @@ class CliWorkflowTests(unittest.TestCase):
 
         self.assertIn("preflight", command.commands)
         self.assertIn("mission", command.commands)
+        self.assertIn("vuln", command.commands)
 
     def test_creates_basic_local_workflow(self) -> None:
         root_dir = Path(__file__).resolve().parents[1] / ".tmp-tests" / "cli-workflow"

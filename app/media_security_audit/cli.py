@@ -87,6 +87,16 @@ from media_security_audit.scan_plan_exports import (
     scan_plan_payload as build_scan_plan_payload,
 )
 from media_security_audit.storage import JsonStore
+from media_security_audit.vulnerability_catalog import (
+    correlate_vulnerability_catalog,
+    format_vulnerability_catalog_json,
+    format_vulnerability_catalog_text,
+    format_vulnerability_correlation_json,
+    format_vulnerability_correlation_text,
+    import_vulnerability_catalog,
+    load_vulnerability_catalog,
+    store_vulnerability_findings_for_mission,
+)
 from media_security_audit.web_exports import (
     build_mission_export_inventory,
     format_mission_export_inventory_json,
@@ -876,12 +886,14 @@ try:
     scope_app = typer.Typer(help="Manage mission scope.")
     finding_app = typer.Typer(help="Manage findings.")
     scan_app = typer.Typer(help="Plan safe scanner commands.")
+    vuln_app = typer.Typer(help="Manage vulnerability catalog correlation.")
     report_app = typer.Typer(help="Generate reports.")
     app.add_typer(client_app, name="client")
     app.add_typer(mission_app, name="mission")
     app.add_typer(scope_app, name="scope")
     app.add_typer(finding_app, name="finding")
     app.add_typer(scan_app, name="scan")
+    app.add_typer(vuln_app, name="vuln")
     app.add_typer(report_app, name="report")
 
     @app.callback()
@@ -1353,6 +1365,48 @@ try:
         )
         typer.echo(f"Executed {len(results)} LDAP command(s); stored {len(findings)} finding(s).")
 
+    @vuln_app.command("import")
+    def vuln_import(
+        input_path: Path = typer.Option(..., "--input"),
+        data_dir: Path = typer.Option(Path("data"), "--data-dir"),
+    ) -> None:
+        """Import a reviewed local CVE/KEV catalog without network activity."""
+        catalog = import_vulnerability_catalog(input_path, data_dir)
+        typer.echo(f"Imported {len(catalog.advisories)} vulnerability advisory item(s).")
+
+    @vuln_app.command("list")
+    def vuln_list(
+        data_dir: Path = typer.Option(Path("data"), "--data-dir"),
+        output_format: str = typer.Option("text", "--format"),
+    ) -> None:
+        """List the local vulnerability catalog."""
+        if output_format not in {"text", "json"}:
+            raise typer.BadParameter("--format must be text or json")
+        catalog = load_vulnerability_catalog(data_dir)
+        if output_format == "json":
+            typer.echo(format_vulnerability_catalog_json(catalog))
+        else:
+            typer.echo(format_vulnerability_catalog_text(catalog))
+
+    @vuln_app.command("correlate")
+    def vuln_correlate(
+        mission_id: str = typer.Option(..., "--mission-id"),
+        data_dir: Path = typer.Option(Path("data"), "--data-dir"),
+        output_format: str = typer.Option("text", "--format"),
+        store_findings: bool = typer.Option(False, "--store-findings"),
+    ) -> None:
+        """Correlate stored findings with the local vulnerability catalog."""
+        if output_format not in {"text", "json"}:
+            raise typer.BadParameter("--format must be text or json")
+        matches = correlate_vulnerability_catalog(mission_id, data_dir)
+        if store_findings:
+            stored = store_vulnerability_findings_for_mission(mission_id, data_dir)
+            typer.echo(f"Stored {len(stored)} vulnerability finding(s).")
+        if output_format == "json":
+            typer.echo(format_vulnerability_correlation_json(matches))
+        else:
+            typer.echo(format_vulnerability_correlation_text(matches))
+
 except ModuleNotFoundError:
 
     def app(argv: list[str] | None = None) -> None:
@@ -1586,6 +1640,32 @@ except ModuleNotFoundError:
         ldap_run_parser.add_argument("--data-dir", type=Path, default=Path("data"))
         ldap_run_parser.add_argument("--output-dir", type=Path)
         ldap_run_parser.add_argument("--execute", action="store_true")
+
+        vuln_parser = subparsers.add_parser(
+            "vuln",
+            help="Manage vulnerability catalog correlation.",
+        )
+        vuln_subparsers = vuln_parser.add_subparsers(dest="vuln_command")
+        vuln_import_parser = vuln_subparsers.add_parser(
+            "import",
+            help="Import a reviewed local CVE/KEV catalog without network activity.",
+        )
+        vuln_import_parser.add_argument("--input", required=True, type=Path)
+        vuln_import_parser.add_argument("--data-dir", type=Path, default=Path("data"))
+        vuln_list_parser = vuln_subparsers.add_parser(
+            "list",
+            help="List the local vulnerability catalog.",
+        )
+        vuln_list_parser.add_argument("--data-dir", type=Path, default=Path("data"))
+        vuln_list_parser.add_argument("--format", choices=["text", "json"], default="text")
+        vuln_correlate_parser = vuln_subparsers.add_parser(
+            "correlate",
+            help="Correlate stored findings with the local vulnerability catalog.",
+        )
+        vuln_correlate_parser.add_argument("--mission-id", required=True)
+        vuln_correlate_parser.add_argument("--data-dir", type=Path, default=Path("data"))
+        vuln_correlate_parser.add_argument("--format", choices=["text", "json"], default="text")
+        vuln_correlate_parser.add_argument("--store-findings", action="store_true")
 
         report_parser = subparsers.add_parser("report", help="Generate reports.")
         report_subparsers = report_parser.add_subparsers(dest="report_command")
@@ -1874,6 +1954,33 @@ except ModuleNotFoundError:
                     execute=args.execute,
                 )
                 print(f"Executed {len(results)} LDAP command(s); stored {len(findings)} finding(s).")
+                return
+
+            if args.command == "vuln" and args.vuln_command == "import":
+                catalog = import_vulnerability_catalog(args.input, args.data_dir)
+                print(f"Imported {len(catalog.advisories)} vulnerability advisory item(s).")
+                return
+
+            if args.command == "vuln" and args.vuln_command == "list":
+                catalog = load_vulnerability_catalog(args.data_dir)
+                if args.format == "json":
+                    print(format_vulnerability_catalog_json(catalog))
+                else:
+                    print(format_vulnerability_catalog_text(catalog))
+                return
+
+            if args.command == "vuln" and args.vuln_command == "correlate":
+                matches = correlate_vulnerability_catalog(args.mission_id, args.data_dir)
+                if args.store_findings:
+                    stored = store_vulnerability_findings_for_mission(
+                        args.mission_id,
+                        args.data_dir,
+                    )
+                    print(f"Stored {len(stored)} vulnerability finding(s).")
+                if args.format == "json":
+                    print(format_vulnerability_correlation_json(matches))
+                else:
+                    print(format_vulnerability_correlation_text(matches))
                 return
 
             if args.command == "report" and args.report_command == "generate":

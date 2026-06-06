@@ -30,6 +30,7 @@
   <a href="#mission-readiness">Readiness <span>{{ view.readiness_items|length }}</span></a>
   <a href="#scan-plan">Scan Plan <span>{{ view.scan_plans|length }}</span></a>
   <a href="#run-monitor">Runs <span>{{ view.scan_runs|length }}</span></a>
+  <a href="#vulnerabilities">CVE/KEV <span>{{ view.vulnerability_matches|length }}</span></a>
   <a href="#check-selection">Checks <span>{{ view.check_selection|length }}</span></a>
   <a href="#mission-setup">Setup <span>{{ "ok" if view.mission.authorization_present else "todo" }}</span></a>
   <a href="#reports">Reports <span>{{ view.reports|length }}</span></a>
@@ -183,6 +184,56 @@
       </tbody>
     </table>
   </div>
+</section>
+
+<section class="section" id="vulnerabilities">
+  <div class="section-title">
+    <h2>Known Vulnerability Correlation</h2>
+    <span class="muted">{{ view.vulnerability_catalog_count }} catalog item(s)</span>
+  </div>
+  {% if view.vulnerability_matches %}
+  <div class="table-wrap">
+    <table>
+      <caption class="sr-only">Known vulnerability candidate matches</caption>
+      <thead>
+        <tr>
+          <th>CVE</th>
+          <th>Severity</th>
+          <th>Asset</th>
+          <th>Evidence</th>
+          <th>Remediation</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in view.vulnerability_matches %}
+        <tr>
+          <td>
+            <strong>{{ item.cve_id }}</strong>
+            {% if item.known_exploited %}<span class="badge status-counter_test_failed">KEV</span>{% endif %}
+            <small>{{ item.title }}</small>
+          </td>
+          <td><span class="badge severity-{{ item.severity }}">{{ item.severity }}</span></td>
+          <td>{{ item.affected_asset }}</td>
+          <td>
+            finding {{ item.matched_finding_id }}
+            <br>
+            <small>{{ item.matched_terms }}</small>
+          </td>
+          <td>{{ item.remediation }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <form class="inline-form" method="post" action="/missions/{{ view.mission.id }}/vulnerabilities/correlate" aria-label="Store vulnerability findings">
+    <input type="hidden" name="_csrf" value="{{ form_token }}">
+    <button class="button secondary-button" type="submit">Store Candidate Findings</button>
+  </form>
+  {% elif view.vulnerability_catalog_count %}
+  <p class="empty">No known vulnerability candidate matched the current mission findings.</p>
+  {% else %}
+  <p class="empty">No vulnerability catalog has been imported yet.</p>
+  {% endif %}
 </section>
 
 <section class="section" id="check-selection">

@@ -92,6 +92,41 @@ class DeploymentFileTests(unittest.TestCase):
         self.assertNotIn("sudo", script)
         self.assertNotIn("nmap", script)
 
+    def test_debian_vm_bootstrap_script_is_confirmed_and_scanner_free(self) -> None:
+        script = (ROOT / "scripts" / "debian-vm-bootstrap.sh").read_text(encoding="utf-8")
+
+        self.assertIn("set -euo pipefail", script)
+        self.assertIn("--confirm", script)
+        self.assertIn("--init-env", script)
+        self.assertIn('CURRENT_USER="${SUDO_USER:-${USER:-${USERNAME:-}}}"', script)
+        self.assertIn("unable to detect the technician user", script)
+        self.assertIn("Default mode is a plan only", script)
+        self.assertIn("bootstrap plan only", script)
+        self.assertIn('if [[ "${CONFIRM}" != "true" ]]', script)
+        self.assertIn("sudo apt install -y git docker.io", script)
+        self.assertIn("sudo systemctl enable --now docker", script)
+        self.assertIn("docker-compose-plugin", script)
+        self.assertIn("docker-compose-v2", script)
+        self.assertIn("Docker Compose v2 is missing", script)
+        self.assertIn("sudo usermod -aG docker", script)
+        self.assertIn('sudo usermod -aG docker "${CURRENT_USER}"', script)
+        self.assertIn("bash scripts/debian-vm-init-env.sh", script)
+        self.assertIn("log out and back in", script)
+        self.assertLess(
+            script.index('if [[ "${CONFIRM}" != "true" ]]'),
+            script.index("has_command sudo || fail"),
+        )
+        self.assertNotIn("docker compose up", script)
+        self.assertNotIn("docker compose build", script)
+        self.assertNotIn("docker compose run", script)
+        self.assertNotIn("docker compose logs", script)
+        self.assertNotIn("nuclei", script)
+        self.assertNotIn("testssl.sh", script)
+        self.assertNotIn("smbclient", script)
+        self.assertNotIn("ldapsearch", script)
+        self.assertNotIn("nmap", script)
+        self.assertNotIn("rm -rf", script)
+
     def test_debian_vm_rotate_password_script_is_explicit_and_auth_preserving(self) -> None:
         script = (ROOT / "scripts" / "debian-vm-rotate-password.sh").read_text(encoding="utf-8")
 

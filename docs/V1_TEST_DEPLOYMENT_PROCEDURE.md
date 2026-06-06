@@ -197,21 +197,15 @@ Replace `mission_xxxxx` with the mission ID visible in URLs or CLI output.
 
 Use this phase for the first appliance-style pilot. Run commands on the VM.
 
-### 1. Install System Dependencies
+### 1. Install Minimum Git Access
 
 ```bash
 sudo apt update
-sudo apt install -y git docker.io docker-compose-plugin
-sudo systemctl enable --now docker
+sudo apt install -y git
 ```
 
-Add your technician account to the Docker group if needed:
-
-```bash
-sudo usermod -aG docker "$USER"
-```
-
-Log out and log back in before continuing.
+This is the only manual system package required before cloning the private
+repository.
 
 ### 2. Clone The Private Repository
 
@@ -222,14 +216,27 @@ git switch main
 git pull --ff-only
 ```
 
-### 3. Generate The Local Environment
+### 3. Bootstrap System Dependencies And Local Environment
+
+```bash
+bash scripts/debian-vm-bootstrap.sh
+bash scripts/debian-vm-bootstrap.sh --confirm --init-env
+```
+
+The first command prints the reviewed plan only. The confirmed command installs
+Git and Docker, enables Docker, detects the available Docker Compose v2 provider
+package, adds the technician account to the Docker group when needed, and creates
+`.env` if it does not already exist. The helper does not run Docker builds,
+scanner commands, or scanner template updates.
+
+Log out and log back in before continuing if the helper adds your account to the
+Docker group.
+
+If you did not use `--init-env`, create `.env` manually:
 
 ```bash
 bash scripts/debian-vm-init-env.sh
 ```
-
-The helper creates `.env`, keeps authentication enabled, generates a strong web
-password, and binds the UI to `127.0.0.1` by default.
 
 Store the generated password from `.env` in the maintenance password vault.
 

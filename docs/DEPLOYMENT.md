@@ -51,6 +51,13 @@ Recommended production access:
 
 ## First Install
 
+Install Git if the fresh VM does not already have it:
+
+```bash
+sudo apt update
+sudo apt install -y git
+```
+
 Clone the private repository on the VM:
 
 ```bash
@@ -58,14 +65,31 @@ git clone https://github.com/MicroExtension/media-security-audit.git
 cd media-security-audit
 ```
 
-Generate the first local environment file:
+Review and run the VM bootstrap helper:
+
+```bash
+bash scripts/debian-vm-bootstrap.sh
+bash scripts/debian-vm-bootstrap.sh --confirm --init-env
+```
+
+The first command is plan-only. The confirmed helper installs Git and Docker,
+enables Docker, detects the available Docker Compose v2 provider package, adds
+the technician account to the Docker group when needed, and creates `.env` if it
+does not already exist. It does not run Docker builds, scanner commands, or
+scanner template updates.
+
+Log out and log back in before continuing if the helper adds your account to the
+Docker group.
+
+If `.env` was not created during bootstrap, generate the first local environment
+file manually:
 
 ```bash
 bash scripts/debian-vm-init-env.sh
 ```
 
-The helper refuses to overwrite an existing `.env`, keeps the UI bound to
-`127.0.0.1`, enables authentication, generates a strong
+The environment helper refuses to overwrite an existing `.env`, keeps the UI
+bound to `127.0.0.1`, enables authentication, generates a strong
 `MEDIA_AUDIT_WEB_PASSWORD`, and restricts file permissions to the current user.
 Store the generated password from `.env` in the maintenance password vault
 before customer use.

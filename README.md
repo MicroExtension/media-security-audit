@@ -188,6 +188,7 @@ Implemented so far:
 - grouped checkbox controls expose explicit form legends
 - required form fields show consistent visual indicators
 - healthcheck reports persistent storage readiness for deployments
+- Debian/Ubuntu VM bootstrap helper handles Git, Docker, Compose provider detection, Docker group access, and optional `.env` initialization
 - CLI preflight reports local deployment readiness without running scans
 - CLI preflight supports JSON output for automation
 - CLI preflight JSON output includes a schema version and status summary

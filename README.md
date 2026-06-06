@@ -189,6 +189,7 @@ Implemented so far:
 - required form fields show consistent visual indicators
 - healthcheck reports persistent storage readiness for deployments
 - Debian/Ubuntu VM bootstrap helper handles Git, Docker, Compose provider detection, Docker group access, and optional `.env` initialization
+- Debian/Ubuntu pilot closeout helper generates final readiness, handoff, bundle inventory, and closeout status evidence
 - CLI preflight reports local deployment readiness without running scans
 - CLI preflight supports JSON output for automation
 - CLI preflight JSON output includes a schema version and status summary

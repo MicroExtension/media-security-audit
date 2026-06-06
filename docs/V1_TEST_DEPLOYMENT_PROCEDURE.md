@@ -417,6 +417,12 @@ bash scripts/debian-vm-bundle-inventory.sh
 bash scripts/debian-vm-v1-readiness-report.sh
 ```
 
+23. Generate the final pilot closeout:
+
+```bash
+bash scripts/debian-vm-pilot-closeout.sh
+```
+
 Expected result:
 
 - pilot files are downloadable
@@ -425,6 +431,7 @@ Expected result:
 - handoff report and bundle are generated
 - bundle inventory shows manifest status
 - V1 readiness report is generated under `reports/v1-readiness`
+- final pilot closeout is generated under `reports/pilot-closeout`
 - no live scan is required for this V1 validation
 
 ## Phase 4 - V1 Acceptance Criteria
@@ -457,6 +464,7 @@ Mark V1 as ready for a controlled internal pilot only if all criteria are true:
 - handoff report can be generated
 - handoff bundle can be generated
 - V1 readiness report ends with `v1_readiness=ready`
+- pilot closeout report ends with `pilot_closeout=ready`
 - no customer scan was run without explicit authorization
 
 ## Phase 5 - Stop Or Restart The VM Service

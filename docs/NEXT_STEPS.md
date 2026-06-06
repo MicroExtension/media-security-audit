@@ -609,6 +609,8 @@ Codex action:
 Current GUI status:
 - guided audit wizard can create a client, mission, approved scope, and check
   selection in one workflow
+- guided audit wizard shows a live audit snapshot for client, mission, targets,
+  selected services, and authorization readiness
 - dashboard can show clients and missions
 - client detail pages show client mission history and risk metrics
 - mission pages can show scope, findings, remediation plan, and reports

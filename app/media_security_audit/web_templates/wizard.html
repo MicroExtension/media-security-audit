@@ -16,10 +16,58 @@
   <a href="#wizard-mission">Mission <span>2</span></a>
   <a href="#wizard-scope">Targets <span>3</span></a>
   <a href="#wizard-checks">Checks <span>4</span></a>
+  <a href="#wizard-summary">Snapshot <span>live</span></a>
 </section>
 
 <form class="form-panel wizard-form" method="post" action="/wizard" aria-label="Create guided audit">
   <input type="hidden" name="_csrf" value="{{ form_token }}">
+
+  <section class="wizard-summary" id="wizard-summary" aria-label="Guided audit snapshot" aria-live="polite">
+    <div class="section-title">
+      <h2>Audit Snapshot</h2>
+      <span class="muted" data-wizard-summary-status>Draft</span>
+    </div>
+    <div class="wizard-summary-grid">
+      <div class="wizard-summary-card">
+        <span>Client</span>
+        <strong data-wizard-summary-client>Not selected</strong>
+      </div>
+      <div class="wizard-summary-card">
+        <span>Profile</span>
+        <strong data-wizard-summary-profile>internal</strong>
+      </div>
+      <div class="wizard-summary-card">
+        <span>Targets</span>
+        <strong data-wizard-summary-targets>0</strong>
+      </div>
+      <div class="wizard-summary-card">
+        <span>Services</span>
+        <strong data-wizard-summary-checks>0</strong>
+      </div>
+    </div>
+    <div class="wizard-summary-details">
+      <div>
+        <span class="muted block">Mission</span>
+        <strong data-wizard-summary-mission>Not named</strong>
+      </div>
+      <div>
+        <span class="muted block">Target coverage</span>
+        <div class="wizard-pill-list" data-wizard-summary-target-list>
+          <span class="wizard-pill">none</span>
+        </div>
+      </div>
+      <div>
+        <span class="muted block">Selected services</span>
+        <div class="wizard-pill-list" data-wizard-summary-check-list>
+          <span class="wizard-pill">none</span>
+        </div>
+      </div>
+      <div>
+        <span class="muted block">Authorization</span>
+        <strong data-wizard-summary-authorization>missing</strong>
+      </div>
+    </div>
+  </section>
 
   <section class="wizard-step" id="wizard-client">
     <div class="section-title">
@@ -29,7 +77,7 @@
     <div class="field-grid">
       <label>
         <span>Existing Client</span>
-        <select name="client_id">
+        <select name="client_id" data-wizard-client-select>
           <option value=""></option>
           {% for client in clients %}
           <option value="{{ client.id }}">{{ client.name }}{% if client.internal_reference %} | {{ client.internal_reference }}{% endif %}</option>
@@ -38,7 +86,7 @@
       </label>
       <label>
         <span>New Client Name</span>
-        <input name="client_name">
+        <input name="client_name" data-wizard-client-name>
       </label>
       <label>
         <span>New Client Reference</span>
@@ -76,11 +124,11 @@
       </label>
       <label class="span-2">
         <span>Mission Name</span>
-        <input name="mission_name" required>
+        <input name="mission_name" required data-wizard-mission-name>
       </label>
       <label class="span-2">
         <span>Authorization Reference</span>
-        <input name="authorization_reference" required>
+        <input name="authorization_reference" required data-wizard-authorization-reference>
       </label>
       <label>
         <span>Authorization Contact</span>
@@ -117,19 +165,19 @@
     <div class="field-grid">
       <label>
         <span>Internal Networks, IPs, Hosts</span>
-        <textarea name="internal_targets" rows="5" placeholder="192.168.1.0/24&#10;server01.local"></textarea>
+        <textarea name="internal_targets" rows="5" placeholder="192.168.1.0/24&#10;server01.local" data-wizard-target="Internal"></textarea>
       </label>
       <label>
         <span>Public Domains</span>
-        <textarea name="external_domains" rows="5" placeholder="example.fr&#10;mail.example.fr"></textarea>
+        <textarea name="external_domains" rows="5" placeholder="example.fr&#10;mail.example.fr" data-wizard-target="Domains"></textarea>
       </label>
       <label>
         <span>Web URLs</span>
-        <textarea name="web_urls" rows="5" placeholder="https://www.example.fr"></textarea>
+        <textarea name="web_urls" rows="5" placeholder="https://www.example.fr" data-wizard-target="Web"></textarea>
       </label>
       <label>
         <span>AD / LDAP Servers</span>
-        <textarea name="ad_servers" rows="5" placeholder="dc01.example.local"></textarea>
+        <textarea name="ad_servers" rows="5" placeholder="dc01.example.local" data-wizard-target="AD/LDAP"></textarea>
       </label>
       <label class="span-2">
         <span>Mission Notes</span>
@@ -160,7 +208,7 @@
     <fieldset class="field-group wizard-confirmation">
       <legend>Scope Confirmation</legend>
       <label>
-        <input type="checkbox" name="scope_approved" value="1" required>
+        <input type="checkbox" name="scope_approved" value="1" required data-wizard-scope-approved>
         <span>Authorized scope confirmed</span>
       </label>
     </fieldset>
@@ -175,10 +223,66 @@
   (() => {
     const templateSelect = document.querySelector("[data-wizard-template-select]");
     const auditTypeSelect = document.querySelector("[data-wizard-audit-type-select]");
+    const clientSelect = document.querySelector("[data-wizard-client-select]");
+    const clientNameInput = document.querySelector("[data-wizard-client-name]");
+    const missionNameInput = document.querySelector("[data-wizard-mission-name]");
+    const authorizationReferenceInput = document.querySelector("[data-wizard-authorization-reference]");
+    const scopeApprovedInput = document.querySelector("[data-wizard-scope-approved]");
+    const targetInputs = [...document.querySelectorAll("[data-wizard-target]")];
     const checkboxes = [...document.querySelectorAll("[data-wizard-check]")];
-    if (!templateSelect || !auditTypeSelect || !checkboxes.length) {
+    const summaryStatus = document.querySelector("[data-wizard-summary-status]");
+    const summaryClient = document.querySelector("[data-wizard-summary-client]");
+    const summaryProfile = document.querySelector("[data-wizard-summary-profile]");
+    const summaryTargets = document.querySelector("[data-wizard-summary-targets]");
+    const summaryChecks = document.querySelector("[data-wizard-summary-checks]");
+    const summaryMission = document.querySelector("[data-wizard-summary-mission]");
+    const summaryTargetList = document.querySelector("[data-wizard-summary-target-list]");
+    const summaryCheckList = document.querySelector("[data-wizard-summary-check-list]");
+    const summaryAuthorization = document.querySelector("[data-wizard-summary-authorization]");
+    if (!templateSelect || !auditTypeSelect || !checkboxes.length || !summaryStatus) {
       return;
     }
+    const targetLines = (input) => input.value.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+    const renderPills = (container, items) => {
+      container.innerHTML = "";
+      if (!items.length) {
+        const empty = document.createElement("span");
+        empty.className = "wizard-pill";
+        empty.textContent = "none";
+        container.appendChild(empty);
+        return;
+      }
+      items.forEach((item) => {
+        const pill = document.createElement("span");
+        pill.className = "wizard-pill";
+        pill.textContent = item;
+        container.appendChild(pill);
+      });
+    };
+    const updateSnapshot = () => {
+      const selectedClient = clientSelect?.selectedOptions?.[0]?.textContent.trim() || "";
+      const newClient = clientNameInput?.value.trim() || "";
+      const client = newClient || selectedClient || "Not selected";
+      const missionName = missionNameInput?.value.trim() || "Not named";
+      const targetCounts = targetInputs
+        .map((input) => ({ label: input.dataset.wizardTarget, count: targetLines(input).length }))
+        .filter((item) => item.count > 0);
+      const targetTotal = targetCounts.reduce((total, item) => total + item.count, 0);
+      const selectedChecks = checkboxes
+        .filter((checkbox) => checkbox.checked)
+        .map((checkbox) => checkbox.closest(".check-selection-option")?.querySelector("strong")?.textContent.trim() || checkbox.dataset.wizardCheck);
+      const authorizationReady = Boolean(authorizationReferenceInput?.value.trim()) && Boolean(scopeApprovedInput?.checked);
+
+      summaryClient.textContent = client;
+      summaryProfile.textContent = auditTypeSelect.value || "not selected";
+      summaryMission.textContent = missionName;
+      summaryTargets.textContent = String(targetTotal);
+      summaryChecks.textContent = String(selectedChecks.length);
+      summaryAuthorization.textContent = authorizationReady ? "ready" : "missing";
+      summaryStatus.textContent = authorizationReady && targetTotal > 0 && selectedChecks.length > 0 ? "Ready to create" : "Draft";
+      renderPills(summaryTargetList, targetCounts.map((item) => `${item.label}: ${item.count}`));
+      renderPills(summaryCheckList, selectedChecks);
+    };
     const syncTemplate = () => {
       const selectedOption = templateSelect.selectedOptions[0];
       if (!selectedOption) {
@@ -194,8 +298,23 @@
           checkbox.checked = checks.includes(checkbox.dataset.wizardCheck);
         });
       }
+      updateSnapshot();
     };
     templateSelect.addEventListener("change", syncTemplate);
+    [
+      clientSelect,
+      clientNameInput,
+      missionNameInput,
+      authorizationReferenceInput,
+      scopeApprovedInput,
+      auditTypeSelect,
+      ...targetInputs,
+      ...checkboxes,
+    ].filter(Boolean).forEach((field) => {
+      field.addEventListener("input", updateSnapshot);
+      field.addEventListener("change", updateSnapshot);
+    });
+    updateSnapshot();
   })();
 </script>
 {% endblock %}

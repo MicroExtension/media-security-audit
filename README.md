@@ -25,6 +25,7 @@ Implemented so far:
 - bootstrap CLI with a Typer-compatible fallback
 - unit tests using safe fixture data only
 - richer reports with executive summary, risk score, scope summary, and remediation plan
+- reports highlight active critical and high findings before detailed remediation
 - first local web interface for dashboard, mission setup, review, and reports
 - web client detail page for multi-client review
 - Docker Compose deployment foundation for local Debian/Ubuntu VMs
@@ -606,7 +607,9 @@ Use a generated password and keep `MEDIA_AUDIT_REQUIRE_AUTH=true` for customer
 VMs.
 
 Reviewed mission reports can be generated from the web UI and are written to
-the configured reports directory as JSON, Markdown, HTML, and PDF files.
+the configured reports directory as JSON, Markdown, HTML, and PDF files. The
+reports highlight active critical and high findings before the full remediation
+plan so urgent customer actions are visible first.
 
 Detailed instructions are in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 

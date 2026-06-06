@@ -15,6 +15,7 @@ from media_security_audit.models import (  # noqa: E402
 )
 from media_security_audit.reports import (  # noqa: E402
     build_report_summary,
+    critical_attention_items,
     render_html,
     render_json,
     render_markdown,
@@ -58,6 +59,7 @@ class ReportTests(unittest.TestCase):
         self.assertIn("M.E.D.I.A. Security Audit Platform", html)
         self.assertIn("Rapport d’audit sécurité", html)
         self.assertIn("Vue d’ensemble du risque", html)
+        self.assertIn("Points critiques à traiter", html)
         self.assertIn("Plan de remédiation priorisé", html)
         self.assertIn("Synthèse direction", html)
         self.assertIn("L’audit identifie des améliorations", html)
@@ -82,6 +84,53 @@ class ReportTests(unittest.TestCase):
         self.assertEqual(summary["authorization"]["evidence_retention_days"], "90")
         self.assertEqual(summary["scope"]["approved_targets"], ["domain:example.invalid"])
         self.assertEqual(plan[0]["severity"], "medium")
+
+    def test_reports_highlight_critical_attention_items(self) -> None:
+        findings = sample_findings() + [
+            Finding(
+                title="Exposed firewall admin portal",
+                severity=Severity.HIGH,
+                affected_asset="https://firewall.example.invalid",
+                category="exposure",
+                source_module="manual",
+                proof="The administration portal responded on the approved perimeter.",
+                risk="An exposed administrative interface increases compromise risk.",
+                remediation="Restrict the interface to VPN or a dedicated admin network.",
+                counter_test="Confirm the portal is no longer reachable from the tested perimeter.",
+                confidence=0.9,
+            ),
+            Finding(
+                title="Rejected critical scanner match",
+                severity=Severity.CRITICAL,
+                affected_asset="https://example.invalid",
+                category="manual",
+                source_module="manual",
+                proof="Technician review rejected the evidence.",
+                risk="No active risk after review.",
+                remediation="No remediation required.",
+                counter_test="Keep the review note in the audit record.",
+                confidence=0.6,
+                status=FindingStatus.FALSE_POSITIVE,
+                metadata={"review_note": "Rejected during manual validation."},
+            ),
+        ]
+
+        attention = critical_attention_items(findings)
+        payload = json.loads(render_json(sample_mission(), findings))
+        markdown = render_markdown(sample_mission(), findings)
+        html = render_html(sample_mission(), findings)
+        pdf = render_pdf(sample_mission(), findings)
+
+        self.assertEqual(len(attention), 1)
+        self.assertEqual(attention[0]["title"], "Exposed firewall admin portal")
+        self.assertEqual(payload["summary"]["critical_attention_count"], 1)
+        self.assertEqual(len(payload["critical_attention"]), 1)
+        self.assertIn("## Points critiques à traiter", markdown)
+        self.assertIn("Exposed firewall admin portal", markdown)
+        self.assertIn("Points critiques à traiter", html)
+        self.assertIn("Remédiation prioritaire", html)
+        self.assertIn(b"Points critiques a traiter", pdf)
+        self.assertIn(b"Exposed firewall admin portal", pdf)
 
     def test_reports_include_reviewed_disposition_notes(self) -> None:
         findings = sample_findings() + [

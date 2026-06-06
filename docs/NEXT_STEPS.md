@@ -97,6 +97,7 @@ Reports should now include:
 - executive summary
 - simple risk score
 - risk level
+- critical/high attention items
 - approved scope summary
 - severity counts
 - prioritized remediation plan
@@ -109,6 +110,7 @@ Owner action:
 
 Codex action:
 - keep report output deterministic
+- keep critical/high attention items aligned across JSON, Markdown, HTML, and PDF
 - prepare report templates for future branding
 - keep dashboard shortcuts tied to existing operational section counts
 - keep dashboard action links anchored to the right mission workflow sections

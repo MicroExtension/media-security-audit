@@ -33,6 +33,11 @@ REVIEWED_DISPOSITION_STATUSES = {
     FindingStatus.FALSE_POSITIVE,
 }
 
+CRITICAL_ATTENTION_SEVERITIES = {
+    Severity.CRITICAL,
+    Severity.HIGH,
+}
+
 SEVERITY_LABELS_FR = {
     "critical": "Critique",
     "high": "Élevée",
@@ -273,13 +278,41 @@ def remediation_plan(findings: list[Finding], limit: int = 10) -> list[dict[str,
     ]
 
 
+def critical_attention_items(findings: list[Finding], limit: int = 5) -> list[dict[str, str]]:
+    prioritized = [
+        finding
+        for finding in sorted_findings(active_findings(findings))
+        if finding.severity in CRITICAL_ATTENTION_SEVERITIES
+    ]
+    return [
+        {
+            "severity": finding.severity.value,
+            "asset": finding.affected_asset,
+            "title": finding.title,
+            "status": finding.status.value,
+            "risk": finding.risk,
+            "remediation": finding.remediation,
+            "counter_test": finding.counter_test,
+        }
+        for finding in prioritized[:limit]
+    ]
+
+
 def build_report_summary(mission: Mission, findings: list[Finding]) -> dict[str, object]:
     active = active_findings(findings)
     score = risk_score(findings)
+    attention_count = len(
+        [
+            finding
+            for finding in active
+            if finding.severity in CRITICAL_ATTENTION_SEVERITIES
+        ]
+    )
     return {
         "generated_at": utc_now().isoformat(),
         "finding_count": len(findings),
         "active_finding_count": len(active),
+        "critical_attention_count": attention_count,
         "severity_counts": severity_counts(active),
         "status_counts": finding_status_counts(findings),
         "disposition_notes": disposition_notes(findings),
@@ -297,6 +330,7 @@ def render_json(mission: Mission, findings: list[Finding]) -> str:
         "mission": mission.model_dump(mode="json"),
         "summary": build_report_summary(mission, findings),
         "remediation_plan": remediation_plan(findings),
+        "critical_attention": critical_attention_items(findings),
         "findings": [finding.model_dump(mode="json") for finding in sorted_findings(findings)],
     }
     return json.dumps(payload, indent=2, ensure_ascii=False)
@@ -311,6 +345,7 @@ def render_markdown(mission: Mission, findings: list[Finding]) -> str:
     scope = summary["scope"]
     authorization = summary["authorization"]
     plan = remediation_plan(ordered_findings)
+    attention_items = critical_attention_items(ordered_findings)
 
     lines = [
         f"# Security Audit Report - {mission.name}",
@@ -385,6 +420,25 @@ def render_markdown(mission: Mission, findings: list[Finding]) -> str:
         lines.append("")
     else:
         lines.extend(["No reviewed disposition notes were included.", ""])
+
+    lines.extend(["## Points critiques à traiter", ""])
+
+    if attention_items:
+        for index, item in enumerate(attention_items, start=1):
+            lines.extend(
+                [
+                    (
+                        f"{index}. `{item['severity']}` {item['title']} "
+                        f"on `{item['asset']}`"
+                    ),
+                    f"   Risk: {item['risk']}",
+                    f"   Remediation: {item['remediation']}",
+                    f"   Counter-test: {item['counter_test']}",
+                    "",
+                ]
+            )
+    else:
+        lines.extend(["No active critical or high findings were included.", ""])
 
     lines.extend(["## Remediation Plan", ""])
 
@@ -482,6 +536,39 @@ def _render_html_remediation_plan(plan: list[dict[str, str]]) -> str:
 """.strip()
 
 
+def _render_html_critical_attention(items: list[dict[str, str]]) -> str:
+    if not items:
+        return (
+            '<p class="empty">Aucun constat critique ou élevé actif n’est inclus '
+            "dans ce rapport.</p>"
+        )
+
+    cards = []
+    for item in items:
+        cards.append(
+            f"""
+<article class="attention-card severity-{escape(item["severity"])}">
+  <div class="attention-meta">
+    <span class="severity-pill severity-{escape(item["severity"])}">{escape(display_severity(item["severity"]))}</span>
+    <span>{escape(display_status(item["status"]))}</span>
+  </div>
+  <h3>{escape(item["title"])}</h3>
+  <dl>
+    <dt>Actif concerné</dt><dd>{escape(item["asset"])}</dd>
+  </dl>
+  <h4>Risque</h4>
+  <p>{escape(item["risk"])}</p>
+  <h4>Remédiation prioritaire</h4>
+  <p>{escape(item["remediation"])}</p>
+  <h4>Contre-test attendu</h4>
+  <p>{escape(item["counter_test"])}</p>
+</article>
+""".strip()
+        )
+
+    return f'<div class="attention-grid">{"".join(cards)}</div>'
+
+
 def _render_html_disposition_summary(
     status_counts: dict[str, int],
     disposition_items: list[dict[str, str]],
@@ -543,6 +630,7 @@ def render_html(mission: Mission, findings: list[Finding]) -> str:
     scope = summary["scope"]
     authorization = summary["authorization"]
     plan = remediation_plan(ordered_findings)
+    attention_items = critical_attention_items(ordered_findings)
     finding_blocks = []
     risk_level = str(summary["risk_level"])
     generated_at = display_generated_at(summary["generated_at"])
@@ -666,6 +754,11 @@ def render_html(mission: Mission, findings: list[Finding]) -> str:
     dd {{ margin: 0; color: #26364f; }}
     ul {{ margin: .4rem 0 0; padding-left: 1.2rem; }}
     .empty {{ color: var(--muted); font-style: italic; }}
+    .attention-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }}
+    .attention-card {{ border: 1px solid var(--line); border-radius: 8px; padding: 16px; background: var(--surface); }}
+    .attention-card h3 {{ margin-top: .7rem; }}
+    .attention-card h4 {{ color: #253044; font-size: .92rem; margin: .9rem 0 .2rem; }}
+    .attention-meta {{ display: flex; align-items: center; justify-content: space-between; gap: 10px; color: var(--muted); font-size: .86rem; }}
     .finding {{ border: 1px solid var(--line); border-radius: 8px; padding: 18px; margin: 14px 0; background: var(--panel); }}
     .severity-critical {{ border-left: 6px solid var(--critical); }}
     .severity-high {{ border-left: 6px solid var(--high); }}
@@ -729,6 +822,11 @@ def render_html(mission: Mission, findings: list[Finding]) -> str:
         <div class="metric"><span>Information</span><strong>{counts["info"]}</strong></div>
         <div class="metric"><span>Autorisation</span><strong>{authorization_present}</strong></div>
       </div>
+    </section>
+
+    <section class="section">
+      <h2>Points critiques à traiter</h2>
+      {_render_html_critical_attention(attention_items)}
     </section>
 
     <section class="section">
@@ -926,6 +1024,7 @@ def render_pdf(mission: Mission, findings: list[Finding]) -> bytes:
     scope = summary["scope"]
     authorization = summary["authorization"]
     plan = remediation_plan(ordered_findings)
+    attention_items = critical_attention_items(ordered_findings)
     generated_at = display_generated_at(summary["generated_at"])
     authorization_present = "oui" if summary["authorization_present"] else "non"
 
@@ -963,6 +1062,22 @@ def render_pdf(mission: Mission, findings: list[Finding]) -> bytes:
             ]
         )
     )
+
+    pdf.add_section_heading("Points critiques a traiter")
+    if attention_items:
+        for index, item in enumerate(attention_items, start=1):
+            pdf.add_text(
+                (
+                    f"{index}. [{display_severity(item['severity'])}] "
+                    f"{item['title']} - {item['asset']}"
+                ),
+                bold=True,
+            )
+            pdf.add_text(f"Risque: {item['risk']}", indent=12)
+            pdf.add_text(f"Remediation: {item['remediation']}", indent=12)
+            pdf.add_text(f"Contre-test: {item['counter_test']}", indent=12)
+    else:
+        pdf.add_text("Aucun constat critique ou eleve actif n'est inclus dans ce rapport.")
 
     pdf.add_section_heading("Contexte de mission")
     context_lines = [

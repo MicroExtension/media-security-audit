@@ -456,6 +456,10 @@ monitoring wrapper.
 Use `--strict` when warnings should fail an install gate.
 Use `bash scripts/debian-vm-init-env.sh` on a fresh VM to create a local-only
 `.env` with authentication enabled and a generated web password.
+Use `bash scripts/debian-vm-bootstrap.sh` after cloning on a fresh Debian/Ubuntu
+VM to review and, with `--confirm --init-env`, install Git/Docker, detect the
+available Docker Compose v2 provider package, prepare Docker group access, and
+create `.env` without running Docker builds, scanners, or template updates.
 Use `bash scripts/debian-vm-rotate-password.sh --confirm` to rotate
 `MEDIA_AUDIT_WEB_PASSWORD`, back up `.env`, and keep authentication enabled.
 Use `bash scripts/debian-vm-security-review.sh` before customer handoff to

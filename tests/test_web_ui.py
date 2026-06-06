@@ -1742,6 +1742,7 @@ class WebUiTests(unittest.TestCase):
 
         for anchor in [
             "mission-cockpit",
+            "action-roadmap",
             "mission-readiness",
             "scan-plan",
             "run-monitor",
@@ -1763,6 +1764,7 @@ class WebUiTests(unittest.TestCase):
             "view.cockpit.selected_check_count",
             "view.cockpit.ready_check_count",
             "view.cockpit.blocked_check_count",
+            "view.action_roadmap|length",
             "view.readiness_items|length",
             "view.scan_plans|length",
             "view.scan_runs|length",
@@ -1777,6 +1779,11 @@ class WebUiTests(unittest.TestCase):
             self.assertIn(f"{{{{ {counter} }}}}", template)
 
         self.assertIn("Technician Cockpit", template)
+        self.assertIn("Mission Roadmap", template)
+        self.assertIn("view.action_roadmap", template)
+        self.assertIn('aria-label="Mission action roadmap"', template)
+        self.assertIn("action-step-{{ step.status }}", template)
+        self.assertIn("step.action_href", template)
         self.assertIn("view.cockpit.steps", template)
         self.assertIn("view.cockpit.services", template)
         self.assertIn("service.run_status", template)
@@ -2935,6 +2942,23 @@ class WebUiTests(unittest.TestCase):
             [step.label for step in view.cockpit.steps],
             ["Authorization", "Périmètre", "Services", "Lancement", "Constats", "Livrables"],
         )
+        self.assertEqual(
+            [step.label for step in view.action_roadmap],
+            [
+                "Authorization",
+                "Targets and services",
+                "Guarded launch",
+                "CVE/KEV review",
+                "Reports and handoff",
+            ],
+        )
+        self.assertEqual(
+            [step.status for step in view.action_roadmap],
+            ["ready", "ready", "ready", "missing", "blocked"],
+        )
+        self.assertEqual(view.action_roadmap[2].action_href, "#run-monitor")
+        self.assertIn("1 run(s) recorded", view.action_roadmap[2].detail)
+        self.assertEqual(view.action_roadmap[4].action_href, "#reports")
         self.assertEqual(view.check_selection[0].value, "nmap")
         self.assertTrue(view.check_selection[0].selected)
         self.assertEqual(view.scan_plans[0].label, "Nmap")

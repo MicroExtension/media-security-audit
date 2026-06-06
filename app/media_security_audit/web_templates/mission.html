@@ -28,6 +28,7 @@
 
 <section class="page-shortcuts" aria-label="Mission shortcuts">
   <a href="#mission-cockpit">Cockpit <span>{{ view.cockpit.ready_step_count }}/{{ view.cockpit.total_step_count }}</span></a>
+  <a href="#action-roadmap">Roadmap <span>{{ view.action_roadmap|length }}</span></a>
   <a href="#mission-readiness">Readiness <span>{{ view.readiness_items|length }}</span></a>
   <a href="#scan-plan">Scan Plan <span>{{ view.scan_plans|length }}</span></a>
   <a href="#run-monitor">Runs <span>{{ view.scan_runs|length }}</span></a>
@@ -90,6 +91,26 @@
         <span>{{ service.run_detail }}</span>
       </div>
       <a class="table-action" href="{{ service.action_href }}">{{ service.action_label }}</a>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="section action-roadmap" id="action-roadmap">
+  <div class="section-title">
+    <h2>Mission Roadmap</h2>
+    <span class="muted">From setup to handoff</span>
+  </div>
+  <div class="action-roadmap-grid" aria-label="Mission action roadmap">
+    {% for step in view.action_roadmap %}
+    <article class="action-step action-step-{{ step.status }}">
+      <div class="action-step-head">
+        <span class="action-step-number">{{ step.number }}</span>
+        <span class="badge status-{{ step.status }}">{{ step.status }}</span>
+      </div>
+      <strong>{{ step.label }}</strong>
+      <p>{{ step.detail }}</p>
+      <a class="readiness-action" href="{{ step.action_href }}">{{ step.action_label }}</a>
     </article>
     {% endfor %}
   </div>

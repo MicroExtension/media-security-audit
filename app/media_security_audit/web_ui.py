@@ -324,6 +324,16 @@ class MissionCockpit:
 
 
 @dataclass(frozen=True)
+class MissionActionStep:
+    number: int
+    label: str
+    status: str
+    detail: str
+    action_label: str
+    action_href: str
+
+
+@dataclass(frozen=True)
 class DashboardView:
     clients: list[ClientRow]
     missions: list[MissionRow]
@@ -380,6 +390,7 @@ class ClientView:
 class MissionView:
     mission: MissionRow
     cockpit: MissionCockpit
+    action_roadmap: list[MissionActionStep]
     activity_log_url: str
     scope: list[ScopeRow]
     findings: list[FindingRow]
@@ -1329,6 +1340,151 @@ def cockpit_service_run_summary(run: ScanRun | None) -> tuple[str, str]:
     return run.status.value, detail
 
 
+def mission_action_roadmap(
+    mission: Mission,
+    scan_plans: list[ScanPlanPreview],
+    scan_runs: list[ScanRun],
+    reports: list[GeneratedReportLink],
+    mission_export: MissionExportLink | None,
+    vulnerability: VulnerabilitySummary,
+) -> list[MissionActionStep]:
+    approved_scope_count = len(
+        [item for item in mission.scope if item.approved and not item.excluded]
+    )
+    selected_check_count = len(mission.selected_checks)
+    ready_check_count = len([plan for plan in scan_plans if plan.status == "ready"])
+    blocked_check_count = len([plan for plan in scan_plans if plan.status == "blocked"])
+
+    if mission.is_authorized:
+        authorization_step = MissionActionStep(
+            number=1,
+            label="Authorization",
+            status="ready",
+            detail="Written authorization is recorded for this mission.",
+            action_label="Review Setup",
+            action_href="#mission-setup",
+        )
+    else:
+        authorization_step = MissionActionStep(
+            number=1,
+            label="Authorization",
+            status="blocked",
+            detail="Add the authorization reference before guarded execution.",
+            action_label="Open Setup",
+            action_href="#mission-setup",
+        )
+
+    if approved_scope_count and selected_check_count:
+        scope_step = MissionActionStep(
+            number=2,
+            label="Targets and services",
+            status="ready",
+            detail=(
+                f"{approved_scope_count} approved target(s), "
+                f"{selected_check_count} selected service(s)."
+            ),
+            action_label="Review Scope",
+            action_href="#scope",
+        )
+    elif approved_scope_count:
+        scope_step = MissionActionStep(
+            number=2,
+            label="Targets and services",
+            status="blocked",
+            detail="Approved scope is present, but no service is selected.",
+            action_label="Select Services",
+            action_href="#check-selection",
+        )
+    else:
+        scope_step = MissionActionStep(
+            number=2,
+            label="Targets and services",
+            status="blocked",
+            detail="Approve at least one target and select services to test.",
+            action_label="Review Scope",
+            action_href="#scope",
+        )
+
+    if ready_check_count and scan_runs:
+        launch_step = MissionActionStep(
+            number=3,
+            label="Guarded launch",
+            status="ready",
+            detail=(
+                f"{ready_check_count} service(s) ready, "
+                f"{blocked_check_count} blocked, {len(scan_runs)} run(s) recorded."
+            ),
+            action_label="Open Runs",
+            action_href="#run-monitor",
+        )
+    elif ready_check_count:
+        launch_step = MissionActionStep(
+            number=3,
+            label="Guarded launch",
+            status="warning",
+            detail=(
+                f"{ready_check_count} service(s) ready, "
+                f"{blocked_check_count} blocked, no run recorded yet."
+            ),
+            action_label="Open Scan Plan",
+            action_href="#scan-plan",
+        )
+    else:
+        launch_step = MissionActionStep(
+            number=3,
+            label="Guarded launch",
+            status="blocked",
+            detail="No selected service is ready for execution.",
+            action_label="Open Scan Plan",
+            action_href="#scan-plan",
+        )
+
+    vulnerability_step = MissionActionStep(
+        number=4,
+        label="CVE/KEV review",
+        status=vulnerability.status,
+        detail=vulnerability.detail,
+        action_label=vulnerability.action_label,
+        action_href=vulnerability.action_href,
+    )
+
+    if mission_export is not None:
+        handoff_step = MissionActionStep(
+            number=5,
+            label="Reports and handoff",
+            status=mission_export.handoff_status,
+            detail=mission_export.handoff_detail,
+            action_label=mission_export.handoff_action,
+            action_href="#reports",
+        )
+    elif reports:
+        handoff_step = MissionActionStep(
+            number=5,
+            label="Reports and handoff",
+            status="warning",
+            detail=f"{len(reports)} report file(s) generated; mission package is pending.",
+            action_label="Generate Package",
+            action_href="#reports",
+        )
+    else:
+        handoff_step = MissionActionStep(
+            number=5,
+            label="Reports and handoff",
+            status="blocked",
+            detail="Generate reviewed reports before customer handoff.",
+            action_label="Open Reports",
+            action_href="#reports",
+        )
+
+    return [
+        authorization_step,
+        scope_step,
+        launch_step,
+        vulnerability_step,
+        handoff_step,
+    ]
+
+
 def build_dashboard_view(store: JsonStore) -> DashboardView:
     clients = store.list_clients()
     missions = store.list_missions()
@@ -1593,6 +1749,11 @@ def build_mission_view(
     check_selection = check_selection_rows(mission)
     scan_plans = build_scan_plan_previews(mission)
     readiness_items = build_readiness_items(mission, findings, len(reports))
+    vulnerability = vulnerability_summary(
+        catalog_count=len(vulnerability_catalog.advisories),
+        matches=vulnerability_matches,
+        findings=findings,
+    )
 
     return MissionView(
         mission=mission_row(mission, findings, client_name_by_id(store)),
@@ -1605,6 +1766,14 @@ def build_mission_view(
             scan_runs=scan_runs,
             reports=reports,
             mission_export=mission_export,
+        ),
+        action_roadmap=mission_action_roadmap(
+            mission=mission,
+            scan_plans=scan_plans,
+            scan_runs=scan_runs,
+            reports=reports,
+            mission_export=mission_export,
+            vulnerability=vulnerability,
         ),
         activity_log_url=mission_activity_log_url(mission.id),
         scope=[scope_row(item) for item in mission.scope],
@@ -1622,11 +1791,7 @@ def build_mission_view(
         mission_export=mission_export,
         readiness_items=readiness_items,
         scan_plans=scan_plans,
-        vulnerability_summary=vulnerability_summary(
-            catalog_count=len(vulnerability_catalog.advisories),
-            matches=vulnerability_matches,
-            findings=findings,
-        ),
+        vulnerability_summary=vulnerability,
         vulnerability_catalog_count=len(vulnerability_catalog.advisories),
         vulnerability_matches=[
             vulnerability_match_row(match) for match in vulnerability_matches

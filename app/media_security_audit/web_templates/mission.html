@@ -85,6 +85,10 @@
       </div>
       <span class="badge status-{{ service.status }}">{{ service.status }}</span>
       <p>{{ service.detail }}</p>
+      <div class="service-run-summary">
+        <span class="badge status-{{ service.run_status }}">{{ service.run_status }}</span>
+        <span>{{ service.run_detail }}</span>
+      </div>
       <a class="table-action" href="{{ service.action_href }}">{{ service.action_label }}</a>
     </article>
     {% endfor %}

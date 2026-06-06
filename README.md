@@ -52,6 +52,7 @@ Implemented so far:
 - web system status page for appliance readiness
 - web run monitor for CLI scan execution history
 - local vulnerability catalog import and CVE/KEV correlation against mission findings
+- reviewed CVE/KEV catalog import from mission pages without external downloads
 - mission pages summarize CVE/KEV candidate, known-exploited, critical/high, and stored finding counts
 - guarded TLS testssl.sh plan, execution wrapper, and JSON parser
 - guarded SMB anonymous listing plan, execution wrapper, and parser

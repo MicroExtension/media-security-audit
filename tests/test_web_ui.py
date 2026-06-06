@@ -379,6 +379,10 @@ class WebUiTests(unittest.TestCase):
         self.assertIn('id="wizard-mission"', template)
         self.assertIn('id="wizard-scope"', template)
         self.assertIn('id="wizard-checks"', template)
+        self.assertIn('id="wizard-summary"', template)
+        self.assertIn('href="#wizard-summary"', template)
+        self.assertIn('aria-label="Guided audit snapshot"', template)
+        self.assertIn('aria-live="polite"', template)
 
         for field in [
             'name="client_id"',
@@ -395,10 +399,25 @@ class WebUiTests(unittest.TestCase):
 
         self.assertIn("data-wizard-template-select", template)
         self.assertIn("data-wizard-audit-type-select", template)
+        self.assertIn("data-wizard-client-select", template)
+        self.assertIn("data-wizard-client-name", template)
+        self.assertIn("data-wizard-mission-name", template)
+        self.assertIn("data-wizard-authorization-reference", template)
+        self.assertIn("data-wizard-scope-approved", template)
+        self.assertIn("data-wizard-target", template)
         self.assertIn("data-wizard-check", template)
+        self.assertIn("data-wizard-summary-status", template)
+        self.assertIn("data-wizard-summary-target-list", template)
+        self.assertIn("data-wizard-summary-check-list", template)
         self.assertIn("Authorized scope confirmed", template)
+        self.assertIn("const updateSnapshot = () =>", template)
+        self.assertIn("renderPills(summaryTargetList", template)
+        self.assertIn("renderPills(summaryCheckList", template)
         self.assertIn("templateSelect.addEventListener(\"change\", syncTemplate)", template)
         self.assertIn(".wizard-form", css)
+        self.assertIn(".wizard-summary", css)
+        self.assertIn(".wizard-summary-grid", css)
+        self.assertIn(".wizard-pill", css)
         self.assertIn(".wizard-step", css)
         self.assertIn(".wizard-confirmation", css)
 

@@ -170,6 +170,7 @@ Implemented so far:
 - dashboard mission rows link preparation actions to mission sections
 - client pages link preparation actions to mission sections
 - mission pages show a technician cockpit with workflow, service readiness, and handoff status
+- mission cockpit service cards show latest run status and finding counts
 - mission pages show shortcut links to workflow sections
 - client pages show shortcut links to client workflow sections
 - mission pages expose client and filtered activity context links

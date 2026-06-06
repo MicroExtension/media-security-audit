@@ -3,7 +3,7 @@ import json
 import re
 import shutil
 import unittest
-from datetime import date
+from datetime import date, datetime, timezone
 from hashlib import sha256
 from io import BytesIO, StringIO
 from pathlib import Path
@@ -174,6 +174,7 @@ class WebUiTests(unittest.TestCase):
         self.assertIn(".counter-test-actions", css)
         self.assertIn(".counter-test-summary", css)
         self.assertIn(".counter-test-summary-passed", css)
+        self.assertIn(".service-run-summary", css)
 
     def test_global_styles_expose_anchor_target_context(self) -> None:
         css_path = (
@@ -1772,6 +1773,9 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("Technician Cockpit", template)
         self.assertIn("view.cockpit.steps", template)
         self.assertIn("view.cockpit.services", template)
+        self.assertIn("service.run_status", template)
+        self.assertIn("service.run_detail", template)
+        self.assertIn("service-run-summary", template)
         self.assertIn('aria-label="Technician cockpit metrics"', template)
         self.assertIn('aria-label="Mission workflow cockpit"', template)
         self.assertIn('aria-label="Selected service cockpit"', template)
@@ -2858,6 +2862,17 @@ class WebUiTests(unittest.TestCase):
                 confidence=0.8,
             ),
         )
+        store.add_scan_run(
+            ScanRun(
+                mission_id=mission.id,
+                check=AuditCheck.NMAP,
+                status=ScanRunStatus.COMPLETED,
+                started_at=datetime(2026, 5, 10, 9, 30, tzinfo=timezone.utc),
+                command_count=1,
+                finding_count=2,
+                evidence_paths=["runs/mission/evidence/nmap.xml"],
+            )
+        )
 
         view = build_mission_view(store, mission.id)
 
@@ -2908,7 +2923,16 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(view.scan_plans[0].label, "Nmap")
         self.assertEqual(view.scan_plans[0].status, "ready")
         service_statuses = {service.value: service.status for service in view.cockpit.services}
+        service_run_statuses = {
+            service.value: service.run_status for service in view.cockpit.services
+        }
+        service_run_details = {
+            service.value: service.run_detail for service in view.cockpit.services
+        }
         self.assertEqual(service_statuses["nmap"], "ready")
+        self.assertEqual(service_run_statuses["nmap"], "completed")
+        self.assertIn("1 commande(s)", service_run_details["nmap"])
+        self.assertIn("2 constat(s)", service_run_details["nmap"])
         self.assertEqual(service_statuses["http_headers"], "blocked")
         self.assertEqual(service_statuses["dns_mail"], "blocked")
         self.assertEqual(service_statuses["tls"], "none")

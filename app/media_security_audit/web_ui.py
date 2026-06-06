@@ -297,6 +297,8 @@ class MissionCockpitService:
     status: str
     selected: bool
     detail: str
+    run_status: str
+    run_detail: str
     action_label: str
     action_href: str
 
@@ -1120,6 +1122,7 @@ def mission_cockpit(
     readiness_items: list[ReadinessItem],
     scan_plans: list[ScanPlanPreview],
     check_selection: list[CheckSelectionRow],
+    scan_runs: list[ScanRun],
     reports: list[GeneratedReportLink],
     mission_export: MissionExportLink | None,
 ) -> MissionCockpit:
@@ -1157,7 +1160,7 @@ def mission_cockpit(
             reports=reports,
             mission_export=mission_export,
         ),
-        services=mission_cockpit_services(check_selection, scan_plans),
+        services=mission_cockpit_services(check_selection, scan_plans, scan_runs),
     )
 
 
@@ -1235,11 +1238,14 @@ def mission_cockpit_handoff_step(
 def mission_cockpit_services(
     check_selection: list[CheckSelectionRow],
     scan_plans: list[ScanPlanPreview],
+    scan_runs: list[ScanRun],
 ) -> list[MissionCockpitService]:
     plans_by_check = {plan.check: plan for plan in scan_plans}
+    latest_runs = latest_scan_runs_by_check(scan_runs)
     services: list[MissionCockpitService] = []
     for check in check_selection:
         plan = plans_by_check.get(check.value)
+        run_status, run_detail = cockpit_service_run_summary(latest_runs.get(check.value))
         if not check.selected:
             services.append(
                 MissionCockpitService(
@@ -1248,6 +1254,8 @@ def mission_cockpit_services(
                     status="none",
                     selected=False,
                     detail="Non sélectionné pour cette mission.",
+                    run_status=run_status,
+                    run_detail=run_detail,
                     action_label="Select",
                     action_href="#check-selection",
                 )
@@ -1261,6 +1269,8 @@ def mission_cockpit_services(
                     status="warning",
                     selected=True,
                     detail="Sélectionné, plan non disponible.",
+                    run_status=run_status,
+                    run_detail=run_detail,
                     action_label="Review",
                     action_href="#check-selection",
                 )
@@ -1273,11 +1283,34 @@ def mission_cockpit_services(
                 status=plan.status,
                 selected=True,
                 detail=plan.detail,
+                run_status=run_status,
+                run_detail=run_detail,
                 action_label="Run" if plan.status == "ready" else "Resolve",
                 action_href="#scan-plan" if plan.status == "ready" else "#scope",
             )
         )
     return services
+
+
+def latest_scan_runs_by_check(scan_runs: list[ScanRun]) -> dict[str, ScanRun]:
+    latest: dict[str, ScanRun] = {}
+    for run in sorted(scan_runs, key=lambda item: item.started_at, reverse=True):
+        latest.setdefault(run.check.value, run)
+    return latest
+
+
+def cockpit_service_run_summary(run: ScanRun | None) -> tuple[str, str]:
+    if run is None:
+        return "none", "Aucun lancement enregistré."
+    detail = (
+        f"Dernier lancement {format_datetime(run.started_at)} : "
+        f"{run.command_count} commande(s), "
+        f"{run.finding_count} constat(s), "
+        f"{len(run.evidence_paths)} preuve(s)."
+    )
+    if run.error:
+        detail = f"{detail} Erreur : {run.error}"
+    return run.status.value, detail
 
 
 def build_dashboard_view(store: JsonStore) -> DashboardView:
@@ -1553,6 +1586,7 @@ def build_mission_view(
             readiness_items=readiness_items,
             scan_plans=scan_plans,
             check_selection=check_selection,
+            scan_runs=scan_runs,
             reports=reports,
             mission_export=mission_export,
         ),

@@ -469,8 +469,21 @@ tr:last-child td {
 }
 
 .service-cockpit p,
+.service-cockpit .service-run-summary,
 .service-cockpit .table-action {
   grid-column: 1 / -1;
+}
+
+.service-run-summary {
+  align-items: center;
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--muted);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px;
 }
 
 .risk-none,

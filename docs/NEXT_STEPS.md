@@ -780,6 +780,8 @@ Current GUI status:
   downloads
 - mission pages summarize CVE/KEV candidates, KEV matches, critical/high
   matches, and stored candidate findings before the detailed table
+- generated JSON, Markdown, HTML, and PDF reports include CVE/KEV candidate
+  rollups for client and technician review
 
 ## Step 7 - Add Safe Scanner Modules
 

@@ -38,6 +38,9 @@ CRITICAL_ATTENTION_SEVERITIES = {
     Severity.HIGH,
 }
 
+KNOWN_VULNERABILITY_CATEGORY = "known_vulnerability"
+KNOWN_VULNERABILITY_SOURCE = "vulnerability_catalog"
+
 SEVERITY_LABELS_FR = {
     "critical": "Critique",
     "high": "Élevée",
@@ -298,6 +301,60 @@ def critical_attention_items(findings: list[Finding], limit: int = 5) -> list[di
     ]
 
 
+def is_known_vulnerability_finding(finding: Finding) -> bool:
+    return (
+        finding.category == KNOWN_VULNERABILITY_CATEGORY
+        or finding.source_module == KNOWN_VULNERABILITY_SOURCE
+    )
+
+
+def known_vulnerability_items(findings: list[Finding], limit: int = 10) -> list[dict[str, str]]:
+    candidates = [
+        finding
+        for finding in sorted_findings(active_findings(findings))
+        if is_known_vulnerability_finding(finding)
+    ]
+    return [
+        {
+            "cve_id": display_value(finding.metadata.get("cve_id")),
+            "known_exploited": display_value(finding.metadata.get("known_exploited")),
+            "severity": finding.severity.value,
+            "asset": finding.affected_asset,
+            "title": finding.title,
+            "status": finding.status.value,
+            "risk": finding.risk,
+            "remediation": finding.remediation,
+            "counter_test": finding.counter_test,
+        }
+        for finding in candidates[:limit]
+    ]
+
+
+def known_vulnerability_summary(findings: list[Finding]) -> dict[str, int]:
+    candidates = [
+        finding
+        for finding in active_findings(findings)
+        if is_known_vulnerability_finding(finding)
+    ]
+    return {
+        "candidates": len(candidates),
+        "known_exploited": len(
+            [
+                finding
+                for finding in candidates
+                if display_value(finding.metadata.get("known_exploited")).lower() == "true"
+            ]
+        ),
+        "critical_or_high": len(
+            [
+                finding
+                for finding in candidates
+                if finding.severity in CRITICAL_ATTENTION_SEVERITIES
+            ]
+        ),
+    }
+
+
 def build_report_summary(mission: Mission, findings: list[Finding]) -> dict[str, object]:
     active = active_findings(findings)
     score = risk_score(findings)
@@ -316,6 +373,7 @@ def build_report_summary(mission: Mission, findings: list[Finding]) -> dict[str,
         "severity_counts": severity_counts(active),
         "status_counts": finding_status_counts(findings),
         "disposition_notes": disposition_notes(findings),
+        "known_vulnerabilities": known_vulnerability_summary(findings),
         "risk_score": score,
         "risk_level": risk_level(score),
         "executive_summary": executive_summary(findings),
@@ -331,6 +389,7 @@ def render_json(mission: Mission, findings: list[Finding]) -> str:
         "summary": build_report_summary(mission, findings),
         "remediation_plan": remediation_plan(findings),
         "critical_attention": critical_attention_items(findings),
+        "known_vulnerabilities": known_vulnerability_items(findings),
         "findings": [finding.model_dump(mode="json") for finding in sorted_findings(findings)],
     }
     return json.dumps(payload, indent=2, ensure_ascii=False)
@@ -346,6 +405,8 @@ def render_markdown(mission: Mission, findings: list[Finding]) -> str:
     authorization = summary["authorization"]
     plan = remediation_plan(ordered_findings)
     attention_items = critical_attention_items(ordered_findings)
+    known_vulnerability_summary_items = summary["known_vulnerabilities"]
+    known_vulnerability_items_list = known_vulnerability_items(ordered_findings)
 
     lines = [
         f"# Security Audit Report - {mission.name}",
@@ -439,6 +500,35 @@ def render_markdown(mission: Mission, findings: list[Finding]) -> str:
             )
     else:
         lines.extend(["No active critical or high findings were included.", ""])
+
+    lines.extend(
+        [
+            "## CVE/KEV Candidates",
+            "",
+            f"- Candidates: {known_vulnerability_summary_items['candidates']}",
+            f"- Known exploited: {known_vulnerability_summary_items['known_exploited']}",
+            f"- Critical/high: {known_vulnerability_summary_items['critical_or_high']}",
+            "",
+        ]
+    )
+
+    if known_vulnerability_items_list:
+        for index, item in enumerate(known_vulnerability_items_list, start=1):
+            kev = " KEV" if item["known_exploited"].lower() == "true" else ""
+            lines.extend(
+                [
+                    (
+                        f"{index}. `{item['severity']}{kev}` {item['cve_id']} "
+                        f"on `{item['asset']}`"
+                    ),
+                    f"   Finding: {item['title']}",
+                    f"   Remediation: {item['remediation']}",
+                    f"   Counter-test: {item['counter_test']}",
+                    "",
+                ]
+            )
+    else:
+        lines.extend(["No stored CVE/KEV candidate finding is included.", ""])
 
     lines.extend(["## Remediation Plan", ""])
 
@@ -569,6 +659,63 @@ def _render_html_critical_attention(items: list[dict[str, str]]) -> str:
     return f'<div class="attention-grid">{"".join(cards)}</div>'
 
 
+def _render_html_known_vulnerabilities(
+    summary: dict[str, int],
+    items: list[dict[str, str]],
+) -> str:
+    metrics = f"""
+<div class="summary">
+  <div class="metric"><span>Candidats CVE/KEV</span><strong>{summary["candidates"]}</strong></div>
+  <div class="metric"><span>KEV connues exploitées</span><strong>{summary["known_exploited"]}</strong></div>
+  <div class="metric"><span>Critiques/élevées</span><strong>{summary["critical_or_high"]}</strong></div>
+</div>
+""".strip()
+    if not items:
+        return (
+            metrics
+            + '<p class="empty">Aucun constat candidat CVE/KEV stocké n’est inclus.</p>'
+        )
+
+    rows = []
+    for item in items:
+        kev_badge = (
+            '<span class="severity-pill severity-critical">KEV</span>'
+            if item["known_exploited"].lower() == "true"
+            else ""
+        )
+        rows.append(
+            f"""
+<tr>
+  <td><strong>{escape(item["cve_id"])}</strong> {kev_badge}</td>
+  <td><span class="severity-pill severity-{escape(item["severity"])}">{escape(display_severity(item["severity"]))}</span></td>
+  <td>{escape(item["asset"])}</td>
+  <td>{escape(item["title"])}</td>
+  <td>{escape(item["remediation"])}</td>
+  <td>{escape(item["counter_test"])}</td>
+</tr>
+""".strip()
+        )
+
+    table = f"""
+<table>
+  <thead>
+    <tr>
+      <th>CVE</th>
+      <th>Gravité</th>
+      <th>Actif concerné</th>
+      <th>Constat</th>
+      <th>Remédiation</th>
+      <th>Contre-test</th>
+    </tr>
+  </thead>
+  <tbody>
+    {"".join(rows)}
+  </tbody>
+</table>
+""".strip()
+    return metrics + table
+
+
 def _render_html_disposition_summary(
     status_counts: dict[str, int],
     disposition_items: list[dict[str, str]],
@@ -631,6 +778,8 @@ def render_html(mission: Mission, findings: list[Finding]) -> str:
     authorization = summary["authorization"]
     plan = remediation_plan(ordered_findings)
     attention_items = critical_attention_items(ordered_findings)
+    known_vulnerability_summary_items = summary["known_vulnerabilities"]
+    known_vulnerability_items_list = known_vulnerability_items(ordered_findings)
     finding_blocks = []
     risk_level = str(summary["risk_level"])
     generated_at = display_generated_at(summary["generated_at"])
@@ -830,6 +979,11 @@ def render_html(mission: Mission, findings: list[Finding]) -> str:
     </section>
 
     <section class="section">
+      <h2>CVE/KEV candidates</h2>
+      {_render_html_known_vulnerabilities(known_vulnerability_summary_items, known_vulnerability_items_list)}
+    </section>
+
+    <section class="section">
       <h2>Contexte de mission et périmètre</h2>
       <div class="context-grid">
         <dl>
@@ -1025,6 +1179,8 @@ def render_pdf(mission: Mission, findings: list[Finding]) -> bytes:
     authorization = summary["authorization"]
     plan = remediation_plan(ordered_findings)
     attention_items = critical_attention_items(ordered_findings)
+    known_vulnerability_summary_items = summary["known_vulnerabilities"]
+    known_vulnerability_items_list = known_vulnerability_items(ordered_findings)
     generated_at = display_generated_at(summary["generated_at"])
     authorization_present = "oui" if summary["authorization_present"] else "non"
 
@@ -1078,6 +1234,32 @@ def render_pdf(mission: Mission, findings: list[Finding]) -> bytes:
             pdf.add_text(f"Contre-test: {item['counter_test']}", indent=12)
     else:
         pdf.add_text("Aucun constat critique ou eleve actif n'est inclus dans ce rapport.")
+
+    pdf.add_section_heading("CVE/KEV candidates")
+    pdf.add_text(
+        " | ".join(
+            [
+                f"Candidats: {known_vulnerability_summary_items['candidates']}",
+                f"KEV: {known_vulnerability_summary_items['known_exploited']}",
+                f"Critiques/eleves: {known_vulnerability_summary_items['critical_or_high']}",
+            ]
+        )
+    )
+    if known_vulnerability_items_list:
+        for index, item in enumerate(known_vulnerability_items_list, start=1):
+            kev = " KEV" if item["known_exploited"].lower() == "true" else ""
+            pdf.add_text(
+                (
+                    f"{index}. [{display_severity(item['severity'])}{kev}] "
+                    f"{item['cve_id']} - {item['asset']}"
+                ),
+                bold=True,
+            )
+            pdf.add_text(f"Constat: {item['title']}", indent=12)
+            pdf.add_text(f"Remediation: {item['remediation']}", indent=12)
+            pdf.add_text(f"Contre-test: {item['counter_test']}", indent=12)
+    else:
+        pdf.add_text("Aucun constat candidat CVE/KEV stocke n'est inclus.")
 
     pdf.add_section_heading("Contexte de mission")
     context_lines = [

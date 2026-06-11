@@ -9,27 +9,9 @@
   <div class="actions">
     <a class="button secondary-button" href="/">Dashboard</a>
     <a class="button secondary-button" href="/system">System</a>
-    <a class="button secondary-button" href="/pilot/handoff-summary.md">Summary</a>
-    <a class="button secondary-button" href="/pilot/handoff-summary.json">Summary JSON</a>
-    <a class="button secondary-button" href="/pilot/bundle-index.md">Index</a>
-    <a class="button secondary-button" href="/pilot/bundle-index.json">Index JSON</a>
-    <a class="button secondary-button" href="/pilot/bundle-inventory.csv">CSV</a>
-    <a class="button secondary-button" href="/pilot/bundle-inventory.json">Inventory JSON</a>
-    <a class="button secondary-button" href="/pilot/delivery-receipt.md">Receipt</a>
-    <a class="button secondary-button" href="/pilot/delivery-receipt.json">Receipt JSON</a>
+    <a class="button secondary-button" href="/pilot/runbook.md">Runbook</a>
     <a class="button secondary-button" href="/pilot/final-handoff-checklist.md">Final Checklist</a>
-    <a class="button secondary-button" href="/pilot/final-handoff-checklist.json">Final JSON</a>
-    <a class="button secondary-button" href="/pilot/runbook.md">Markdown</a>
-    <a class="button secondary-button" href="/pilot/runbook.json">Runbook JSON</a>
-    <a class="button secondary-button" href="/pilot/acceptance.md">Acceptance</a>
-    <a class="button secondary-button" href="/pilot/acceptance.json">Acceptance JSON</a>
-    <a class="button secondary-button" href="/pilot/readiness.md">Readiness</a>
-    <a class="button secondary-button" href="/pilot/attention.md">Attention</a>
-    <a class="button secondary-button" href="/pilot/attention.json">Attention JSON</a>
     <a class="button secondary-button" href="/pilot/bundle.zip">Bundle</a>
-    <a class="button secondary-button" href="/pilot/bundle-manifest.json">Manifest</a>
-    <a class="button secondary-button" href="/pilot/bundle-verification.md">Verify</a>
-    <a class="button secondary-button" href="/pilot/bundle-verification.json">Verify JSON</a>
   </div>
 </section>
 
@@ -62,6 +44,32 @@
       <strong>{{ view.handoff_decision.title }}</strong>
       <p>{{ view.handoff_decision.detail }}</p>
     </div>
+  </div>
+  <div class="readiness-grid" aria-label="Pilot go no-go actions">
+    <article class="readiness-item readiness-{{ view.handoff_decision.status }}">
+      <span class="badge status-{{ view.handoff_decision.status }}">{{ view.handoff_decision.status }}</span>
+      <strong>Decision Review</strong>
+      <p>{{ view.handoff_decision.detail }}</p>
+      <a class="readiness-action" href="{{ view.handoff_decision.action_href }}">{{ view.handoff_decision.action_label }}</a>
+    </article>
+    <article class="readiness-item readiness-ready">
+      <span class="badge status-ready">handoff</span>
+      <strong>Final Checklist</strong>
+      <p>Review the final handoff checklist before declaring the pilot ready.</p>
+      <a class="readiness-action" href="/pilot/final-handoff-checklist.md">Open Checklist</a>
+    </article>
+    <article class="readiness-item readiness-ready">
+      <span class="badge status-ready">evidence</span>
+      <strong>Evidence Bundle</strong>
+      <p>Download the local evidence bundle after readiness and package checks are reviewed.</p>
+      <a class="readiness-action" href="/pilot/bundle.zip">Download Bundle</a>
+    </article>
+    <article class="readiness-item readiness-ready">
+      <span class="badge status-ready">verify</span>
+      <strong>Bundle Verification</strong>
+      <p>Confirm the manifest and checksums before sharing the pilot handoff files.</p>
+      <a class="readiness-action" href="/pilot/bundle-verification.md">Verify Bundle</a>
+    </article>
   </div>
 </section>
 

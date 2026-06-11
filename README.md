@@ -155,6 +155,7 @@ Implemented so far:
 - local pilot evidence bundle inventory exports include human and automation categories
 - local pilot readiness rollup visible before handoff
 - local pilot handoff decision visible before bundle delivery
+- local pilot go/no-go actions visible before bundle delivery
 - local pilot attention items highlight remaining warnings and blockers
 - local pilot attention Markdown export for handoff follow-up
 - dashboard shows workspace mission preparation status summaries

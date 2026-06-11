@@ -1794,7 +1794,11 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("view.scan_launch.action_href", template)
         self.assertIn("view.scan_launch.ready_services", template)
         self.assertIn("view.scan_launch.blocked_services", template)
+        self.assertIn("view.scan_launch.checklist", template)
         self.assertIn('aria-label="Scan launch services"', template)
+        self.assertIn("<caption class=\"sr-only\">Service pre-launch checklist</caption>", template)
+        self.assertIn("item.command_count", template)
+        self.assertIn("item.action_label", template)
         self.assertIn("Each ready check still requires explicit authorization confirmation", template)
         self.assertIn("Mission Roadmap", template)
         self.assertIn("view.action_roadmap", template)
@@ -2966,6 +2970,20 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(view.scan_launch.blocked_services, ["HTTP Headers", "DNS/Mail"])
         self.assertEqual(view.scan_launch.action_label, "Open Ready Checks")
         self.assertEqual(view.scan_launch.action_href, "#scan-plan")
+        self.assertEqual(
+            [(item.label, item.status, item.command_count) for item in view.scan_launch.checklist],
+            [
+                ("Nmap", "ready", 1),
+                ("HTTP Headers", "blocked", 0),
+                ("DNS/Mail", "blocked", 0),
+            ],
+        )
+        self.assertEqual(
+            view.scan_launch.checklist[0].detail,
+            "Commands are visible and explicit confirmation remains required.",
+        )
+        self.assertEqual(view.scan_launch.checklist[0].action_label, "Review Commands")
+        self.assertEqual(view.scan_launch.checklist[1].action_href, "#mission-readiness")
         self.assertEqual(
             [step.label for step in view.cockpit.steps],
             ["Authorization", "Périmètre", "Services", "Lancement", "Constats", "Livrables"],

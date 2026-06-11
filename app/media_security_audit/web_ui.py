@@ -324,6 +324,16 @@ class MissionCockpit:
 
 
 @dataclass(frozen=True)
+class ScanLaunchChecklistItem:
+    label: str
+    status: str
+    command_count: int
+    detail: str
+    action_label: str
+    action_href: str
+
+
+@dataclass(frozen=True)
 class ScanLaunchCenter:
     status: str
     detail: str
@@ -334,6 +344,7 @@ class ScanLaunchCenter:
     run_count: int
     ready_services: list[str]
     blocked_services: list[str]
+    checklist: list[ScanLaunchChecklistItem]
 
 
 @dataclass(frozen=True)
@@ -1388,6 +1399,31 @@ def scan_launch_center(
         run_count=len(scan_runs),
         ready_services=ready_services,
         blocked_services=blocked_services,
+        checklist=scan_launch_checklist(scan_plans),
+    )
+
+
+def scan_launch_checklist(scan_plans: list[ScanPlanPreview]) -> list[ScanLaunchChecklistItem]:
+    return [scan_launch_checklist_item(plan) for plan in scan_plans]
+
+
+def scan_launch_checklist_item(plan: ScanPlanPreview) -> ScanLaunchChecklistItem:
+    if plan.status == "ready":
+        return ScanLaunchChecklistItem(
+            label=plan.label,
+            status="ready",
+            command_count=len(plan.commands),
+            detail="Commands are visible and explicit confirmation remains required.",
+            action_label="Review Commands",
+            action_href="#scan-plan",
+        )
+    return ScanLaunchChecklistItem(
+        label=plan.label,
+        status=plan.status,
+        command_count=len(plan.commands),
+        detail=plan.detail,
+        action_label="Resolve Readiness",
+        action_href="#mission-readiness",
     )
 
 

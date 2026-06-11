@@ -482,6 +482,10 @@ tr:last-child td {
   grid-column: 1 / -1;
 }
 
+.scan-launch-checklist {
+  margin-top: 12px;
+}
+
 .service-run-summary {
   align-items: center;
   background: var(--surface-muted);

@@ -1006,6 +1006,10 @@ textarea:focus {
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
+.status-panel + .readiness-grid {
+  margin-top: 12px;
+}
+
 .readiness-item,
 .guidance-card,
 .plan-card {

@@ -9,6 +9,7 @@ from enum import Enum
 from hashlib import sha256
 from io import StringIO
 from pathlib import Path
+from typing import TYPE_CHECKING
 from zipfile import ZIP_DEFLATED, BadZipFile, ZipFile
 
 from pydantic import BaseModel
@@ -38,6 +39,9 @@ from media_security_audit.web_reports import (
     mission_report_dir,
     mission_report_path,
 )
+
+if TYPE_CHECKING:
+    from media_security_audit.mission_roadmap import MissionRoadmapExport
 
 
 @dataclass(frozen=True)
@@ -168,6 +172,12 @@ def mission_export_path(reports_dir: Path, mission_id: str) -> Path:
 
 
 def generate_mission_export(store: JsonStore, mission_id: str, reports_dir: Path) -> Path:
+    from media_security_audit.mission_roadmap import (
+        MissionRoadmapExportFormat,
+        build_mission_roadmap_export,
+        build_mission_roadmap_payload,
+    )
+
     client = None
     mission = store.get_mission(mission_id)
     try:
@@ -203,6 +213,11 @@ def generate_mission_export(store: JsonStore, mission_id: str, reports_dir: Path
         for export_format in MissionReadinessExportFormat
     ]
     readiness_payload = build_mission_readiness_payload(store, mission_id, reports_dir)
+    roadmap_exports = [
+        build_mission_roadmap_export(store, mission_id, reports_dir, export_format)
+        for export_format in MissionRoadmapExportFormat
+    ]
+    roadmap_payload = build_mission_roadmap_payload(store, mission_id, reports_dir)
 
     output_path = mission_export_path(reports_dir, mission_id)
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -216,6 +231,7 @@ def generate_mission_export(store: JsonStore, mission_id: str, reports_dir: Path
         authorization_brief_paths=authorization_brief_paths,
         scan_plan_exports=scan_plan_exports,
         readiness_exports=readiness_exports,
+        roadmap_exports=roadmap_exports,
     )
     manifest = build_mission_export_manifest(
         mission=mission,
@@ -228,6 +244,8 @@ def generate_mission_export(store: JsonStore, mission_id: str, reports_dir: Path
         scan_plan_exports=scan_plan_exports,
         readiness_exports=readiness_exports,
         readiness_payload=readiness_payload,
+        roadmap_exports=roadmap_exports,
+        roadmap_payload=roadmap_payload,
         archive_members=members,
     )
 
@@ -249,6 +267,7 @@ def mission_export_members(
     authorization_brief_paths: list[Path],
     scan_plan_exports: list[ScanPlanExport],
     readiness_exports: list[MissionReadinessExport],
+    roadmap_exports: list["MissionRoadmapExport"],
 ) -> list[ArchiveMember]:
     members: list[ArchiveMember] = []
     if client is not None:
@@ -266,6 +285,8 @@ def mission_export_members(
         members.append(text_member(f"scan-plan/{export.filename}", export.content))
     for export in readiness_exports:
         members.append(text_member(f"readiness/{export.filename}", export.content))
+    for export in roadmap_exports:
+        members.append(text_member(f"roadmap/{export.filename}", export.content))
     for path in report_paths:
         members.append(file_member(f"reports/{path.name}", path))
     return members
@@ -282,6 +303,8 @@ def build_mission_export_manifest(
     scan_plan_exports: list[ScanPlanExport],
     readiness_exports: list[MissionReadinessExport],
     readiness_payload: dict[str, object],
+    roadmap_exports: list["MissionRoadmapExport"],
+    roadmap_payload: dict[str, object],
     archive_members: list[ArchiveMember] | None = None,
 ) -> dict[str, object]:
     template = get_audit_template(mission.audit_template_id)
@@ -289,11 +312,12 @@ def build_mission_export_manifest(
     authorization_briefs = [f"authorization/{path.name}" for path in authorization_brief_paths]
     scan_plans = [f"scan-plan/{export.filename}" for export in scan_plan_exports]
     readiness_exports_list = [f"readiness/{export.filename}" for export in readiness_exports]
+    roadmap_exports_list = [f"roadmap/{export.filename}" for export in roadmap_exports]
     evidence_path_count = sum(len(run.evidence_paths) for run in scan_runs)
     archive_files = archive_member_entries(archive_members or [])
 
     return {
-        "manifest_version": 4,
+        "manifest_version": 5,
         "generated_at": utc_now().isoformat(),
         "mission_id": mission.id,
         "mission_name": mission.name,
@@ -317,12 +341,15 @@ def build_mission_export_manifest(
         "readiness_export_count": len(readiness_exports_list),
         "readiness_status": readiness_payload["status"],
         "readiness_summary": readiness_payload["summary"],
+        "roadmap_export_count": len(roadmap_exports_list),
+        "roadmap_summary": roadmap_payload["summary"],
         "archive_file_count": len(archive_files),
         "archive_files": archive_files,
         "reports": reports,
         "authorization_briefs": authorization_briefs,
         "scan_plans": scan_plans,
         "readiness_exports": readiness_exports_list,
+        "roadmap_exports": roadmap_exports_list,
     }
 
 
@@ -997,6 +1024,7 @@ def format_mission_export_manifest_markdown(manifest: dict[str, object]) -> str:
         ("Authorization Briefs", "authorization_briefs"),
         ("Scan Plans", "scan_plans"),
         ("Readiness Exports", "readiness_exports"),
+        ("Roadmap Exports", "roadmap_exports"),
     ):
         values = manifest.get(key)
         if isinstance(values, list) and values:

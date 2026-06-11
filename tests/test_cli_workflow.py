@@ -910,7 +910,7 @@ class CliWorkflowTests(unittest.TestCase):
         payload = json.loads(json_stdout.getvalue())
         markdown = markdown_stdout.getvalue()
 
-        self.assertEqual(payload["manifest_version"], 4)
+        self.assertEqual(payload["manifest_version"], 5)
         self.assertEqual(payload["mission_id"], mission.id)
         self.assertGreater(payload["archive_file_count"], 0)
         self.assertIn("# Mission Export Manifest", markdown)

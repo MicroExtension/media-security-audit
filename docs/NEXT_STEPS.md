@@ -732,6 +732,7 @@ Current GUI status:
 - mission pages show export integrity counts and issue details
 - mission pages expose export verification JSON and Markdown downloads
 - mission pages expose scan plan JSON and Markdown downloads
+- mission pages show a scan launch center with ready, blocked, and recorded run counts
 - mission export ZIP packages include scan plan JSON and Markdown files
 - a workspace Activity page lists mission events and exports the log
 - Activity log filters can narrow events by search text and action

@@ -158,6 +158,7 @@ Implemented so far:
 - local pilot go/no-go actions visible before bundle delivery
 - local pilot attention items highlight remaining warnings and blockers
 - local pilot attention Markdown export for handoff follow-up
+- mission pages show a scan launch center with ready and blocked services
 - dashboard shows workspace mission preparation status summaries
 - dashboard shows workspace finding disposition counts
 - dashboard shows shortcut links to operational sections

@@ -248,7 +248,7 @@ Implemented so far:
 - mission readiness cards link directly to the setup sections that need action
 - CLI mission readiness check for technician and automation review
 - web mission readiness exports in JSON and Markdown
-- mission export packages include readiness exports
+- mission export packages include readiness and roadmap exports
 
 The first implementation target remains a CLI-driven V1 with a local web
 interface that can set up the mission workflow:
@@ -474,7 +474,7 @@ Authorization briefs include the selected scan plan and still state that no scan
 is executed by the brief.
 Mission export ZIP packages include an enriched manifest for handoff review and
 archival. They include the selected scan plan exports for pre-audit review. The
-package also includes mission readiness exports for technician handoff. The
+package also includes mission readiness and roadmap exports for technician handoff. The
 manifest includes SHA-256 checksums for packaged files, and the mission page
 offers JSON and Markdown manifest downloads without opening the ZIP. The mission
 page verifies export integrity before showing package status, checked file

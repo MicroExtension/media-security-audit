@@ -771,6 +771,7 @@ Current GUI status:
 - mission readiness and safe scan plan previews are visible from mission pages
 - CLI mission readiness checks are available for technician automation
 - mission readiness exports are available from mission pages and mission packages
+- mission roadmap exports are included in mission packages for technician handoff
 - TLS testssl.sh scan plan previews are available when the TLS check is selected
 - SMB scan plan previews are available when the SMB check is selected
 - LDAP scan plan previews are available when the LDAP check is selected

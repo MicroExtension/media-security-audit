@@ -125,7 +125,7 @@ class WebExportTests(unittest.TestCase):
 
         archive_files = {item["path"]: item for item in manifest["archive_files"]}
         self.assertEqual(manifest["mission_id"], mission.id)
-        self.assertEqual(manifest["manifest_version"], 4)
+        self.assertEqual(manifest["manifest_version"], 5)
         self.assertEqual(manifest["mission_name"], "Export Audit")
         self.assertEqual(manifest["client_name"], "Client Export")
         self.assertEqual(manifest["audit_template_id"], "tpl_web_mail_hygiene")
@@ -160,6 +160,8 @@ class WebExportTests(unittest.TestCase):
         self.assertEqual(manifest["readiness_status"], "warning")
         self.assertEqual(manifest["readiness_summary"]["execution"], "not_executed")
         self.assertEqual(manifest["readiness_summary"]["generated_reports"], 4)
+        self.assertEqual(manifest["roadmap_export_count"], 2)
+        self.assertEqual(manifest["roadmap_summary"]["steps"], 5)
         self.assertEqual(
             manifest["scan_plans"],
             [
@@ -174,6 +176,13 @@ class WebExportTests(unittest.TestCase):
                 f"readiness/{mission.id}-readiness.md",
             ],
         )
+        self.assertEqual(
+            manifest["roadmap_exports"],
+            [
+                f"roadmap/{mission.id}-roadmap.json",
+                f"roadmap/{mission.id}-roadmap.md",
+            ],
+        )
         self.assertIn("data/client.json", names)
         self.assertIn("data/mission.json", names)
         self.assertIn(f"data/findings/{finding.id}.json", names)
@@ -184,6 +193,8 @@ class WebExportTests(unittest.TestCase):
         self.assertIn(f"scan-plan/{mission.id}-scan-plan.md", names)
         self.assertIn(f"readiness/{mission.id}-readiness.json", names)
         self.assertIn(f"readiness/{mission.id}-readiness.md", names)
+        self.assertIn(f"roadmap/{mission.id}-roadmap.json", names)
+        self.assertIn(f"roadmap/{mission.id}-roadmap.md", names)
         self.assertIn(f"reports/{mission.id}.json", names)
         self.assertIn(f"reports/{mission.id}.html", names)
         self.assertIn(f"reports/{mission.id}.pdf", names)
@@ -207,6 +218,11 @@ class WebExportTests(unittest.TestCase):
         self.assertEqual(manifest_markdown_export.filename, f"{mission.id}-export-manifest.md")
         self.assertIn("# Mission Export Manifest", manifest_markdown_export.content)
         self.assertIn("- Execution: `not_executed`", manifest_markdown_export.content)
+        self.assertIn("## Roadmap Exports", manifest_markdown_export.content)
+        self.assertIn(
+            f"`roadmap/{mission.id}-roadmap.md`",
+            manifest_markdown_export.content,
+        )
 
         json_export = build_mission_export_verification_export(
             mission.id,

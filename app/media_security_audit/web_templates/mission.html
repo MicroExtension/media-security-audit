@@ -143,6 +143,33 @@
       <a class="readiness-action" href="#run-monitor">Open Run Monitor</a>
     </article>
   </div>
+  <div class="table-wrap scan-launch-checklist">
+    <table>
+      <caption class="sr-only">Service pre-launch checklist</caption>
+      <thead>
+        <tr>
+          <th>Service</th>
+          <th>Status</th>
+          <th>Commands</th>
+          <th>Checklist</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in view.scan_launch.checklist %}
+        <tr>
+          <td>{{ item.label }}</td>
+          <td><span class="badge status-{{ item.status }}">{{ item.status }}</span></td>
+          <td>{{ item.command_count }}</td>
+          <td>{{ item.detail }}</td>
+          <td><a class="table-action" href="{{ item.action_href }}">{{ item.action_label }}</a></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" class="empty">No selected service to review before launch.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </section>
 
 <section class="section action-roadmap" id="action-roadmap">

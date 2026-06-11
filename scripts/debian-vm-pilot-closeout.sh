@@ -17,8 +17,12 @@ command -v date >/dev/null 2>&1 || fail "date is required before running this sc
 
 CLOSEOUT_DIR="${MEDIA_AUDIT_PILOT_CLOSEOUT_DIR:-reports/pilot-closeout}"
 READINESS_DIR="${MEDIA_AUDIT_V1_READINESS_DIR:-reports/v1-readiness}"
+HANDOFF_DIR="${MEDIA_AUDIT_HANDOFF_DIR:-reports/handoff}"
+HANDOFF_BUNDLE_DIR="${MEDIA_AUDIT_HANDOFF_BUNDLE_DIR:-${HANDOFF_DIR}}"
 mkdir -p "${CLOSEOUT_DIR}"
 [[ -w "${CLOSEOUT_DIR}" ]] || fail "${CLOSEOUT_DIR} is not writable by the current user"
+export MEDIA_AUDIT_HANDOFF_DIR="${HANDOFF_DIR}"
+export MEDIA_AUDIT_HANDOFF_BUNDLE_DIR="${HANDOFF_BUNDLE_DIR}"
 
 TIMESTAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 REPORT="${CLOSEOUT_DIR}/media-audit-pilot-closeout-${TIMESTAMP}.txt"
@@ -80,7 +84,7 @@ info "writing pilot closeout report ${REPORT}"
     EXIT_CODE=1
   fi
 
-  LATEST_HANDOFF_BUNDLE="$(latest_file "reports/handoff/bundles" 'media-audit-handoff-*.tgz')"
+  LATEST_HANDOFF_BUNDLE="$(latest_file "${HANDOFF_BUNDLE_DIR}" 'media-audit-handoff-*.tgz')"
   if [[ -n "${LATEST_HANDOFF_BUNDLE}" ]]; then
     printf 'latest_handoff_bundle=%s\n' "${LATEST_HANDOFF_BUNDLE}"
     if [[ -f "${LATEST_HANDOFF_BUNDLE}.manifest.txt" ]]; then

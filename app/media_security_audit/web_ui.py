@@ -324,6 +324,19 @@ class MissionCockpit:
 
 
 @dataclass(frozen=True)
+class ScanLaunchCenter:
+    status: str
+    detail: str
+    action_label: str
+    action_href: str
+    ready_count: int
+    blocked_count: int
+    run_count: int
+    ready_services: list[str]
+    blocked_services: list[str]
+
+
+@dataclass(frozen=True)
 class MissionActionStep:
     number: int
     label: str
@@ -390,6 +403,7 @@ class ClientView:
 class MissionView:
     mission: MissionRow
     cockpit: MissionCockpit
+    scan_launch: ScanLaunchCenter
     action_roadmap: list[MissionActionStep]
     activity_log_url: str
     scope: list[ScopeRow]
@@ -1340,6 +1354,43 @@ def cockpit_service_run_summary(run: ScanRun | None) -> tuple[str, str]:
     return run.status.value, detail
 
 
+def scan_launch_center(
+    scan_plans: list[ScanPlanPreview],
+    scan_runs: list[ScanRun],
+) -> ScanLaunchCenter:
+    ready_services = [plan.label for plan in scan_plans if plan.status == "ready"]
+    blocked_services = [plan.label for plan in scan_plans if plan.status == "blocked"]
+    if ready_services:
+        status = "ready"
+        detail = (
+            f"{len(ready_services)} service(s) prêt(s) pour lancement contrôlé, "
+            f"{len(blocked_services)} bloqué(s)."
+        )
+        action_label = "Open Ready Checks"
+        action_href = "#scan-plan"
+    elif scan_plans:
+        status = "blocked"
+        detail = "Tous les services sélectionnés sont bloqués par la préparation mission."
+        action_label = "Review Readiness"
+        action_href = "#mission-readiness"
+    else:
+        status = "missing"
+        detail = "Aucun service n’est sélectionné pour cette mission."
+        action_label = "Select Checks"
+        action_href = "#check-selection"
+    return ScanLaunchCenter(
+        status=status,
+        detail=detail,
+        action_label=action_label,
+        action_href=action_href,
+        ready_count=len(ready_services),
+        blocked_count=len(blocked_services),
+        run_count=len(scan_runs),
+        ready_services=ready_services,
+        blocked_services=blocked_services,
+    )
+
+
 def mission_action_roadmap(
     mission: Mission,
     scan_plans: list[ScanPlanPreview],
@@ -1767,6 +1818,7 @@ def build_mission_view(
             reports=reports,
             mission_export=mission_export,
         ),
+        scan_launch=scan_launch_center(scan_plans, scan_runs),
         action_roadmap=mission_action_roadmap(
             mission=mission,
             scan_plans=scan_plans,

@@ -30,6 +30,7 @@
   <a href="#mission-cockpit">Cockpit <span>{{ view.cockpit.ready_step_count }}/{{ view.cockpit.total_step_count }}</span></a>
   <a href="#action-roadmap">Roadmap <span>{{ view.action_roadmap|length }}</span></a>
   <a href="#mission-readiness">Readiness <span>{{ view.readiness_items|length }}</span></a>
+  <a href="#scan-launch">Launch <span>{{ view.scan_launch.ready_count }}</span></a>
   <a href="#scan-plan">Scan Plan <span>{{ view.scan_plans|length }}</span></a>
   <a href="#run-monitor">Runs <span>{{ view.scan_runs|length }}</span></a>
   <a href="#vulnerabilities">CVE/KEV <span>{{ view.vulnerability_matches|length }}</span></a>
@@ -93,6 +94,54 @@
       <a class="table-action" href="{{ service.action_href }}">{{ service.action_label }}</a>
     </article>
     {% endfor %}
+  </div>
+</section>
+
+<section class="section" id="scan-launch">
+  <div class="section-title">
+    <h2>Scan Launch Center</h2>
+    <a class="table-action" href="{{ view.scan_launch.action_href }}">{{ view.scan_launch.action_label }}</a>
+  </div>
+  <div class="status-panel">
+    <span class="badge status-{{ view.scan_launch.status }}">{{ view.scan_launch.status }}</span>
+    <div>
+      <strong>{{ view.scan_launch.detail }}</strong>
+      <p>
+        {{ view.scan_launch.ready_count }} ready |
+        {{ view.scan_launch.blocked_count }} blocked |
+        {{ view.scan_launch.run_count }} run(s) recorded
+      </p>
+    </div>
+  </div>
+  <div class="readiness-grid" aria-label="Scan launch services">
+    <article class="readiness-item readiness-ready">
+      <span class="badge status-ready">ready</span>
+      <strong>Ready Services</strong>
+      {% if view.scan_launch.ready_services %}
+      <p>{{ view.scan_launch.ready_services | join(", ") }}</p>
+      {% else %}
+      <p>No service is ready to launch yet.</p>
+      {% endif %}
+      <a class="readiness-action" href="#scan-plan">Review Scan Plan</a>
+    </article>
+    <article class="readiness-item readiness-{{ 'blocked' if view.scan_launch.blocked_services else 'ready' }}">
+      <span class="badge status-{{ 'blocked' if view.scan_launch.blocked_services else 'ready' }}">
+        {{ 'blocked' if view.scan_launch.blocked_services else 'ready' }}
+      </span>
+      <strong>Blocked Services</strong>
+      {% if view.scan_launch.blocked_services %}
+      <p>{{ view.scan_launch.blocked_services | join(", ") }}</p>
+      {% else %}
+      <p>No selected service is blocked.</p>
+      {% endif %}
+      <a class="readiness-action" href="#mission-readiness">Review Readiness</a>
+    </article>
+    <article class="readiness-item readiness-ready">
+      <span class="badge status-ready">guarded</span>
+      <strong>Execution Guard</strong>
+      <p>Each ready check still requires explicit authorization confirmation before execution.</p>
+      <a class="readiness-action" href="#run-monitor">Open Run Monitor</a>
+    </article>
   </div>
 </section>
 

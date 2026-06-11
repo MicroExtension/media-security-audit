@@ -1751,6 +1751,7 @@ class WebUiTests(unittest.TestCase):
             "mission-cockpit",
             "action-roadmap",
             "mission-readiness",
+            "scan-launch",
             "scan-plan",
             "run-monitor",
             "vulnerabilities",
@@ -1773,6 +1774,7 @@ class WebUiTests(unittest.TestCase):
             "view.cockpit.blocked_check_count",
             "view.action_roadmap|length",
             "view.readiness_items|length",
+            "view.scan_launch.ready_count",
             "view.scan_plans|length",
             "view.scan_runs|length",
             "view.vulnerability_matches|length",
@@ -1786,6 +1788,14 @@ class WebUiTests(unittest.TestCase):
             self.assertIn(f"{{{{ {counter} }}}}", template)
 
         self.assertIn("Technician Cockpit", template)
+        self.assertIn("Scan Launch Center", template)
+        self.assertIn("view.scan_launch.status", template)
+        self.assertIn("view.scan_launch.detail", template)
+        self.assertIn("view.scan_launch.action_href", template)
+        self.assertIn("view.scan_launch.ready_services", template)
+        self.assertIn("view.scan_launch.blocked_services", template)
+        self.assertIn('aria-label="Scan launch services"', template)
+        self.assertIn("Each ready check still requires explicit authorization confirmation", template)
         self.assertIn("Mission Roadmap", template)
         self.assertIn("view.action_roadmap", template)
         self.assertIn('aria-label="Mission action roadmap"', template)
@@ -2948,6 +2958,14 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(view.cockpit.blocked_check_count, 2)
         self.assertEqual(view.cockpit.report_count, 0)
         self.assertEqual(view.cockpit.handoff_status, "missing")
+        self.assertEqual(view.scan_launch.status, "ready")
+        self.assertEqual(view.scan_launch.ready_count, 1)
+        self.assertEqual(view.scan_launch.blocked_count, 2)
+        self.assertEqual(view.scan_launch.run_count, 1)
+        self.assertEqual(view.scan_launch.ready_services, ["Nmap"])
+        self.assertEqual(view.scan_launch.blocked_services, ["HTTP Headers", "DNS/Mail"])
+        self.assertEqual(view.scan_launch.action_label, "Open Ready Checks")
+        self.assertEqual(view.scan_launch.action_href, "#scan-plan")
         self.assertEqual(
             [step.label for step in view.cockpit.steps],
             ["Authorization", "Périmètre", "Services", "Lancement", "Constats", "Livrables"],

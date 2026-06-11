@@ -101,6 +101,10 @@
     <h2>Mission Roadmap</h2>
     <span class="muted">From setup to handoff</span>
   </div>
+  <div class="report-links" aria-label="Mission roadmap exports">
+    <a href="/missions/{{ view.mission.id }}/roadmap/markdown">markdown</a>
+    <a href="/missions/{{ view.mission.id }}/roadmap/json">json</a>
+  </div>
   <div class="action-roadmap-grid" aria-label="Mission action roadmap">
     {% for step in view.action_roadmap %}
     <article class="action-step action-step-{{ step.status }}">

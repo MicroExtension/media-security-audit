@@ -1797,6 +1797,11 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("view.scan_launch.checklist", template)
         self.assertIn('aria-label="Scan launch services"', template)
         self.assertIn("<caption class=\"sr-only\">Service pre-launch checklist</caption>", template)
+        self.assertIn("check-target-guidance", template)
+        self.assertIn("check.target_status", template)
+        self.assertIn("check.target_requirement", template)
+        self.assertIn("check.target_summary", template)
+        self.assertIn("check.matching_scope_count", template)
         self.assertIn("item.command_count", template)
         self.assertIn("item.action_label", template)
         self.assertIn("Each ready check still requires explicit authorization confirmation", template)
@@ -3362,7 +3367,43 @@ class WebUiTests(unittest.TestCase):
         self.assertFalse(selected["nmap"])
         self.assertFalse(selected["http_headers"])
         self.assertTrue(selected["dns_mail"])
+        by_check = {item.value: item for item in view.check_selection}
+        self.assertEqual(by_check["dns_mail"].target_status, "blocked")
+        self.assertEqual(by_check["dns_mail"].matching_scope_count, 0)
+        self.assertIn("approved domain scope", by_check["dns_mail"].target_requirement)
+        self.assertIn("Add approved domain scope", by_check["dns_mail"].target_summary)
         self.assertEqual([plan.label for plan in view.scan_plans], ["DNS/Mail"])
+
+    def test_mission_view_shows_check_target_guidance(self) -> None:
+        store = JsonStore(clean_data_dir("web-ui-check-target-guidance"))
+        client = store.create_client(Client(name="Client Check Targets"))
+        mission = store.create_mission(
+            Mission(
+                client_id=client.id,
+                name="Target Audit",
+                selected_checks=[AuditCheck.HTTP_HEADERS, AuditCheck.SMB],
+            )
+        )
+        store.add_scope_item(
+            mission.id,
+            ScopeItem(type=ScopeType.URL, value="https://portal.example.test", approved=True),
+        )
+        store.add_scope_item(
+            mission.id,
+            ScopeItem(type=ScopeType.HOST, value="fs01.example.test", approved=True),
+        )
+
+        view = build_mission_view(store, mission.id)
+        by_check = {item.value: item for item in view.check_selection}
+
+        self.assertEqual(by_check["http_headers"].target_status, "ready")
+        self.assertEqual(by_check["http_headers"].matching_scope_count, 1)
+        self.assertIn("https://portal.example.test", by_check["http_headers"].target_summary)
+        self.assertEqual(by_check["smb"].target_status, "ready")
+        self.assertEqual(by_check["smb"].matching_scope_count, 1)
+        self.assertIn("fs01.example.test", by_check["smb"].target_summary)
+        self.assertEqual(by_check["dns_mail"].target_status, "missing")
+        self.assertIn("Add approved domain scope", by_check["dns_mail"].target_summary)
 
     def test_mission_view_includes_scan_runs(self) -> None:
         store = JsonStore(clean_data_dir("web-ui-runs"))

@@ -161,6 +161,7 @@ Implemented so far:
 - mission pages show a scan launch center with ready and blocked services
 - mission pages show a per-service pre-launch checklist before guarded execution
 - mission pages summarize the latest scan run outcome and next action
+- mission check selection shows compatible approved target guidance per service
 - dashboard shows workspace mission preparation status summaries
 - dashboard shows workspace finding disposition counts
 - dashboard shows shortcut links to operational sections

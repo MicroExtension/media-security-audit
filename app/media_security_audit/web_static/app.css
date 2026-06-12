@@ -882,6 +882,23 @@ textarea:focus {
   line-height: 1.45;
 }
 
+.check-selection-option .check-target-guidance {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.check-selection-option .check-target-guidance small {
+  color: #344054;
+  font-weight: 700;
+}
+
+.check-selection-option .check-target-guidance .badge {
+  display: inline-flex;
+}
+
 .form-actions {
   display: flex;
   justify-content: flex-end;

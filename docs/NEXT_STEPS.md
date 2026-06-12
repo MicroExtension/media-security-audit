@@ -790,6 +790,7 @@ Current GUI status:
   downloads
 - mission pages summarize CVE/KEV candidates, KEV matches, critical/high
   matches, and stored candidate findings before the detailed table
+- mission pages show a CVE/KEV review checklist before storing candidate findings
 - generated JSON, Markdown, HTML, and PDF reports include CVE/KEV candidate
   rollups for client and technician review
 

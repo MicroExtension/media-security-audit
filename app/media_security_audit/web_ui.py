@@ -501,6 +501,7 @@ class MissionView:
     readiness_items: list[ReadinessItem]
     scan_plans: list[ScanPlanPreview]
     vulnerability_summary: VulnerabilitySummary
+    vulnerability_review_items: list[VulnerabilityReviewItem]
     vulnerability_catalog_count: int
     vulnerability_matches: list[VulnerabilityMatchRow]
     template_guidance: TemplateGuidance | None
@@ -517,6 +518,15 @@ class VulnerabilitySummary:
     known_exploited_count: int
     critical_or_high_count: int
     stored_candidate_count: int
+
+
+@dataclass(frozen=True)
+class VulnerabilityReviewItem:
+    label: str
+    status: str
+    detail: str
+    action_label: str
+    action_href: str
 
 
 @dataclass(frozen=True)
@@ -2293,6 +2303,11 @@ def build_mission_view(
         readiness_items=readiness_items,
         scan_plans=scan_plans,
         vulnerability_summary=vulnerability,
+        vulnerability_review_items=vulnerability_review_items(
+            catalog_count=len(vulnerability_catalog.advisories),
+            matches=vulnerability_matches,
+            findings=findings,
+        ),
         vulnerability_catalog_count=len(vulnerability_catalog.advisories),
         vulnerability_matches=[
             vulnerability_match_row(match) for match in vulnerability_matches
@@ -2304,6 +2319,124 @@ def build_mission_view(
 def severity_class(value: str) -> str:
     allowed = {"critical", "high", "medium", "low", "info"}
     return value if value in allowed else "info"
+
+
+def vulnerability_review_items(
+    catalog_count: int,
+    matches: list[VulnerabilityMatch],
+    findings: list[Finding],
+) -> list[VulnerabilityReviewItem]:
+    source_finding_count = len(
+        [finding for finding in findings if finding.source_module != CATALOG_FINDING_SOURCE]
+    )
+    stored_candidate_count = len(
+        [finding for finding in findings if finding.source_module == CATALOG_FINDING_SOURCE]
+    )
+    known_exploited_count = len([match for match in matches if match.advisory.known_exploited])
+    return [
+        vulnerability_catalog_review_item(catalog_count),
+        vulnerability_evidence_review_item(source_finding_count),
+        vulnerability_candidate_review_item(
+            catalog_count=catalog_count,
+            source_finding_count=source_finding_count,
+            match_count=len(matches),
+            stored_candidate_count=stored_candidate_count,
+        ),
+        vulnerability_kev_review_item(known_exploited_count),
+    ]
+
+
+def vulnerability_catalog_review_item(catalog_count: int) -> VulnerabilityReviewItem:
+    if catalog_count:
+        return VulnerabilityReviewItem(
+            label="Reviewed catalog",
+            status="ready",
+            detail=f"{catalog_count} advisory item(s) are available locally.",
+            action_label="Review Catalog",
+            action_href="#vulnerabilities",
+        )
+    return VulnerabilityReviewItem(
+        label="Reviewed catalog",
+        status="missing",
+        detail="Import a reviewed local CVE/KEV JSON catalog before correlation.",
+        action_label="Import Catalog",
+        action_href="#vulnerabilities",
+    )
+
+
+def vulnerability_evidence_review_item(source_finding_count: int) -> VulnerabilityReviewItem:
+    if source_finding_count:
+        return VulnerabilityReviewItem(
+            label="Source evidence",
+            status="ready",
+            detail=f"{source_finding_count} source finding(s) can be correlated.",
+            action_label="Review Findings",
+            action_href="#findings",
+        )
+    return VulnerabilityReviewItem(
+        label="Source evidence",
+        status="missing",
+        detail="Run or add service/version findings before CVE correlation.",
+        action_label="Open Scan Plan",
+        action_href="#scan-plan",
+    )
+
+
+def vulnerability_candidate_review_item(
+    catalog_count: int,
+    source_finding_count: int,
+    match_count: int,
+    stored_candidate_count: int,
+) -> VulnerabilityReviewItem:
+    if catalog_count == 0 or source_finding_count == 0:
+        return VulnerabilityReviewItem(
+            label="Candidate findings",
+            status="missing",
+            detail="Catalog and source findings are required before candidates can be stored.",
+            action_label="Review Prerequisites",
+            action_href="#vulnerabilities",
+        )
+    if match_count == 0:
+        return VulnerabilityReviewItem(
+            label="Candidate findings",
+            status="ready",
+            detail="No candidate CVE/KEV match was detected for the current evidence.",
+            action_label="Review Findings",
+            action_href="#findings",
+        )
+    if stored_candidate_count >= match_count:
+        return VulnerabilityReviewItem(
+            label="Candidate findings",
+            status="ready",
+            detail=f"{stored_candidate_count}/{match_count} candidate finding(s) are stored.",
+            action_label="Review Findings",
+            action_href="#findings",
+        )
+    return VulnerabilityReviewItem(
+        label="Candidate findings",
+        status="warning",
+        detail=f"{stored_candidate_count}/{match_count} candidate finding(s) are stored.",
+        action_label="Store Candidate Findings",
+        action_href="#vulnerabilities",
+    )
+
+
+def vulnerability_kev_review_item(known_exploited_count: int) -> VulnerabilityReviewItem:
+    if known_exploited_count:
+        return VulnerabilityReviewItem(
+            label="Known exploited attention",
+            status="warning",
+            detail=f"{known_exploited_count} KEV candidate(s) need priority review.",
+            action_label="Review KEV",
+            action_href="#vulnerabilities",
+        )
+    return VulnerabilityReviewItem(
+        label="Known exploited attention",
+        status="ready",
+        detail="No KEV candidate is currently matched.",
+        action_label="Review Summary",
+        action_href="#vulnerabilities",
+    )
 
 
 def vulnerability_match_row(match: VulnerabilityMatch) -> VulnerabilityMatchRow:

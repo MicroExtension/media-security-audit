@@ -17,6 +17,7 @@ from media_security_audit.models import (
     Finding,
     FindingStatus,
     Mission,
+    ReportFormat,
     ScanRun,
     ScanRunStatus,
     ScopeType,
@@ -24,6 +25,7 @@ from media_security_audit.models import (
     Severity,
 )
 from media_security_audit.reports import (
+    MISSION_REPORT_FORMATS,
     active_findings,
     build_report_summary,
     finding_status_counts,
@@ -366,6 +368,26 @@ class ScanLaunchCenter:
 
 
 @dataclass(frozen=True)
+class ReportDeliveryItem:
+    label: str
+    status: str
+    detail: str
+    action_label: str
+    action_href: str
+
+
+@dataclass(frozen=True)
+class ReportDeliverySummary:
+    status: str
+    detail: str
+    action_label: str
+    action_href: str
+    ready_count: int
+    total_count: int
+    items: list[ReportDeliveryItem]
+
+
+@dataclass(frozen=True)
 class MissionActionStep:
     number: int
     label: str
@@ -448,6 +470,7 @@ class MissionView:
     executive_summary: str
     authorization_briefs: list[AuthorizationBriefLink]
     reports: list[GeneratedReportLink]
+    report_delivery: ReportDeliverySummary
     mission_export: MissionExportLink | None
     readiness_items: list[ReadinessItem]
     scan_plans: list[ScanPlanPreview]
@@ -1567,6 +1590,104 @@ def scan_launch_checklist_item(plan: ScanPlanPreview) -> ScanLaunchChecklistItem
     )
 
 
+def report_delivery_summary(
+    authorization_briefs: list[AuthorizationBriefLink],
+    reports: list[GeneratedReportLink],
+    mission_export: MissionExportLink | None,
+) -> ReportDeliverySummary:
+    report_formats = {report.format for report in reports}
+    items = [
+        ReportDeliveryItem(
+            label="Authorization brief",
+            status="ready" if authorization_briefs else "missing",
+            detail=(
+                f"{len(authorization_briefs)} file(s) generated."
+                if authorization_briefs
+                else "Generate the authorization brief before handoff."
+            ),
+            action_label="Generate Brief",
+            action_href="#reports",
+        )
+    ]
+    items.extend(report_delivery_report_items(report_formats))
+    items.append(report_delivery_package_item(mission_export))
+
+    ready_count = len([item for item in items if item.status == "ready"])
+    if ready_count == len(items):
+        status = "ready"
+        detail = "All expected handoff deliverables are available."
+        action_label = "Download Package"
+    elif report_formats:
+        status = "warning"
+        detail = f"{ready_count}/{len(items)} deliverable item(s) are ready."
+        action_label = "Complete Handoff"
+    else:
+        status = "missing"
+        detail = "Generate reviewed reports before building the customer package."
+        action_label = "Generate Reports"
+
+    return ReportDeliverySummary(
+        status=status,
+        detail=detail,
+        action_label=action_label,
+        action_href="#reports",
+        ready_count=ready_count,
+        total_count=len(items),
+        items=items,
+    )
+
+
+def report_delivery_report_items(report_formats: set[str]) -> list[ReportDeliveryItem]:
+    labels = {
+        ReportFormat.JSON: "JSON tracking report",
+        ReportFormat.MARKDOWN: "Markdown technical report",
+        ReportFormat.HTML: "HTML review report",
+        ReportFormat.PDF: "PDF customer report",
+    }
+    return [
+        ReportDeliveryItem(
+            label=labels[report_format],
+            status="ready" if report_format.value in report_formats else "missing",
+            detail=(
+                f"{report_format.value} file is available."
+                if report_format.value in report_formats
+                else f"{report_format.value} file is missing."
+            ),
+            action_label="Generate Reports",
+            action_href="#reports",
+        )
+        for report_format in MISSION_REPORT_FORMATS
+    ]
+
+
+def report_delivery_package_item(
+    mission_export: MissionExportLink | None,
+) -> ReportDeliveryItem:
+    if mission_export is None:
+        return ReportDeliveryItem(
+            label="Mission ZIP package",
+            status="missing",
+            detail="Generate the package after reports are reviewed.",
+            action_label="Generate Package",
+            action_href="#reports",
+        )
+    if mission_export.has_integrity_issues:
+        return ReportDeliveryItem(
+            label="Mission ZIP package",
+            status="warning",
+            detail=mission_export.integrity_detail,
+            action_label="Review Package",
+            action_href="#reports",
+        )
+    return ReportDeliveryItem(
+        label="Mission ZIP package",
+        status="ready",
+        detail=mission_export.integrity_detail,
+        action_label="Download Package",
+        action_href="#reports",
+    )
+
+
 def mission_action_roadmap(
     mission: Mission,
     scan_plans: list[ScanPlanPreview],
@@ -2017,6 +2138,11 @@ def build_mission_view(
         executive_summary=str(summary["executive_summary"]),
         authorization_briefs=authorization_briefs,
         reports=reports,
+        report_delivery=report_delivery_summary(
+            authorization_briefs=authorization_briefs,
+            reports=reports,
+            mission_export=mission_export,
+        ),
         mission_export=mission_export,
         readiness_items=readiness_items,
         scan_plans=scan_plans,

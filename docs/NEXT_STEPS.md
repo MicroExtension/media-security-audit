@@ -734,6 +734,7 @@ Current GUI status:
 - mission pages expose scan plan JSON and Markdown downloads
 - mission pages show a scan launch center with ready, blocked, and recorded run counts
 - mission pages show a per-service pre-launch checklist before guarded execution
+- mission pages summarize the latest scan run outcome and next action before the run table
 - mission export ZIP packages include scan plan JSON and Markdown files
 - a workspace Activity page lists mission events and exports the log
 - Activity log filters can narrow events by search text and action

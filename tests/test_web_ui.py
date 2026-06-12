@@ -1800,6 +1800,15 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("item.command_count", template)
         self.assertIn("item.action_label", template)
         self.assertIn("Each ready check still requires explicit authorization confirmation", template)
+        self.assertIn("view.scan_run_outcome.status", template)
+        self.assertIn("view.scan_run_outcome.title", template)
+        self.assertIn("view.scan_run_outcome.detail", template)
+        self.assertIn("view.scan_run_outcome.run_count", template)
+        self.assertIn("view.scan_run_outcome.finding_count", template)
+        self.assertIn("view.scan_run_outcome.evidence_count", template)
+        self.assertIn("view.scan_run_outcome.action_href", template)
+        self.assertIn("view.scan_run_outcome.action_label", template)
+        self.assertIn("run-outcome-summary", template)
         self.assertIn("Mission Roadmap", template)
         self.assertIn("view.action_roadmap", template)
         self.assertIn('aria-label="Mission action roadmap"', template)
@@ -3359,6 +3368,21 @@ class WebUiTests(unittest.TestCase):
         store = JsonStore(clean_data_dir("web-ui-runs"))
         client = store.create_client(Client(name="Client Runs"))
         mission = store.create_mission(Mission(client_id=client.id, name="Run Audit"))
+        store.add_finding(
+            mission.id,
+            Finding(
+                title="Missing security header",
+                severity=Severity.MEDIUM,
+                affected_asset="https://example.test",
+                category="http",
+                source_module="http_headers",
+                proof="X-Frame-Options is missing.",
+                risk="Clickjacking protection is reduced.",
+                remediation="Add a frame-ancestors CSP or X-Frame-Options header.",
+                counter_test="Re-run the HTTP headers check.",
+                confidence=0.8,
+            ),
+        )
         store.add_scan_run(
             ScanRun(
                 mission_id=mission.id,
@@ -3377,6 +3401,32 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(view.scan_runs[0].status, "completed")
         self.assertEqual(view.scan_runs[0].finding_count, 2)
         self.assertEqual(view.scan_runs[0].evidence_count, 1)
+        self.assertEqual(view.scan_run_outcome.status, "completed")
+        self.assertEqual(view.scan_run_outcome.title, "Latest run: HTTP headers")
+        self.assertIn(
+            "1 command(s), 2 finding(s), 1 evidence file(s)",
+            view.scan_run_outcome.detail,
+        )
+        self.assertEqual(view.scan_run_outcome.run_count, 1)
+        self.assertEqual(view.scan_run_outcome.finding_count, 1)
+        self.assertEqual(view.scan_run_outcome.evidence_count, 1)
+        self.assertEqual(view.scan_run_outcome.action_label, "Review Findings")
+        self.assertEqual(view.scan_run_outcome.action_href, "#findings")
+
+    def test_mission_view_summarizes_missing_scan_runs(self) -> None:
+        store = JsonStore(clean_data_dir("web-ui-runs-missing"))
+        client = store.create_client(Client(name="Client Missing Runs"))
+        mission = store.create_mission(Mission(client_id=client.id, name="Run Audit"))
+
+        view = build_mission_view(store, mission.id)
+
+        self.assertEqual(view.scan_run_outcome.status, "missing")
+        self.assertEqual(view.scan_run_outcome.title, "No run recorded yet")
+        self.assertEqual(view.scan_run_outcome.action_label, "Open Scan Plan")
+        self.assertEqual(view.scan_run_outcome.action_href, "#scan-plan")
+        self.assertEqual(view.scan_run_outcome.run_count, 0)
+        self.assertEqual(view.scan_run_outcome.finding_count, 0)
+        self.assertEqual(view.scan_run_outcome.evidence_count, 0)
 
     def test_mission_view_includes_export_link(self) -> None:
         store = JsonStore(clean_data_dir("web-ui-export-data"))

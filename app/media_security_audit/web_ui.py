@@ -18,6 +18,7 @@ from media_security_audit.models import (
     FindingStatus,
     Mission,
     ScanRun,
+    ScanRunStatus,
     ScopeItem,
     Severity,
 )
@@ -284,6 +285,18 @@ class ScanRunRow:
 
 
 @dataclass(frozen=True)
+class ScanRunOutcomeSummary:
+    status: str
+    title: str
+    detail: str
+    action_label: str
+    action_href: str
+    run_count: int
+    finding_count: int
+    evidence_count: int
+
+
+@dataclass(frozen=True)
 class MissionCockpitStep:
     label: str
     status: str
@@ -425,6 +438,7 @@ class MissionView:
     activity_events: list[ActivityEventRow]
     check_selection: list[CheckSelectionRow]
     scan_runs: list[ScanRunRow]
+    scan_run_outcome: ScanRunOutcomeSummary
     remediation_items: list[dict[str, str]]
     executive_summary: str
     authorization_briefs: list[AuthorizationBriefLink]
@@ -1168,6 +1182,58 @@ def scan_run_row(run: ScanRun) -> ScanRunRow:
     )
 
 
+def scan_run_outcome_summary(
+    scan_runs: list[ScanRun],
+    findings: list[Finding],
+) -> ScanRunOutcomeSummary:
+    active_finding_count = len(active_findings(findings))
+    total_evidence_count = sum(len(run.evidence_paths) for run in scan_runs)
+    if not scan_runs:
+        return ScanRunOutcomeSummary(
+            status="missing",
+            title="No run recorded yet",
+            detail=(
+                "Launch a ready check after authorization and approved scope are confirmed."
+            ),
+            action_label="Open Scan Plan",
+            action_href="#scan-plan",
+            run_count=0,
+            finding_count=active_finding_count,
+            evidence_count=0,
+        )
+
+    latest_run = max(scan_runs, key=lambda run: run.started_at)
+    check_label = CHECK_LABELS.get(latest_run.check, latest_run.check.value)
+    latest_evidence_count = len(latest_run.evidence_paths)
+    detail = (
+        f"Latest {check_label} run started {format_datetime(latest_run.started_at)} "
+        f"with {latest_run.command_count} command(s), "
+        f"{latest_run.finding_count} finding(s), "
+        f"{latest_evidence_count} evidence file(s)."
+    )
+    if latest_run.error:
+        detail = f"{detail} Error: {latest_run.error}"
+    if latest_run.status is ScanRunStatus.FAILED:
+        action_label = "Review Error"
+        action_href = "#run-monitor"
+    elif active_finding_count:
+        action_label = "Review Findings"
+        action_href = "#findings"
+    else:
+        action_label = "Generate Reports"
+        action_href = "#reports"
+    return ScanRunOutcomeSummary(
+        status=latest_run.status.value,
+        title=f"Latest run: {check_label}",
+        detail=detail,
+        action_label=action_label,
+        action_href=action_href,
+        run_count=len(scan_runs),
+        finding_count=active_finding_count,
+        evidence_count=total_evidence_count,
+    )
+
+
 def mission_cockpit(
     mission: Mission,
     findings: list[Finding],
@@ -1872,6 +1938,7 @@ def build_mission_view(
         activity_events=[activity_event_row(event) for event in activity_events],
         check_selection=check_selection,
         scan_runs=[scan_run_row(run) for run in scan_runs],
+        scan_run_outcome=scan_run_outcome_summary(scan_runs, findings),
         remediation_items=remediation_plan(findings),
         executive_summary=str(summary["executive_summary"]),
         authorization_briefs=authorization_briefs,

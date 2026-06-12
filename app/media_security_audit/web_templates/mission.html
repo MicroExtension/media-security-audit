@@ -307,6 +307,19 @@
     <h2>Run Monitor</h2>
     <span class="muted">CLI and web executions</span>
   </div>
+  <div class="status-panel run-outcome-summary">
+    <span class="badge status-{{ view.scan_run_outcome.status }}">{{ view.scan_run_outcome.status }}</span>
+    <div>
+      <strong>{{ view.scan_run_outcome.title }}</strong>
+      <p>{{ view.scan_run_outcome.detail }}</p>
+      <p>
+        {{ view.scan_run_outcome.run_count }} run(s) |
+        {{ view.scan_run_outcome.finding_count }} active finding(s) |
+        {{ view.scan_run_outcome.evidence_count }} evidence file(s)
+      </p>
+      <a class="readiness-action" href="{{ view.scan_run_outcome.action_href }}">{{ view.scan_run_outcome.action_label }}</a>
+    </div>
+  </div>
   <div class="table-wrap">
     <table>
       <caption class="sr-only">Mission CLI run monitor</caption>

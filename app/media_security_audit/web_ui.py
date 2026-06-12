@@ -152,6 +152,31 @@ class ScopeRow:
 
 
 @dataclass(frozen=True)
+class ScopeIntakeItem:
+    label: str
+    scope_type: str
+    status: str
+    detail: str
+    example: str
+    matching_scope_count: int
+    services: list[str]
+    action_label: str
+    action_href: str
+
+
+@dataclass(frozen=True)
+class ScopeIntakeSummary:
+    status: str
+    detail: str
+    action_label: str
+    action_href: str
+    approved_count: int
+    draft_count: int
+    excluded_count: int
+    items: list[ScopeIntakeItem]
+
+
+@dataclass(frozen=True)
 class FindingRow:
     id: str
     title: str
@@ -458,6 +483,7 @@ class MissionView:
     action_roadmap: list[MissionActionStep]
     activity_log_url: str
     scope: list[ScopeRow]
+    scope_intake: ScopeIntakeSummary
     findings: list[FindingRow]
     finding_dispositions: list[FindingDispositionRow]
     counter_test_summary: list[CounterTestSummaryRow]
@@ -570,6 +596,30 @@ CHECK_SCOPE_REQUIREMENTS: dict[AuditCheck, str] = {
     AuditCheck.SMB: "approved host, IP, or domain scope",
     AuditCheck.LDAP: "approved host, IP, or domain scope",
 }
+
+SCOPE_INTAKE_LABELS: dict[ScopeType, str] = {
+    ScopeType.URL: "Web application URL",
+    ScopeType.DOMAIN: "Domain",
+    ScopeType.HOST: "Server or AD hostname",
+    ScopeType.IP: "Server IP",
+    ScopeType.CIDR: "Internal network CIDR",
+}
+
+SCOPE_INTAKE_EXAMPLES: dict[ScopeType, str] = {
+    ScopeType.URL: "https://portal.client.example",
+    ScopeType.DOMAIN: "client.example",
+    ScopeType.HOST: "dc01.client.local",
+    ScopeType.IP: "192.168.1.10",
+    ScopeType.CIDR: "192.168.1.0/24",
+}
+
+SCOPE_INTAKE_ORDER: tuple[ScopeType, ...] = (
+    ScopeType.URL,
+    ScopeType.DOMAIN,
+    ScopeType.HOST,
+    ScopeType.IP,
+    ScopeType.CIDR,
+)
 
 PREPARATION_STATUS_RANK = {"blocked": 0, "warning": 1, "ready": 2}
 CLIENT_PRIORITY_RANK = {"blocked": 0, "warning": 1, "ready": 2, "none": 3}
@@ -1225,6 +1275,14 @@ def approved_scope_items(mission: Mission) -> list[ScopeItem]:
     return [item for item in mission.scope if item.approved and not item.excluded]
 
 
+def draft_scope_items(mission: Mission) -> list[ScopeItem]:
+    return [item for item in mission.scope if not item.approved and not item.excluded]
+
+
+def excluded_scope_items(mission: Mission) -> list[ScopeItem]:
+    return [item for item in mission.scope if item.excluded]
+
+
 def compatible_scope_items(mission: Mission, check: AuditCheck) -> list[ScopeItem]:
     allowed_types = CHECK_SCOPE_TYPES[check]
     return [item for item in approved_scope_items(mission) if item.type in allowed_types]
@@ -1248,6 +1306,93 @@ def check_target_summary(mission: Mission, check: AuditCheck) -> str:
     if len(matches) > len(preview_values):
         preview = f"{preview}, +{len(matches) - len(preview_values)} more"
     return f"{len(matches)} compatible approved target(s): {preview}."
+
+
+def scope_intake_summary(mission: Mission) -> ScopeIntakeSummary:
+    selected_checks = list(mission.selected_checks)
+    approved_items = approved_scope_items(mission)
+    draft_items = draft_scope_items(mission)
+    excluded_items = excluded_scope_items(mission)
+    ready_checks = [
+        check
+        for check in selected_checks
+        if compatible_scope_items(mission, check)
+    ]
+
+    if not selected_checks:
+        status = "missing"
+        detail = "Select audit services before completing the target intake."
+        action_label = "Select Checks"
+        action_href = "#check-selection"
+    elif len(ready_checks) == len(selected_checks):
+        status = "ready"
+        detail = "Selected services have compatible approved scope."
+        action_label = "Review Scan Plan"
+        action_href = "#scan-plan"
+    elif ready_checks:
+        status = "warning"
+        detail = (
+            f"{len(ready_checks)}/{len(selected_checks)} selected service(s) "
+            "have compatible approved scope."
+        )
+        action_label = "Complete Scope"
+        action_href = "#scope"
+    else:
+        status = "blocked"
+        detail = "Selected services do not yet have compatible approved scope."
+        action_label = "Add Scope"
+        action_href = "#scope"
+
+    return ScopeIntakeSummary(
+        status=status,
+        detail=detail,
+        action_label=action_label,
+        action_href=action_href,
+        approved_count=len(approved_items),
+        draft_count=len(draft_items),
+        excluded_count=len(excluded_items),
+        items=[scope_intake_item(mission, scope_type) for scope_type in SCOPE_INTAKE_ORDER],
+    )
+
+
+def scope_intake_item(mission: Mission, scope_type: ScopeType) -> ScopeIntakeItem:
+    matching_items = [
+        item for item in approved_scope_items(mission) if item.type == scope_type
+    ]
+    draft_items = [item for item in draft_scope_items(mission) if item.type == scope_type]
+    services = selected_services_for_scope_type(mission, scope_type)
+    if matching_items:
+        status = "ready"
+        detail = f"{len(matching_items)} approved target(s) match this intake type."
+    elif services:
+        status = "blocked"
+        detail = "Required by selected service(s); add and approve this target type."
+    elif draft_items:
+        status = "warning"
+        detail = f"{len(draft_items)} draft target(s) need approval before launch."
+    else:
+        status = "missing"
+        detail = "Not required by the current service selection."
+
+    return ScopeIntakeItem(
+        label=SCOPE_INTAKE_LABELS[scope_type],
+        scope_type=scope_type.value,
+        status=status,
+        detail=detail,
+        example=SCOPE_INTAKE_EXAMPLES[scope_type],
+        matching_scope_count=len(matching_items),
+        services=services,
+        action_label="Add Scope" if status in {"blocked", "missing"} else "Review Scope",
+        action_href="#scope",
+    )
+
+
+def selected_services_for_scope_type(mission: Mission, scope_type: ScopeType) -> list[str]:
+    return [
+        CHECK_LABELS[check]
+        for check in mission.selected_checks
+        if scope_type in CHECK_SCOPE_TYPES[check]
+    ]
 
 
 def template_guidance(mission: Mission) -> TemplateGuidance | None:
@@ -2126,6 +2271,7 @@ def build_mission_view(
         ),
         activity_log_url=mission_activity_log_url(mission.id),
         scope=[scope_row(item) for item in mission.scope],
+        scope_intake=scope_intake_summary(mission),
         findings=[finding_row(finding) for finding in sorted_findings(findings)],
         finding_dispositions=finding_disposition_rows(findings),
         counter_test_summary=counter_test_summary_rows(findings),

@@ -1031,6 +1031,10 @@ textarea:focus {
   margin-top: 12px;
 }
 
+.scope-intake-grid + .form-panel {
+  margin-top: 12px;
+}
+
 .readiness-item,
 .guidance-card,
 .plan-card {

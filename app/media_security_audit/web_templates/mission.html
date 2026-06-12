@@ -661,6 +661,38 @@
   <div>
     <div class="section-title">
       <h2>Scope</h2>
+      <a class="table-action" href="{{ view.scope_intake.action_href }}">{{ view.scope_intake.action_label }}</a>
+    </div>
+    <div class="status-panel scope-intake-summary">
+      <span class="badge status-{{ view.scope_intake.status }}">{{ view.scope_intake.status }}</span>
+      <div>
+        <strong>{{ view.scope_intake.detail }}</strong>
+        <p>
+          {{ view.scope_intake.approved_count }} approved |
+          {{ view.scope_intake.draft_count }} draft |
+          {{ view.scope_intake.excluded_count }} excluded
+        </p>
+      </div>
+    </div>
+    <div class="readiness-grid scope-intake-grid" aria-label="Scope intake guide">
+      {% for item in view.scope_intake.items %}
+      <article class="readiness-item readiness-{{ item.status }}">
+        <span class="badge status-{{ item.status }}">{{ item.status }}</span>
+        <strong>{{ item.label }}</strong>
+        <p>{{ item.detail }}</p>
+        <p class="muted">
+          Type <code>{{ item.scope_type }}</code> |
+          Example <code>{{ item.example }}</code> |
+          {{ item.matching_scope_count }} approved
+        </p>
+        {% if item.services %}
+        <p class="muted">Selected service fit: {{ item.services | join(", ") }}</p>
+        {% else %}
+        <p class="muted">No selected service currently requires this target type.</p>
+        {% endif %}
+        <a class="readiness-action" href="{{ item.action_href }}">{{ item.action_label }}</a>
+      </article>
+      {% endfor %}
     </div>
     <form class="form-panel compact-form" method="post" action="/missions/{{ view.mission.id }}/scope" aria-label="Add mission scope item">
       <input type="hidden" name="_csrf" value="{{ form_token }}">

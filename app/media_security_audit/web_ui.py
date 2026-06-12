@@ -19,6 +19,7 @@ from media_security_audit.models import (
     Mission,
     ScanRun,
     ScanRunStatus,
+    ScopeType,
     ScopeItem,
     Severity,
 )
@@ -270,6 +271,10 @@ class CheckSelectionRow:
     label: str
     description: str
     selected: bool
+    target_status: str
+    target_requirement: str
+    target_summary: str
+    matching_scope_count: int
 
 
 @dataclass(frozen=True)
@@ -505,6 +510,42 @@ CHECK_DESCRIPTIONS: dict[AuditCheck, str] = {
     AuditCheck.TLS: "testssl.sh TLS protocol, cipher, and certificate review on approved endpoints.",
     AuditCheck.SMB: "Anonymous SMB listing check on approved host, IP, or domain scope.",
     AuditCheck.LDAP: "Anonymous LDAP RootDSE metadata check on approved host, IP, or domain scope.",
+}
+
+CHECK_SCOPE_TYPES: dict[AuditCheck, tuple[ScopeType, ...]] = {
+    AuditCheck.NMAP: (
+        ScopeType.CIDR,
+        ScopeType.IP,
+        ScopeType.HOST,
+        ScopeType.DOMAIN,
+    ),
+    AuditCheck.HTTP_HEADERS: (ScopeType.URL,),
+    AuditCheck.DNS_MAIL: (ScopeType.DOMAIN,),
+    AuditCheck.TLS: (
+        ScopeType.URL,
+        ScopeType.DOMAIN,
+        ScopeType.HOST,
+        ScopeType.IP,
+    ),
+    AuditCheck.SMB: (
+        ScopeType.HOST,
+        ScopeType.IP,
+        ScopeType.DOMAIN,
+    ),
+    AuditCheck.LDAP: (
+        ScopeType.HOST,
+        ScopeType.IP,
+        ScopeType.DOMAIN,
+    ),
+}
+
+CHECK_SCOPE_REQUIREMENTS: dict[AuditCheck, str] = {
+    AuditCheck.NMAP: "approved CIDR, IP, host, or domain scope",
+    AuditCheck.HTTP_HEADERS: "approved URL scope",
+    AuditCheck.DNS_MAIL: "approved domain scope",
+    AuditCheck.TLS: "approved URL, domain, host, or IP scope",
+    AuditCheck.SMB: "approved host, IP, or domain scope",
+    AuditCheck.LDAP: "approved host, IP, or domain scope",
 }
 
 PREPARATION_STATUS_RANK = {"blocked": 0, "warning": 1, "ready": 2}
@@ -1148,9 +1189,42 @@ def check_selection_rows(mission: Mission) -> list[CheckSelectionRow]:
             label=CHECK_LABELS[check],
             description=CHECK_DESCRIPTIONS[check],
             selected=check in selected,
+            target_status=check_target_status(mission, check),
+            target_requirement=f"Needs {CHECK_SCOPE_REQUIREMENTS[check]}.",
+            target_summary=check_target_summary(mission, check),
+            matching_scope_count=len(compatible_scope_items(mission, check)),
         )
         for check in AuditCheck
     ]
+
+
+def approved_scope_items(mission: Mission) -> list[ScopeItem]:
+    return [item for item in mission.scope if item.approved and not item.excluded]
+
+
+def compatible_scope_items(mission: Mission, check: AuditCheck) -> list[ScopeItem]:
+    allowed_types = CHECK_SCOPE_TYPES[check]
+    return [item for item in approved_scope_items(mission) if item.type in allowed_types]
+
+
+def check_target_status(mission: Mission, check: AuditCheck) -> str:
+    if compatible_scope_items(mission, check):
+        return "ready"
+    if check in mission.selected_checks:
+        return "blocked"
+    return "missing"
+
+
+def check_target_summary(mission: Mission, check: AuditCheck) -> str:
+    matches = compatible_scope_items(mission, check)
+    if not matches:
+        return f"Add {CHECK_SCOPE_REQUIREMENTS[check]} before launch."
+
+    preview_values = [item.value for item in matches[:3]]
+    preview = ", ".join(preview_values)
+    if len(matches) > len(preview_values):
+        preview = f"{preview}, +{len(matches) - len(preview_values)} more"
+    return f"{len(matches)} compatible approved target(s): {preview}."
 
 
 def template_guidance(mission: Mission) -> TemplateGuidance | None:

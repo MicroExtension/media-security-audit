@@ -447,6 +447,12 @@
           <span>
             <strong>{{ check.label }}</strong>
             <small>{{ check.description }}</small>
+            <span class="check-target-guidance">
+              <span class="badge status-{{ check.target_status }}">{{ check.target_status }}</span>
+              <small>{{ check.matching_scope_count }} compatible target(s)</small>
+            </span>
+            <small>{{ check.target_requirement }}</small>
+            <small>{{ check.target_summary }}</small>
           </span>
         </label>
         {% endfor %}

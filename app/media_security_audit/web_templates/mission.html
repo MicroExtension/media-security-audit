@@ -529,6 +529,24 @@
 <section class="section" id="reports">
   <div class="section-title">
     <h2>Reports</h2>
+    <a class="table-action" href="{{ view.report_delivery.action_href }}">{{ view.report_delivery.action_label }}</a>
+  </div>
+  <div class="status-panel report-delivery-summary">
+    <span class="badge status-{{ view.report_delivery.status }}">{{ view.report_delivery.status }}</span>
+    <div>
+      <strong>{{ view.report_delivery.detail }}</strong>
+      <p>{{ view.report_delivery.ready_count }}/{{ view.report_delivery.total_count }} deliverable item(s) ready</p>
+    </div>
+  </div>
+  <div class="readiness-grid report-delivery-grid" aria-label="Report delivery checklist">
+    {% for item in view.report_delivery.items %}
+    <article class="readiness-item readiness-{{ item.status }}">
+      <span class="badge status-{{ item.status }}">{{ item.status }}</span>
+      <strong>{{ item.label }}</strong>
+      <p>{{ item.detail }}</p>
+      <a class="readiness-action" href="{{ item.action_href }}">{{ item.action_label }}</a>
+    </article>
+    {% endfor %}
   </div>
   <div class="report-panel">
     <form method="post" action="/missions/{{ view.mission.id }}/authorization-brief" aria-label="Generate authorization brief">

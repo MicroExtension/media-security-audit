@@ -736,6 +736,7 @@ Current GUI status:
 - mission pages show a per-service pre-launch checklist before guarded execution
 - mission pages summarize the latest scan run outcome and next action before the run table
 - mission check selection shows compatible approved target guidance per service
+- mission reports show a delivery checklist for brief, JSON, Markdown, HTML, PDF, and package
 - mission export ZIP packages include scan plan JSON and Markdown files
 - a workspace Activity page lists mission events and exports the log
 - Activity log filters can narrow events by search text and action

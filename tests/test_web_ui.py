@@ -59,6 +59,7 @@ from media_security_audit.web_pilot import (  # noqa: E402
     format_pilot_readiness_markdown,
     format_pilot_runbook_markdown,
 )
+from media_security_audit.web_reports import generate_web_reports  # noqa: E402
 from media_security_audit.web_system import build_system_status  # noqa: E402
 from media_security_audit.web_ui import (  # noqa: E402
     build_client_view,
@@ -1848,6 +1849,13 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("Guarded execution", template)
         self.assertIn("CLI and web executions", template)
         self.assertIn("Known Vulnerability Correlation", template)
+        self.assertIn("view.report_delivery.status", template)
+        self.assertIn("view.report_delivery.detail", template)
+        self.assertIn("view.report_delivery.ready_count", template)
+        self.assertIn("view.report_delivery.total_count", template)
+        self.assertIn("view.report_delivery.items", template)
+        self.assertIn("Report delivery checklist", template)
+        self.assertIn("report-delivery-summary", template)
         self.assertIn("view.vulnerability_catalog_count", template)
         self.assertIn("view.vulnerability_summary.status", template)
         self.assertIn("view.vulnerability_summary.detail", template)
@@ -3487,6 +3495,48 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(view.mission_export.mismatched_count, 0)
         self.assertEqual(view.mission_export.unexpected_count, 0)
         self.assertFalse(view.mission_export.has_integrity_issues)
+
+    def test_mission_view_summarizes_missing_report_delivery(self) -> None:
+        store = JsonStore(clean_data_dir("web-ui-report-delivery-missing-data"))
+        reports_dir = clean_data_dir("web-ui-report-delivery-missing-reports")
+        client = store.create_client(Client(name="Client Reports"))
+        mission = store.create_mission(Mission(client_id=client.id, name="Report Audit"))
+
+        view = build_mission_view(store, mission.id, reports_dir=reports_dir)
+        items = {item.label: item for item in view.report_delivery.items}
+
+        self.assertEqual(view.report_delivery.status, "missing")
+        self.assertEqual(view.report_delivery.ready_count, 0)
+        self.assertEqual(view.report_delivery.total_count, 6)
+        self.assertEqual(view.report_delivery.action_label, "Generate Reports")
+        self.assertEqual(items["PDF customer report"].status, "missing")
+        self.assertEqual(items["Mission ZIP package"].status, "missing")
+
+    def test_mission_view_summarizes_ready_report_delivery(self) -> None:
+        store = JsonStore(clean_data_dir("web-ui-report-delivery-ready-data"))
+        reports_dir = clean_data_dir("web-ui-report-delivery-ready-reports")
+        client = store.create_client(Client(name="Client Reports Ready"))
+        mission = store.create_mission(
+            Mission(
+                client_id=client.id,
+                name="Report Audit",
+                authorization_reference="AUTH-REPORT",
+            )
+        )
+        generate_authorization_brief(store, mission.id, reports_dir)
+        generate_web_reports(store, mission.id, reports_dir)
+        generate_mission_export(store, mission.id, reports_dir)
+
+        view = build_mission_view(store, mission.id, reports_dir=reports_dir)
+        items = {item.label: item for item in view.report_delivery.items}
+
+        self.assertEqual(view.report_delivery.status, "ready")
+        self.assertEqual(view.report_delivery.ready_count, 6)
+        self.assertEqual(view.report_delivery.total_count, 6)
+        self.assertEqual(view.report_delivery.action_label, "Download Package")
+        self.assertEqual(items["Authorization brief"].status, "ready")
+        self.assertEqual(items["PDF customer report"].status, "ready")
+        self.assertEqual(items["Mission ZIP package"].status, "ready")
 
     def test_mission_view_includes_authorization_brief_links(self) -> None:
         store = JsonStore(clean_data_dir("web-ui-authorization-data"))

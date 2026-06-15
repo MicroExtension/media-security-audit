@@ -614,6 +614,8 @@ Current GUI status:
 - guided audit wizard shows a live audit snapshot for client, mission, targets,
   selected services, and authorization readiness
 - dashboard can show clients and missions
+- dashboard shows a technician workflow from guided audit creation to report
+  handoff
 - client detail pages show client mission history and risk metrics
 - mission pages can show scope, findings, remediation plan, and reports
 - mission pages show a technician cockpit for workflow, selected services, and handoff status

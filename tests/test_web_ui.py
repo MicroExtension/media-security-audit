@@ -274,6 +274,7 @@ class WebUiTests(unittest.TestCase):
         template = template_path.read_text(encoding="utf-8")
 
         for anchor in [
+            "technician-workflow",
             "onboarding",
             "ready-missions",
             "review-missions",
@@ -292,6 +293,7 @@ class WebUiTests(unittest.TestCase):
             self.assertIn(f'id="{anchor}"', template)
 
         for counter in [
+            "view.technician_workflow_steps|length",
             "view.onboarding_ready_count",
             "view.onboarding_total_count",
             "view.ready_missions|length",
@@ -308,6 +310,13 @@ class WebUiTests(unittest.TestCase):
             self.assertIn(f"{{{{ {counter} }}}}", template)
 
         self.assertIn('aria-label="Workspace counter-test summary"', template)
+        self.assertIn("Technician Workflow", template)
+        self.assertIn('aria-label="Technician workflow actions"', template)
+        self.assertIn('aria-label="Technician workflow steps"', template)
+        self.assertIn("view.technician_workflow_steps", template)
+        self.assertIn("step.status", template)
+        self.assertIn("step.detail", template)
+        self.assertIn("step.action_href", template)
         self.assertIn("Failed counter-test missions watchlist", template)
         self.assertIn("mission.counter_test_failed_count", template)
         self.assertIn("/missions/{{ mission.id }}#counter-test", template)
@@ -2043,6 +2052,26 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(view.ready_preparation_count, 0)
         self.assertEqual(view.onboarding_ready_count, 6)
         self.assertEqual(view.onboarding_total_count, 6)
+        self.assertEqual(
+            [step.label for step in view.technician_workflow_steps],
+            [
+                "1. Create audit",
+                "2. Authorize scope",
+                "3. Select services",
+                "4. Launch guarded checks",
+                "5. Review findings",
+                "6. Reports and handoff",
+            ],
+        )
+        workflow = {step.label: step for step in view.technician_workflow_steps}
+        self.assertEqual(workflow["1. Create audit"].status, "ready")
+        self.assertEqual(workflow["2. Authorize scope"].status, "ready")
+        self.assertEqual(workflow["3. Select services"].status, "ready")
+        self.assertEqual(workflow["4. Launch guarded checks"].status, "warning")
+        self.assertEqual(workflow["5. Review findings"].status, "ready")
+        self.assertEqual(workflow["6. Reports and handoff"].status, "ready")
+        self.assertEqual(workflow["1. Create audit"].action_href, "/wizard")
+        self.assertEqual(workflow["6. Reports and handoff"].action_href, "/pilot")
         onboarding = {item.label: item for item in view.onboarding_steps}
         self.assertEqual(onboarding["Client record"].status, "ready")
         self.assertEqual(onboarding["Mission setup"].status, "ready")
@@ -2093,6 +2122,11 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(empty_steps["Client record"].status, "warning")
         self.assertEqual(empty_steps["Mission setup"].status, "blocked")
         self.assertEqual(empty_steps["Finding review"].status, "blocked")
+        empty_workflow = {item.label: item for item in empty_view.technician_workflow_steps}
+        self.assertEqual(empty_workflow["1. Create audit"].status, "blocked")
+        self.assertEqual(empty_workflow["1. Create audit"].action_href, "/wizard")
+        self.assertEqual(empty_workflow["2. Authorize scope"].status, "blocked")
+        self.assertEqual(empty_workflow["4. Launch guarded checks"].status, "blocked")
 
         store = JsonStore(clean_data_dir("web-ui-dashboard-onboarding-partial"))
         client = store.create_client(Client(name="Client Onboarding"))
@@ -2113,6 +2147,11 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(steps["Approved scope"].status, "blocked")
         self.assertEqual(steps["Check selection"].status, "blocked")
         self.assertEqual(steps["Finding review"].status, "blocked")
+        workflow = {item.label: item for item in view.technician_workflow_steps}
+        self.assertEqual(workflow["1. Create audit"].status, "ready")
+        self.assertEqual(workflow["2. Authorize scope"].status, "blocked")
+        self.assertEqual(workflow["2. Authorize scope"].action_href, f"/missions/{mission.id}#mission-setup")
+        self.assertEqual(workflow["3. Select services"].status, "blocked")
 
     def test_dashboard_view_builds_workspace_preparation_summary(self) -> None:
         store = JsonStore(clean_data_dir("web-ui-dashboard-preparation"))

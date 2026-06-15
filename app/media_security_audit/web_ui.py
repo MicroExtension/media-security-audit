@@ -448,6 +448,7 @@ class DashboardView:
     clients: list[ClientRow]
     missions: list[MissionRow]
     preparation_items: list[DashboardPreparationRow]
+    technician_workflow_steps: list[DashboardOnboardingStep]
     ready_missions: list[DashboardPreparationRow]
     review_missions: list[DashboardPreparationRow]
     blocked_missions: list[DashboardPreparationRow]
@@ -1204,6 +1205,105 @@ def onboarding_next_action(
         if step.status != "ready":
             return (step.detail, step.action_label, step.action_href)
     return ("Pilot workflow is ready for evidence handoff review.", "Open Pilot", "/pilot")
+
+
+def dashboard_workflow_status(statuses: list[str]) -> str:
+    if any(status == "blocked" for status in statuses):
+        return "blocked"
+    if any(status == "warning" for status in statuses):
+        return "warning"
+    return "ready"
+
+
+def build_dashboard_technician_workflow_steps(
+    onboarding_steps: list[DashboardOnboardingStep],
+    ready_preparation_count: int,
+    warning_preparation_count: int,
+    blocked_preparation_count: int,
+    total_findings: int,
+    high_or_critical_findings: int,
+) -> list[DashboardOnboardingStep]:
+    onboarding = {item.label: item for item in onboarding_steps}
+    authorization = onboarding["Authorization"]
+    approved_scope = onboarding["Approved scope"]
+    check_selection = onboarding["Check selection"]
+    finding_review = onboarding["Finding review"]
+    ready_for_scans = ready_preparation_count > 0
+    preparation_status = (
+        "ready"
+        if ready_for_scans
+        else "warning"
+        if warning_preparation_count
+        else "blocked"
+    )
+    handoff_status = (
+        "ready"
+        if all(item.status == "ready" for item in onboarding_steps)
+        else "warning"
+        if total_findings
+        else "blocked"
+    )
+
+    return [
+        DashboardOnboardingStep(
+            label="1. Create audit",
+            status=dashboard_workflow_status(
+                [
+                    onboarding["Client record"].status,
+                    onboarding["Mission setup"].status,
+                ]
+            ),
+            detail="Create or continue a guided client audit from the wizard.",
+            action_label="Open Wizard",
+            action_href="/wizard",
+        ),
+        DashboardOnboardingStep(
+            label="2. Authorize scope",
+            status=dashboard_workflow_status([authorization.status, approved_scope.status]),
+            detail="Record written authorization and approve only validated targets.",
+            action_label=(
+                authorization.action_label
+                if authorization.status != "ready"
+                else approved_scope.action_label
+            ),
+            action_href=(
+                authorization.action_href
+                if authorization.status != "ready"
+                else approved_scope.action_href
+            ),
+        ),
+        DashboardOnboardingStep(
+            label="3. Select services",
+            status=check_selection.status,
+            detail="Choose safe audit services that match the approved scope.",
+            action_label=check_selection.action_label,
+            action_href=check_selection.action_href,
+        ),
+        DashboardOnboardingStep(
+            label="4. Launch guarded checks",
+            status=preparation_status,
+            detail=(
+                f"{ready_preparation_count} ready, {warning_preparation_count} review, "
+                f"{blocked_preparation_count} blocked mission(s)."
+            ),
+            action_label="Open Ready Missions" if ready_for_scans else "Review Preparation",
+            action_href="#ready-missions" if ready_for_scans else "#preparation",
+        ),
+        DashboardOnboardingStep(
+            label="5. Review findings",
+            status=finding_review.status,
+            detail=f"{total_findings} finding(s), {high_or_critical_findings} high/critical.",
+            action_label=finding_review.action_label,
+            action_href=finding_review.action_href,
+        ),
+        DashboardOnboardingStep(
+            label="6. Reports and handoff",
+            status=handoff_status,
+            detail="Generate reports, export the mission package, and review the Pilot bundle.",
+            action_label="Open Pilot" if handoff_status == "ready" else "Review Pilot",
+            action_href="/pilot",
+        ),
+    ]
 
 
 def client_preparation_row(mission: Mission, findings: list[Finding]) -> ClientPreparationRow:
@@ -2283,11 +2383,29 @@ def build_dashboard_view(store: JsonStore) -> DashboardView:
         onboarding_next_action_label,
         onboarding_next_action_href,
     ) = onboarding_next_action(onboarding_steps)
+    blocked_preparation_count = len(
+        [item for item in preparation_items if item.status == "blocked"]
+    )
+    warning_preparation_count = len(
+        [item for item in preparation_items if item.status == "warning"]
+    )
+    ready_preparation_count = len(
+        [item for item in preparation_items if item.status == "ready"]
+    )
+    technician_workflow_steps = build_dashboard_technician_workflow_steps(
+        onboarding_steps=onboarding_steps,
+        ready_preparation_count=ready_preparation_count,
+        warning_preparation_count=warning_preparation_count,
+        blocked_preparation_count=blocked_preparation_count,
+        total_findings=total_findings,
+        high_or_critical_findings=high_or_critical,
+    )
 
     return DashboardView(
         clients=client_rows,
         missions=mission_rows,
         preparation_items=preparation_items,
+        technician_workflow_steps=technician_workflow_steps,
         ready_missions=ready_mission_rows(preparation_items),
         review_missions=review_mission_rows(preparation_items),
         blocked_missions=blocked_mission_rows(preparation_items),
@@ -2312,15 +2430,9 @@ def build_dashboard_view(store: JsonStore) -> DashboardView:
         total_missions=len(mission_rows),
         total_findings=total_findings,
         high_or_critical_findings=high_or_critical,
-        blocked_preparation_count=len(
-            [item for item in preparation_items if item.status == "blocked"]
-        ),
-        warning_preparation_count=len(
-            [item for item in preparation_items if item.status == "warning"]
-        ),
-        ready_preparation_count=len(
-            [item for item in preparation_items if item.status == "ready"]
-        ),
+        blocked_preparation_count=blocked_preparation_count,
+        warning_preparation_count=warning_preparation_count,
+        ready_preparation_count=ready_preparation_count,
     )
 
 

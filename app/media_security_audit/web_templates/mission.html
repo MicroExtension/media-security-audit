@@ -27,6 +27,7 @@
 </section>
 
 <section class="page-shortcuts" aria-label="Mission shortcuts">
+  <a href="#mission-go-no-go">Go/No-Go <span>{{ view.go_no_go.decision }}</span></a>
   <a href="#mission-cockpit">Cockpit <span>{{ view.cockpit.ready_step_count }}/{{ view.cockpit.total_step_count }}</span></a>
   <a href="#action-roadmap">Roadmap <span>{{ view.action_roadmap|length }}</span></a>
   <a href="#mission-readiness">Readiness <span>{{ view.readiness_items|length }}</span></a>
@@ -41,6 +42,30 @@
   <a href="#scope">Scope <span>{{ view.scope|length }}</span></a>
   <a href="#counter-test">Counter-test <span>{{ view.counter_test_items|length }}</span></a>
   <a href="#findings">Findings <span>{{ view.findings|length }}</span></a>
+</section>
+
+<section class="section mission-go-no-go" id="mission-go-no-go">
+  <div class="section-title">
+    <h2>Mission Go/No-Go</h2>
+    <a class="table-action" href="{{ view.go_no_go.action_href }}">{{ view.go_no_go.action_label }}</a>
+  </div>
+  <div class="status-panel">
+    <span class="badge status-{{ view.go_no_go.status }}">{{ view.go_no_go.decision }}</span>
+    <div>
+      <strong>{{ view.go_no_go.detail }}</strong>
+      <p>{{ view.go_no_go.ready_count }}/{{ view.go_no_go.total_count }} handoff gate(s) ready</p>
+    </div>
+  </div>
+  <div class="readiness-grid mission-go-no-go-grid" aria-label="Mission go/no-go checklist">
+    {% for item in view.go_no_go.items %}
+    <article class="readiness-item readiness-{{ item.status }}">
+      <span class="badge status-{{ item.status }}">{{ item.status }}</span>
+      <strong>{{ item.label }}</strong>
+      <p>{{ item.detail }}</p>
+      <a class="readiness-action" href="{{ item.action_href }}">{{ item.action_label }}</a>
+    </article>
+    {% endfor %}
+  </div>
 </section>
 
 <section class="section mission-cockpit" id="mission-cockpit">

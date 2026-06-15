@@ -1749,6 +1749,7 @@ class WebUiTests(unittest.TestCase):
         template = template_path.read_text(encoding="utf-8")
 
         for anchor in [
+            "mission-go-no-go",
             "mission-cockpit",
             "action-roadmap",
             "mission-readiness",
@@ -1768,6 +1769,7 @@ class WebUiTests(unittest.TestCase):
             self.assertIn(f'id="{anchor}"', template)
 
         for counter in [
+            "view.go_no_go.decision",
             "view.cockpit.ready_step_count",
             "view.cockpit.total_step_count",
             "view.cockpit.selected_check_count",
@@ -1789,6 +1791,16 @@ class WebUiTests(unittest.TestCase):
             self.assertIn(f"{{{{ {counter} }}}}", template)
 
         self.assertIn("Technician Cockpit", template)
+        self.assertIn("Mission Go/No-Go", template)
+        self.assertIn("view.go_no_go.status", template)
+        self.assertIn("view.go_no_go.detail", template)
+        self.assertIn("view.go_no_go.action_href", template)
+        self.assertIn("view.go_no_go.action_label", template)
+        self.assertIn("view.go_no_go.ready_count", template)
+        self.assertIn("view.go_no_go.total_count", template)
+        self.assertIn("view.go_no_go.items", template)
+        self.assertIn('aria-label="Mission go/no-go checklist"', template)
+        self.assertIn("mission-go-no-go-grid", template)
         self.assertIn("Scan Launch Center", template)
         self.assertIn("view.scan_launch.status", template)
         self.assertIn("view.scan_launch.detail", template)
@@ -3593,6 +3605,106 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(items["Authorization brief"].status, "ready")
         self.assertEqual(items["PDF customer report"].status, "ready")
         self.assertEqual(items["Mission ZIP package"].status, "ready")
+
+    def test_mission_view_go_no_go_blocks_missing_authorization_and_reports(self) -> None:
+        store = JsonStore(clean_data_dir("web-ui-go-no-go-blocked-data"))
+        reports_dir = clean_data_dir("web-ui-go-no-go-blocked-reports")
+        client = store.create_client(Client(name="Client Go No-Go Blocked"))
+        mission = store.create_mission(
+            Mission(
+                client_id=client.id,
+                name="Blocked Handoff",
+                selected_checks=[AuditCheck.HTTP_HEADERS],
+            )
+        )
+        store.add_scope_item(
+            mission.id,
+            ScopeItem(
+                type=ScopeType.URL,
+                value="https://blocked.example",
+                approved=True,
+            ),
+        )
+
+        view = build_mission_view(store, mission.id, reports_dir=reports_dir)
+        items = {item.label: item for item in view.go_no_go.items}
+
+        self.assertEqual(view.go_no_go.status, "blocked")
+        self.assertEqual(view.go_no_go.decision, "No-Go")
+        self.assertEqual(view.go_no_go.ready_count, 1)
+        self.assertEqual(view.go_no_go.total_count, 6)
+        self.assertEqual(view.go_no_go.action_label, "Update Setup")
+        self.assertEqual(view.go_no_go.action_href, "#mission-setup")
+        self.assertEqual(items["Authorization"].status, "blocked")
+        self.assertEqual(items["Scope and services"].status, "ready")
+        self.assertEqual(items["Report delivery"].status, "blocked")
+
+    def test_mission_view_go_no_go_warns_when_only_cve_catalog_is_missing(self) -> None:
+        store = JsonStore(clean_data_dir("web-ui-go-no-go-warning-data"))
+        reports_dir = clean_data_dir("web-ui-go-no-go-warning-reports")
+        client = store.create_client(Client(name="Client Go No-Go Warning"))
+        mission = store.create_mission(
+            Mission(
+                client_id=client.id,
+                name="Pilot Handoff",
+                authorization_reference="AUTH-GO",
+                selected_checks=[AuditCheck.HTTP_HEADERS],
+            )
+        )
+        store.add_scope_item(
+            mission.id,
+            ScopeItem(
+                type=ScopeType.URL,
+                value="https://pilot.example",
+                approved=True,
+            ),
+        )
+        store.add_finding(
+            mission.id,
+            Finding(
+                title="Missing HTTP security header",
+                severity=Severity.MEDIUM,
+                affected_asset="https://pilot.example",
+                category="http",
+                source_module="http_headers",
+                proof="Strict-Transport-Security header missing",
+                risk="The browser has less protection against downgrade scenarios.",
+                remediation="Enable HSTS on the web server.",
+                counter_test="Run the approved HTTP header plan again.",
+                confidence=0.8,
+                status=FindingStatus.CONFIRMED,
+            ),
+        )
+        store.add_scan_run(
+            ScanRun(
+                mission_id=mission.id,
+                check=AuditCheck.HTTP_HEADERS,
+                status=ScanRunStatus.COMPLETED,
+                started_at=datetime(2026, 6, 15, 9, 0, tzinfo=timezone.utc),
+                command_count=1,
+                finding_count=1,
+                evidence_paths=["runs/mission/http_headers.json"],
+            )
+        )
+        generate_authorization_brief(store, mission.id, reports_dir)
+        generate_web_reports(store, mission.id, reports_dir)
+        generate_mission_export(store, mission.id, reports_dir)
+
+        view = build_mission_view(store, mission.id, reports_dir=reports_dir)
+        items = {item.label: item for item in view.go_no_go.items}
+
+        self.assertEqual(view.go_no_go.status, "warning")
+        self.assertEqual(view.go_no_go.decision, "Review")
+        self.assertEqual(view.go_no_go.ready_count, 5)
+        self.assertEqual(view.go_no_go.total_count, 6)
+        self.assertEqual(view.go_no_go.action_label, "Import Catalog")
+        self.assertEqual(view.go_no_go.action_href, "#vulnerabilities")
+        self.assertEqual(items["Authorization"].status, "ready")
+        self.assertEqual(items["Scope and services"].status, "ready")
+        self.assertEqual(items["Scan evidence"].status, "ready")
+        self.assertEqual(items["CVE/KEV review"].status, "warning")
+        self.assertEqual(items["Finding review"].status, "ready")
+        self.assertEqual(items["Report delivery"].status, "ready")
 
     def test_mission_view_includes_authorization_brief_links(self) -> None:
         store = JsonStore(clean_data_dir("web-ui-authorization-data"))

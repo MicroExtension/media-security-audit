@@ -85,6 +85,7 @@
 
 <section class="page-shortcuts" aria-label="Pilot runbook shortcuts">
   <a href="#pilot-handoff-decision">Decision <span>{{ view.handoff_decision.status }}</span></a>
+  <a href="#pilot-vm-operations">VM Ops <span>{{ view.vm_operations|length }}</span></a>
   {% if view.attention_items %}
   <a href="#pilot-attention">Attention <span>{{ view.attention_items|length }}</span></a>
   {% endif %}
@@ -96,6 +97,28 @@
   <a href="#{{ section.anchor }}">{{ section.title }} <span>{{ section.steps|length }}</span></a>
   {% endfor %}
   <a href="#pilot-acceptance">Acceptance <span>{{ view.acceptance_items|length }}</span></a>
+</section>
+
+<section class="section" id="pilot-vm-operations">
+  <div class="section-title">
+    <h2>VM Pilot Operations</h2>
+    <div class="report-links" aria-label="Pilot VM operation links">
+      <a href="/system">System</a>
+      <a href="/pilot/runbook.md">Runbook</a>
+      <a href="/pilot/runbook.json">Runbook JSON</a>
+    </div>
+  </div>
+  <div class="readiness-grid" aria-label="Pilot VM operation commands">
+    {% for operation in view.vm_operations %}
+    <article class="readiness-item readiness-ready">
+      <span class="badge status-ready">{{ operation.label }}</span>
+      <strong>{{ operation.label }}</strong>
+      <p>{{ operation.detail }}</p>
+      <code>{{ operation.command }}</code>
+      <a class="readiness-action" href="{{ operation.review_href }}">Review</a>
+    </article>
+    {% endfor %}
+  </div>
 </section>
 
 {% if view.attention_items %}

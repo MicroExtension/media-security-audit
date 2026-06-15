@@ -576,6 +576,7 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("view.title", template)
         self.assertIn("view.subtitle", template)
         self.assertIn("view.metrics", template)
+        self.assertIn("view.vm_operations", template)
         self.assertIn("view.sections", template)
         self.assertIn("view.acceptance_items", template)
         self.assertIn("view.readiness_items", template)
@@ -612,6 +613,15 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("Archive Bytes", template)
         self.assertIn('aria-label="Pilot runbook shortcuts"', template)
         self.assertIn('href="#pilot-handoff-decision"', template)
+        self.assertIn('href="#pilot-vm-operations"', template)
+        self.assertIn('id="pilot-vm-operations"', template)
+        self.assertIn('aria-label="Pilot VM operation links"', template)
+        self.assertIn('aria-label="Pilot VM operation commands"', template)
+        self.assertIn("VM Pilot Operations", template)
+        self.assertIn("operation.label", template)
+        self.assertIn("operation.command", template)
+        self.assertIn("operation.detail", template)
+        self.assertIn("operation.review_href", template)
         self.assertIn('id="pilot-attention"', template)
         self.assertIn('aria-label="Pilot attention links"', template)
         self.assertIn('id="pilot-bundle"', template)
@@ -695,6 +705,18 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(view.handoff_decision.action_label, "Review System")
         self.assertEqual(view.handoff_decision.action_href, "/system")
         self.assertEqual(
+            [operation.label for operation in view.vm_operations],
+            ["Update", "Preflight", "Start", "Status", "Readiness", "Closeout"],
+        )
+        self.assertEqual(
+            view.vm_operations[0].command,
+            "cd ~/media-security-audit && git pull --ff-only",
+        )
+        self.assertEqual(
+            view.vm_operations[-1].command,
+            "bash scripts/debian-vm-pilot-closeout.sh",
+        )
+        self.assertEqual(
             [item.path for item in view.evidence_files],
             [
                 "pilot-handoff-summary.md",
@@ -777,6 +799,10 @@ class WebUiTests(unittest.TestCase):
 
         markdown = format_pilot_runbook_markdown(view)
         self.assertIn("# Pilot Runbook", markdown)
+        self.assertIn("## VM Operations", markdown)
+        self.assertIn("cd ~/media-security-audit && git pull --ff-only", markdown)
+        self.assertIn("bash scripts/debian-vm-preflight.sh", markdown)
+        self.assertIn("bash scripts/debian-vm-pilot-closeout.sh", markdown)
         for title in [
             "Setup",
             "Mission",
@@ -793,6 +819,14 @@ class WebUiTests(unittest.TestCase):
             "Plan next iteration",
         ]:
             self.assertIn(step, markdown)
+
+        runbook_payload = build_pilot_runbook_json_export(view).payload
+        self.assertEqual(runbook_payload["schema_version"], 2)
+        self.assertEqual(len(runbook_payload["vm_operations"]), 6)
+        self.assertEqual(
+            runbook_payload["vm_operations"][0]["command"],
+            "cd ~/media-security-audit && git pull --ff-only",
+        )
 
     def test_pilot_runbook_view_keeps_known_phase_counts(self) -> None:
         view = build_pilot_runbook_view()
@@ -812,6 +846,7 @@ class WebUiTests(unittest.TestCase):
             [metric.value for metric in view.metrics],
             ["5", "Local", "Guarded", "Reports"],
         )
+        self.assertEqual(len(view.vm_operations), 6)
         self.assertEqual(len(view.acceptance_items), 11)
         self.assertEqual(view.readiness_items, [])
         self.assertEqual(view.attention_items, [])

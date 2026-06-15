@@ -373,6 +373,16 @@
       <a class="readiness-action" href="{{ view.vulnerability_summary.action_href }}">{{ view.vulnerability_summary.action_label }}</a>
     </div>
   </div>
+  <div class="readiness-grid vulnerability-review-grid" aria-label="CVE/KEV review checklist">
+    {% for item in view.vulnerability_review_items %}
+    <article class="readiness-item readiness-{{ item.status }}">
+      <span class="badge status-{{ item.status }}">{{ item.status }}</span>
+      <strong>{{ item.label }}</strong>
+      <p>{{ item.detail }}</p>
+      <a class="readiness-action" href="{{ item.action_href }}">{{ item.action_label }}</a>
+    </article>
+    {% endfor %}
+  </div>
   <details class="export-integrity-details vulnerability-import">
     <summary>Import reviewed CVE/KEV catalog</summary>
     <form class="form-panel compact-form" method="post" action="/missions/{{ view.mission.id }}/vulnerabilities/catalog" aria-label="Import vulnerability catalog">

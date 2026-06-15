@@ -54,6 +54,7 @@ Implemented so far:
 - local vulnerability catalog import and CVE/KEV correlation against mission findings
 - reviewed CVE/KEV catalog import from mission pages without external downloads
 - mission pages summarize CVE/KEV candidate, known-exploited, critical/high, and stored finding counts
+- mission pages show a CVE/KEV review checklist before storing candidate findings
 - generated reports include CVE/KEV candidate rollups and prioritized remediation entries
 - guarded TLS testssl.sh plan, execution wrapper, and JSON parser
 - guarded SMB anonymous listing plan, execution wrapper, and parser

@@ -413,6 +413,27 @@ class ReportDeliverySummary:
 
 
 @dataclass(frozen=True)
+class MissionGoNoGoItem:
+    label: str
+    status: str
+    detail: str
+    action_label: str
+    action_href: str
+
+
+@dataclass(frozen=True)
+class MissionGoNoGoSummary:
+    status: str
+    decision: str
+    detail: str
+    action_label: str
+    action_href: str
+    ready_count: int
+    total_count: int
+    items: list[MissionGoNoGoItem]
+
+
+@dataclass(frozen=True)
 class MissionActionStep:
     number: int
     label: str
@@ -478,6 +499,7 @@ class ClientView:
 @dataclass(frozen=True)
 class MissionView:
     mission: MissionRow
+    go_no_go: MissionGoNoGoSummary
     cockpit: MissionCockpit
     scan_launch: ScanLaunchCenter
     action_roadmap: list[MissionActionStep]
@@ -1843,6 +1865,147 @@ def report_delivery_package_item(
     )
 
 
+def mission_go_no_go_summary(
+    mission: Mission,
+    scope_intake: ScopeIntakeSummary,
+    scan_run_outcome: ScanRunOutcomeSummary,
+    vulnerability: VulnerabilitySummary,
+    report_delivery: ReportDeliverySummary,
+    readiness_items: list[ReadinessItem],
+) -> MissionGoNoGoSummary:
+    readiness = {item.label: item for item in readiness_items}
+    items = [
+        go_no_go_authorization_item(mission),
+        go_no_go_scope_item(scope_intake),
+        go_no_go_scan_evidence_item(scan_run_outcome),
+        go_no_go_vulnerability_item(vulnerability),
+        go_no_go_finding_review_item(readiness["Finding Review"]),
+        go_no_go_delivery_item(report_delivery),
+    ]
+    ready_count = len([item for item in items if item.status == "ready"])
+    first_attention = next(
+        (item for item in items if item.status in {"blocked", "missing", "warning"}),
+        None,
+    )
+    if any(item.status == "blocked" for item in items):
+        status = "blocked"
+        decision = "No-Go"
+        detail = "Hard blockers remain before this mission can be handed off."
+    elif first_attention is not None:
+        status = "warning"
+        decision = "Review"
+        detail = "Mission is usable, but attention items remain before customer handoff."
+    else:
+        status = "ready"
+        decision = "Go"
+        detail = "Mission is ready for pilot handoff."
+
+    return MissionGoNoGoSummary(
+        status=status,
+        decision=decision,
+        detail=detail,
+        action_label=first_attention.action_label if first_attention else "Open Reports",
+        action_href=first_attention.action_href if first_attention else "#reports",
+        ready_count=ready_count,
+        total_count=len(items),
+        items=items,
+    )
+
+
+def go_no_go_authorization_item(mission: Mission) -> MissionGoNoGoItem:
+    if mission.is_authorized:
+        return MissionGoNoGoItem(
+            label="Authorization",
+            status="ready",
+            detail="Written authorization is recorded.",
+            action_label="Review Setup",
+            action_href="#mission-setup",
+        )
+    return MissionGoNoGoItem(
+        label="Authorization",
+        status="blocked",
+        detail="Written authorization is required before handoff.",
+        action_label="Update Setup",
+        action_href="#mission-setup",
+    )
+
+
+def go_no_go_scope_item(scope_intake: ScopeIntakeSummary) -> MissionGoNoGoItem:
+    status = "blocked" if scope_intake.status in {"blocked", "missing"} else scope_intake.status
+    return MissionGoNoGoItem(
+        label="Scope and services",
+        status=status,
+        detail=scope_intake.detail,
+        action_label=scope_intake.action_label,
+        action_href=scope_intake.action_href,
+    )
+
+
+def go_no_go_scan_evidence_item(scan_run_outcome: ScanRunOutcomeSummary) -> MissionGoNoGoItem:
+    if scan_run_outcome.run_count == 0:
+        return MissionGoNoGoItem(
+            label="Scan evidence",
+            status="warning",
+            detail="No guarded scan run is recorded yet.",
+            action_label="Open Scan Plan",
+            action_href="#scan-plan",
+        )
+    if scan_run_outcome.status == "failed":
+        return MissionGoNoGoItem(
+            label="Scan evidence",
+            status="blocked",
+            detail=scan_run_outcome.detail,
+            action_label="Review Error",
+            action_href="#run-monitor",
+        )
+    return MissionGoNoGoItem(
+        label="Scan evidence",
+        status="ready",
+        detail=scan_run_outcome.detail,
+        action_label=scan_run_outcome.action_label,
+        action_href=scan_run_outcome.action_href,
+    )
+
+
+def go_no_go_vulnerability_item(vulnerability: VulnerabilitySummary) -> MissionGoNoGoItem:
+    if vulnerability.status == "missing":
+        return MissionGoNoGoItem(
+            label="CVE/KEV review",
+            status="warning",
+            detail="No reviewed local CVE/KEV catalog is imported.",
+            action_label="Import Catalog",
+            action_href="#vulnerabilities",
+        )
+    return MissionGoNoGoItem(
+        label="CVE/KEV review",
+        status=vulnerability.status,
+        detail=vulnerability.detail,
+        action_label=vulnerability.action_label,
+        action_href=vulnerability.action_href,
+    )
+
+
+def go_no_go_finding_review_item(item: ReadinessItem) -> MissionGoNoGoItem:
+    return MissionGoNoGoItem(
+        label="Finding review",
+        status=item.status,
+        detail=item.detail,
+        action_label=item.action_label or "Review Findings",
+        action_href=item.action_href or "#findings",
+    )
+
+
+def go_no_go_delivery_item(report_delivery: ReportDeliverySummary) -> MissionGoNoGoItem:
+    status = "blocked" if report_delivery.status == "missing" else report_delivery.status
+    return MissionGoNoGoItem(
+        label="Report delivery",
+        status=status,
+        detail=report_delivery.detail,
+        action_label=report_delivery.action_label,
+        action_href=report_delivery.action_href,
+    )
+
+
 def mission_action_roadmap(
     mission: Mission,
     scan_plans: list[ScanPlanPreview],
@@ -2257,9 +2420,24 @@ def build_mission_view(
         matches=vulnerability_matches,
         findings=findings,
     )
+    scope_intake = scope_intake_summary(mission)
+    scan_run_outcome = scan_run_outcome_summary(scan_runs, findings)
+    report_delivery = report_delivery_summary(
+        authorization_briefs=authorization_briefs,
+        reports=reports,
+        mission_export=mission_export,
+    )
 
     return MissionView(
         mission=mission_row(mission, findings, client_name_by_id(store)),
+        go_no_go=mission_go_no_go_summary(
+            mission=mission,
+            scope_intake=scope_intake,
+            scan_run_outcome=scan_run_outcome,
+            vulnerability=vulnerability,
+            report_delivery=report_delivery,
+            readiness_items=readiness_items,
+        ),
         cockpit=mission_cockpit(
             mission=mission,
             findings=findings,
@@ -2281,7 +2459,7 @@ def build_mission_view(
         ),
         activity_log_url=mission_activity_log_url(mission.id),
         scope=[scope_row(item) for item in mission.scope],
-        scope_intake=scope_intake_summary(mission),
+        scope_intake=scope_intake,
         findings=[finding_row(finding) for finding in sorted_findings(findings)],
         finding_dispositions=finding_disposition_rows(findings),
         counter_test_summary=counter_test_summary_rows(findings),
@@ -2289,16 +2467,12 @@ def build_mission_view(
         activity_events=[activity_event_row(event) for event in activity_events],
         check_selection=check_selection,
         scan_runs=[scan_run_row(run) for run in scan_runs],
-        scan_run_outcome=scan_run_outcome_summary(scan_runs, findings),
+        scan_run_outcome=scan_run_outcome,
         remediation_items=remediation_plan(findings),
         executive_summary=str(summary["executive_summary"]),
         authorization_briefs=authorization_briefs,
         reports=reports,
-        report_delivery=report_delivery_summary(
-            authorization_briefs=authorization_briefs,
-            reports=reports,
-            mission_export=mission_export,
-        ),
+        report_delivery=report_delivery,
         mission_export=mission_export,
         readiness_items=readiness_items,
         scan_plans=scan_plans,

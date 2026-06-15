@@ -56,6 +56,7 @@ Implemented so far:
 - mission pages summarize CVE/KEV candidate, known-exploited, critical/high, and stored finding counts
 - mission pages show a CVE/KEV review checklist before storing candidate findings
 - mission pages show a Go/No-Go handoff gate across authorization, scope, scans, CVE/KEV, findings, and reports
+- local Pilot page shows VM update, preflight, start, status, readiness, and closeout commands
 - generated reports include CVE/KEV candidate rollups and prioritized remediation entries
 - guarded TLS testssl.sh plan, execution wrapper, and JSON parser
 - guarded SMB anonymous listing plan, execution wrapper, and parser

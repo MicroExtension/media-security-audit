@@ -71,6 +71,14 @@ class PilotRunbookLink:
 
 
 @dataclass(frozen=True)
+class PilotVmOperation:
+    label: str
+    command: str
+    detail: str
+    review_href: str
+
+
+@dataclass(frozen=True)
 class PilotRunbookStep:
     title: str
     detail: str
@@ -135,6 +143,7 @@ class PilotRunbookView:
     title: str
     subtitle: str
     metrics: list[PilotRunbookMetric]
+    vm_operations: list[PilotVmOperation]
     sections: list[PilotRunbookSection]
     acceptance_items: list[PilotAcceptanceItem]
     readiness_items: list[PilotReadinessItem]
@@ -309,6 +318,7 @@ def build_pilot_runbook_view(
             PilotRunbookMetric(label="Scans", value="Guarded"),
             PilotRunbookMetric(label="Output", value="Reports"),
         ],
+        vm_operations=build_pilot_vm_operations(),
         acceptance_items=[
             PilotAcceptanceItem(
                 phase="Setup",
@@ -582,6 +592,47 @@ def build_pilot_runbook_view(
     )
 
 
+def build_pilot_vm_operations() -> list[PilotVmOperation]:
+    return [
+        PilotVmOperation(
+            label="Update",
+            command="cd ~/media-security-audit && git pull --ff-only",
+            detail="Synchronize the VM with the latest merged main branch.",
+            review_href="/system",
+        ),
+        PilotVmOperation(
+            label="Preflight",
+            command="bash scripts/debian-vm-preflight.sh",
+            detail="Validate auth, storage, inventory, compose, and local tool status.",
+            review_href="/system",
+        ),
+        PilotVmOperation(
+            label="Start",
+            command="bash scripts/debian-vm-start.sh",
+            detail="Build the local image and start the protected web service.",
+            review_href="/system",
+        ),
+        PilotVmOperation(
+            label="Status",
+            command="bash scripts/debian-vm-status.sh",
+            detail="Display compose status, health, and deployment preflight JSON.",
+            review_href="/system",
+        ),
+        PilotVmOperation(
+            label="Readiness",
+            command="bash scripts/debian-vm-v1-readiness-report.sh",
+            detail="Write the latest local readiness report before pilot review.",
+            review_href="/pilot/readiness.md",
+        ),
+        PilotVmOperation(
+            label="Closeout",
+            command="bash scripts/debian-vm-pilot-closeout.sh",
+            detail="Generate the pilot closeout report after handoff artifacts exist.",
+            review_href="/pilot/final-handoff-checklist.md",
+        ),
+    ]
+
+
 def build_pilot_attention_items(
     readiness_items: list[PilotReadinessItem],
 ) -> list[PilotReadinessItem]:
@@ -748,6 +799,10 @@ def format_pilot_runbook_markdown(view: PilotRunbookView | None = None) -> str:
     ]
     for metric in view.metrics:
         lines.append(f"- {metric.label}: `{metric.value}`")
+    lines.extend(["", "## VM Operations", ""])
+    for operation in view.vm_operations:
+        lines.append(f"- **{operation.label}**: `{operation.command}`")
+        lines.append(f"  {operation.detail}")
     lines.extend(["", "## Workflow", ""])
     for section in view.sections:
         lines.extend([f"### {section.title}", ""])
@@ -793,6 +848,15 @@ def pilot_runbook_payload(view: PilotRunbookView) -> dict[str, object]:
         },
         "runbook_type": "pilot",
         "schema_version": 2,
+        "vm_operations": [
+            {
+                "command": operation.command,
+                "detail": operation.detail,
+                "label": operation.label,
+                "review_href": operation.review_href,
+            }
+            for operation in view.vm_operations
+        ],
         "sections": [
             {
                 "anchor": section.anchor,

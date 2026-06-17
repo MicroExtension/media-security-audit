@@ -378,6 +378,10 @@ class WebUiTests(unittest.TestCase):
         self.assertIn('@app.get("/wizard"', web)
         self.assertIn('@app.post("/wizard"', web)
         self.assertIn("create_guided_audit_from_form", web)
+        self.assertIn("CHECK_SCOPE_REQUIREMENTS", web)
+        self.assertIn("CHECK_USE_CASES", web)
+        self.assertIn('"use_case": CHECK_USE_CASES[check]', web)
+        self.assertIn('"target_requirement": CHECK_SCOPE_REQUIREMENTS[check]', web)
         self.assertIn("wizard.audit_created", web)
         self.assertIn('@app.post("/missions/{mission_id}/scan-runs"', web)
         self.assertIn('/missions/{mission_id}/roadmap/{export_format}', web)
@@ -402,6 +406,13 @@ class WebUiTests(unittest.TestCase):
         self.assertIn('href="#wizard-summary"', template)
         self.assertIn('aria-label="Guided audit snapshot"', template)
         self.assertIn('aria-live="polite"', template)
+        self.assertIn('aria-label="Service selection guidance"', template)
+        self.assertIn("wizard-service-grid", template)
+        self.assertIn("wizard-service-card", template)
+        self.assertIn("wizard-service-label", template)
+        self.assertIn("check.use_case", template)
+        self.assertIn("check.target_requirement", template)
+        self.assertIn("Non-destructive plan, explicit execution later", template)
 
         for field in [
             'name="client_id"',
@@ -438,6 +449,9 @@ class WebUiTests(unittest.TestCase):
         self.assertIn(".wizard-summary-grid", css)
         self.assertIn(".wizard-pill", css)
         self.assertIn(".wizard-step", css)
+        self.assertIn(".wizard-service-grid", css)
+        self.assertIn(".wizard-service-card", css)
+        self.assertIn(".wizard-service-label", css)
         self.assertIn(".wizard-confirmation", css)
 
     def test_client_template_exposes_preparation_action_links(self) -> None:

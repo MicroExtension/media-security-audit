@@ -594,6 +594,15 @@ CHECK_DESCRIPTIONS: dict[AuditCheck, str] = {
     AuditCheck.LDAP: "Anonymous LDAP RootDSE metadata check on approved host, IP, or domain scope.",
 }
 
+CHECK_USE_CASES: dict[AuditCheck, str] = {
+    AuditCheck.NMAP: "Map exposed services on internal or public network targets.",
+    AuditCheck.HTTP_HEADERS: "Review web application browser protection headers.",
+    AuditCheck.DNS_MAIL: "Validate public DNS and mail hygiene for a domain.",
+    AuditCheck.TLS: "Review certificate, protocol, and cipher posture on HTTPS endpoints.",
+    AuditCheck.SMB: "Check whether file sharing exposes anonymous listing paths.",
+    AuditCheck.LDAP: "Check whether directory metadata is anonymously visible.",
+}
+
 CHECK_SCOPE_TYPES: dict[AuditCheck, tuple[ScopeType, ...]] = {
     AuditCheck.NMAP: (
         ScopeType.CIDR,

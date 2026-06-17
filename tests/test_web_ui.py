@@ -180,6 +180,9 @@ class WebUiTests(unittest.TestCase):
         self.assertIn(".vulnerability-import", css)
         self.assertIn(".quick-read-panel", css)
         self.assertIn(".quick-read-grid", css)
+        self.assertIn(".handoff-panel", css)
+        self.assertIn(".handoff-grid", css)
+        self.assertIn(".handoff-status", css)
 
     def test_global_styles_expose_anchor_target_context(self) -> None:
         css_path = (
@@ -1936,6 +1939,15 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("view.report_delivery.items", template)
         self.assertIn("Report delivery checklist", template)
         self.assertIn("report-delivery-summary", template)
+        self.assertIn("Customer handoff summary", template)
+        self.assertIn("view.customer_handoff.status", template)
+        self.assertIn("view.customer_handoff.title", template)
+        self.assertIn("view.customer_handoff.detail", template)
+        self.assertIn("view.customer_handoff.items", template)
+        self.assertIn("view.customer_handoff.ready_count", template)
+        self.assertIn("view.customer_handoff.total_count", template)
+        self.assertIn("handoff-panel", template)
+        self.assertIn("handoff-grid", template)
         self.assertIn("view.scope_intake.status", template)
         self.assertIn("view.scope_intake.detail", template)
         self.assertIn("view.scope_intake.approved_count", template)
@@ -3100,6 +3112,18 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(view.findings[0].related_remediations[0].id, "rem_rdp_restrict_exposure")
         self.assertEqual(view.reports, [])
         self.assertIsNone(view.mission_export)
+        self.assertEqual(view.customer_handoff.status, "warning")
+        self.assertEqual(view.customer_handoff.title, "Customer handoff needs review")
+        self.assertEqual(view.customer_handoff.ready_count, 2)
+        self.assertEqual(view.customer_handoff.total_count, 5)
+        handoff_items = {item.label: item for item in view.customer_handoff.items}
+        self.assertEqual(handoff_items["Customer PDF"].status, "missing")
+        self.assertEqual(handoff_items["JSON tracking"].status, "missing")
+        self.assertEqual(handoff_items["Mission package"].status, "missing")
+        self.assertEqual(handoff_items["Recipients"].status, "ready")
+        self.assertEqual(handoff_items["Recipients"].detail, "direction@example.invalid")
+        self.assertEqual(handoff_items["Evidence retention"].status, "ready")
+        self.assertEqual(handoff_items["Evidence retention"].detail, "60 day(s) recorded.")
         self.assertEqual(len(view.readiness_items), 5)
         self.assertEqual(view.cockpit.status, "warning")
         self.assertEqual(view.cockpit.next_action, "Review 1 new finding(s).")
@@ -3684,6 +3708,17 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(view.report_delivery.action_label, "Generate Reports")
         self.assertEqual(items["PDF customer report"].status, "missing")
         self.assertEqual(items["Mission ZIP package"].status, "missing")
+        handoff_items = {item.label: item for item in view.customer_handoff.items}
+        self.assertEqual(view.customer_handoff.status, "missing")
+        self.assertEqual(view.customer_handoff.title, "Customer handoff not ready")
+        self.assertEqual(view.customer_handoff.ready_count, 0)
+        self.assertEqual(view.customer_handoff.total_count, 5)
+        self.assertEqual(view.customer_handoff.action_label, "Generate Reports")
+        self.assertEqual(handoff_items["Customer PDF"].status, "missing")
+        self.assertEqual(handoff_items["JSON tracking"].status, "missing")
+        self.assertEqual(handoff_items["Mission package"].status, "missing")
+        self.assertEqual(handoff_items["Recipients"].status, "missing")
+        self.assertEqual(handoff_items["Evidence retention"].status, "missing")
 
     def test_mission_view_summarizes_ready_report_delivery(self) -> None:
         store = JsonStore(clean_data_dir("web-ui-report-delivery-ready-data"))
@@ -3694,6 +3729,8 @@ class WebUiTests(unittest.TestCase):
                 client_id=client.id,
                 name="Report Audit",
                 authorization_reference="AUTH-REPORT",
+                report_recipients="client-report@example.invalid",
+                evidence_retention_days=90,
             )
         )
         generate_authorization_brief(store, mission.id, reports_dir)
@@ -3710,6 +3747,17 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(items["Authorization brief"].status, "ready")
         self.assertEqual(items["PDF customer report"].status, "ready")
         self.assertEqual(items["Mission ZIP package"].status, "ready")
+        handoff_items = {item.label: item for item in view.customer_handoff.items}
+        self.assertEqual(view.customer_handoff.status, "ready")
+        self.assertEqual(view.customer_handoff.title, "Customer handoff ready")
+        self.assertEqual(view.customer_handoff.ready_count, 5)
+        self.assertEqual(view.customer_handoff.total_count, 5)
+        self.assertEqual(view.customer_handoff.action_label, "Download Package")
+        self.assertEqual(handoff_items["Customer PDF"].status, "ready")
+        self.assertEqual(handoff_items["JSON tracking"].status, "ready")
+        self.assertEqual(handoff_items["Mission package"].status, "ready")
+        self.assertEqual(handoff_items["Recipients"].detail, "client-report@example.invalid")
+        self.assertEqual(handoff_items["Evidence retention"].detail, "90 day(s) recorded.")
 
     def test_mission_view_go_no_go_blocks_missing_authorization_and_reports(self) -> None:
         store = JsonStore(clean_data_dir("web-ui-go-no-go-blocked-data"))

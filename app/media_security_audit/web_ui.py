@@ -413,6 +413,25 @@ class ReportDeliverySummary:
 
 
 @dataclass(frozen=True)
+class CustomerHandoffItem:
+    label: str
+    status: str
+    detail: str
+
+
+@dataclass(frozen=True)
+class CustomerHandoffSummary:
+    status: str
+    title: str
+    detail: str
+    action_label: str
+    action_href: str
+    ready_count: int
+    total_count: int
+    items: list[CustomerHandoffItem]
+
+
+@dataclass(frozen=True)
 class MissionGoNoGoItem:
     label: str
     status: str
@@ -533,6 +552,7 @@ class MissionView:
     authorization_briefs: list[AuthorizationBriefLink]
     reports: list[GeneratedReportLink]
     report_delivery: ReportDeliverySummary
+    customer_handoff: CustomerHandoffSummary
     mission_export: MissionExportLink | None
     readiness_items: list[ReadinessItem]
     scan_plans: list[ScanPlanPreview]
@@ -2018,6 +2038,108 @@ def report_delivery_package_item(
     )
 
 
+def customer_handoff_summary(
+    mission: Mission,
+    reports: list[GeneratedReportLink],
+    mission_export: MissionExportLink | None,
+) -> CustomerHandoffSummary:
+    report_formats = {report.format for report in reports}
+    items = [
+        CustomerHandoffItem(
+            label="Customer PDF",
+            status="ready" if ReportFormat.PDF.value in report_formats else "missing",
+            detail=(
+                "PDF report is ready for client review."
+                if ReportFormat.PDF.value in report_formats
+                else "Generate the PDF report before customer delivery."
+            ),
+        ),
+        CustomerHandoffItem(
+            label="JSON tracking",
+            status="ready" if ReportFormat.JSON.value in report_formats else "missing",
+            detail=(
+                "JSON tracking report is ready for remediation follow-up."
+                if ReportFormat.JSON.value in report_formats
+                else "Generate the JSON report for remediation tracking."
+            ),
+        ),
+        customer_handoff_package_item(mission_export),
+        CustomerHandoffItem(
+            label="Recipients",
+            status="ready" if mission.report_recipients else "missing",
+            detail=(
+                mission.report_recipients
+                if mission.report_recipients
+                else "Add report recipients in mission setup."
+            ),
+        ),
+        CustomerHandoffItem(
+            label="Evidence retention",
+            status="ready" if mission.evidence_retention_days is not None else "missing",
+            detail=(
+                f"{mission.evidence_retention_days} day(s) recorded."
+                if mission.evidence_retention_days is not None
+                else "Record the evidence retention period before handoff."
+            ),
+        ),
+    ]
+    ready_count = len([item for item in items if item.status == "ready"])
+    if ready_count == len(items):
+        status = "ready"
+        title = "Customer handoff ready"
+        detail = (
+            "PDF, JSON tracking, package, recipients, and evidence retention "
+            "are ready for controlled delivery."
+        )
+        action_label = "Download Package"
+    elif any(item.status in {"ready", "warning"} for item in items):
+        status = "warning"
+        title = "Customer handoff needs review"
+        detail = (
+            f"{ready_count}/{len(items)} handoff item(s) are ready. "
+            "Complete the missing items before customer delivery."
+        )
+        action_label = "Complete Handoff"
+    else:
+        status = "missing"
+        title = "Customer handoff not ready"
+        detail = "Generate reviewed reports and record delivery details before handoff."
+        action_label = "Generate Reports"
+
+    return CustomerHandoffSummary(
+        status=status,
+        title=title,
+        detail=detail,
+        action_label=action_label,
+        action_href="#reports",
+        ready_count=ready_count,
+        total_count=len(items),
+        items=items,
+    )
+
+
+def customer_handoff_package_item(
+    mission_export: MissionExportLink | None,
+) -> CustomerHandoffItem:
+    if mission_export is None:
+        return CustomerHandoffItem(
+            label="Mission package",
+            status="missing",
+            detail="Generate the ZIP package after reports are reviewed.",
+        )
+    if mission_export.has_integrity_issues:
+        return CustomerHandoffItem(
+            label="Mission package",
+            status="warning",
+            detail=mission_export.integrity_detail,
+        )
+    return CustomerHandoffItem(
+        label="Mission package",
+        status="ready",
+        detail=mission_export.integrity_detail,
+    )
+
+
 def mission_go_no_go_summary(
     mission: Mission,
     scope_intake: ScopeIntakeSummary,
@@ -2592,6 +2714,11 @@ def build_mission_view(
         reports=reports,
         mission_export=mission_export,
     )
+    customer_handoff = customer_handoff_summary(
+        mission=mission,
+        reports=reports,
+        mission_export=mission_export,
+    )
 
     return MissionView(
         mission=mission_row(mission, findings, client_name_by_id(store)),
@@ -2639,6 +2766,7 @@ def build_mission_view(
         authorization_briefs=authorization_briefs,
         reports=reports,
         report_delivery=report_delivery,
+        customer_handoff=customer_handoff,
         mission_export=mission_export,
         readiness_items=readiness_items,
         scan_plans=scan_plans,

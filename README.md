@@ -194,6 +194,7 @@ Implemented so far:
 - mission pages expose client and filtered activity context links
 - activity log rows link back to their client and mission context
 - mission pages show the report quick-read decision, immediate action, priority focus, and next counter-test
+- mission reports show a customer handoff summary for PDF, JSON tracking, package, recipients, and evidence retention
 - activity log pages summarize active filters with context links
 - activity log pages expose shortcuts for filters, events, and exports
 - remediation library pages expose shortcuts for filters, entries, and exports

@@ -745,6 +745,7 @@ Current GUI status:
 - mission scope pages show an intake guide for URL, domain, host, IP, and CIDR targets
 - mission pages show the report quick-read decision, immediate action, priority focus, and next counter-test
 - mission reports show a delivery checklist for brief, JSON, Markdown, HTML, PDF, and package
+- mission reports show a customer handoff summary for PDF, JSON tracking, package, recipients, and evidence retention
 - mission export ZIP packages include scan plan JSON and Markdown files
 - a workspace Activity page lists mission events and exports the log
 - Activity log filters can narrow events by search text and action

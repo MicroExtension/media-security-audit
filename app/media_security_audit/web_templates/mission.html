@@ -599,6 +599,29 @@
       <p>{{ view.report_delivery.ready_count }}/{{ view.report_delivery.total_count }} deliverable item(s) ready</p>
     </div>
   </div>
+  <div class="handoff-panel" aria-label="Customer handoff summary">
+    <div class="handoff-head">
+      <div>
+        <p class="eyebrow">Customer Handoff</p>
+        <h3>{{ view.customer_handoff.title }}</h3>
+        <p>{{ view.customer_handoff.detail }}</p>
+      </div>
+      <div class="handoff-status">
+        <span class="badge status-{{ view.customer_handoff.status }}">{{ view.customer_handoff.status }}</span>
+        <a class="readiness-action" href="{{ view.customer_handoff.action_href }}">{{ view.customer_handoff.action_label }}</a>
+      </div>
+    </div>
+    <div class="handoff-grid">
+      {% for item in view.customer_handoff.items %}
+      <article class="handoff-item handoff-{{ item.status }}">
+        <span class="badge status-{{ item.status }}">{{ item.status }}</span>
+        <strong>{{ item.label }}</strong>
+        <p>{{ item.detail }}</p>
+      </article>
+      {% endfor %}
+    </div>
+    <p class="muted">{{ view.customer_handoff.ready_count }}/{{ view.customer_handoff.total_count }} customer handoff item(s) ready</p>
+  </div>
   <div class="readiness-grid report-delivery-grid" aria-label="Report delivery checklist">
     {% for item in view.report_delivery.items %}
     <article class="readiness-item readiness-{{ item.status }}">

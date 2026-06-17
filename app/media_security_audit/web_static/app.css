@@ -176,6 +176,68 @@ textarea:focus-visible {
   margin-top: 4px;
 }
 
+.mission-focus {
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-left: 5px solid var(--accent);
+  border-radius: 6px;
+  display: grid;
+  gap: 14px;
+  margin: -8px 0 24px;
+  padding: 18px;
+}
+
+.mission-focus-main {
+  align-items: start;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+.mission-focus-main h2 {
+  font-size: 22px;
+  margin: 2px 0 6px;
+}
+
+.mission-focus-main p {
+  color: var(--muted);
+  margin: 0;
+}
+
+.mission-focus-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.mission-focus-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+}
+
+.mission-focus-item span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.mission-focus-item strong {
+  color: var(--text);
+  font-size: 20px;
+}
+
+.mission-focus-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 .dashboard-shortcuts,
 .page-shortcuts {
   display: flex;
@@ -1629,6 +1691,7 @@ code {
   .finding-head,
   .library-card-head,
   .counter-test-head,
+  .mission-focus-main,
   .quick-read-head,
   .handoff-head {
     align-items: flex-start;
@@ -1651,6 +1714,7 @@ code {
   .wizard-service-grid,
   .wizard-summary-grid,
   .wizard-summary-details,
+  .mission-focus-grid,
   .quick-read-grid,
   .handoff-grid {
     grid-template-columns: 1fr;

@@ -801,6 +801,8 @@ Current GUI status:
   scans, CVE/KEV, findings, and report delivery
 - generated JSON, Markdown, HTML, and PDF reports include CVE/KEV candidate
   rollups for client and technician review
+- generated reports include a quick-read decision, immediate action, priority
+  focus, and next counter-test for client review
 
 ## Step 7 - Add Safe Scanner Modules
 

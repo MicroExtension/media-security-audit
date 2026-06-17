@@ -60,6 +60,7 @@ Implemented so far:
 - mission pages show a Go/No-Go handoff gate across authorization, scope, scans, CVE/KEV, findings, and reports
 - local Pilot page shows VM update, preflight, start, status, readiness, and closeout commands
 - generated reports include CVE/KEV candidate rollups and prioritized remediation entries
+- generated reports include a quick-read decision, immediate action, priority focus, and next counter-test
 - guarded TLS testssl.sh plan, execution wrapper, and JSON parser
 - guarded SMB anonymous listing plan, execution wrapper, and parser
 - guarded LDAP RootDSE plan, execution wrapper, and parser

@@ -355,6 +355,55 @@ def known_vulnerability_summary(findings: list[Finding]) -> dict[str, int]:
     }
 
 
+def quick_read_summary(findings: list[Finding]) -> dict[str, str]:
+    active = active_findings(findings)
+    plan = remediation_plan(findings, limit=1)
+    attention_items = critical_attention_items(findings, limit=1)
+    known = known_vulnerability_summary(findings)
+
+    if not active:
+        return {
+            "decision": "Aucun constat actif",
+            "immediate_action": "Conserver les preuves et planifier le prochain contrôle.",
+            "priority_focus": "Aucune action prioritaire n’est requise dans ce rapport.",
+            "next_counter_test": "Relancer un audit de contrôle lors du prochain cycle de maintenance.",
+            "audience_note": "Rapport exploitable comme état de référence.",
+        }
+
+    first_plan = plan[0] if plan else None
+    first_attention = attention_items[0] if attention_items else first_plan
+    first_title = first_attention["title"] if first_attention else "Constats actifs"
+    first_asset = first_attention["asset"] if first_attention else "périmètre audité"
+    first_remediation = (
+        first_attention["remediation"]
+        if first_attention
+        else "Traiter les constats actifs selon leur priorité."
+    )
+    first_counter_test = (
+        first_attention["counter_test"]
+        if first_attention
+        else "Relancer les contrôles concernés après correction."
+    )
+
+    if attention_items or known["known_exploited"]:
+        decision = "Action prioritaire requise"
+        audience_note = "À traiter avant de considérer la mission comme stabilisée."
+    elif first_plan:
+        decision = "Remédiation planifiée"
+        audience_note = "Les corrections peuvent être intégrées au plan de maintenance."
+    else:
+        decision = "Suivi d’hygiène"
+        audience_note = "Aucune action bloquante n’est identifiée, mais le suivi reste recommandé."
+
+    return {
+        "decision": decision,
+        "immediate_action": first_remediation,
+        "priority_focus": f"{first_title} sur {first_asset}",
+        "next_counter_test": first_counter_test,
+        "audience_note": audience_note,
+    }
+
+
 def build_report_summary(mission: Mission, findings: list[Finding]) -> dict[str, object]:
     active = active_findings(findings)
     score = risk_score(findings)
@@ -374,6 +423,7 @@ def build_report_summary(mission: Mission, findings: list[Finding]) -> dict[str,
         "status_counts": finding_status_counts(findings),
         "disposition_notes": disposition_notes(findings),
         "known_vulnerabilities": known_vulnerability_summary(findings),
+        "quick_read": quick_read_summary(findings),
         "risk_score": score,
         "risk_level": risk_level(score),
         "executive_summary": executive_summary(findings),
@@ -403,6 +453,7 @@ def render_markdown(mission: Mission, findings: list[Finding]) -> str:
     disposition_items = summary["disposition_notes"]
     scope = summary["scope"]
     authorization = summary["authorization"]
+    quick_read = summary["quick_read"]
     plan = remediation_plan(ordered_findings)
     attention_items = critical_attention_items(ordered_findings)
     known_vulnerability_summary_items = summary["known_vulnerabilities"]
@@ -414,6 +465,16 @@ def render_markdown(mission: Mission, findings: list[Finding]) -> str:
         "## Executive Summary",
         "",
         str(summary["executive_summary"]),
+        "",
+        "## Lecture rapide",
+        "",
+        f"- Décision: `{quick_read['decision']}`",
+        f"- Action immédiate: {quick_read['immediate_action']}",
+        f"- Point prioritaire: {quick_read['priority_focus']}",
+        f"- Prochain contre-test: {quick_read['next_counter_test']}",
+        f"- Note: {quick_read['audience_note']}",
+        "",
+        "## Risk Overview",
         "",
         f"- Risk score: `{summary['risk_score']}/100`",
         f"- Risk level: `{summary['risk_level']}`",
@@ -626,6 +687,30 @@ def _render_html_remediation_plan(plan: list[dict[str, str]]) -> str:
 """.strip()
 
 
+def _render_html_quick_read(quick_read: dict[str, str]) -> str:
+    return f"""
+<div class="quick-read-grid">
+  <article>
+    <span>Décision</span>
+    <strong>{escape(quick_read["decision"])}</strong>
+    <p>{escape(quick_read["audience_note"])}</p>
+  </article>
+  <article>
+    <span>Action immédiate</span>
+    <strong>{escape(quick_read["immediate_action"])}</strong>
+  </article>
+  <article>
+    <span>Point prioritaire</span>
+    <strong>{escape(quick_read["priority_focus"])}</strong>
+  </article>
+  <article>
+    <span>Prochain contre-test</span>
+    <strong>{escape(quick_read["next_counter_test"])}</strong>
+  </article>
+</div>
+""".strip()
+
+
 def _render_html_critical_attention(items: list[dict[str, str]]) -> str:
     if not items:
         return (
@@ -776,6 +861,7 @@ def render_html(mission: Mission, findings: list[Finding]) -> str:
     disposition_items = summary["disposition_notes"]
     scope = summary["scope"]
     authorization = summary["authorization"]
+    quick_read = summary["quick_read"]
     plan = remediation_plan(ordered_findings)
     attention_items = critical_attention_items(ordered_findings)
     known_vulnerability_summary_items = summary["known_vulnerabilities"]
@@ -897,6 +983,10 @@ def render_html(mission: Mission, findings: list[Finding]) -> str:
     .metric {{ border: 1px solid var(--line); border-radius: 8px; padding: 12px; background: var(--surface); }}
     .metric span {{ color: var(--muted); font-size: .82rem; }}
     .metric strong {{ display: block; font-size: 1.45rem; margin-top: 3px; }}
+    .quick-read-grid {{ display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }}
+    .quick-read-grid article {{ border: 1px solid var(--line); border-radius: 8px; background: var(--surface); padding: 14px; }}
+    .quick-read-grid span {{ color: var(--muted); display: block; font-size: .82rem; font-weight: 700; }}
+    .quick-read-grid strong {{ display: block; font-size: .98rem; margin-top: 4px; }}
     .context-grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }}
     dl {{ display: grid; grid-template-columns: minmax(150px, 220px) 1fr; gap: .35rem .75rem; margin: 0; }}
     dt {{ font-weight: 700; color: #253044; }}
@@ -929,7 +1019,7 @@ def render_html(mission: Mission, findings: list[Finding]) -> str:
     @media (max-width: 760px) {{
       main {{ padding: 12px; }}
       header {{ padding: 20px; }}
-      .executive, .context-grid {{ grid-template-columns: 1fr; }}
+      .executive, .context-grid, .quick-read-grid {{ grid-template-columns: 1fr; }}
       dl {{ grid-template-columns: 1fr; }}
       table {{ display: block; overflow-x: auto; }}
     }}
@@ -958,6 +1048,11 @@ def render_html(mission: Mission, findings: list[Finding]) -> str:
         <strong>{summary["risk_score"]}/100</strong>
         <span>Niveau : {escape(display_risk_level(risk_level))}</span>
       </div>
+    </section>
+
+    <section class="section">
+      <h2>Lecture rapide</h2>
+      {_render_html_quick_read(quick_read)}
     </section>
 
     <section class="section">
@@ -1177,6 +1272,7 @@ def render_pdf(mission: Mission, findings: list[Finding]) -> bytes:
     status_counts = summary["status_counts"]
     scope = summary["scope"]
     authorization = summary["authorization"]
+    quick_read = summary["quick_read"]
     plan = remediation_plan(ordered_findings)
     attention_items = critical_attention_items(ordered_findings)
     known_vulnerability_summary_items = summary["known_vulnerabilities"]
@@ -1204,6 +1300,13 @@ def render_pdf(mission: Mission, findings: list[Finding]) -> bytes:
         size=12,
         bold=True,
     )
+
+    pdf.add_section_heading("Lecture rapide")
+    pdf.add_text(f"Decision: {quick_read['decision']}", bold=True)
+    pdf.add_text(f"Action immediate: {quick_read['immediate_action']}")
+    pdf.add_text(f"Point prioritaire: {quick_read['priority_focus']}")
+    pdf.add_text(f"Prochain contre-test: {quick_read['next_counter_test']}")
+    pdf.add_text(f"Note: {quick_read['audience_note']}")
 
     pdf.add_section_heading("Vue d'ensemble du risque")
     pdf.add_text(

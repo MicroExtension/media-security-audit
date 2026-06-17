@@ -17,6 +17,7 @@ from media_security_audit.reports import (  # noqa: E402
     build_report_summary,
     critical_attention_items,
     known_vulnerability_items,
+    quick_read_summary,
     render_html,
     render_json,
     render_markdown,
@@ -37,6 +38,9 @@ class ReportTests(unittest.TestCase):
         self.assertEqual(payload["summary"]["risk_level"], "low")
         self.assertEqual(payload["summary"]["scope"]["approved_count"], 1)
         self.assertEqual(payload["summary"]["authorization"]["contact"], "Sample Sponsor")
+        self.assertEqual(payload["summary"]["quick_read"]["decision"], "Remédiation planifiée")
+        self.assertIn("Strict Transport Security", payload["summary"]["quick_read"]["priority_focus"])
+        self.assertIn("Enable the Strict-Transport-Security", payload["summary"]["quick_read"]["immediate_action"])
         self.assertEqual(len(payload["remediation_plan"]), 2)
         self.assertEqual(payload["mission"]["id"], "mission_sample")
         self.assertEqual(payload["mission"]["evidence_retention_days"], 90)
@@ -46,6 +50,9 @@ class ReportTests(unittest.TestCase):
 
         self.assertIn("# Security Audit Report", markdown)
         self.assertIn("## Executive Summary", markdown)
+        self.assertIn("## Lecture rapide", markdown)
+        self.assertIn("Décision", markdown)
+        self.assertIn("Point prioritaire", markdown)
         self.assertIn("## Remediation Plan", markdown)
         self.assertIn("Risk score: `13/100`", markdown)
         self.assertIn("Authorization contact: `Sample Sponsor`", markdown)
@@ -60,6 +67,10 @@ class ReportTests(unittest.TestCase):
         self.assertIn("M.E.D.I.A. Security Audit Platform", html)
         self.assertIn("Rapport d’audit sécurité", html)
         self.assertIn("Vue d’ensemble du risque", html)
+        self.assertIn("Lecture rapide", html)
+        self.assertIn("quick-read-grid", html)
+        self.assertIn("Action immédiate", html)
+        self.assertIn("Prochain contre-test", html)
         self.assertIn("Points critiques à traiter", html)
         self.assertIn("Plan de remédiation priorisé", html)
         self.assertIn("Synthèse direction", html)
@@ -75,15 +86,20 @@ class ReportTests(unittest.TestCase):
         self.assertTrue(pdf.startswith(b"%PDF-1.4"))
         self.assertIn(b"/Type /Catalog", pdf)
         self.assertIn(b"Rapport d'audit securite", pdf)
+        self.assertIn(b"Lecture rapide", pdf)
+        self.assertIn(b"Action immediate", pdf)
         self.assertIn(b"Missing HTTP Strict Transport Security header", pdf)
 
     def test_builds_report_summary_and_remediation_plan(self) -> None:
         summary = build_report_summary(sample_mission(), sample_findings())
         plan = remediation_plan(sample_findings())
+        quick_read = quick_read_summary(sample_findings())
 
         self.assertTrue(summary["authorization_present"])
         self.assertEqual(summary["authorization"]["evidence_retention_days"], "90")
         self.assertEqual(summary["scope"]["approved_targets"], ["domain:example.invalid"])
+        self.assertEqual(summary["quick_read"], quick_read)
+        self.assertEqual(quick_read["decision"], "Remédiation planifiée")
         self.assertEqual(plan[0]["severity"], "medium")
 
     def test_reports_highlight_critical_attention_items(self) -> None:
@@ -125,11 +141,17 @@ class ReportTests(unittest.TestCase):
         self.assertEqual(len(attention), 1)
         self.assertEqual(attention[0]["title"], "Exposed firewall admin portal")
         self.assertEqual(payload["summary"]["critical_attention_count"], 1)
+        self.assertEqual(payload["summary"]["quick_read"]["decision"], "Action prioritaire requise")
+        self.assertIn("Exposed firewall admin portal", payload["summary"]["quick_read"]["priority_focus"])
         self.assertEqual(len(payload["critical_attention"]), 1)
+        self.assertIn("## Lecture rapide", markdown)
+        self.assertIn("Action prioritaire requise", markdown)
         self.assertIn("## Points critiques à traiter", markdown)
         self.assertIn("Exposed firewall admin portal", markdown)
+        self.assertIn("Lecture rapide", html)
         self.assertIn("Points critiques à traiter", html)
         self.assertIn("Remédiation prioritaire", html)
+        self.assertIn(b"Lecture rapide", pdf)
         self.assertIn(b"Points critiques a traiter", pdf)
         self.assertIn(b"Exposed firewall admin portal", pdf)
 

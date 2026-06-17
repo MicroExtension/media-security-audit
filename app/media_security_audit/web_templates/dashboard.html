@@ -23,6 +23,7 @@
 </section>
 
 <section class="dashboard-shortcuts" aria-label="Dashboard shortcuts">
+  <a href="#technician-workflow">Workflow <span>{{ view.technician_workflow_steps|length }}</span></a>
   <a href="#onboarding">Onboarding <span>{{ view.onboarding_ready_count }}/{{ view.onboarding_total_count }}</span></a>
   <a href="/wizard">New Audit <span>+</span></a>
   <a href="#ready-missions">Ready Missions <span>{{ view.ready_missions|length }}</span></a>
@@ -37,6 +38,27 @@
   <a href="#preparation">Preparation <span>{{ view.preparation_items|length }}</span></a>
   <a href="#missions">Missions <span>{{ view.missions|length }}</span></a>
   <a href="#clients">Clients <span>{{ view.clients|length }}</span></a>
+</section>
+
+<section class="section" id="technician-workflow">
+  <div class="section-title">
+    <h2>Technician Workflow</h2>
+    <div class="report-links" aria-label="Technician workflow actions">
+      <a href="/wizard">New Guided Audit</a>
+      <a href="/pilot">Pilot</a>
+      <a href="/system">System</a>
+    </div>
+  </div>
+  <div class="readiness-grid" aria-label="Technician workflow steps">
+    {% for step in view.technician_workflow_steps %}
+    <article class="readiness-item readiness-{{ step.status }}">
+      <span class="badge readiness-badge">{{ step.status }}</span>
+      <strong>{{ step.label }}</strong>
+      <p>{{ step.detail }}</p>
+      <a class="readiness-action" href="{{ step.action_href }}">{{ step.action_label }}</a>
+    </article>
+    {% endfor %}
+  </div>
 </section>
 
 <section class="section" id="onboarding">

@@ -45,6 +45,7 @@ Implemented so far:
 - dashboard and client pages show counter-test ready, passed, and failed summaries
 - dashboard and client mission tables show per-mission counter-test counts
 - dashboard and client pages show failed counter-test mission watchlists
+- dashboard shows a technician workflow from guided audit creation to report handoff
 - failed counter-tests drive dashboard, client, and mission next-action links
 - finding review requires notes for false positives, accepted risks, and counter-test results
 - web mission activity log for traceability

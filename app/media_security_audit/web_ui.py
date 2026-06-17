@@ -444,6 +444,18 @@ class MissionActionStep:
 
 
 @dataclass(frozen=True)
+class MissionQuickRead:
+    status: str
+    decision: str
+    immediate_action: str
+    priority_focus: str
+    next_counter_test: str
+    audience_note: str
+    action_label: str
+    action_href: str
+
+
+@dataclass(frozen=True)
 class DashboardView:
     clients: list[ClientRow]
     missions: list[MissionRow]
@@ -504,6 +516,7 @@ class MissionView:
     cockpit: MissionCockpit
     scan_launch: ScanLaunchCenter
     action_roadmap: list[MissionActionStep]
+    quick_read: MissionQuickRead
     activity_log_url: str
     scope: list[ScopeRow]
     scope_intake: ScopeIntakeSummary
@@ -846,6 +859,37 @@ def mission_row(mission: Mission, findings: list[Finding], client_names: dict[st
         severity_counts=dict(active_counts),
         notes=mission.notes or "",
         created_at=format_datetime(mission.created_at),
+    )
+
+
+def mission_quick_read(summary: dict[str, object]) -> MissionQuickRead:
+    raw_quick_read = summary["quick_read"]
+    if not isinstance(raw_quick_read, dict):
+        raise TypeError("report summary quick_read must be a mapping")
+
+    decision = str(raw_quick_read.get("decision", "Suivi d’hygiène"))
+    if decision == "Aucun constat actif":
+        status = "ready"
+        action_label = "Open Reports"
+        action_href = "#reports"
+    elif decision == "Action prioritaire requise":
+        status = "warning"
+        action_label = "Review Findings"
+        action_href = "#findings"
+    else:
+        status = "warning"
+        action_label = "Review Findings"
+        action_href = "#findings"
+
+    return MissionQuickRead(
+        status=status,
+        decision=decision,
+        immediate_action=str(raw_quick_read.get("immediate_action", "")),
+        priority_focus=str(raw_quick_read.get("priority_focus", "")),
+        next_counter_test=str(raw_quick_read.get("next_counter_test", "")),
+        audience_note=str(raw_quick_read.get("audience_note", "")),
+        action_label=action_label,
+        action_href=action_href,
     )
 
 
@@ -2578,6 +2622,7 @@ def build_mission_view(
             mission_export=mission_export,
             vulnerability=vulnerability,
         ),
+        quick_read=mission_quick_read(summary),
         activity_log_url=mission_activity_log_url(mission.id),
         scope=[scope_row(item) for item in mission.scope],
         scope_intake=scope_intake,

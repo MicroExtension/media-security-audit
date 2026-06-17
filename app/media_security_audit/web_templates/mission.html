@@ -18,6 +18,32 @@
   <p>{{ view.executive_summary }}</p>
 </section>
 
+<section class="quick-read-panel" aria-label="Mission quick read">
+  <div class="quick-read-head">
+    <div>
+      <p class="eyebrow">Quick Read</p>
+      <h2>{{ view.quick_read.decision }}</h2>
+      <p>{{ view.quick_read.audience_note }}</p>
+    </div>
+    <span class="badge status-{{ view.quick_read.status }}">{{ view.quick_read.status }}</span>
+  </div>
+  <div class="quick-read-grid">
+    <article>
+      <span>Immediate action</span>
+      <strong>{{ view.quick_read.immediate_action }}</strong>
+    </article>
+    <article>
+      <span>Priority focus</span>
+      <strong>{{ view.quick_read.priority_focus }}</strong>
+    </article>
+    <article>
+      <span>Next counter-test</span>
+      <strong>{{ view.quick_read.next_counter_test }}</strong>
+    </article>
+  </div>
+  <a class="readiness-action" href="{{ view.quick_read.action_href }}">{{ view.quick_read.action_label }}</a>
+</section>
+
 <section class="metrics" aria-label="Mission summary">
   <div class="metric"><span>Risk score</span><strong>{{ view.mission.risk_score }}/100</strong></div>
   <div class="metric"><span>Risk level</span><strong>{{ view.mission.risk_level }}</strong></div>

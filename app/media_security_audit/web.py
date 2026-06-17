@@ -53,6 +53,8 @@ from media_security_audit.scan_plan_exports import ScanPlanExportFormat, build_s
 from media_security_audit.web_ui import (
     CHECK_DESCRIPTIONS,
     CHECK_LABELS,
+    CHECK_SCOPE_REQUIREMENTS,
+    CHECK_USE_CASES,
     build_client_view,
     build_dashboard_view,
     build_mission_view,
@@ -333,6 +335,8 @@ def create_web_app(
                             "value": check.value,
                             "label": CHECK_LABELS[check],
                             "description": CHECK_DESCRIPTIONS[check],
+                            "use_case": CHECK_USE_CASES[check],
+                            "target_requirement": CHECK_SCOPE_REQUIREMENTS[check],
                             "default": check
                             in {
                                 AuditCheck.NMAP,

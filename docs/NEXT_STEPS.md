@@ -613,6 +613,8 @@ Current GUI status:
   selection in one workflow
 - guided audit wizard shows a live audit snapshot for client, mission, targets,
   selected services, and authorization readiness
+- guided audit wizard shows service use cases, target requirements, and safe
+  execution mode before check selection
 - dashboard can show clients and missions
 - dashboard shows a technician workflow from guided audit creation to report
   handoff

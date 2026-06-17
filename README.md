@@ -30,6 +30,7 @@ Implemented so far:
 - web client detail page for multi-client review
 - Docker Compose deployment foundation for local Debian/Ubuntu VMs
 - first web workflow forms for clients, missions, and scope
+- guided audit wizard shows service use cases, target requirements, and safe execution mode
 - first web finding review workflow
 - web report generation for JSON, Markdown, HTML, and PDF exports
 - reports include finding disposition counts and review notes

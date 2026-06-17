@@ -191,6 +191,24 @@
       <h2>Checks</h2>
       <span class="muted">Plan first, execute later</span>
     </div>
+    <div class="wizard-service-grid" aria-label="Service selection guidance">
+      {% for check in check_options %}
+      <article class="wizard-service-card">
+        <span class="wizard-service-label">{{ check.label }}</span>
+        <strong>{{ check.use_case }}</strong>
+        <dl>
+          <div>
+            <dt>Needs</dt>
+            <dd>{{ check.target_requirement }}</dd>
+          </div>
+          <div>
+            <dt>Mode</dt>
+            <dd>Non-destructive plan, explicit execution later</dd>
+          </div>
+        </dl>
+      </article>
+      {% endfor %}
+    </div>
     <fieldset class="field-group">
       <legend>Audit Checks</legend>
       <div class="check-selection-grid">

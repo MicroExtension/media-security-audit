@@ -84,6 +84,8 @@ Actions:
 
 Purpose:
 - guide the technician through safe setup
+- make audit creation understandable without reading the rest of the interface
+- reduce the first-use cognitive load for MEDIA technicians and customer pilots
 
 Steps:
 1. Client
@@ -92,6 +94,18 @@ Steps:
 4. Scope
 5. Audit type
 6. Review
+
+Required behavior:
+- show only one setup step as the primary focus at a time
+- provide clear Previous and Next buttons between steps
+- keep a compact progress indicator visible
+- validate required fields before moving to the next step
+- explain missing authorization, missing scope, and missing checks in plain
+  operational language
+- keep selected client, audit type, targets, services, and authorization status
+  visible in a compact side summary
+- keep final creation disabled until the Review step confirms authorization,
+  approved scope, and selected checks
 
 The final Review step must clearly show:
 - authorized scope
@@ -250,4 +264,3 @@ Settings:
 - every report shows the authorization reference
 - false positive decisions require a note
 - accepted risks require a note
-

@@ -482,6 +482,11 @@ Use `bash scripts/debian-vm-pilot-closeout.sh` after VM pilot validation to
 generate the latest readiness report, handoff bundle, verified bundle inventory,
 and final closeout status under `reports/pilot-closeout` without package
 installs, scanner execution, application logs, or customer file contents.
+Use `bash scripts/debian-vm-release-candidate.sh` after pilot closeout to write
+the final V1 release candidate go/no-go report under `reports/release-candidate`
+with the latest readiness, closeout, and verified handoff evidence, without
+package installs, scanner execution, application logs, or customer file
+contents.
 Use `bash scripts/debian-vm-handoff-bundle.sh` to generate a fresh handoff
 report and package only that report for handoff review. Review the generated
 sidecar manifest before sharing the bundle.

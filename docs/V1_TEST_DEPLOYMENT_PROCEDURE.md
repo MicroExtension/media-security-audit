@@ -423,6 +423,13 @@ bash scripts/debian-vm-v1-readiness-report.sh
 bash scripts/debian-vm-pilot-closeout.sh
 ```
 
+24. Generate the V1 release candidate go/no-go report:
+
+```bash
+bash scripts/debian-vm-release-candidate.sh
+grep -h 'release_candidate=' reports/release-candidate/media-audit-v1-release-candidate-*.txt | tail -n 1
+```
+
 Expected result:
 
 - pilot files are downloadable
@@ -432,6 +439,8 @@ Expected result:
 - bundle inventory shows manifest status
 - V1 readiness report is generated under `reports/v1-readiness`
 - final pilot closeout is generated under `reports/pilot-closeout`
+- final release candidate evidence is generated under `reports/release-candidate`
+- the latest release candidate result is `release_candidate=ready`
 - no live scan is required for this V1 validation
 
 ## Phase 4 - V1 Acceptance Criteria

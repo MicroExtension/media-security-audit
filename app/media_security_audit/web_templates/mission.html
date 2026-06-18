@@ -365,17 +365,30 @@
       {% endif %}
       <div class="plan-actions">
         {% if plan.status == "ready" %}
+        <div class="prelaunch-decision" aria-label="{{ plan.label }} pre-launch decision">
+          <strong>Ready for guarded launch</strong>
+          <ul class="compact-list">
+            <li>Written authorization is recorded for this mission.</li>
+            <li>Approved scope contains target(s) matching this service.</li>
+            <li>{{ plan.commands|length }} command(s) will run exactly as listed above.</li>
+            <li>Execution may contact target systems and will store results in this mission.</li>
+          </ul>
+        </div>
         <form method="post" action="/missions/{{ view.mission.id }}/scan-runs" aria-label="Run {{ plan.label }} check">
           <input type="hidden" name="_csrf" value="{{ form_token }}">
           <input type="hidden" name="check" value="{{ plan.check }}">
           <label class="run-confirmation">
             <input type="checkbox" name="execute_confirm" required>
-            <span>Authorization confirmed</span>
+            <span>I confirm written authorization, approved scope, selected service, and the listed command(s).</span>
           </label>
-          <button class="button secondary-button" type="submit">Run Check</button>
+          <button class="button secondary-button" type="submit">Run {{ plan.label }}</button>
         </form>
         {% else %}
-        <span class="empty">Resolve the blocked plan before execution.</span>
+        <div class="prelaunch-decision prelaunch-blocked" aria-label="{{ plan.label }} blocked launch decision">
+          <strong>Launch blocked</strong>
+          <p>{{ plan.detail }}</p>
+          <a class="table-action" href="#mission-readiness">Review readiness blockers</a>
+        </div>
         {% endif %}
       </div>
     </article>

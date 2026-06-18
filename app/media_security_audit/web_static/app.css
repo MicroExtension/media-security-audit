@@ -548,6 +548,31 @@ tr:last-child td {
   margin-top: 12px;
 }
 
+.prelaunch-decision {
+  background: #f8fbfc;
+  border: 1px solid var(--border);
+  border-left: 5px solid var(--green);
+  border-radius: 6px;
+  display: grid;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding: 12px;
+}
+
+.prelaunch-decision strong {
+  font-size: 14px;
+}
+
+.prelaunch-decision p,
+.prelaunch-decision ul {
+  color: var(--muted);
+  margin: 0;
+}
+
+.prelaunch-blocked {
+  border-left-color: var(--red);
+}
+
 .service-run-summary {
   align-items: center;
   background: var(--surface-muted);

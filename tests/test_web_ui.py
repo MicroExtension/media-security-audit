@@ -1944,6 +1944,14 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("view.scan_run_outcome.action_href", template)
         self.assertIn("view.scan_run_outcome.action_label", template)
         self.assertIn("run-outcome-summary", template)
+        self.assertIn('aria-label="Scan run follow-up cards"', template)
+        self.assertIn("run-monitor-grid", template)
+        self.assertIn("run-monitor-card", template)
+        self.assertIn("run.status_title", template)
+        self.assertIn("run.summary", template)
+        self.assertIn("run.evidence_summary", template)
+        self.assertIn("run.action_href", template)
+        self.assertIn("No run recorded yet", template)
         self.assertIn("Mission Roadmap", template)
         self.assertIn("Mission quick read", template)
         self.assertIn("view.quick_read.decision", template)
@@ -3711,6 +3719,15 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(view.scan_runs[0].status, "completed")
         self.assertEqual(view.scan_runs[0].finding_count, 2)
         self.assertEqual(view.scan_runs[0].evidence_count, 1)
+        self.assertEqual(view.scan_runs[0].label, "HTTP headers")
+        self.assertEqual(view.scan_runs[0].status_title, "Findings imported")
+        self.assertEqual(view.scan_runs[0].evidence_summary, "1 evidence file(s)")
+        self.assertEqual(view.scan_runs[0].action_label, "Review Findings")
+        self.assertEqual(view.scan_runs[0].action_href, "#findings")
+        self.assertIn(
+            "HTTP headers completed with 2 finding(s)",
+            view.scan_runs[0].summary,
+        )
         self.assertEqual(view.scan_run_outcome.status, "completed")
         self.assertEqual(view.scan_run_outcome.title, "Latest run: HTTP headers")
         self.assertIn(

@@ -308,11 +308,17 @@ class CheckSelectionRow:
 class ScanRunRow:
     id: str
     check: str
+    label: str
     status: str
+    status_title: str
     started_at: str
     command_count: int
     finding_count: int
     evidence_count: int
+    evidence_summary: str
+    summary: str
+    action_label: str
+    action_href: str
     error: str
 
 
@@ -1617,14 +1623,53 @@ def template_guidance(mission: Mission) -> TemplateGuidance | None:
 
 
 def scan_run_row(run: ScanRun) -> ScanRunRow:
+    check_label = CHECK_LABELS.get(run.check, run.check.value)
+    evidence_count = len(run.evidence_paths)
+    if run.status is ScanRunStatus.FAILED:
+        status_title = "Run failed"
+        summary = (
+            f"{check_label} failed after {run.command_count} command(s). "
+            "Review the error before rerunning the check."
+        )
+        action_label = "Review Error"
+        action_href = "#run-monitor"
+    elif run.finding_count:
+        status_title = "Findings imported"
+        summary = (
+            f"{check_label} completed with {run.finding_count} finding(s) "
+            "ready for review."
+        )
+        action_label = "Review Findings"
+        action_href = "#findings"
+    elif evidence_count:
+        status_title = "Evidence captured"
+        summary = (
+            f"{check_label} completed with {evidence_count} evidence file(s) "
+            "and no imported findings."
+        )
+        action_label = "Generate Reports"
+        action_href = "#reports"
+    else:
+        status_title = "Completed without findings"
+        summary = (
+            f"{check_label} completed without imported findings or evidence files."
+        )
+        action_label = "Generate Reports"
+        action_href = "#reports"
     return ScanRunRow(
         id=run.id,
         check=run.check.value,
+        label=check_label,
         status=run.status.value,
+        status_title=status_title,
         started_at=format_datetime(run.started_at),
         command_count=run.command_count,
         finding_count=run.finding_count,
-        evidence_count=len(run.evidence_paths),
+        evidence_count=evidence_count,
+        evidence_summary=f"{evidence_count} evidence file(s)",
+        summary=summary,
+        action_label=action_label,
+        action_href=action_href,
         error=run.error or "",
     )
 

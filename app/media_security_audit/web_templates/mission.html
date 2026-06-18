@@ -414,6 +414,47 @@
       <a class="readiness-action" href="{{ view.scan_run_outcome.action_href }}">{{ view.scan_run_outcome.action_label }}</a>
     </div>
   </div>
+  <div class="run-monitor-grid" aria-label="Scan run follow-up cards">
+    {% for run in view.scan_runs %}
+    <article class="run-monitor-card run-monitor-{{ run.status }}">
+      <div class="run-monitor-head">
+        <div>
+          <strong>{{ run.label }}</strong>
+          <span>{{ run.status_title }}</span>
+        </div>
+        <span class="badge status-{{ run.status }}">{{ run.status }}</span>
+      </div>
+      <p>{{ run.summary }}</p>
+      <div class="run-monitor-metrics">
+        <span>{{ run.command_count }} command(s)</span>
+        <span>{{ run.finding_count }} finding(s)</span>
+        <span>{{ run.evidence_summary }}</span>
+      </div>
+      {% if run.error %}
+      <pre>{{ run.error }}</pre>
+      {% endif %}
+      <div class="run-monitor-footer">
+        <span class="muted">{{ run.started_at }}</span>
+        <a class="readiness-action" href="{{ run.action_href }}">{{ run.action_label }}</a>
+      </div>
+    </article>
+    {% else %}
+    <article class="run-monitor-card run-monitor-missing">
+      <div class="run-monitor-head">
+        <div>
+          <strong>No run recorded yet</strong>
+          <span>Prepare scope and authorization before launching a check.</span>
+        </div>
+        <span class="badge status-missing">missing</span>
+      </div>
+      <p>No CLI or web execution has been stored for this mission yet.</p>
+      <div class="run-monitor-footer">
+        <span class="muted">0 command(s), 0 finding(s), 0 evidence file(s)</span>
+        <a class="readiness-action" href="#scan-plan">Open Scan Plan</a>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
   <div class="table-wrap">
     <table>
       <caption class="sr-only">Mission CLI run monitor</caption>
@@ -431,7 +472,7 @@
       <tbody>
         {% for run in view.scan_runs %}
         <tr>
-          <td><code>{{ run.check }}</code></td>
+          <td>{{ run.label }}<br><code>{{ run.check }}</code></td>
           <td><span class="badge status-{{ run.status }}">{{ run.status }}</span></td>
           <td>{{ run.started_at }}</td>
           <td>{{ run.command_count }}</td>

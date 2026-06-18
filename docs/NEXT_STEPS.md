@@ -751,6 +751,7 @@ Current GUI status:
 - mission pages show a scan launch center with ready, blocked, and recorded run counts
 - mission pages show a per-service pre-launch checklist before guarded execution
 - mission pages summarize the latest scan run outcome and next action before the run table
+- mission pages show per-run follow-up cards with outcome, counters, errors, and next action
 - mission check selection shows compatible approved target guidance per service
 - mission scope pages show an intake guide for URL, domain, host, IP, and CIDR targets
 - mission pages show the report quick-read decision, immediate action, priority focus, and next counter-test

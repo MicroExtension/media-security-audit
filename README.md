@@ -55,6 +55,7 @@ Implemented so far:
 - web check selection for mission planning
 - web system status page for appliance readiness
 - web run monitor for CLI scan execution history
+- mission run monitor shows follow-up cards with outcome, counts, errors, and next action
 - local vulnerability catalog import and CVE/KEV correlation against mission findings
 - reviewed CVE/KEV catalog import from mission pages without external downloads
 - mission pages summarize CVE/KEV candidate, known-exploited, critical/high, and stored finding counts
@@ -473,9 +474,11 @@ being designed. Mission pages include an activity log for web workflow
 traceability and check selection for scan plan previews. The System page shows
 local storage, authentication, and external tool availability without running
 scanner commands. The mission Run Monitor shows recorded CLI scan runs without
-adding browser scan execution. Mission export packages can be generated as ZIP
-files for controlled audit handoff. Mission setup stores authorization contact,
-dates, emergency contact, report recipients, and evidence retention metadata.
+adding browser scan execution, and now summarizes each run with its outcome,
+counts, captured evidence, error state, and next action. Mission export packages
+can be generated as ZIP files for controlled audit handoff. Mission setup stores
+authorization contact, dates, emergency contact, report recipients, and evidence
+retention metadata.
 Mission pages can generate Markdown and HTML authorization briefs to review
 approval and scope before guarded CLI execution. The System page can generate a
 workspace backup ZIP containing local data and generated reports. The System

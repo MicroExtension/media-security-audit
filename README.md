@@ -213,6 +213,7 @@ Implemented so far:
 - healthcheck reports persistent storage readiness for deployments
 - Debian/Ubuntu VM bootstrap helper handles Git, Docker, Compose provider detection, Docker group access, and optional `.env` initialization
 - Debian/Ubuntu pilot closeout helper generates final readiness, handoff, bundle inventory, and closeout status evidence
+- Debian/Ubuntu release candidate helper generates final V1 pilot readiness evidence
 - guided audit wizard shows a live audit snapshot for client, mission, targets, services, and authorization readiness
 - CLI preflight reports local deployment readiness without running scans
 - CLI preflight supports JSON output for automation
@@ -586,6 +587,9 @@ bash scripts/debian-vm-security-review.sh
 bash scripts/debian-vm-firewall-plan.sh --admin-cidr 192.0.2.0/24
 bash scripts/debian-vm-handoff-report.sh
 bash scripts/debian-vm-handoff-bundle.sh
+bash scripts/debian-vm-v1-readiness-report.sh
+bash scripts/debian-vm-pilot-closeout.sh
+bash scripts/debian-vm-release-candidate.sh
 bash scripts/debian-vm-maintenance-report.sh
 bash scripts/debian-vm-maintenance-bundle.sh
 bash scripts/debian-vm-verify-bundle-manifest.sh reports/maintenance/media-audit-maintenance-YYYYMMDDTHHMMSSZ.tgz

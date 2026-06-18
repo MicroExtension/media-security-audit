@@ -277,6 +277,65 @@ class DeploymentFileTests(unittest.TestCase):
         self.assertNotIn("nuclei -update-templates", script)
         self.assertNotIn("rm -rf", script)
 
+    def test_debian_vm_release_candidate_is_safe_aggregate_only(self) -> None:
+        script = (ROOT / "scripts" / "debian-vm-release-candidate.sh").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn("set -euo pipefail", script)
+        self.assertIn("MEDIA_AUDIT_RELEASE_CANDIDATE_DIR", script)
+        self.assertIn("reports/release-candidate", script)
+        self.assertIn("media-audit-v1-release-candidate-", script)
+        self.assertIn("MEDIA_AUDIT_PILOT_CLOSEOUT_DIR", script)
+        self.assertIn("MEDIA_AUDIT_V1_READINESS_DIR", script)
+        self.assertIn("MEDIA_AUDIT_HANDOFF_BUNDLE_DIR", script)
+        self.assertIn("scanner_execution=not_performed", script)
+        self.assertIn("package_installation=not_performed", script)
+        self.assertIn("application_logs=not_collected", script)
+        self.assertIn("customer_file_contents=not_collected", script)
+        self.assertIn("bash scripts/debian-vm-pilot-closeout.sh", script)
+        self.assertIn("bash scripts/debian-vm-bundle-inventory.sh --verify-manifests", script)
+        self.assertIn("latest_pilot_closeout_report", script)
+        self.assertIn("latest_pilot_closeout=missing", script)
+        self.assertIn("latest_v1_readiness_report", script)
+        self.assertIn("latest_v1_readiness=missing", script)
+        self.assertIn("latest_handoff_bundle_manifest=present", script)
+        self.assertIn("release_candidate=ready", script)
+        self.assertIn("release_candidate=blocked", script)
+        self.assertIn("no scanner was executed by this release candidate report", script)
+        self.assertNotIn("docker compose logs", script)
+        self.assertNotIn("docker compose up", script)
+        self.assertNotIn("docker compose build", script)
+        self.assertNotIn("docker compose run", script)
+        self.assertNotIn("apt-get", script)
+        self.assertNotIn("\nsudo ", script)
+        self.assertNotIn("testssl.sh --", script)
+        self.assertNotIn("nuclei -update-templates", script)
+        self.assertNotIn("rm -rf", script)
+
+    def test_debian_vm_release_candidate_is_documented(self) -> None:
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        deployment = (ROOT / "docs" / "DEPLOYMENT.md").read_text(encoding="utf-8")
+        procedure = (ROOT / "docs" / "V1_TEST_DEPLOYMENT_PROCEDURE.md").read_text(
+            encoding="utf-8"
+        )
+        release_candidate = (ROOT / "docs" / "V1_RELEASE_CANDIDATE.md").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn("bash scripts/debian-vm-release-candidate.sh", readme)
+        self.assertIn("bash scripts/debian-vm-release-candidate.sh", deployment)
+        self.assertIn("MEDIA_AUDIT_RELEASE_CANDIDATE_DIR", deployment)
+        self.assertIn("release_candidate=ready", deployment)
+        self.assertIn("docs/V1_RELEASE_CANDIDATE.md", deployment)
+        self.assertIn("bash scripts/debian-vm-release-candidate.sh", procedure)
+        self.assertIn("reports/release-candidate", procedure)
+        self.assertIn("release_candidate=ready", procedure)
+        self.assertIn("bash scripts/debian-vm-release-candidate.sh", release_candidate)
+        self.assertIn("release_candidate=ready", release_candidate)
+        self.assertIn("pilot_closeout=ready", release_candidate)
+        self.assertIn("v1_readiness=ready", release_candidate)
+
     def test_debian_vm_firewall_plan_is_plan_only(self) -> None:
         script = (ROOT / "scripts" / "debian-vm-firewall-plan.sh").read_text(encoding="utf-8")
 

@@ -298,6 +298,21 @@ inventory, and a final `pilot_closeout=ready` or `pilot_closeout=blocked` status
 without installing packages, running scanners, collecting application logs, or
 reading customer file contents.
 
+Generate the V1 release candidate report after pilot closeout:
+
+```bash
+bash scripts/debian-vm-release-candidate.sh
+```
+
+Release candidate reports are written to `reports/release-candidate` by default.
+Set `MEDIA_AUDIT_RELEASE_CANDIDATE_DIR=/path/to/release-candidate` to write
+them elsewhere. The helper runs pilot closeout, verifies bundle inventory,
+records the latest readiness, closeout, and handoff evidence, and writes final
+`release_candidate=ready` or `release_candidate=blocked` status without
+installing packages, running scanners, collecting application logs, or reading
+customer file contents. See `docs/V1_RELEASE_CANDIDATE.md` for the full go/no-go
+procedure.
+
 Create a shareable handoff bundle:
 
 ```bash

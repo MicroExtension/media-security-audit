@@ -183,6 +183,9 @@ class WebUiTests(unittest.TestCase):
         self.assertIn(".handoff-panel", css)
         self.assertIn(".handoff-grid", css)
         self.assertIn(".handoff-status", css)
+        self.assertIn(".mission-focus", css)
+        self.assertIn(".mission-focus-grid", css)
+        self.assertIn(".mission-focus-actions", css)
 
     def test_global_styles_expose_anchor_target_context(self) -> None:
         css_path = (
@@ -1855,6 +1858,16 @@ class WebUiTests(unittest.TestCase):
 
         self.assertIn("Technician Cockpit", template)
         self.assertIn("Mission Go/No-Go", template)
+        self.assertIn("Mission Focus", template)
+        self.assertIn('aria-label="Mission focus"', template)
+        self.assertIn("view.cockpit.next_action", template)
+        self.assertIn("view.cockpit.next_action_href", template)
+        self.assertIn("view.cockpit.next_action_label", template)
+        self.assertIn("view.scan_launch.ready_count", template)
+        self.assertIn("view.customer_handoff.ready_count", template)
+        self.assertIn("view.customer_handoff.total_count", template)
+        self.assertIn("mission-focus-grid", template)
+        self.assertIn("mission-focus-actions", template)
         self.assertIn("view.go_no_go.status", template)
         self.assertIn("view.go_no_go.detail", template)
         self.assertIn("view.go_no_go.action_href", template)

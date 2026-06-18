@@ -52,6 +52,36 @@
   <div class="metric"><span>Authorization</span><strong>{{ "yes" if view.mission.authorization_present else "no" }}</strong></div>
 </section>
 
+<section class="mission-focus" aria-label="Mission focus">
+  <div class="mission-focus-main">
+    <div>
+      <p class="eyebrow">Mission Focus</p>
+      <h2>{{ view.cockpit.next_action }}</h2>
+      <p>{{ view.go_no_go.detail }}</p>
+    </div>
+    <span class="badge status-{{ view.go_no_go.status }}">{{ view.go_no_go.decision }}</span>
+  </div>
+  <div class="mission-focus-grid">
+    <div class="mission-focus-item">
+      <span>Workflow</span>
+      <strong>{{ view.cockpit.ready_step_count }}/{{ view.cockpit.total_step_count }}</strong>
+    </div>
+    <div class="mission-focus-item">
+      <span>Ready services</span>
+      <strong>{{ view.scan_launch.ready_count }}</strong>
+    </div>
+    <div class="mission-focus-item">
+      <span>Handoff</span>
+      <strong>{{ view.customer_handoff.ready_count }}/{{ view.customer_handoff.total_count }}</strong>
+    </div>
+  </div>
+  <div class="mission-focus-actions">
+    <a class="button" href="{{ view.cockpit.next_action_href }}">{{ view.cockpit.next_action_label }}</a>
+    <a class="button secondary-button" href="{{ view.go_no_go.action_href }}">{{ view.go_no_go.action_label }}</a>
+    <a class="button secondary-button" href="#reports">Reports</a>
+  </div>
+</section>
+
 <section class="page-shortcuts" aria-label="Mission shortcuts">
   <a href="#mission-go-no-go">Go/No-Go <span>{{ view.go_no_go.decision }}</span></a>
   <a href="#mission-cockpit">Cockpit <span>{{ view.cockpit.ready_step_count }}/{{ view.cockpit.total_step_count }}</span></a>

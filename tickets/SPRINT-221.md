@@ -1,5 +1,7 @@
 # Sprint 221 - Guided Audit Stepper UX
 
+Status: implemented.
+
 ## Goal
 
 Make audit creation understandable for a MEDIA technician opening the web UI for

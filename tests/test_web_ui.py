@@ -1845,7 +1845,15 @@ class WebUiTests(unittest.TestCase):
             / "web_templates"
             / "mission.html"
         )
+        css_path = (
+            Path(__file__).resolve().parents[1]
+            / "app"
+            / "media_security_audit"
+            / "web_static"
+            / "app.css"
+        )
         template = template_path.read_text(encoding="utf-8")
+        css = css_path.read_text(encoding="utf-8")
 
         for anchor in [
             "mission-go-no-go",
@@ -1973,8 +1981,18 @@ class WebUiTests(unittest.TestCase):
         self.assertIn('action="/missions/{{ view.mission.id }}/scan-runs"', template)
         self.assertIn('name="check" value="{{ plan.check }}"', template)
         self.assertIn('name="execute_confirm"', template)
-        self.assertIn("Authorization confirmed", template)
-        self.assertIn("Run Check", template)
+        self.assertIn("prelaunch-decision", template)
+        self.assertIn("Ready for guarded launch", template)
+        self.assertIn("Written authorization is recorded for this mission.", template)
+        self.assertIn("Approved scope contains target(s) matching this service.", template)
+        self.assertIn("will run exactly as listed above", template)
+        self.assertIn("Execution may contact target systems", template)
+        self.assertIn("I confirm written authorization, approved scope", template)
+        self.assertIn("Run {{ plan.label }}", template)
+        self.assertIn("Launch blocked", template)
+        self.assertIn("Review readiness blockers", template)
+        self.assertIn(".prelaunch-decision", css)
+        self.assertIn(".prelaunch-blocked", css)
         self.assertIn("Guarded execution", template)
         self.assertIn("CLI and web executions", template)
         self.assertIn("Known Vulnerability Correlation", template)

@@ -632,6 +632,8 @@ Current GUI status:
 - mission pages show a step-by-step action roadmap from setup to handoff
 - mission pages export the action roadmap as Markdown and JSON
 - mission cockpit service cards show latest run status, commands, findings, and evidence counts
+- mission scan plans show a pre-launch decision box before each guarded web
+  execution, including authorization, scope, command, and live-contact reminders
 - web forms can create clients, missions, and scope items
 - mission setup details can be updated from mission pages
 - scope items can be reviewed, corrected, approved, or excluded from mission pages

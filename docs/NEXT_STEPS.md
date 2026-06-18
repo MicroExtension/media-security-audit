@@ -620,6 +620,9 @@ Current GUI status:
   selected services, and authorization readiness
 - guided audit wizard shows service use cases, target requirements, and safe
   execution mode before check selection
+- pilot feedback: the audit creation flow is still too dense; the wizard must
+  become a true step-by-step assistant with Previous/Next controls, per-step
+  validation, and a final review before creation or launch
 - dashboard can show clients and missions
 - dashboard shows a technician workflow from guided audit creation to report
   handoff

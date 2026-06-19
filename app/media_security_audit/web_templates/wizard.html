@@ -279,6 +279,28 @@
             </div>
           </div>
         </div>
+        <div class="wizard-creation-checklist" aria-label="Audit creation checklist">
+          <article class="wizard-gate is-missing" data-wizard-gate="client">
+            <span class="wizard-gate-status" data-wizard-gate-status>Missing</span>
+            <strong>Client ready</strong>
+            <p data-wizard-gate-detail>Choose an existing client or add a new one.</p>
+          </article>
+          <article class="wizard-gate is-missing" data-wizard-gate="mission">
+            <span class="wizard-gate-status" data-wizard-gate-status>Missing</span>
+            <strong>Mission authorized</strong>
+            <p data-wizard-gate-detail>Name the mission and add the authorization reference.</p>
+          </article>
+          <article class="wizard-gate is-missing" data-wizard-gate="scope">
+            <span class="wizard-gate-status" data-wizard-gate-status>Missing</span>
+            <strong>Scope approved</strong>
+            <p data-wizard-gate-detail>Add at least one approved target.</p>
+          </article>
+          <article class="wizard-gate is-missing" data-wizard-gate="checks">
+            <span class="wizard-gate-status" data-wizard-gate-status>Missing</span>
+            <strong>Checks selected</strong>
+            <p data-wizard-gate-detail>Select at least one non-destructive check.</p>
+          </article>
+        </div>
         <p class="wizard-review-status" data-wizard-review-status>
           Complete the previous steps before creating the audit.
         </p>
@@ -326,6 +348,7 @@
     const reviewTargetList = document.querySelector("[data-wizard-review-target-list]");
     const reviewCheckList = document.querySelector("[data-wizard-review-check-list]");
     const reviewStatus = document.querySelector("[data-wizard-review-status]");
+    const creationGateItems = [...document.querySelectorAll("[data-wizard-gate]")];
     if (!templateSelect || !auditTypeSelect || !checkboxes.length || !summaryStatus || !steps.length) {
       return;
     }
@@ -369,6 +392,50 @@
         pill.textContent = item;
         container.appendChild(pill);
       });
+    };
+    const setGate = (key, ready, detail) => {
+      const gate = creationGateItems.find((item) => item.dataset.wizardGate === key);
+      if (!gate) {
+        return;
+      }
+      gate.classList.toggle("is-ready", ready);
+      gate.classList.toggle("is-missing", !ready);
+      const status = gate.querySelector("[data-wizard-gate-status]");
+      const detailNode = gate.querySelector("[data-wizard-gate-detail]");
+      if (status) {
+        status.textContent = ready ? "Ready" : "Missing";
+      }
+      if (detailNode) {
+        detailNode.textContent = detail;
+      }
+    };
+    const updateCreationChecklist = (state, snapshot) => {
+      setGate(
+        "client",
+        state.client,
+        state.client ? `Client: ${snapshot.client}` : "Choose an existing client or add a new one.",
+      );
+      setGate(
+        "mission",
+        state.mission,
+        state.mission
+          ? `Mission: ${snapshot.missionName}; authorization reference present.`
+          : "Name the mission and add the authorization reference.",
+      );
+      setGate(
+        "scope",
+        state.scope,
+        state.scope
+          ? `${snapshot.targetTotal} approved target${snapshot.targetTotal === 1 ? "" : "s"} recorded.`
+          : "Add at least one approved target.",
+      );
+      setGate(
+        "checks",
+        state.checks,
+        state.checks
+          ? `${snapshot.checks.length} check${snapshot.checks.length === 1 ? "" : "s"} selected and scope confirmed.`
+          : "Select at least one non-destructive check and confirm the scope.",
+      );
     };
     const setMessage = (message, state = "warning") => {
       if (!stepMessage) {
@@ -439,11 +506,13 @@
       const targets = targetCounts();
       const checks = selectedChecks();
       const isAuthorizationReady = authorizationReady();
+      const state = readiness();
+      const targetCount = targetTotal();
 
       summaryClient.textContent = client;
       summaryProfile.textContent = auditTypeSelect.value || "not selected";
       summaryMission.textContent = missionName;
-      summaryTargets.textContent = String(targetTotal());
+      summaryTargets.textContent = String(targetCount);
       summaryChecks.textContent = String(checks.length);
       summaryAuthorization.textContent = isAuthorizationReady ? "ready" : "missing";
       summaryStatus.textContent = readyToCreate() ? "Ready to create" : "Draft";
@@ -458,6 +527,12 @@
       reviewStatus.textContent = readyToCreate()
         ? "Ready to create. Live execution remains separate and requires explicit confirmation later."
         : "Complete the previous steps before creating the audit.";
+      updateCreationChecklist(state, {
+        checks,
+        client,
+        missionName,
+        targetTotal: targetCount,
+      });
       if (submitButton) {
         submitButton.disabled = !readyToCreate();
       }

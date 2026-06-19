@@ -1218,6 +1218,67 @@ a.filter-chip:hover {
   overflow-wrap: anywhere;
 }
 
+.wizard-creation-checklist {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-top: 14px;
+}
+
+.wizard-gate {
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  display: grid;
+  gap: 7px;
+  min-height: 132px;
+  padding: 11px;
+}
+
+.wizard-gate.is-ready {
+  background: #ecfdf3;
+  border-color: #a6f4c5;
+}
+
+.wizard-gate.is-missing {
+  background: #fffbeb;
+  border-color: #fedf89;
+}
+
+.wizard-gate-status {
+  border-radius: 999px;
+  color: #344054;
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 700;
+  justify-self: start;
+  line-height: 1.2;
+  padding: 5px 8px;
+}
+
+.wizard-gate.is-ready .wizard-gate-status {
+  background: #d1fadf;
+  color: #05603a;
+}
+
+.wizard-gate.is-missing .wizard-gate-status {
+  background: #fef0c7;
+  color: #93370d;
+}
+
+.wizard-gate strong {
+  color: var(--text);
+  font-size: 14px;
+}
+
+.wizard-gate p {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
 .wizard-review-status {
   background: #f8fbfc;
   border: 1px solid var(--border);
@@ -2040,6 +2101,7 @@ code {
   .wizard-service-grid,
   .wizard-summary-grid,
   .wizard-summary-details,
+  .wizard-creation-checklist,
   .wizard-review-grid,
   .mission-focus-grid,
   .quick-read-grid,

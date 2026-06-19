@@ -226,7 +226,7 @@
           <div class="check-selection-grid">
             {% for check in check_options %}
             <label class="check-selection-option">
-              <input type="checkbox" name="check_{{ check.value }}" value="1" data-wizard-check="{{ check.value }}" {% if check.default %}checked{% endif %}>
+              <input type="checkbox" name="check_{{ check.value }}" value="1" data-wizard-check="{{ check.value }}" data-wizard-check-label="{{ check.label }}" data-wizard-required-types="{{ check.required_types | join(',') }}" {% if check.default %}checked{% endif %}>
               <span>
                 <strong>{{ check.label }}</strong>
                 <small>{{ check.description }}</small>
@@ -235,6 +235,19 @@
             {% endfor %}
           </div>
         </fieldset>
+        <section class="wizard-service-coverage" aria-label="Selected service target coverage">
+          <div class="section-title">
+            <h3>Target Coverage</h3>
+            <span class="muted" data-wizard-coverage-summary>No services selected</span>
+          </div>
+          <div class="wizard-coverage-list" data-wizard-coverage-list>
+            <article class="wizard-coverage-item is-missing">
+              <span class="wizard-coverage-status">Missing</span>
+              <strong>No service selected</strong>
+              <p>Select checks and add matching targets before creating the audit.</p>
+            </article>
+          </div>
+        </section>
         <fieldset class="field-group wizard-confirmation">
           <legend>Scope Confirmation</legend>
           <label>
@@ -349,6 +362,8 @@
     const reviewCheckList = document.querySelector("[data-wizard-review-check-list]");
     const reviewStatus = document.querySelector("[data-wizard-review-status]");
     const creationGateItems = [...document.querySelectorAll("[data-wizard-gate]")];
+    const coverageList = document.querySelector("[data-wizard-coverage-list]");
+    const coverageSummary = document.querySelector("[data-wizard-coverage-summary]");
     if (!templateSelect || !auditTypeSelect || !checkboxes.length || !summaryStatus || !steps.length) {
       return;
     }
@@ -365,7 +380,47 @@
     const targetTotal = () => targetCounts().reduce((total, item) => total + item.count, 0);
     const selectedChecks = () => checkboxes
       .filter((checkbox) => checkbox.checked)
-      .map((checkbox) => checkbox.closest(".check-selection-option")?.querySelector("strong")?.textContent.trim() || checkbox.dataset.wizardCheck);
+      .map((checkbox) => checkbox.dataset.wizardCheckLabel || checkbox.dataset.wizardCheck);
+    const selectedCheckDetails = () => checkboxes
+      .filter((checkbox) => checkbox.checked)
+      .map((checkbox) => ({
+        label: checkbox.dataset.wizardCheckLabel || checkbox.dataset.wizardCheck,
+        requiredTypes: (checkbox.dataset.wizardRequiredTypes || "").split(",").filter(Boolean),
+      }));
+    const inferHostScopeType = (value) => {
+      if (value.includes("/")) {
+        return "cidr";
+      }
+      if (/^\d{1,3}(\.\d{1,3}){3}$/.test(value)) {
+        return "ip";
+      }
+      return "host";
+    };
+    const scopeTypesForTargetLine = (input, value) => {
+      if (input.name === "web_urls") {
+        return ["url"];
+      }
+      if (input.name === "external_domains") {
+        return value.startsWith("http://") || value.startsWith("https://") ? ["url"] : ["domain"];
+      }
+      return [inferHostScopeType(value)];
+    };
+    const availableScopeTypes = () => {
+      const types = new Set();
+      targetInputs.forEach((input) => {
+        targetLines(input).forEach((line) => {
+          scopeTypesForTargetLine(input, line).forEach((type) => types.add(type));
+        });
+      });
+      return types;
+    };
+    const serviceCoverage = () => {
+      const availableTypes = availableScopeTypes();
+      return selectedCheckDetails().map((check) => ({
+        ...check,
+        ready: check.requiredTypes.some((type) => availableTypes.has(type)),
+      }));
+    };
     const authorizationReady = () => Boolean(authorizationReferenceInput?.value.trim()) && Boolean(scopeApprovedInput?.checked);
     const readiness = () => ({
       client: clientLabel() !== "Not selected",
@@ -391,6 +446,42 @@
         pill.className = "wizard-pill";
         pill.textContent = item;
         container.appendChild(pill);
+      });
+    };
+    const renderServiceCoverage = () => {
+      const coverage = serviceCoverage();
+      if (!coverageList || !coverageSummary) {
+        return;
+      }
+      coverageList.innerHTML = "";
+      if (!coverage.length) {
+        coverageSummary.textContent = "No services selected";
+        const item = document.createElement("article");
+        item.className = "wizard-coverage-item is-missing";
+        item.innerHTML = [
+          '<span class="wizard-coverage-status">Missing</span>',
+          "<strong>No service selected</strong>",
+          "<p>Select checks and add matching targets before creating the audit.</p>",
+        ].join("");
+        coverageList.appendChild(item);
+        return;
+      }
+      const readyCount = coverage.filter((item) => item.ready).length;
+      coverageSummary.textContent = `${readyCount}/${coverage.length} services have matching targets`;
+      coverage.forEach((check) => {
+        const item = document.createElement("article");
+        item.className = `wizard-coverage-item ${check.ready ? "is-ready" : "is-missing"}`;
+        const status = document.createElement("span");
+        status.className = "wizard-coverage-status";
+        status.textContent = check.ready ? "Ready" : "Missing";
+        const title = document.createElement("strong");
+        title.textContent = check.label;
+        const detail = document.createElement("p");
+        detail.textContent = check.ready
+          ? "A matching approved target type is present."
+          : `Needs ${check.requiredTypes.join(", ")} target coverage.`;
+        item.append(status, title, detail);
+        coverageList.appendChild(item);
       });
     };
     const setGate = (key, ready, detail) => {
@@ -527,6 +618,7 @@
       reviewStatus.textContent = readyToCreate()
         ? "Ready to create. Live execution remains separate and requires explicit confirmation later."
         : "Complete the previous steps before creating the audit.";
+      renderServiceCoverage();
       updateCreationChecklist(state, {
         checks,
         client,

@@ -625,6 +625,8 @@ Current GUI status:
   before audit creation
 - guided audit wizard final review shows a readiness checklist for client,
   authorization, approved scope, and selected checks
+- guided audit wizard shows whether selected services have matching target
+  coverage before audit creation
 - dashboard can show clients and missions
 - dashboard shows a technician workflow from guided audit creation to report
   handoff

@@ -820,6 +820,8 @@ Current GUI status:
   rollups for client and technician review
 - generated reports include a quick-read decision, immediate action, priority
   focus, and next counter-test for client review
+- generated reports include a client action plan explaining why each action
+  matters, what to fix, when to handle it, and how to validate remediation
 
 ## Step 7 - Add Safe Scanner Modules
 

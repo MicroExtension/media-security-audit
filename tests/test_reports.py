@@ -22,6 +22,7 @@ from media_security_audit.reports import (  # noqa: E402
     render_json,
     render_markdown,
     render_pdf,
+    remediation_guidance,
     remediation_plan,
     write_report,
 )
@@ -41,6 +42,16 @@ class ReportTests(unittest.TestCase):
         self.assertEqual(payload["summary"]["quick_read"]["decision"], "Remédiation planifiée")
         self.assertIn("Strict Transport Security", payload["summary"]["quick_read"]["priority_focus"])
         self.assertIn("Enable the Strict-Transport-Security", payload["summary"]["quick_read"]["immediate_action"])
+        self.assertEqual(payload["summary"]["remediation_guidance"]["headline"], "Plan d’action client")
+        self.assertEqual(len(payload["summary"]["remediation_guidance"]["items"]), 2)
+        self.assertEqual(
+            payload["summary"]["remediation_guidance"]["items"][0]["timing"],
+            "Maintenance planifiée",
+        )
+        self.assertIn(
+            "why_it_matters",
+            payload["summary"]["remediation_guidance"]["items"][0],
+        )
         self.assertEqual(len(payload["remediation_plan"]), 2)
         self.assertEqual(payload["mission"]["id"], "mission_sample")
         self.assertEqual(payload["mission"]["evidence_retention_days"], 90)
@@ -51,6 +62,9 @@ class ReportTests(unittest.TestCase):
         self.assertIn("# Security Audit Report", markdown)
         self.assertIn("## Executive Summary", markdown)
         self.assertIn("## Lecture rapide", markdown)
+        self.assertIn("## Plan d’action client", markdown)
+        self.assertIn("Pourquoi:", markdown)
+        self.assertIn("Validation:", markdown)
         self.assertIn("Décision", markdown)
         self.assertIn("Point prioritaire", markdown)
         self.assertIn("## Remediation Plan", markdown)
@@ -69,6 +83,9 @@ class ReportTests(unittest.TestCase):
         self.assertIn("Vue d’ensemble du risque", html)
         self.assertIn("Lecture rapide", html)
         self.assertIn("quick-read-grid", html)
+        self.assertIn("Plan d’action client", html)
+        self.assertIn("action-plan-grid", html)
+        self.assertIn("Pourquoi c’est important", html)
         self.assertIn("Action immédiate", html)
         self.assertIn("Prochain contre-test", html)
         self.assertIn("Points critiques à traiter", html)
@@ -87,6 +104,7 @@ class ReportTests(unittest.TestCase):
         self.assertIn(b"/Type /Catalog", pdf)
         self.assertIn(b"Rapport d'audit securite", pdf)
         self.assertIn(b"Lecture rapide", pdf)
+        self.assertIn(b"Plan d'action client", pdf)
         self.assertIn(b"Action immediate", pdf)
         self.assertIn(b"Missing HTTP Strict Transport Security header", pdf)
 
@@ -94,12 +112,16 @@ class ReportTests(unittest.TestCase):
         summary = build_report_summary(sample_mission(), sample_findings())
         plan = remediation_plan(sample_findings())
         quick_read = quick_read_summary(sample_findings())
+        guidance = remediation_guidance(sample_findings())
 
         self.assertTrue(summary["authorization_present"])
         self.assertEqual(summary["authorization"]["evidence_retention_days"], "90")
         self.assertEqual(summary["scope"]["approved_targets"], ["domain:example.invalid"])
         self.assertEqual(summary["quick_read"], quick_read)
+        self.assertEqual(summary["remediation_guidance"], guidance)
         self.assertEqual(quick_read["decision"], "Remédiation planifiée")
+        self.assertEqual(guidance["headline"], "Plan d’action client")
+        self.assertEqual(guidance["items"][0]["status_label"], "Nouveau")
         self.assertEqual(plan[0]["severity"], "medium")
 
     def test_reports_highlight_critical_attention_items(self) -> None:

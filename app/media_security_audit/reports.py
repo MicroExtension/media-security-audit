@@ -355,6 +355,70 @@ def known_vulnerability_summary(findings: list[Finding]) -> dict[str, int]:
     }
 
 
+def remediation_timing(finding: Finding) -> str:
+    known_exploited = display_value(finding.metadata.get("known_exploited")).lower() == "true"
+    if known_exploited or finding.severity is Severity.CRITICAL:
+        return "Immédiat"
+    if finding.severity is Severity.HIGH:
+        return "Court terme"
+    if finding.severity is Severity.MEDIUM:
+        return "Maintenance planifiée"
+    if finding.severity is Severity.LOW:
+        return "Amélioration continue"
+    return "Observation"
+
+
+def remediation_guidance(findings: list[Finding], limit: int = 6) -> dict[str, object]:
+    active = sorted_findings(active_findings(findings))
+    actionable = [finding for finding in active if finding.severity is not Severity.INFO]
+    selected = actionable[:limit] if actionable else active[:limit]
+
+    if not selected:
+        return {
+            "headline": "Aucune action corrective active",
+            "summary": (
+                "Le rapport ne contient pas de constat actif à corriger. "
+                "Conservez les preuves et planifiez le prochain contrôle."
+            ),
+            "next_step": "Relancer un audit de contrôle au prochain cycle de maintenance.",
+            "items": [],
+        }
+
+    immediate_count = len(
+        [finding for finding in actionable if remediation_timing(finding) == "Immédiat"]
+    )
+    summary = (
+        f"{len(actionable)} action(s) corrective(s) sont à piloter, "
+        f"dont {immediate_count} à traiter immédiatement."
+    )
+    if immediate_count == 0:
+        summary = (
+            f"{len(actionable)} action(s) corrective(s) sont à intégrer au plan "
+            "de maintenance."
+        )
+
+    return {
+        "headline": "Plan d’action client",
+        "summary": summary,
+        "next_step": "Traiter les actions dans l’ordre, puis exécuter les contre-tests associés.",
+        "items": [
+            {
+                "timing": remediation_timing(finding),
+                "severity": finding.severity.value,
+                "severity_label": display_severity(finding.severity.value),
+                "title": finding.title,
+                "asset": finding.affected_asset,
+                "status": finding.status.value,
+                "status_label": display_status(finding.status.value),
+                "why_it_matters": finding.risk,
+                "recommended_action": finding.remediation,
+                "validation": finding.counter_test,
+            }
+            for finding in selected
+        ],
+    }
+
+
 def quick_read_summary(findings: list[Finding]) -> dict[str, str]:
     active = active_findings(findings)
     plan = remediation_plan(findings, limit=1)
@@ -423,6 +487,7 @@ def build_report_summary(mission: Mission, findings: list[Finding]) -> dict[str,
         "status_counts": finding_status_counts(findings),
         "disposition_notes": disposition_notes(findings),
         "known_vulnerabilities": known_vulnerability_summary(findings),
+        "remediation_guidance": remediation_guidance(findings),
         "quick_read": quick_read_summary(findings),
         "risk_score": score,
         "risk_level": risk_level(score),
@@ -454,6 +519,7 @@ def render_markdown(mission: Mission, findings: list[Finding]) -> str:
     scope = summary["scope"]
     authorization = summary["authorization"]
     quick_read = summary["quick_read"]
+    guidance = summary["remediation_guidance"]
     plan = remediation_plan(ordered_findings)
     attention_items = critical_attention_items(ordered_findings)
     known_vulnerability_summary_items = summary["known_vulnerabilities"]
@@ -474,34 +540,66 @@ def render_markdown(mission: Mission, findings: list[Finding]) -> str:
         f"- Prochain contre-test: {quick_read['next_counter_test']}",
         f"- Note: {quick_read['audience_note']}",
         "",
-        "## Risk Overview",
+        "## Plan d’action client",
         "",
-        f"- Risk score: `{summary['risk_score']}/100`",
-        f"- Risk level: `{summary['risk_level']}`",
-        f"- Active findings: {summary['active_finding_count']}",
-        f"- Authorization present: `{str(summary['authorization_present']).lower()}`",
+        str(guidance["headline"]),
         "",
-        "## Mission Context",
+        str(guidance["summary"]),
         "",
-        f"- Mission id: `{mission.id}`",
-        f"- Client id: `{mission.client_id}`",
-        f"- Audit type: `{mission.audit_type.value}`",
-        f"- Mission status: `{mission.status.value}`",
-        f"- Authorization reference: `{authorization['reference']}`",
-        f"- Authorization contact: `{authorization['contact']}`",
-        f"- Authorization date: `{authorization['authorization_date']}`",
-        f"- Authorization expires: `{authorization['authorization_expires_at']}`",
-        f"- Emergency contact: `{authorization['emergency_contact']}`",
-        f"- Report recipients: `{authorization['report_recipients']}`",
-        f"- Evidence retention days: `{authorization['evidence_retention_days']}`",
-        "",
-        "## Scope Summary",
-        "",
-        f"- Approved targets: {scope['approved_count']}",
-        f"- Excluded targets: {scope['excluded_count']}",
-        f"- Draft targets: {scope['draft_count']}",
+        f"- Prochaine étape: {guidance['next_step']}",
         "",
     ]
+
+    guidance_items = guidance["items"]
+    if guidance_items:
+        for index, item in enumerate(guidance_items, start=1):
+            lines.extend(
+                [
+                    (
+                        f"{index}. `{item['timing']}` {item['title']} "
+                        f"sur `{item['asset']}`"
+                    ),
+                    f"   Pourquoi: {item['why_it_matters']}",
+                    f"   Action: {item['recommended_action']}",
+                    f"   Validation: {item['validation']}",
+                    f"   Statut: {item['status_label']}",
+                    "",
+                ]
+            )
+    else:
+        lines.extend(["Aucune action corrective active n’est incluse.", ""])
+
+    lines.extend(
+        [
+            "## Risk Overview",
+            "",
+            f"- Risk score: `{summary['risk_score']}/100`",
+            f"- Risk level: `{summary['risk_level']}`",
+            f"- Active findings: {summary['active_finding_count']}",
+            f"- Authorization present: `{str(summary['authorization_present']).lower()}`",
+            "",
+            "## Mission Context",
+            "",
+            f"- Mission id: `{mission.id}`",
+            f"- Client id: `{mission.client_id}`",
+            f"- Audit type: `{mission.audit_type.value}`",
+            f"- Mission status: `{mission.status.value}`",
+            f"- Authorization reference: `{authorization['reference']}`",
+            f"- Authorization contact: `{authorization['contact']}`",
+            f"- Authorization date: `{authorization['authorization_date']}`",
+            f"- Authorization expires: `{authorization['authorization_expires_at']}`",
+            f"- Emergency contact: `{authorization['emergency_contact']}`",
+            f"- Report recipients: `{authorization['report_recipients']}`",
+            f"- Evidence retention days: `{authorization['evidence_retention_days']}`",
+            "",
+            "## Scope Summary",
+            "",
+            f"- Approved targets: {scope['approved_count']}",
+            f"- Excluded targets: {scope['excluded_count']}",
+            f"- Draft targets: {scope['draft_count']}",
+            "",
+        ]
+    )
 
     approved_targets = scope["approved_targets"]
     if approved_targets:
@@ -711,6 +809,51 @@ def _render_html_quick_read(quick_read: dict[str, str]) -> str:
 """.strip()
 
 
+def _render_html_remediation_guidance(guidance: dict[str, object]) -> str:
+    items = guidance["items"]
+    if not items:
+        return f"""
+<div class="action-plan-intro">
+  <strong>{escape(str(guidance["headline"]))}</strong>
+  <p>{escape(str(guidance["summary"]))}</p>
+  <p>{escape(str(guidance["next_step"]))}</p>
+</div>
+""".strip()
+
+    cards = []
+    for item in items:
+        cards.append(
+            f"""
+<article class="action-card severity-{escape(str(item["severity"]))}">
+  <div class="attention-meta">
+    <span class="severity-pill severity-{escape(str(item["severity"]))}">{escape(str(item["severity_label"]))}</span>
+    <span>{escape(str(item["timing"]))}</span>
+  </div>
+  <h3>{escape(str(item["title"]))}</h3>
+  <dl>
+    <dt>Actif concerné</dt><dd>{escape(str(item["asset"]))}</dd>
+    <dt>Statut</dt><dd>{escape(str(item["status_label"]))}</dd>
+  </dl>
+  <h4>Pourquoi c’est important</h4>
+  <p>{escape(str(item["why_it_matters"]))}</p>
+  <h4>Action recommandée</h4>
+  <p>{escape(str(item["recommended_action"]))}</p>
+  <h4>Validation attendue</h4>
+  <p>{escape(str(item["validation"]))}</p>
+</article>
+""".strip()
+        )
+
+    return f"""
+<div class="action-plan-intro">
+  <strong>{escape(str(guidance["headline"]))}</strong>
+  <p>{escape(str(guidance["summary"]))}</p>
+  <p>{escape(str(guidance["next_step"]))}</p>
+</div>
+<div class="action-plan-grid">{"".join(cards)}</div>
+""".strip()
+
+
 def _render_html_critical_attention(items: list[dict[str, str]]) -> str:
     if not items:
         return (
@@ -862,6 +1005,7 @@ def render_html(mission: Mission, findings: list[Finding]) -> str:
     scope = summary["scope"]
     authorization = summary["authorization"]
     quick_read = summary["quick_read"]
+    guidance = summary["remediation_guidance"]
     plan = remediation_plan(ordered_findings)
     attention_items = critical_attention_items(ordered_findings)
     known_vulnerability_summary_items = summary["known_vulnerabilities"]
@@ -987,6 +1131,12 @@ def render_html(mission: Mission, findings: list[Finding]) -> str:
     .quick-read-grid article {{ border: 1px solid var(--line); border-radius: 8px; background: var(--surface); padding: 14px; }}
     .quick-read-grid span {{ color: var(--muted); display: block; font-size: .82rem; font-weight: 700; }}
     .quick-read-grid strong {{ display: block; font-size: .98rem; margin-top: 4px; }}
+    .action-plan-intro {{ border: 1px solid var(--line); border-radius: 8px; background: var(--surface); padding: 14px; margin-bottom: 14px; }}
+    .action-plan-intro strong {{ display: block; font-size: 1rem; margin-bottom: 4px; }}
+    .action-plan-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }}
+    .action-card {{ border: 1px solid var(--line); border-radius: 8px; padding: 16px; background: var(--surface); }}
+    .action-card h3 {{ margin-top: .7rem; }}
+    .action-card h4 {{ color: #253044; font-size: .92rem; margin: .9rem 0 .2rem; }}
     .context-grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }}
     dl {{ display: grid; grid-template-columns: minmax(150px, 220px) 1fr; gap: .35rem .75rem; margin: 0; }}
     dt {{ font-weight: 700; color: #253044; }}
@@ -1019,7 +1169,7 @@ def render_html(mission: Mission, findings: list[Finding]) -> str:
     @media (max-width: 760px) {{
       main {{ padding: 12px; }}
       header {{ padding: 20px; }}
-      .executive, .context-grid, .quick-read-grid {{ grid-template-columns: 1fr; }}
+      .executive, .context-grid, .quick-read-grid, .action-plan-grid {{ grid-template-columns: 1fr; }}
       dl {{ grid-template-columns: 1fr; }}
       table {{ display: block; overflow-x: auto; }}
     }}
@@ -1053,6 +1203,11 @@ def render_html(mission: Mission, findings: list[Finding]) -> str:
     <section class="section">
       <h2>Lecture rapide</h2>
       {_render_html_quick_read(quick_read)}
+    </section>
+
+    <section class="section">
+      <h2>Plan d’action client</h2>
+      {_render_html_remediation_guidance(guidance)}
     </section>
 
     <section class="section">
@@ -1273,6 +1428,7 @@ def render_pdf(mission: Mission, findings: list[Finding]) -> bytes:
     scope = summary["scope"]
     authorization = summary["authorization"]
     quick_read = summary["quick_read"]
+    guidance = summary["remediation_guidance"]
     plan = remediation_plan(ordered_findings)
     attention_items = critical_attention_items(ordered_findings)
     known_vulnerability_summary_items = summary["known_vulnerabilities"]
@@ -1307,6 +1463,26 @@ def render_pdf(mission: Mission, findings: list[Finding]) -> bytes:
     pdf.add_text(f"Point prioritaire: {quick_read['priority_focus']}")
     pdf.add_text(f"Prochain contre-test: {quick_read['next_counter_test']}")
     pdf.add_text(f"Note: {quick_read['audience_note']}")
+
+    pdf.add_section_heading("Plan d'action client")
+    pdf.add_text(str(guidance["headline"]), bold=True)
+    pdf.add_text(str(guidance["summary"]))
+    pdf.add_text(f"Prochaine etape: {guidance['next_step']}")
+    guidance_items = guidance["items"]
+    if guidance_items:
+        for index, item in enumerate(guidance_items, start=1):
+            pdf.add_text(
+                (
+                    f"{index}. [{item['timing']}] "
+                    f"{item['title']} - {item['asset']}"
+                ),
+                bold=True,
+            )
+            pdf.add_text(f"Pourquoi: {item['why_it_matters']}", indent=12)
+            pdf.add_text(f"Action: {item['recommended_action']}", indent=12)
+            pdf.add_text(f"Validation: {item['validation']}", indent=12)
+    else:
+        pdf.add_text("Aucune action corrective active n'est incluse.")
 
     pdf.add_section_heading("Vue d'ensemble du risque")
     pdf.add_text(

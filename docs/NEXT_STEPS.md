@@ -623,6 +623,8 @@ Current GUI status:
 - guided audit wizard now uses a true step-by-step assistant with Previous/Next
   controls, per-step validation, a compact live summary, and a final review
   before audit creation
+- guided audit wizard final review shows a readiness checklist for client,
+  authorization, approved scope, and selected checks
 - dashboard can show clients and missions
 - dashboard shows a technician workflow from guided audit creation to report
   handoff

@@ -737,6 +737,8 @@ Current GUI status:
 - local Pilot page shows readiness rollup counters before pilot handoff
 - local Pilot page shows a handoff decision and next action before bundle delivery
 - local Pilot page shows go/no-go actions before bundle delivery
+- local Pilot page shows a V1 smoke test checklist for VM validation
+- local Pilot runbook Markdown and JSON exports include V1 smoke test steps
 - local Pilot page shows VM update, preflight, start, status, readiness, and
   closeout commands
 - local Pilot page exports a final handoff checklist before evidence archiving

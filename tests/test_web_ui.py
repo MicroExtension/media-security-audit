@@ -641,6 +641,7 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("view.subtitle", template)
         self.assertIn("view.metrics", template)
         self.assertIn("view.vm_operations", template)
+        self.assertIn("view.smoke_test_items", template)
         self.assertIn("view.sections", template)
         self.assertIn("view.acceptance_items", template)
         self.assertIn("view.readiness_items", template)
@@ -678,6 +679,7 @@ class WebUiTests(unittest.TestCase):
         self.assertIn('aria-label="Pilot runbook shortcuts"', template)
         self.assertIn('href="#pilot-handoff-decision"', template)
         self.assertIn('href="#pilot-vm-operations"', template)
+        self.assertIn('href="#pilot-smoke-test"', template)
         self.assertIn('id="pilot-vm-operations"', template)
         self.assertIn('aria-label="Pilot VM operation links"', template)
         self.assertIn('aria-label="Pilot VM operation commands"', template)
@@ -686,6 +688,13 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("operation.command", template)
         self.assertIn("operation.detail", template)
         self.assertIn("operation.review_href", template)
+        self.assertIn('id="pilot-smoke-test"', template)
+        self.assertIn('aria-label="Pilot smoke test links"', template)
+        self.assertIn('aria-label="Pilot V1 smoke test checklist"', template)
+        self.assertIn("item.action", template)
+        self.assertIn("item.expected_result", template)
+        self.assertIn("item.evidence", template)
+        self.assertIn("V1 Smoke Test", template)
         self.assertIn('id="pilot-attention"', template)
         self.assertIn('aria-label="Pilot attention links"', template)
         self.assertIn('id="pilot-bundle"', template)
@@ -867,6 +876,9 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("cd ~/media-security-audit && git pull --ff-only", markdown)
         self.assertIn("bash scripts/debian-vm-preflight.sh", markdown)
         self.assertIn("bash scripts/debian-vm-pilot-closeout.sh", markdown)
+        self.assertIn("## V1 Smoke Test", markdown)
+        self.assertIn("Open local web UI", markdown)
+        self.assertIn("Generate report outputs", markdown)
         for title in [
             "Setup",
             "Mission",
@@ -885,8 +897,13 @@ class WebUiTests(unittest.TestCase):
             self.assertIn(step, markdown)
 
         runbook_payload = build_pilot_runbook_json_export(view).payload
-        self.assertEqual(runbook_payload["schema_version"], 2)
+        self.assertEqual(runbook_payload["schema_version"], 3)
         self.assertEqual(len(runbook_payload["vm_operations"]), 6)
+        self.assertEqual(runbook_payload["smoke_test_item_count"], 6)
+        self.assertEqual(
+            runbook_payload["smoke_test_items"][0]["title"],
+            "Open local web UI",
+        )
         self.assertEqual(
             runbook_payload["vm_operations"][0]["command"],
             "cd ~/media-security-audit && git pull --ff-only",
@@ -911,6 +928,7 @@ class WebUiTests(unittest.TestCase):
             ["5", "Local", "Guarded", "Reports"],
         )
         self.assertEqual(len(view.vm_operations), 6)
+        self.assertEqual(len(view.smoke_test_items), 6)
         self.assertEqual(len(view.acceptance_items), 11)
         self.assertEqual(view.readiness_items, [])
         self.assertEqual(view.attention_items, [])
@@ -1267,8 +1285,9 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(runbook_json.filename, "pilot-runbook.json")
         self.assertEqual(runbook_json.media_type, "application/json")
         self.assertEqual(runbook_payload, runbook_json.payload)
-        self.assertEqual(runbook_payload["schema_version"], 2)
+        self.assertEqual(runbook_payload["schema_version"], 3)
         self.assertEqual(runbook_payload["runbook_type"], "pilot")
+        self.assertEqual(runbook_payload["smoke_test_item_count"], 6)
         self.assertEqual(runbook_payload["handoff_decision"]["status"], "warning")
         self.assertEqual(runbook_payload["sections"][0]["title"], "Setup")
         self.assertEqual(runbook_payload["readiness"]["status"], "warning")
@@ -1832,7 +1851,8 @@ class WebUiTests(unittest.TestCase):
             archived_runbook = json.loads(
                 archive.read("pilot-runbook.json").decode("utf-8")
             )
-            self.assertEqual(archived_runbook["schema_version"], 2)
+            self.assertEqual(archived_runbook["schema_version"], 3)
+            self.assertEqual(archived_runbook["smoke_test_item_count"], 6)
             self.assertEqual(archived_runbook["handoff_decision"]["status"], "ready")
             self.assertEqual(archived_runbook["runbook_type"], "pilot")
             self.assertEqual(archived_runbook["sections"][0]["title"], "Setup")

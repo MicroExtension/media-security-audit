@@ -86,6 +86,7 @@
 <section class="page-shortcuts" aria-label="Pilot runbook shortcuts">
   <a href="#pilot-handoff-decision">Decision <span>{{ view.handoff_decision.status }}</span></a>
   <a href="#pilot-vm-operations">VM Ops <span>{{ view.vm_operations|length }}</span></a>
+  <a href="#pilot-smoke-test">Smoke Test <span>{{ view.smoke_test_items|length }}</span></a>
   {% if view.attention_items %}
   <a href="#pilot-attention">Attention <span>{{ view.attention_items|length }}</span></a>
   {% endif %}
@@ -116,6 +117,29 @@
       <p>{{ operation.detail }}</p>
       <code>{{ operation.command }}</code>
       <a class="readiness-action" href="{{ operation.review_href }}">Review</a>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="section" id="pilot-smoke-test">
+  <div class="section-title">
+    <h2>V1 Smoke Test</h2>
+    <div class="report-links" aria-label="Pilot smoke test links">
+      <a href="/pilot/runbook.md">Runbook</a>
+      <a href="/pilot/runbook.json">Runbook JSON</a>
+      <a href="/pilot/acceptance.md">Acceptance</a>
+    </div>
+  </div>
+  <div class="readiness-grid" aria-label="Pilot V1 smoke test checklist">
+    {% for item in view.smoke_test_items %}
+    <article class="readiness-item readiness-ready">
+      <span class="badge status-ready">{{ item.phase }}</span>
+      <strong>{{ item.title }}</strong>
+      <p>{{ item.action }}</p>
+      <p><strong>Expected:</strong> {{ item.expected_result }}</p>
+      <p><strong>Evidence:</strong> {{ item.evidence }}</p>
+      <a class="readiness-action" href="{{ item.review_href }}">Review</a>
     </article>
     {% endfor %}
   </div>

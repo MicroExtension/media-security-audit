@@ -277,6 +277,49 @@ class WebFormTests(unittest.TestCase):
             )
         self.assertIn("at least one target", str(no_target_error.exception))
 
+    def test_create_guided_audit_from_form_requires_matching_targets(self) -> None:
+        store = JsonStore(clean_data_dir("web-form-guided-target-mismatch"))
+
+        with self.assertRaises(ValueError) as http_target_error:
+            create_guided_audit_from_form(
+                store,
+                {
+                    "client_name": "Client X",
+                    "mission_name": "Audit",
+                    "audit_type": "external",
+                    "authorization_reference": "AUTH-001",
+                    "external_domains": "example.fr",
+                    "check_http_headers": "on",
+                    "scope_approved": "on",
+                },
+            )
+        self.assertIn(
+            "http_headers needs approved URL scope",
+            str(http_target_error.exception),
+        )
+        self.assertEqual(store.list_clients(), [])
+        self.assertEqual(store.list_missions(), [])
+
+        with self.assertRaises(ValueError) as dns_target_error:
+            create_guided_audit_from_form(
+                store,
+                {
+                    "client_name": "Client X",
+                    "mission_name": "Audit",
+                    "audit_type": "external",
+                    "authorization_reference": "AUTH-002",
+                    "web_urls": "https://www.example.fr",
+                    "check_dns_mail": "on",
+                    "scope_approved": "on",
+                },
+            )
+        self.assertIn(
+            "dns_mail needs approved domain scope",
+            str(dns_target_error.exception),
+        )
+        self.assertEqual(store.list_clients(), [])
+        self.assertEqual(store.list_missions(), [])
+
     def test_add_scope_from_form(self) -> None:
         store = JsonStore(clean_data_dir("web-form-scope"))
         client = create_client_from_form(store, {"name": "Client X"})

@@ -627,6 +627,8 @@ Current GUI status:
   authorization, approved scope, and selected checks
 - guided audit wizard shows whether selected services have matching target
   coverage before audit creation
+- guided audit wizard rejects service selections that do not have matching
+  target coverage server-side
 - dashboard can show clients and missions
 - dashboard shows a technician workflow from guided audit creation to report
   handoff

@@ -8,6 +8,10 @@ import secrets
 from urllib.parse import parse_qs
 
 from media_security_audit.audit_templates import get_audit_template
+from media_security_audit.check_requirements import (
+    CHECK_SCOPE_REQUIREMENTS,
+    CHECK_SCOPE_TYPES,
+)
 from media_security_audit.models import (
     AuditCheck,
     AuditType,
@@ -81,6 +85,7 @@ def create_guided_audit_from_form(store: JsonStore, form: dict[str, str]) -> tup
     scope_items = guided_scope_items_from_form(form)
     if not scope_items:
         raise ValueError("at least one target is required")
+    validate_guided_check_target_coverage(selected_checks, scope_items)
 
     template_id = optional_text(form, "audit_template_id")
     template = get_audit_template(template_id)
@@ -320,6 +325,26 @@ def guided_scope_items_from_form(form: dict[str, str]) -> list[ScopeItem]:
         for value in split_targets(optional_text(form, "ad_servers"))
     )
     return items
+
+
+def validate_guided_check_target_coverage(
+    selected_checks: list[AuditCheck],
+    scope_items: list[ScopeItem],
+) -> None:
+    missing = []
+    for check in selected_checks:
+        allowed_types = CHECK_SCOPE_TYPES[check]
+        has_matching_target = any(
+            item.approved and not item.excluded and item.type in allowed_types
+            for item in scope_items
+        )
+        if not has_matching_target:
+            missing.append(f"{check.value} needs {CHECK_SCOPE_REQUIREMENTS[check]}")
+
+    if missing:
+        raise ValueError(
+            "selected checks missing matching targets: " + "; ".join(missing)
+        )
 
 
 def split_targets(value: str | None) -> list[str]:

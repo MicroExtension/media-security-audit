@@ -532,6 +532,59 @@
     </form>
   </details>
   {% if view.vulnerability_matches %}
+  <div class="vulnerability-card-grid" aria-label="CVE/KEV candidate review cards">
+    {% for item in view.vulnerability_matches %}
+    <article class="vulnerability-card vulnerability-{{ item.severity }}">
+      <div class="vulnerability-card-head">
+        <div>
+          <strong>{{ item.cve_id }}</strong>
+          <span>{{ item.title }}</span>
+        </div>
+        <div class="vulnerability-card-badges">
+          <span class="badge severity-{{ item.severity }}">{{ item.severity }}</span>
+          {% if item.known_exploited %}<span class="badge status-counter_test_failed">KEV</span>{% endif %}
+          <span class="badge status-warning">{{ item.priority_label }}</span>
+        </div>
+      </div>
+      <p class="vulnerability-priority">{{ item.priority_reason }}</p>
+      <dl class="vulnerability-facts">
+        <div>
+          <dt>Asset</dt>
+          <dd>{{ item.affected_asset }}</dd>
+        </div>
+        <div>
+          <dt>Matched evidence</dt>
+          <dd>finding {{ item.matched_finding_id }} | {{ item.matched_terms }}</dd>
+        </div>
+      </dl>
+      <div class="vulnerability-guidance">
+        <section>
+          <h3>Risk</h3>
+          <p>{{ item.risk }}</p>
+        </section>
+        <section>
+          <h3>Remediation</h3>
+          <p>{{ item.remediation }}</p>
+        </section>
+        <section>
+          <h3>Counter-test</h3>
+          <p>{{ item.counter_test }}</p>
+        </section>
+      </div>
+      <details class="vulnerability-validation">
+        <summary>Validation checklist before storing the finding</summary>
+        <ol>
+          {% for step in item.validation_steps %}
+          <li>{{ step }}</li>
+          {% endfor %}
+        </ol>
+        {% if item.references %}
+        <p class="muted">{{ item.references|length }} reference(s): {{ item.references|join(", ") }}</p>
+        {% endif %}
+      </details>
+    </article>
+    {% endfor %}
+  </div>
   <div class="table-wrap">
     <table>
       <caption class="sr-only">Known vulnerability candidate matches</caption>

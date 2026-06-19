@@ -447,6 +447,110 @@ tr:last-child td {
   margin-bottom: 12px;
 }
 
+.vulnerability-card-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  margin: 12px 0 16px;
+}
+
+.vulnerability-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 5px solid var(--border);
+  border-radius: 6px;
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+}
+
+.vulnerability-critical,
+.vulnerability-high {
+  border-left-color: var(--red);
+}
+
+.vulnerability-medium {
+  border-left-color: var(--amber);
+}
+
+.vulnerability-low,
+.vulnerability-info {
+  border-left-color: var(--blue);
+}
+
+.vulnerability-card-head {
+  align-items: flex-start;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.vulnerability-card-head div:first-child {
+  display: grid;
+  gap: 4px;
+}
+
+.vulnerability-card-head span,
+.vulnerability-priority,
+.vulnerability-guidance p,
+.vulnerability-validation {
+  color: var(--muted);
+  margin: 0;
+}
+
+.vulnerability-card-badges {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.vulnerability-facts,
+.vulnerability-guidance {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  margin: 0;
+}
+
+.vulnerability-facts div,
+.vulnerability-guidance section {
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px;
+}
+
+.vulnerability-facts dt,
+.vulnerability-guidance h3 {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  margin: 0 0 4px;
+  text-transform: uppercase;
+}
+
+.vulnerability-facts dd {
+  margin: 0;
+}
+
+.vulnerability-validation {
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+
+.vulnerability-validation summary {
+  color: var(--accent-strong);
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.vulnerability-validation ol {
+  margin: 10px 0 0;
+  padding-left: 22px;
+}
+
 .mission-cockpit {
   border-bottom: 1px solid var(--border);
   padding-bottom: 24px;

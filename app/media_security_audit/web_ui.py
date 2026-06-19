@@ -10,6 +10,10 @@ from pathlib import Path
 from urllib.parse import urlencode
 
 from media_security_audit.audit_templates import get_audit_template
+from media_security_audit.check_requirements import (
+    CHECK_SCOPE_REQUIREMENTS,
+    CHECK_SCOPE_TYPES,
+)
 from media_security_audit.models import (
     ActivityEvent,
     AuditCheck,
@@ -646,42 +650,6 @@ CHECK_USE_CASES: dict[AuditCheck, str] = {
     AuditCheck.TLS: "Review certificate, protocol, and cipher posture on HTTPS endpoints.",
     AuditCheck.SMB: "Check whether file sharing exposes anonymous listing paths.",
     AuditCheck.LDAP: "Check whether directory metadata is anonymously visible.",
-}
-
-CHECK_SCOPE_TYPES: dict[AuditCheck, tuple[ScopeType, ...]] = {
-    AuditCheck.NMAP: (
-        ScopeType.CIDR,
-        ScopeType.IP,
-        ScopeType.HOST,
-        ScopeType.DOMAIN,
-    ),
-    AuditCheck.HTTP_HEADERS: (ScopeType.URL,),
-    AuditCheck.DNS_MAIL: (ScopeType.DOMAIN,),
-    AuditCheck.TLS: (
-        ScopeType.URL,
-        ScopeType.DOMAIN,
-        ScopeType.HOST,
-        ScopeType.IP,
-    ),
-    AuditCheck.SMB: (
-        ScopeType.HOST,
-        ScopeType.IP,
-        ScopeType.DOMAIN,
-    ),
-    AuditCheck.LDAP: (
-        ScopeType.HOST,
-        ScopeType.IP,
-        ScopeType.DOMAIN,
-    ),
-}
-
-CHECK_SCOPE_REQUIREMENTS: dict[AuditCheck, str] = {
-    AuditCheck.NMAP: "approved CIDR, IP, host, or domain scope",
-    AuditCheck.HTTP_HEADERS: "approved URL scope",
-    AuditCheck.DNS_MAIL: "approved domain scope",
-    AuditCheck.TLS: "approved URL, domain, host, or IP scope",
-    AuditCheck.SMB: "approved host, IP, or domain scope",
-    AuditCheck.LDAP: "approved host, IP, or domain scope",
 }
 
 SCOPE_INTAKE_LABELS: dict[ScopeType, str] = {

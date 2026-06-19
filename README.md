@@ -33,6 +33,7 @@ Implemented so far:
 - guided audit wizard shows service use cases, target requirements, and safe execution mode
 - guided audit wizard uses a step-by-step flow with Previous/Next controls and final review
 - guided audit wizard review shows a readiness checklist before audit creation
+- guided audit wizard shows service-to-target coverage before audit creation
 - mission scan plans show a pre-launch decision box before guarded web execution
 - first web finding review workflow
 - web report generation for JSON, Markdown, HTML, and PDF exports

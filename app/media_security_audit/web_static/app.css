@@ -1199,6 +1199,79 @@ a.filter-chip:hover {
   width: auto;
 }
 
+.wizard-service-coverage {
+  background: #f8fbfc;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  margin-top: 14px;
+  padding: 12px;
+}
+
+.wizard-service-coverage h3 {
+  font-size: 15px;
+  margin: 0;
+}
+
+.wizard-coverage-list {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 10px;
+}
+
+.wizard-coverage-item {
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  display: grid;
+  gap: 7px;
+  min-height: 112px;
+  padding: 11px;
+}
+
+.wizard-coverage-item.is-ready {
+  background: #ecfdf3;
+  border-color: #a6f4c5;
+}
+
+.wizard-coverage-item.is-missing {
+  background: #fffbeb;
+  border-color: #fedf89;
+}
+
+.wizard-coverage-status {
+  border-radius: 999px;
+  color: #344054;
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 700;
+  justify-self: start;
+  line-height: 1.2;
+  padding: 5px 8px;
+}
+
+.wizard-coverage-item.is-ready .wizard-coverage-status {
+  background: #d1fadf;
+  color: #05603a;
+}
+
+.wizard-coverage-item.is-missing .wizard-coverage-status {
+  background: #fef0c7;
+  color: #93370d;
+}
+
+.wizard-coverage-item strong {
+  color: var(--text);
+  font-size: 14px;
+}
+
+.wizard-coverage-item p {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+  margin: 0;
+}
+
 .wizard-review-grid {
   display: grid;
   gap: 12px;
@@ -2099,6 +2172,7 @@ code {
   }
 
   .wizard-service-grid,
+  .wizard-coverage-list,
   .wizard-summary-grid,
   .wizard-summary-details,
   .wizard-creation-checklist,

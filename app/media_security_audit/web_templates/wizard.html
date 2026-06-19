@@ -310,8 +310,8 @@
           </article>
           <article class="wizard-gate is-missing" data-wizard-gate="checks">
             <span class="wizard-gate-status" data-wizard-gate-status>Missing</span>
-            <strong>Checks selected</strong>
-            <p data-wizard-gate-detail>Select at least one non-destructive check.</p>
+            <strong>Checks covered</strong>
+            <p data-wizard-gate-detail>Select checks, confirm scope, and add matching targets.</p>
           </article>
         </div>
         <p class="wizard-review-status" data-wizard-review-status>
@@ -421,12 +421,16 @@
         ready: check.requiredTypes.some((type) => availableTypes.has(type)),
       }));
     };
+    const coverageReady = () => {
+      const coverage = serviceCoverage();
+      return coverage.length > 0 && coverage.every((check) => check.ready);
+    };
     const authorizationReady = () => Boolean(authorizationReferenceInput?.value.trim()) && Boolean(scopeApprovedInput?.checked);
     const readiness = () => ({
       client: clientLabel() !== "Not selected",
       mission: Boolean(missionNameInput?.value.trim()) && Boolean(authorizationReferenceInput?.value.trim()) && Boolean(auditTypeSelect.value),
       scope: targetTotal() > 0,
-      checks: selectedChecks().length > 0 && Boolean(scopeApprovedInput?.checked),
+      checks: selectedChecks().length > 0 && Boolean(scopeApprovedInput?.checked) && coverageReady(),
     });
     const readyToCreate = () => {
       const state = readiness();
@@ -524,8 +528,8 @@
         "checks",
         state.checks,
         state.checks
-          ? `${snapshot.checks.length} check${snapshot.checks.length === 1 ? "" : "s"} selected and scope confirmed.`
-          : "Select at least one non-destructive check and confirm the scope.",
+          ? `${snapshot.checks.length} check${snapshot.checks.length === 1 ? "" : "s"} selected, covered, and scope confirmed.`
+          : "Select checks, add matching targets, and confirm the scope.",
       );
     };
     const setMessage = (message, state = "warning") => {
@@ -542,7 +546,7 @@
         "Choose an existing client or enter a new client name.",
         "Enter the mission name, audit type, and authorization reference.",
         "Add at least one target in the approved scope.",
-        "Select at least one service and confirm the authorized scope.",
+        "Select services, add matching targets, and confirm the authorized scope.",
         "Review is blocked until client, mission, scope, services, and authorization are ready.",
       ];
       const checksByStep = [state.client, state.mission, state.scope, state.checks, readyToCreate()];

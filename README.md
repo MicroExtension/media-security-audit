@@ -60,6 +60,8 @@ Implemented so far:
 - reviewed CVE/KEV catalog import from mission pages without external downloads
 - mission pages summarize CVE/KEV candidate, known-exploited, critical/high, and stored finding counts
 - mission pages show a CVE/KEV review checklist before storing candidate findings
+- mission pages show CVE/KEV validation cards with priority, risk, remediation, and counter-test
+- CVE/KEV candidate storage skips duplicates for repeated review actions
 - mission pages show a Go/No-Go handoff gate across authorization, scope, scans, CVE/KEV, findings, and reports
 - local Pilot page shows VM update, preflight, start, status, readiness, and closeout commands
 - generated reports include CVE/KEV candidate rollups and prioritized remediation entries

@@ -2044,6 +2044,14 @@ class WebUiTests(unittest.TestCase):
         self.assertIn('name="catalog_json"', template)
         self.assertIn('aria-label="Import vulnerability catalog"', template)
         self.assertIn('action="/missions/{{ view.mission.id }}/vulnerabilities/catalog"', template)
+        self.assertIn('aria-label="CVE/KEV candidate review cards"', template)
+        self.assertIn("vulnerability-card-grid", template)
+        self.assertIn("item.priority_label", template)
+        self.assertIn("item.priority_reason", template)
+        self.assertIn("item.risk", template)
+        self.assertIn("item.counter_test", template)
+        self.assertIn("item.validation_steps", template)
+        self.assertIn("Validation checklist before storing the finding", template)
         self.assertIn("Store Candidate Findings", template)
         self.assertIn(
             'action="/missions/{{ view.mission.id }}/vulnerabilities/correlate"',

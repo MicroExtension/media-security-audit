@@ -597,10 +597,16 @@ class VulnerabilityMatchRow:
     title: str
     severity: str
     known_exploited: bool
+    priority_label: str
+    priority_reason: str
     affected_asset: str
     matched_finding_id: str
     matched_terms: str
+    risk: str
     remediation: str
+    counter_test: str
+    validation_steps: tuple[str, ...]
+    references: tuple[str, ...]
 
 
 @dataclass(frozen=True)
@@ -2953,15 +2959,50 @@ def vulnerability_kev_review_item(known_exploited_count: int) -> VulnerabilityRe
 
 
 def vulnerability_match_row(match: VulnerabilityMatch) -> VulnerabilityMatchRow:
+    priority_label, priority_reason = vulnerability_priority(match)
     return VulnerabilityMatchRow(
         cve_id=match.advisory.cve_id,
         title=match.advisory.title,
         severity=match.advisory.severity.value,
         known_exploited=match.advisory.known_exploited,
+        priority_label=priority_label,
+        priority_reason=priority_reason,
         affected_asset=match.finding.affected_asset,
         matched_finding_id=match.finding.id,
         matched_terms=", ".join(match.matched_terms),
+        risk=match.advisory.risk,
         remediation=match.advisory.remediation,
+        counter_test=match.advisory.counter_test,
+        validation_steps=vulnerability_validation_steps(match),
+        references=tuple(match.advisory.references),
+    )
+
+
+def vulnerability_priority(match: VulnerabilityMatch) -> tuple[str, str]:
+    if match.advisory.known_exploited:
+        return (
+            "Priority 1",
+            "Known exploited advisory: validate this candidate first and plan "
+            "urgent remediation if confirmed.",
+        )
+    if match.advisory.severity in {Severity.CRITICAL, Severity.HIGH}:
+        return (
+            "Priority 2",
+            "Critical or high severity advisory: validate the exposed version before standard findings.",
+        )
+    return (
+        "Priority 3",
+        "Candidate advisory: validate during the normal remediation review.",
+    )
+
+
+def vulnerability_validation_steps(match: VulnerabilityMatch) -> tuple[str, ...]:
+    return (
+        f"Confirm that {match.finding.affected_asset} is still in the approved scope.",
+        "Confirm the service or version evidence before treating this as exploitable.",
+        "Review the advisory reference and vendor remediation before customer communication.",
+        "If confirmed, store the candidate finding and track remediation.",
+        f"After remediation, run this counter-test: {match.advisory.counter_test}",
     )
 
 

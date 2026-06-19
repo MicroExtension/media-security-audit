@@ -631,6 +631,8 @@ Current GUI status:
   target coverage server-side
 - guided audit wizard blocks final creation until selected services have
   matching target coverage client-side
+- guided audit wizard links missing service coverage to the matching target
+  field for faster correction
 - dashboard can show clients and missions
 - dashboard shows a technician workflow from guided audit creation to report
   handoff

@@ -1272,6 +1272,27 @@ a.filter-chip:hover {
   margin: 0;
 }
 
+.wizard-coverage-action {
+  background: #ffffff;
+  border: 1px solid #f79009;
+  border-radius: 5px;
+  color: #93370d;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  justify-self: start;
+  min-height: 34px;
+  padding: 7px 10px;
+}
+
+.wizard-coverage-action:hover,
+.wizard-coverage-action:focus {
+  background: #fff7ed;
+  outline: 2px solid #fed7aa;
+  outline-offset: 1px;
+}
+
 .wizard-review-grid {
   display: grid;
   gap: 12px;

@@ -168,6 +168,8 @@ Implemented so far:
 - local pilot readiness rollup visible before handoff
 - local pilot handoff decision visible before bundle delivery
 - local pilot go/no-go actions visible before bundle delivery
+- local pilot page shows a V1 smoke test checklist for VM validation
+- local pilot runbook exports include V1 smoke test steps for handoff review
 - local pilot attention items highlight remaining warnings and blockers
 - local pilot attention Markdown export for handoff follow-up
 - mission pages show a scan launch center with ready and blocked services

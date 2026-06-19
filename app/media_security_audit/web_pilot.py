@@ -92,6 +92,16 @@ class PilotAcceptanceItem:
 
 
 @dataclass(frozen=True)
+class PilotSmokeTestItem:
+    phase: str
+    title: str
+    action: str
+    expected_result: str
+    evidence: str
+    review_href: str
+
+
+@dataclass(frozen=True)
 class PilotReadinessItem:
     label: str
     status: str
@@ -146,6 +156,7 @@ class PilotRunbookView:
     vm_operations: list[PilotVmOperation]
     sections: list[PilotRunbookSection]
     acceptance_items: list[PilotAcceptanceItem]
+    smoke_test_items: list[PilotSmokeTestItem]
     readiness_items: list[PilotReadinessItem]
     attention_items: list[PilotReadinessItem]
     readiness_rollup: PilotReadinessRollup
@@ -319,6 +330,7 @@ def build_pilot_runbook_view(
             PilotRunbookMetric(label="Output", value="Reports"),
         ],
         vm_operations=build_pilot_vm_operations(),
+        smoke_test_items=build_pilot_smoke_test_items(),
         acceptance_items=[
             PilotAcceptanceItem(
                 phase="Setup",
@@ -592,6 +604,59 @@ def build_pilot_runbook_view(
     )
 
 
+def build_pilot_smoke_test_items() -> list[PilotSmokeTestItem]:
+    return [
+        PilotSmokeTestItem(
+            phase="Access",
+            title="Open local web UI",
+            action="Open the VM web interface through the approved local or VPN access path.",
+            expected_result="Dashboard, System, Pilot, Templates, and Reports navigation is visible.",
+            evidence="Screenshot or pilot note showing the dashboard is reachable.",
+            review_href="/",
+        ),
+        PilotSmokeTestItem(
+            phase="Mission",
+            title="Create a pilot client and mission",
+            action="Create a non-production client, attach a suitable audit template, and open the mission page.",
+            expected_result="Mission page shows setup, authorization, scope, checks, findings, reports, and run monitor sections.",
+            evidence="Mission URL or screenshot showing the pilot mission page.",
+            review_href="/",
+        ),
+        PilotSmokeTestItem(
+            phase="Scope",
+            title="Record approved test scope",
+            action="Add one safe target such as an internal test URL, domain, IP, or CIDR and mark it approved.",
+            expected_result="Scope summary shows the target as approved and scan plan previews can evaluate it.",
+            evidence="Mission scope section showing the approved target.",
+            review_href="/templates",
+        ),
+        PilotSmokeTestItem(
+            phase="Findings",
+            title="Add and review a safe finding",
+            action="Add a manual test finding or import controlled evidence without running aggressive scans.",
+            expected_result="Finding appears with severity, proof, risk, remediation, and counter-test.",
+            evidence="Mission finding card or report preview containing the test finding.",
+            review_href="/remediations",
+        ),
+        PilotSmokeTestItem(
+            phase="Reports",
+            title="Generate report outputs",
+            action="Generate JSON, Markdown, HTML, and PDF reports from the reviewed mission.",
+            expected_result="Report links are visible and the client action plan appears in generated outputs.",
+            evidence="Reports section showing generated files.",
+            review_href="/exports",
+        ),
+        PilotSmokeTestItem(
+            phase="Handoff",
+            title="Create package and backup evidence",
+            action="Generate the mission package, review export inventory, then create a workspace backup.",
+            expected_result="Mission package, manifest, verification, and backup evidence are available before closeout.",
+            evidence="Export inventory and System backup entries.",
+            review_href="/system",
+        ),
+    ]
+
+
 def build_pilot_vm_operations() -> list[PilotVmOperation]:
     return [
         PilotVmOperation(
@@ -803,6 +868,13 @@ def format_pilot_runbook_markdown(view: PilotRunbookView | None = None) -> str:
     for operation in view.vm_operations:
         lines.append(f"- **{operation.label}**: `{operation.command}`")
         lines.append(f"  {operation.detail}")
+    lines.extend(["", "## V1 Smoke Test", ""])
+    for item in view.smoke_test_items:
+        lines.append(f"- [ ] **{item.phase}: {item.title}**")
+        lines.append(f"  Action: {item.action}")
+        lines.append(f"  Expected: {item.expected_result}")
+        lines.append(f"  Evidence: {item.evidence}")
+        lines.append(f"  Review: {item.review_href}")
     lines.extend(["", "## Workflow", ""])
     for section in view.sections:
         lines.extend([f"### {section.title}", ""])
@@ -847,7 +919,20 @@ def pilot_runbook_payload(view: PilotRunbookView) -> dict[str, object]:
             "warning": view.readiness_rollup.warning,
         },
         "runbook_type": "pilot",
-        "schema_version": 2,
+        "schema_version": 3,
+        "smoke_test_item_count": len(view.smoke_test_items),
+        "smoke_test_items": [
+            {
+                "action": item.action,
+                "evidence": item.evidence,
+                "expected_result": item.expected_result,
+                "phase": item.phase,
+                "review_href": item.review_href,
+                "status": "pending",
+                "title": item.title,
+            }
+            for item in view.smoke_test_items
+        ],
         "vm_operations": [
             {
                 "command": operation.command,

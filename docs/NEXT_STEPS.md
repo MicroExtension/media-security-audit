@@ -764,6 +764,7 @@ Current GUI status:
 - mission pages expose scan plan JSON and Markdown downloads
 - mission pages show a scan launch center with ready, blocked, and recorded run counts
 - mission pages show a per-service pre-launch checklist before guarded execution
+- mission pages show live trial guardrails before guarded execution
 - mission pages summarize the latest scan run outcome and next action before the run table
 - mission pages show per-run follow-up cards with outcome, counters, errors, and next action
 - mission check selection shows compatible approved target guidance per service

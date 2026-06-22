@@ -102,6 +102,16 @@ class PilotSmokeTestItem:
 
 
 @dataclass(frozen=True)
+class PilotRealConditionItem:
+    phase: str
+    title: str
+    technician_action: str
+    pause_condition: str
+    evidence: str
+    review_href: str
+
+
+@dataclass(frozen=True)
 class PilotReadinessItem:
     label: str
     status: str
@@ -157,6 +167,7 @@ class PilotRunbookView:
     sections: list[PilotRunbookSection]
     acceptance_items: list[PilotAcceptanceItem]
     smoke_test_items: list[PilotSmokeTestItem]
+    real_condition_items: list[PilotRealConditionItem]
     readiness_items: list[PilotReadinessItem]
     attention_items: list[PilotReadinessItem]
     readiness_rollup: PilotReadinessRollup
@@ -331,6 +342,7 @@ def build_pilot_runbook_view(
         ],
         vm_operations=build_pilot_vm_operations(),
         smoke_test_items=build_pilot_smoke_test_items(),
+        real_condition_items=build_pilot_real_condition_items(),
         acceptance_items=[
             PilotAcceptanceItem(
                 phase="Setup",
@@ -657,6 +669,108 @@ def build_pilot_smoke_test_items() -> list[PilotSmokeTestItem]:
     ]
 
 
+def build_pilot_real_condition_items() -> list[PilotRealConditionItem]:
+    return [
+        PilotRealConditionItem(
+            phase="Preflight",
+            title="Confirm written authorization and customer window",
+            technician_action=(
+                "Check that authorization, emergency contact, approved scope, "
+                "and the maintenance window are confirmed before opening the mission."
+            ),
+            pause_condition=(
+                "Pause immediately if authorization, scope, or the customer contact "
+                "is unclear."
+            ),
+            evidence="Authorization reference and contact details are recorded on the mission.",
+            review_href="/pilot/readiness.md",
+        ),
+        PilotRealConditionItem(
+            phase="Access",
+            title="Open the UI through the approved access path",
+            technician_action=(
+                "Use the local console, VPN, or SSH tunnel and confirm web "
+                "authentication before touching customer scope."
+            ),
+            pause_condition="Pause if the UI is reachable from an unapproved network path.",
+            evidence="System status and authentication are reviewed before the audit starts.",
+            review_href="/system#system-auth",
+        ),
+        PilotRealConditionItem(
+            phase="Audit setup",
+            title="Create the audit with the guided wizard",
+            technician_action=(
+                "Create or select the client, fill mission details, enter only "
+                "approved targets, select matching services, and review target coverage."
+            ),
+            pause_condition=(
+                "Pause if the wizard shows missing coverage or services that do "
+                "not match approved targets."
+            ),
+            evidence="Guided audit review shows authorization, scope, checks, and readiness.",
+            review_href="/wizard",
+        ),
+        PilotRealConditionItem(
+            phase="Go/No-Go",
+            title="Review mission gates before live checks",
+            technician_action=(
+                "Open the mission Go/No-Go, readiness cards, scan launch center, "
+                "scan plan preview, and live trial guardrails."
+            ),
+            pause_condition="Pause if any required gate is blocked or points to missing setup.",
+            evidence="Mission page shows ready services and explicit blocked reasons.",
+            review_href="/",
+        ),
+        PilotRealConditionItem(
+            phase="Execution",
+            title="Run one guarded service at a time",
+            technician_action=(
+                "Launch only selected and ready services after explicit confirmation, "
+                "then review the run monitor before continuing."
+            ),
+            pause_condition=(
+                "Pause if output is unexpected, a blocked service appears, or the "
+                "customer reports impact."
+            ),
+            evidence="Run Monitor records the service, status, finding count, and evidence.",
+            review_href="/pilot/runbook.md",
+        ),
+        PilotRealConditionItem(
+            phase="Findings",
+            title="Review findings and CVE/KEV candidates",
+            technician_action=(
+                "Validate automatic findings, add manual observations, document false "
+                "positives, accepted risks, remediation, and counter-tests."
+            ),
+            pause_condition="Pause if a critical or high finding lacks proof or remediation.",
+            evidence="Findings include proof, risk, remediation, and counter-test wording.",
+            review_href="/remediations",
+        ),
+        PilotRealConditionItem(
+            phase="Reports",
+            title="Generate customer and tracking outputs",
+            technician_action=(
+                "Generate PDF or HTML for human review, JSON for tracking, and "
+                "the mission package with manifest verification."
+            ),
+            pause_condition="Pause if report delivery, JSON tracking, or package verification fails.",
+            evidence="Reports, JSON tracking output, mission package, and manifest are available.",
+            review_href="/exports",
+        ),
+        PilotRealConditionItem(
+            phase="Closeout",
+            title="Close the pilot with handoff evidence",
+            technician_action=(
+                "Run VM readiness, handoff bundle, bundle inventory, and pilot closeout "
+                "helpers after reviewing customer-impact notes."
+            ),
+            pause_condition="Pause if closeout is blocked or customer-impact notes are unresolved.",
+            evidence="Pilot closeout is ready or blockers are documented for follow-up.",
+            review_href="/pilot/final-handoff-checklist.md",
+        ),
+    ]
+
+
 def build_pilot_vm_operations() -> list[PilotVmOperation]:
     return [
         PilotVmOperation(
@@ -875,6 +989,13 @@ def format_pilot_runbook_markdown(view: PilotRunbookView | None = None) -> str:
         lines.append(f"  Expected: {item.expected_result}")
         lines.append(f"  Evidence: {item.evidence}")
         lines.append(f"  Review: {item.review_href}")
+    lines.extend(["", "## Real Condition Trial", ""])
+    for item in view.real_condition_items:
+        lines.append(f"- [ ] **{item.phase}: {item.title}**")
+        lines.append(f"  Technician action: {item.technician_action}")
+        lines.append(f"  Pause if: {item.pause_condition}")
+        lines.append(f"  Evidence: {item.evidence}")
+        lines.append(f"  Review: {item.review_href}")
     lines.extend(["", "## Workflow", ""])
     for section in view.sections:
         lines.extend([f"### {section.title}", ""])
@@ -919,7 +1040,20 @@ def pilot_runbook_payload(view: PilotRunbookView) -> dict[str, object]:
             "warning": view.readiness_rollup.warning,
         },
         "runbook_type": "pilot",
-        "schema_version": 3,
+        "real_condition_item_count": len(view.real_condition_items),
+        "real_condition_items": [
+            {
+                "evidence": item.evidence,
+                "pause_condition": item.pause_condition,
+                "phase": item.phase,
+                "review_href": item.review_href,
+                "status": "pending",
+                "technician_action": item.technician_action,
+                "title": item.title,
+            }
+            for item in view.real_condition_items
+        ],
+        "schema_version": 4,
         "smoke_test_item_count": len(view.smoke_test_items),
         "smoke_test_items": [
             {

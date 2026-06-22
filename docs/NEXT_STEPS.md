@@ -633,6 +633,7 @@ Current GUI status:
   matching target coverage client-side
 - guided audit wizard links missing service coverage to the matching target
   field for faster correction
+- guided audit wizard shows compact target field guidance before target entry
 - dashboard can show clients and missions
 - dashboard shows a technician workflow from guided audit creation to report
   handoff

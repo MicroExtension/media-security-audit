@@ -385,6 +385,7 @@
       .filter((checkbox) => checkbox.checked)
       .map((checkbox) => ({
         label: checkbox.dataset.wizardCheckLabel || checkbox.dataset.wizardCheck,
+        value: checkbox.dataset.wizardCheck || "",
         requiredTypes: (checkbox.dataset.wizardRequiredTypes || "").split(",").filter(Boolean),
       }));
     const inferHostScopeType = (value) => {
@@ -420,6 +421,21 @@
         ...check,
         ready: check.requiredTypes.some((type) => availableTypes.has(type)),
       }));
+    };
+    const targetActionForCheck = (check) => {
+      if (check.value === "http_headers") {
+        return { field: "web_urls", label: "Add URL" };
+      }
+      if (check.value === "dns_mail") {
+        return { field: "external_domains", label: "Add domain" };
+      }
+      if (check.value === "ldap") {
+        return { field: "ad_servers", label: "Add AD/LDAP host" };
+      }
+      if (check.value === "smb" || check.value === "nmap") {
+        return { field: "internal_targets", label: "Add host/IP/CIDR" };
+      }
+      return { field: "web_urls", label: "Add target" };
     };
     const coverageReady = () => {
       const coverage = serviceCoverage();
@@ -485,6 +501,16 @@
           ? "A matching approved target type is present."
           : `Needs ${check.requiredTypes.join(", ")} target coverage.`;
         item.append(status, title, detail);
+        if (!check.ready) {
+          const action = targetActionForCheck(check);
+          const button = document.createElement("button");
+          button.className = "wizard-coverage-action";
+          button.setAttribute("data-wizard-target-action", action.field);
+          button.textContent = action.label;
+          button.type = "button";
+          button.addEventListener("click", () => focusTargetField(action.field));
+          item.appendChild(button);
+        }
         coverageList.appendChild(item);
       });
     };
@@ -565,6 +591,15 @@
         }
       }
       return -1;
+    };
+    const focusTargetField = (fieldName) => {
+      const field = document.querySelector(`[name="${fieldName}"]`);
+      if (!field) {
+        return;
+      }
+      setMessage("");
+      setStep(2);
+      window.requestAnimationFrame(() => field.focus());
     };
     const canOpenStep = (index) => {
       if (index <= currentStep) {

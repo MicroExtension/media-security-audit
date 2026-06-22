@@ -181,6 +181,7 @@ Implemented so far:
 - local pilot attention Markdown export for handoff follow-up
 - mission pages show a scan launch center with ready and blocked services
 - mission pages show a per-service pre-launch checklist before guarded execution
+- mission pages show live trial guardrails before guarded execution
 - mission pages summarize the latest scan run outcome and next action
 - mission check selection shows compatible approved target guidance per service
 - mission scope pages show an intake guide for URL, domain, host, IP, and CIDR targets

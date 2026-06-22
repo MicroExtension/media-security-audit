@@ -115,6 +115,8 @@ from media_security_audit.web_pilot import (
     build_pilot_handoff_summary_json_export,
     build_pilot_readiness_json_export,
     build_pilot_readiness_items,
+    build_pilot_real_condition_export,
+    build_pilot_real_condition_json_export,
     build_pilot_runbook_json_export,
     build_pilot_runbook_view,
     format_pilot_acceptance_markdown,
@@ -368,6 +370,24 @@ def create_web_app(
     @app.get("/pilot/runbook.json", dependencies=protected)
     def pilot_runbook_json() -> Response:
         export = build_pilot_runbook_json_export()
+        return Response(
+            content=export.content,
+            media_type=export.media_type,
+            headers={"Content-Disposition": f'attachment; filename="{export.filename}"'},
+        )
+
+    @app.get("/pilot/real-condition.md", dependencies=protected)
+    def pilot_real_condition_markdown() -> Response:
+        export = build_pilot_real_condition_export()
+        return Response(
+            content=export.content,
+            media_type=export.media_type,
+            headers={"Content-Disposition": f'attachment; filename="{export.filename}"'},
+        )
+
+    @app.get("/pilot/real-condition.json", dependencies=protected)
+    def pilot_real_condition_json() -> Response:
+        export = build_pilot_real_condition_json_export()
         return Response(
             content=export.content,
             media_type=export.media_type,

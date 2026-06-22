@@ -29,6 +29,8 @@ PILOT_BUNDLE_REVIEW_ORDER = [
     "pilot-acceptance-checklist.json",
     "pilot-runbook.md",
     "pilot-runbook.json",
+    "pilot-real-condition.md",
+    "pilot-real-condition.json",
     "pilot-delivery-receipt.md",
     "pilot-delivery-receipt.json",
     "pilot-final-handoff-checklist.md",
@@ -53,6 +55,8 @@ PILOT_BUNDLE_FILE_PURPOSES = {
     "pilot-handoff-summary.json": "Machine-readable handoff state.",
     "pilot-readiness.md": "Detailed local readiness checks.",
     "pilot-readiness.json": "Machine-readable readiness state.",
+    "pilot-real-condition.md": "Real-condition trial checklist.",
+    "pilot-real-condition.json": "Machine-readable real-condition trial checklist.",
     "pilot-runbook.md": "Technician workflow.",
     "pilot-runbook.json": "Machine-readable technician workflow.",
 }
@@ -282,6 +286,21 @@ class PilotReadinessJsonExport:
 
 @dataclass(frozen=True)
 class PilotAcceptanceJsonExport:
+    filename: str
+    media_type: str
+    content: str
+    payload: dict[str, object]
+
+
+@dataclass(frozen=True)
+class PilotRealConditionExport:
+    filename: str
+    media_type: str
+    content: str
+
+
+@dataclass(frozen=True)
+class PilotRealConditionJsonExport:
     filename: str
     media_type: str
     content: str
@@ -1156,6 +1175,75 @@ def pilot_acceptance_payload(view: PilotRunbookView) -> dict[str, object]:
     }
 
 
+def build_pilot_real_condition_export(
+    view: PilotRunbookView | None = None,
+) -> PilotRealConditionExport:
+    view = view or build_pilot_runbook_view()
+    return PilotRealConditionExport(
+        filename="pilot-real-condition.md",
+        media_type="text/markdown; charset=utf-8",
+        content=format_pilot_real_condition_markdown(view),
+    )
+
+
+def build_pilot_real_condition_json_export(
+    view: PilotRunbookView | None = None,
+) -> PilotRealConditionJsonExport:
+    view = view or build_pilot_runbook_view()
+    payload = pilot_real_condition_payload(view)
+    return PilotRealConditionJsonExport(
+        filename="pilot-real-condition.json",
+        media_type="application/json",
+        content=json.dumps(payload, indent=2, sort_keys=True) + "\n",
+        payload=payload,
+    )
+
+
+def format_pilot_real_condition_markdown(
+    view: PilotRunbookView | None = None,
+) -> str:
+    view = view or build_pilot_runbook_view()
+    lines = [
+        "# Pilot Real Condition Trial Checklist",
+        "",
+        f"- Context: `{view.subtitle}`",
+        f"- Source: `{view.title}`",
+        f"- Items: `{len(view.real_condition_items)}`",
+        "",
+        "## Checklist",
+        "",
+    ]
+    for item in view.real_condition_items:
+        lines.append(f"- [ ] **{item.phase}: {item.title}**")
+        lines.append(f"  Technician action: {item.technician_action}")
+        lines.append(f"  Pause if: {item.pause_condition}")
+        lines.append(f"  Evidence: {item.evidence}")
+        lines.append(f"  Review: {item.review_href}")
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def pilot_real_condition_payload(view: PilotRunbookView) -> dict[str, object]:
+    return {
+        "context": view.subtitle,
+        "item_count": len(view.real_condition_items),
+        "items": [
+            {
+                "evidence": item.evidence,
+                "pause_condition": item.pause_condition,
+                "phase": item.phase,
+                "review_href": item.review_href,
+                "status": "pending",
+                "technician_action": item.technician_action,
+                "title": item.title,
+            }
+            for item in view.real_condition_items
+        ],
+        "real_condition_type": "pilot",
+        "schema_version": 1,
+        "source": view.title,
+    }
+
+
 def format_pilot_readiness_markdown(
     readiness_items: list[PilotReadinessItem],
     view: PilotRunbookView | None = None,
@@ -1229,6 +1317,8 @@ def build_pilot_handoff_summary_json_export(
 def pilot_handoff_summary_payload(view: PilotRunbookView) -> dict[str, object]:
     handoff_files = [
         "pilot-runbook.md",
+        "pilot-real-condition.md",
+        "pilot-real-condition.json",
         "pilot-acceptance-checklist.md",
         "pilot-acceptance-checklist.json",
         "pilot-handoff-summary.json",
@@ -1275,7 +1365,7 @@ def pilot_handoff_summary_payload(view: PilotRunbookView) -> dict[str, object]:
             "total": view.readiness_rollup.total,
             "warning": view.readiness_rollup.warning,
         },
-        "schema_version": 5,
+        "schema_version": 6,
         "source": view.title,
     }
 
@@ -1374,7 +1464,7 @@ def pilot_bundle_index_payload(view: PilotRunbookView) -> dict[str, object]:
             for index, path in enumerate(PILOT_BUNDLE_REVIEW_ORDER, start=1)
         ],
         "review_step_count": len(PILOT_BUNDLE_REVIEW_ORDER),
-        "schema_version": 3,
+        "schema_version": 5,
         "source": view.title,
     }
 
@@ -1408,11 +1498,13 @@ def format_pilot_bundle_index_markdown(
         "10. Use `pilot-acceptance-checklist.json` for structured beta sign-off.",
         "11. Keep `pilot-runbook.md` with the technician delivery notes.",
         "12. Use `pilot-runbook.json` when automation needs workflow steps.",
-        "13. Complete `pilot-delivery-receipt.md` after client handoff.",
-        "14. Use `pilot-delivery-receipt.json` for structured delivery evidence.",
-        "15. Complete `pilot-final-handoff-checklist.md` before archiving.",
-        "16. Use `pilot-final-handoff-checklist.json` for structured closeout.",
-        "17. Compare extracted files with `manifest.json` before archiving.",
+        "13. Keep `pilot-real-condition.md` with the field trial checklist.",
+        "14. Use `pilot-real-condition.json` when automation needs field trial checks.",
+        "15. Complete `pilot-delivery-receipt.md` after client handoff.",
+        "16. Use `pilot-delivery-receipt.json` for structured delivery evidence.",
+        "17. Complete `pilot-final-handoff-checklist.md` before archiving.",
+        "18. Use `pilot-final-handoff-checklist.json` for structured closeout.",
+        "19. Compare extracted files with `manifest.json` before archiving.",
         "",
         "## Bundle Files",
         "",
@@ -1595,6 +1687,8 @@ def pilot_delivery_receipt_payload(view: PilotRunbookView) -> dict[str, object]:
         "pilot-acceptance-checklist.json",
         "pilot-runbook.md",
         "pilot-runbook.json",
+        "pilot-real-condition.md",
+        "pilot-real-condition.json",
         "pilot-delivery-receipt.json",
         "pilot-final-handoff-checklist.md",
         "pilot-final-handoff-checklist.json",
@@ -1618,7 +1712,7 @@ def pilot_delivery_receipt_payload(view: PilotRunbookView) -> dict[str, object]:
             "total": view.readiness_rollup.total,
             "warning": view.readiness_rollup.warning,
         },
-        "schema_version": 4,
+        "schema_version": 5,
         "sign_off_fields": [
             "client_representative",
             "technician",
@@ -1900,7 +1994,7 @@ def pilot_bundle_inventory_payload(view: PilotRunbookView) -> dict[str, object]:
         "human_file_count": view.evidence_human_file_count,
         "manifest_file_count": view.evidence_manifest_file_count,
         "manifest_path": "manifest.json",
-        "schema_version": 4,
+        "schema_version": 5,
         "source": view.title,
     }
 
@@ -2247,6 +2341,10 @@ def build_pilot_evidence_files(
         "pilot-handoff-summary.md": format_pilot_handoff_summary_markdown(view),
         "pilot-readiness.json": format_pilot_readiness_json(readiness_items, view),
         "pilot-readiness.md": format_pilot_readiness_markdown(readiness_items, view),
+        "pilot-real-condition.json": build_pilot_real_condition_json_export(
+            view,
+        ).content,
+        "pilot-real-condition.md": format_pilot_real_condition_markdown(view),
         "pilot-runbook.json": build_pilot_runbook_json_export(view).content,
         "pilot-runbook.md": format_pilot_runbook_markdown(view),
     }
@@ -2295,7 +2393,7 @@ def build_pilot_evidence_manifest_payload_from_entries(
         },
         "review_file_count": len(PILOT_BUNDLE_REVIEW_ORDER),
         "review_order": PILOT_BUNDLE_REVIEW_ORDER,
-        "schema_version": 7,
+        "schema_version": 8,
         "source": view.title,
     }
 

@@ -72,6 +72,7 @@ Implemented so far:
 - mission pages show a Go/No-Go handoff gate across authorization, scope, scans, CVE/KEV, findings, and reports
 - local Pilot page shows VM update, preflight, start, status, readiness, and closeout commands
 - local Pilot page shows a real-condition trial checklist for the first controlled customer test
+- local Pilot page exports the real-condition trial checklist as Markdown and JSON
 - generated reports include CVE/KEV candidate rollups and prioritized remediation entries
 - generated reports include a quick-read decision, immediate action, priority focus, and next counter-test
 - generated reports include a client action plan explaining why, what to fix, when, and how to validate

@@ -758,6 +758,8 @@ Current GUI status:
 - local Pilot page shows a real-condition trial checklist covering
   authorization, UI access, guided setup, Go/No-Go review, guarded execution,
   finding review, reports, and closeout
+- local Pilot page exports the real-condition trial checklist as Markdown and
+  JSON and includes both files in the Pilot evidence bundle
 - local Pilot page exports a final handoff checklist before evidence archiving
 - local Pilot page highlights non-ready attention items before pilot handoff
 - local Pilot page exports non-ready attention items as Markdown for handoff follow-up

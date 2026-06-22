@@ -16,6 +16,10 @@ For the first V1 validation, follow
 [`V1_TEST_DEPLOYMENT_PROCEDURE.md`](V1_TEST_DEPLOYMENT_PROCEDURE.md) before any
 real customer scan.
 
+For the first controlled customer pilot, follow
+[`REAL_CONDITION_TEST_RUNBOOK.md`](REAL_CONDITION_TEST_RUNBOOK.md) after V1
+readiness is green and before live checks.
+
 ## Hosting Model
 
 Use GitHub only to host the private source repository.

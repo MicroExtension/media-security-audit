@@ -487,6 +487,8 @@ the final V1 release candidate go/no-go report under `reports/release-candidate`
 with the latest readiness, closeout, and verified handoff evidence, without
 package installs, scanner execution, application logs, or customer file
 contents.
+Use `docs/REAL_CONDITION_TEST_RUNBOOK.md` for the first controlled customer
+pilot after V1 readiness is green and before any live check is launched.
 Use `bash scripts/debian-vm-handoff-bundle.sh` to generate a fresh handoff
 report and package only that report for handoff review. Review the generated
 sidecar manifest before sharing the bundle.

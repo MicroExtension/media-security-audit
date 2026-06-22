@@ -34,6 +34,32 @@ class DeploymentFileTests(unittest.TestCase):
         self.assertIn('"--host", "0.0.0.0"', dockerfile)
         self.assertIn("HEALTHCHECK", dockerfile)
 
+    def test_real_condition_runbook_is_safe_and_complete(self) -> None:
+        runbook = (ROOT / "docs" / "REAL_CONDITION_TEST_RUNBOOK.md").read_text(
+            encoding="utf-8"
+        )
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        deployment = (ROOT / "docs" / "DEPLOYMENT.md").read_text(encoding="utf-8")
+
+        self.assertIn("# Real Condition Test Runbook", runbook)
+        self.assertIn("VM update -> service health -> guided audit", runbook)
+        self.assertIn("written authorization is stored outside the application", runbook)
+        self.assertIn("bash scripts/debian-vm-v1-readiness-report.sh", runbook)
+        self.assertIn("ssh -L 8080:127.0.0.1:8080", runbook)
+        self.assertIn("Field Trial Readiness", runbook)
+        self.assertIn("Live Trial Guardrails", runbook)
+        self.assertIn("Run only one service at a time", runbook)
+        self.assertIn("Do not run checks that are blocked", runbook)
+        self.assertIn("JSON report for tracking and remediation follow-up", runbook)
+        self.assertIn("bash scripts/debian-vm-pilot-closeout.sh", runbook)
+        self.assertIn("no scan ran outside approved scope", runbook)
+        self.assertIn("REAL_CONDITION_TEST_RUNBOOK.md", readme)
+        self.assertIn("REAL_CONDITION_TEST_RUNBOOK.md", deployment)
+        self.assertNotIn("nuclei -update-templates", runbook)
+        self.assertNotIn("testssl.sh --", runbook)
+        self.assertNotIn("metasploit", runbook.lower())
+        self.assertNotIn("brute force", runbook.lower())
+
     def test_compose_defaults_to_localhost_and_persistent_volumes(self) -> None:
         compose = (ROOT / "docker-compose.yml").read_text(encoding="utf-8")
 

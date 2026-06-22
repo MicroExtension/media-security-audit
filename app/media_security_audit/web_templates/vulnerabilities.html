@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block title %}CVE Catalog | MEDIA Security Audit{% endblock %}
+{% block content %}
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">Threat intelligence</p>
+    <h1>CVE / KEV Catalog</h1>
+  </div>
+  <div class="actions">
+    <a class="button secondary-button" href="/wizard">New Audit</a>
+    <a class="button secondary-button" href="/system">System</a>
+  </div>
+</section>
+
+<section class="catalog-hero" aria-label="CVE catalog summary">
+  <div>
+    <span class="badge status-{{ view.summary.status }}">{{ view.summary.status }}</span>
+    <h2>{{ view.summary.detail }}</h2>
+    <p>
+      The catalog feeds mission CVE/KEV correlation. Findings remain candidates until a
+      technician validates asset evidence, product/version match, remediation, and counter-test.
+    </p>
+  </div>
+  <div class="catalog-actions" aria-label="Catalog update actions">
+    <form method="post" action="/vulnerabilities/refresh-kev" aria-label="Refresh CISA KEV catalog">
+      <input type="hidden" name="_csrf" value="{{ form_token }}">
+      <button class="button" type="submit">Refresh CISA KEV</button>
+    </form>
+    <details class="catalog-import">
+      <summary>Import reviewed JSON</summary>
+      <form method="post" action="/vulnerabilities/catalog" aria-label="Import global vulnerability catalog">
+        <input type="hidden" name="_csrf" value="{{ form_token }}">
+        <label>
+          <span>Catalog JSON</span>
+          <textarea name="catalog_json" rows="8" required placeholder='{"schema_version":1,"source":"local-reviewed","advisories":[]}'></textarea>
+        </label>
+        <button class="button secondary-button" type="submit">Import Catalog</button>
+      </form>
+    </details>
+  </div>
+</section>
+
+<section class="metrics" aria-label="CVE catalog metrics">
+  <div class="metric"><span>Advisories</span><strong>{{ view.summary.advisory_count }}</strong></div>
+  <div class="metric"><span>Known Exploited</span><strong>{{ view.summary.known_exploited_count }}</strong></div>
+  <div class="metric"><span>Critical / High</span><strong>{{ view.summary.critical_or_high_count }}</strong></div>
+  <div class="metric"><span>Latest Update</span><strong>{{ view.summary.latest_update }}</strong></div>
+</section>
+
+<section class="section">
+  <div class="section-title">
+    <h2>Update Source</h2>
+    <span class="muted">{{ view.summary.source }}</span>
+  </div>
+  <div class="status-panel">
+    <span class="badge status-ready">guarded</span>
+    <div>
+      <strong>Automatic refresh uses the official CISA KEV JSON feed.</strong>
+      <p>{{ view.summary.update_source }}</p>
+    </div>
+  </div>
+  <div class="disposition-grid">
+    {% for item in view.severity_rows %}
+    <div class="disposition-item severity-{{ item.severity }}">
+      <span>{{ item.label }}</span>
+      <strong>{{ item.count }}</strong>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-title">
+    <h2>Catalog Items</h2>
+    <span class="muted">{{ view.rows|length }} item(s)</span>
+  </div>
+  <div class="catalog-list" aria-label="CVE catalog entries">
+    {% for item in view.rows %}
+    <article class="catalog-card">
+      <div class="catalog-card-head">
+        <div>
+          <strong>{{ item.cve_id }}</strong>
+          <span>{{ item.title }}</span>
+        </div>
+        <div class="catalog-card-badges">
+          <span class="badge severity-{{ item.severity }}">{{ item.severity }}</span>
+          {% if item.known_exploited %}
+          <span class="badge status-warning">KEV</span>
+          {% endif %}
+        </div>
+      </div>
+      <dl class="catalog-card-grid">
+        <div>
+          <dt>Affected products</dt>
+          <dd>{{ item.affected_products }}</dd>
+        </div>
+        <div>
+          <dt>Affected versions</dt>
+          <dd>{{ item.affected_versions }}</dd>
+        </div>
+        <div>
+          <dt>Source</dt>
+          <dd>{{ item.source }}</dd>
+        </div>
+        <div>
+          <dt>Updated</dt>
+          <dd>{{ item.updated_at }}</dd>
+        </div>
+      </dl>
+      <div class="catalog-remediation">
+        <div>
+          <span class="muted block">Remediation</span>
+          <p>{{ item.remediation }}</p>
+        </div>
+        <div>
+          <span class="muted block">Counter-test</span>
+          <p>{{ item.counter_test }}</p>
+        </div>
+      </div>
+      {% if item.references %}
+      <div class="catalog-references">
+        {% for reference in item.references %}
+        <a href="{{ reference }}">{{ reference }}</a>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </article>
+    {% else %}
+    <div class="empty">
+      No CVE/KEV item is available yet. Refresh CISA KEV or import a reviewed catalog.
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

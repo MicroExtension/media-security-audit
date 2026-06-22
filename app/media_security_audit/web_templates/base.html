@@ -13,8 +13,11 @@
     {% set current_path = request.url.path %}
     {% set dashboard_active = current_path == "/" or current_path.startswith("/clients") or current_path.startswith("/missions") %}
     <nav class="topnav" aria-label="Primary navigation">
-      <a href="/" class="{{ 'active' if dashboard_active else '' }}" {% if dashboard_active %}aria-current="page"{% endif %}>Dashboard</a>
+      <a href="/" class="{{ 'active' if current_path == '/' else '' }}" {% if current_path == '/' %}aria-current="page"{% endif %}>Overview</a>
+      <a href="/#clients" class="{{ 'active' if current_path.startswith('/clients') else '' }}" {% if current_path.startswith('/clients') %}aria-current="page"{% endif %}>Clients</a>
+      <a href="/#missions" class="{{ 'active' if current_path.startswith('/missions') else '' }}" {% if current_path.startswith('/missions') %}aria-current="page"{% endif %}>Audits</a>
       <a href="/wizard" class="{{ 'active' if current_path.startswith('/wizard') else '' }}" {% if current_path.startswith('/wizard') %}aria-current="page"{% endif %}>New Audit</a>
+      <a href="/vulnerabilities" class="{{ 'active' if current_path.startswith('/vulnerabilities') else '' }}" {% if current_path.startswith('/vulnerabilities') %}aria-current="page"{% endif %}>CVE Catalog</a>
       <a href="/activity" class="{{ 'active' if current_path.startswith('/activity') else '' }}" {% if current_path.startswith('/activity') %}aria-current="page"{% endif %}>Activity</a>
       <a href="/exports" class="{{ 'active' if current_path.startswith('/exports') else '' }}" {% if current_path.startswith('/exports') %}aria-current="page"{% endif %}>Exports</a>
       <a href="/templates" class="{{ 'active' if current_path.startswith('/templates') else '' }}" {% if current_path.startswith('/templates') %}aria-current="page"{% endif %}>Templates</a>

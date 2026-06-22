@@ -127,15 +127,23 @@ class WebUiTests(unittest.TestCase):
         self.assertIn('role="alert"', template)
         self.assertIn('aria-label="Workspace metadata"', template)
 
+        self.assertIn(">Overview</a>", template)
+        self.assertIn('href="/#clients"', template)
+        self.assertIn(">Clients</a>", template)
+        self.assertIn('href="/#missions"', template)
+        self.assertIn(">Audits</a>", template)
         self.assertIn('href="/exports"', template)
         self.assertIn(">Exports</a>", template)
         self.assertIn('href="/wizard"', template)
         self.assertIn(">New Audit</a>", template)
+        self.assertIn('href="/vulnerabilities"', template)
+        self.assertIn(">CVE Catalog</a>", template)
         self.assertIn('href="/pilot"', template)
         self.assertIn(">Pilot</a>", template)
 
         for prefix in [
             "/wizard",
+            "/vulnerabilities",
             "/activity",
             "/exports",
             "/templates",
@@ -189,6 +197,10 @@ class WebUiTests(unittest.TestCase):
         self.assertIn(".mission-focus", css)
         self.assertIn(".mission-focus-grid", css)
         self.assertIn(".mission-focus-actions", css)
+        self.assertIn(".catalog-hero", css)
+        self.assertIn(".catalog-card", css)
+        self.assertIn(".scan-progress-overlay", css)
+        self.assertIn(".scan-progress-track", css)
 
     def test_global_styles_expose_anchor_target_context(self) -> None:
         css_path = (
@@ -406,6 +418,11 @@ class WebUiTests(unittest.TestCase):
         self.assertIn('/missions/{mission_id}/vulnerabilities/correlate', web)
         self.assertIn("vulnerability.catalog_imported", web)
         self.assertIn('/missions/{mission_id}/vulnerabilities/catalog', web)
+        self.assertIn('@app.get("/vulnerabilities"', web)
+        self.assertIn('@app.post("/vulnerabilities/refresh-kev"', web)
+        self.assertIn('@app.post("/vulnerabilities/catalog"', web)
+        self.assertIn("build_vulnerability_catalog_view", web)
+        self.assertIn("refresh_cisa_kev_catalog", web)
         self.assertIn("parse_vulnerability_catalog", web)
         self.assertIn("save_vulnerability_catalog", web)
         self.assertIn("#run-monitor", web)
@@ -573,6 +590,50 @@ class WebUiTests(unittest.TestCase):
         self.assertIn(".wizard-field-trial", css)
         self.assertIn(".wizard-review-grid", css)
         self.assertIn(".wizard-nav", css)
+
+    def test_vulnerability_catalog_template_exposes_catalog_workflow(self) -> None:
+        template_path = (
+            Path(__file__).resolve().parents[1]
+            / "app"
+            / "media_security_audit"
+            / "web_templates"
+            / "vulnerabilities.html"
+        )
+        template = template_path.read_text(encoding="utf-8")
+
+        self.assertIn("CVE / KEV Catalog", template)
+        self.assertIn('action="/vulnerabilities/refresh-kev"', template)
+        self.assertIn('aria-label="Refresh CISA KEV catalog"', template)
+        self.assertIn('action="/vulnerabilities/catalog"', template)
+        self.assertIn('aria-label="Import global vulnerability catalog"', template)
+        self.assertIn("view.summary.advisory_count", template)
+        self.assertIn("view.summary.known_exploited_count", template)
+        self.assertIn("view.summary.update_source", template)
+        self.assertIn("view.severity_rows", template)
+        self.assertIn("view.rows", template)
+        self.assertIn("item.remediation", template)
+        self.assertIn("item.counter_test", template)
+
+    def test_mission_template_exposes_scan_progress_feedback(self) -> None:
+        template_path = (
+            Path(__file__).resolve().parents[1]
+            / "app"
+            / "media_security_audit"
+            / "web_templates"
+            / "mission.html"
+        )
+        template = template_path.read_text(encoding="utf-8")
+
+        self.assertIn("data-scan-run-form", template)
+        self.assertIn("data-scan-run-label", template)
+        self.assertIn("data-scan-progress", template)
+        self.assertIn("data-scan-progress-title", template)
+        self.assertIn("data-scan-progress-bar", template)
+        self.assertIn("data-scan-progress-step", template)
+        self.assertIn("Authorization confirmed", template)
+        self.assertIn("Scan running", template)
+        self.assertIn("Findings importing", template)
+        self.assertIn('form.addEventListener("submit"', template)
 
     def test_client_template_exposes_preparation_action_links(self) -> None:
         template_path = (

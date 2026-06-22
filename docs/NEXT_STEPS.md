@@ -826,8 +826,14 @@ Current GUI status:
 - LDAP scan plan previews are available when the LDAP check is selected
 - selected ready scan checks can be launched from mission pages after explicit
   authorization confirmation
+- mission scan launch forms show browser-side progress feedback before the run
+  monitor opens
 - a reviewed local vulnerability catalog can be imported, listed, correlated
   with mission findings, and stored as CVE/KEV candidate findings
+- a dedicated CVE/KEV Catalog page shows source, counts, severity split,
+  remediation, counter-test, and guarded update actions
+- CVE/KEV Catalog page can refresh from the official CISA KEV JSON feed while
+  preserving local reviewed catalog entries
 - mission pages can import a reviewed CVE/KEV catalog JSON without external
   downloads
 - mission pages summarize CVE/KEV candidates, KEV matches, critical/high
@@ -844,6 +850,9 @@ Current GUI status:
   focus, and next counter-test for client review
 - generated reports include a client action plan explaining why each action
   matters, what to fix, when to handle it, and how to validate remediation
+- product UX target is documented for Overview, Clients, Audits, guided setup,
+  scan progress, CVE catalog, remediations, exports, and credential-check
+  guardrails
 
 ## Step 7 - Add Safe Scanner Modules
 

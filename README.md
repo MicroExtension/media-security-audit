@@ -38,6 +38,7 @@ Implemented so far:
 - guided audit wizard blocks final creation until selected services have matching targets
 - guided audit wizard links missing service coverage to the matching target field
 - guided audit wizard shows target field guidance before target entry
+- guided audit wizard shows a field trial readiness checklist before audit creation
 - mission scan plans show a pre-launch decision box before guarded web execution
 - first web finding review workflow
 - web report generation for JSON, Markdown, HTML, and PDF exports

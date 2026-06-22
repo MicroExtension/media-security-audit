@@ -634,6 +634,7 @@ Current GUI status:
 - guided audit wizard links missing service coverage to the matching target
   field for faster correction
 - guided audit wizard shows compact target field guidance before target entry
+- guided audit wizard shows field trial readiness checks before audit creation
 - dashboard can show clients and missions
 - dashboard shows a technician workflow from guided audit creation to report
   handoff

@@ -586,6 +586,9 @@ local Debian/Ubuntu VM in the customer or audit environment.
 For the first V1 validation, use
 [`docs/V1_TEST_DEPLOYMENT_PROCEDURE.md`](docs/V1_TEST_DEPLOYMENT_PROCEDURE.md).
 
+For the first controlled customer pilot, use
+[`docs/REAL_CONDITION_TEST_RUNBOOK.md`](docs/REAL_CONDITION_TEST_RUNBOOK.md).
+
 Local Docker launch:
 
 ```bash

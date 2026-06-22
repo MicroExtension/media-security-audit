@@ -1136,6 +1136,36 @@ a.filter-chip:hover {
   display: none;
 }
 
+.wizard-target-guidance {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+}
+
+.wizard-target-guidance li {
+  background: #f7fafc;
+  border-left: 3px solid #9bd4df;
+  border-radius: 6px;
+  display: grid;
+  gap: 4px;
+  min-height: 80px;
+  padding: 10px 11px;
+}
+
+.wizard-target-guidance strong {
+  color: var(--ink);
+  font-size: 0.9rem;
+}
+
+.wizard-target-guidance span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
 .wizard-service-grid {
   display: grid;
   gap: 10px;
@@ -2193,6 +2223,7 @@ code {
   }
 
   .wizard-service-grid,
+  .wizard-target-guidance,
   .wizard-coverage-list,
   .wizard-summary-grid,
   .wizard-summary-details,

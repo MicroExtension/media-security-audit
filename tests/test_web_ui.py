@@ -428,6 +428,16 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("data-wizard-submit", template)
         self.assertIn("Previous", template)
         self.assertIn("Next", template)
+        self.assertIn("wizard-target-guidance", template)
+        self.assertIn('aria-label="Target field guidance"', template)
+        self.assertIn("CIDR, IP, or hostname for Nmap and SMB.", template)
+        self.assertIn("Public domains for DNS/Mail and TLS.", template)
+        self.assertIn("Full HTTPS URLs for HTTP headers and web TLS.", template)
+        self.assertIn(
+            "Domain controllers or LDAP hosts for directory checks.",
+            template,
+        )
+        self.assertIn(".wizard-target-guidance", css)
         self.assertIn("wizard-service-grid", template)
         self.assertIn("wizard-service-card", template)
         self.assertIn("wizard-service-label", template)

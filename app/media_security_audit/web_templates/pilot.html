@@ -87,6 +87,7 @@
   <a href="#pilot-handoff-decision">Decision <span>{{ view.handoff_decision.status }}</span></a>
   <a href="#pilot-vm-operations">VM Ops <span>{{ view.vm_operations|length }}</span></a>
   <a href="#pilot-smoke-test">Smoke Test <span>{{ view.smoke_test_items|length }}</span></a>
+  <a href="#pilot-real-condition">Real Trial <span>{{ view.real_condition_items|length }}</span></a>
   {% if view.attention_items %}
   <a href="#pilot-attention">Attention <span>{{ view.attention_items|length }}</span></a>
   {% endif %}
@@ -138,6 +139,29 @@
       <strong>{{ item.title }}</strong>
       <p>{{ item.action }}</p>
       <p><strong>Expected:</strong> {{ item.expected_result }}</p>
+      <p><strong>Evidence:</strong> {{ item.evidence }}</p>
+      <a class="readiness-action" href="{{ item.review_href }}">Review</a>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="section" id="pilot-real-condition">
+  <div class="section-title">
+    <h2>Real Condition Trial</h2>
+    <div class="report-links" aria-label="Pilot real condition trial links">
+      <a href="/pilot/runbook.md">Runbook</a>
+      <a href="/pilot/runbook.json">Runbook JSON</a>
+      <a href="/pilot/final-handoff-checklist.md">Final Checklist</a>
+    </div>
+  </div>
+  <div class="readiness-grid" aria-label="Pilot real condition checklist">
+    {% for item in view.real_condition_items %}
+    <article class="readiness-item readiness-ready">
+      <span class="badge status-ready">{{ item.phase }}</span>
+      <strong>{{ item.title }}</strong>
+      <p>{{ item.technician_action }}</p>
+      <p><strong>Pause if:</strong> {{ item.pause_condition }}</p>
       <p><strong>Evidence:</strong> {{ item.evidence }}</p>
       <a class="readiness-action" href="{{ item.review_href }}">Review</a>
     </article>

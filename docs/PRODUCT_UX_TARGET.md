@@ -25,8 +25,10 @@ The audit creation flow should stay separated into small screens:
 2. Mode: choose internal, external, or mixed.
 3. Targets: add CIDR, IP, domain, URL, and AD/LDAP host entries.
 4. Services: select HTTP, TLS, DNS/Mail, SMB, LDAP/AD, and Nmap inventory.
-5. Guardrails: confirm authorization, scope, customer contact, and test window.
-6. Review: show exactly what will be tested before the mission is created.
+5. Credentials: declare approved credential review material without storing raw
+   passwords or launching brute force.
+6. Guardrails: confirm authorization, scope, customer contact, and test window.
+7. Review: show exactly what will be tested before the mission is created.
 
 ## Scan Execution
 
@@ -85,6 +87,10 @@ Allowed future direction:
 
 Each credential check must be disabled by default, logged, scoped, and separated
 from normal safe scans.
+
+The current guided wizard may record that a credential review is expected, the
+approved dataset source, the estimated record count, and the guardrail
+confirmation. It must not execute brute force from audit creation.
 
 ## Visual Direction
 

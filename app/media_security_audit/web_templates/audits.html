@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+{% block title %}Audits | MEDIA Security Audit{% endblock %}
+{% block content %}
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">Audit tasks</p>
+    <h1>Audits</h1>
+  </div>
+  <div class="actions">
+    <a class="button" href="/wizard">New Guided Audit</a>
+    <a class="button secondary-button" href="#quick-mission">Quick Mission</a>
+  </div>
+</section>
+
+<section class="metrics" aria-label="Audit workspace summary">
+  <div class="metric"><span>Missions</span><strong>{{ view.total_missions }}</strong></div>
+  <div class="metric"><span>Ready</span><strong>{{ view.ready_preparation_count }}</strong></div>
+  <div class="metric"><span>Review</span><strong>{{ view.warning_preparation_count }}</strong></div>
+  <div class="metric"><span>Blocked</span><strong>{{ view.blocked_preparation_count }}</strong></div>
+  <div class="metric"><span>High/Critical</span><strong>{{ view.high_or_critical_findings }}</strong></div>
+</section>
+
+<section class="audit-status-strip" aria-label="Audit status shortcuts">
+  <a href="#ready-audits">Ready <span>{{ view.ready_missions|length }}</span></a>
+  <a href="#review-audits">Review <span>{{ view.review_missions|length }}</span></a>
+  <a href="#blocked-audits">Blocked <span>{{ view.blocked_missions|length }}</span></a>
+  <a href="#all-audits">All Audits <span>{{ view.missions|length }}</span></a>
+</section>
+
+<section class="section form-layout compact-create-layout">
+  <form class="form-panel" id="quick-mission" method="post" action="/missions" aria-label="Create quick mission">
+    <input type="hidden" name="_csrf" value="{{ form_token }}">
+    <div class="section-title">
+      <h2>Quick Mission</h2>
+      <span class="muted">Use the guided wizard for full setup</span>
+    </div>
+    <div class="field-grid">
+      <label>
+        <span>Client</span>
+        <select name="client_id" required>
+          <option value=""></option>
+          {% for client in view.clients %}
+          <option value="{{ client.id }}">{{ client.name }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>
+        <span>Template</span>
+        <select name="audit_template_id" data-template-audit-select>
+          <option value=""></option>
+          {% for template in audit_templates %}
+          <option value="{{ template.id }}" data-audit-type="{{ template.audit_type }}">{{ template.title }} | {{ template.audit_type }} | {{ template.cadence }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>
+        <span>Audit Type</span>
+        <select name="audit_type" required data-audit-type-select>
+          {% for audit_type in audit_types %}
+          <option value="{{ audit_type }}">{{ audit_type }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>
+        <span>Name</span>
+        <input name="name" required>
+      </label>
+      <label class="span-2">
+        <span>Authorization Reference</span>
+        <input name="authorization_reference">
+      </label>
+      <label class="span-2">
+        <span>Notes</span>
+        <textarea name="notes" rows="3"></textarea>
+      </label>
+    </div>
+    <div class="form-actions">
+      <button class="button secondary-button" type="submit">Create Draft Mission</button>
+    </div>
+  </form>
+
+  <aside class="operator-note" aria-label="Audit workflow note">
+    <strong>Recommended path</strong>
+    <p>
+      Use New Guided Audit for real customer work. It captures client, mode, targets,
+      services, AD/LDAP scope, CVE/KEV expectations, and authorization guardrails.
+    </p>
+  </aside>
+</section>
+
+<section class="section" id="ready-audits">
+  <div class="section-title">
+    <h2>Ready Audits</h2>
+    <span class="muted">Authorized and prepared</span>
+  </div>
+  <div class="audit-card-grid">
+    {% for item in view.ready_missions %}
+    <article class="audit-card audit-ready">
+      <span class="badge status-ready">ready</span>
+      <strong><a href="/missions/{{ item.mission_id }}">{{ item.mission_name }}</a></strong>
+      <p><a href="/clients/{{ item.client_id }}">{{ item.client_name }}</a></p>
+      <a class="readiness-action" href="{{ item.next_action_href }}">{{ item.next_action_label }}</a>
+    </article>
+    {% else %}
+    <p class="empty">No ready audit found.</p>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="section" id="review-audits">
+  <div class="section-title">
+    <h2>Review Audits</h2>
+    <span class="muted">Close to ready</span>
+  </div>
+  <div class="audit-card-grid">
+    {% for item in view.review_missions %}
+    <article class="audit-card audit-warning">
+      <span class="badge status-warning">review</span>
+      <strong><a href="/missions/{{ item.mission_id }}">{{ item.mission_name }}</a></strong>
+      <p>{{ item.next_action }}</p>
+      <a class="readiness-action" href="{{ item.next_action_href }}">{{ item.next_action_label }}</a>
+    </article>
+    {% else %}
+    <p class="empty">No review audit found.</p>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="section" id="blocked-audits">
+  <div class="section-title">
+    <h2>Blocked Audits</h2>
+    <span class="muted">Needs technician action</span>
+  </div>
+  <div class="audit-card-grid">
+    {% for item in view.blocked_missions %}
+    <article class="audit-card audit-blocked">
+      <span class="badge status-blocked">blocked</span>
+      <strong><a href="/missions/{{ item.mission_id }}">{{ item.mission_name }}</a></strong>
+      <p>{{ item.next_action }}</p>
+      <a class="readiness-action" href="{{ item.next_action_href }}">{{ item.next_action_label }}</a>
+    </article>
+    {% else %}
+    <p class="empty">No blocked audit found.</p>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="section" id="all-audits">
+  <div class="section-title">
+    <h2>All Audits</h2>
+    <span class="muted">{{ view.missions|length }} total</span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <caption class="sr-only">Audits</caption>
+      <thead>
+        <tr>
+          <th>Audit</th>
+          <th>Client</th>
+          <th>Mode</th>
+          <th>Prep</th>
+          <th>Scope</th>
+          <th>Findings</th>
+          <th>Risk</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for mission in view.missions %}
+        <tr>
+          <td>
+            <a href="/missions/{{ mission.id }}">{{ mission.name }}</a>
+            <span class="muted block">{{ mission.status }}</span>
+          </td>
+          <td><a href="/clients/{{ mission.client_id }}">{{ mission.client_name }}</a></td>
+          <td>{{ mission.audit_type }}</td>
+          <td>
+            <span class="status status-{{ mission.preparation_status }}">{{ mission.preparation_status }}</span>
+            <span class="muted block">
+              <a class="table-action" href="{{ mission.preparation_action_href }}">{{ mission.preparation_action_label }}</a>
+            </span>
+          </td>
+          <td>{{ mission.approved_scope_count }}/{{ mission.scope_count }}</td>
+          <td>{{ mission.finding_count }}</td>
+          <td><span class="risk risk-{{ mission.risk_level }}">{{ mission.risk_score }}/100</span></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="empty">No audit found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<script>
+  (() => {
+    const templateSelect = document.querySelector("[data-template-audit-select]");
+    const auditTypeSelect = document.querySelector("[data-audit-type-select]");
+    if (!templateSelect || !auditTypeSelect) {
+      return;
+    }
+    const syncAuditType = () => {
+      const selectedOption = templateSelect.selectedOptions[0];
+      const auditType = selectedOption ? selectedOption.dataset.auditType : "";
+      if (auditType) {
+        auditTypeSelect.value = auditType;
+      }
+    };
+    templateSelect.addEventListener("change", syncAuditType);
+    syncAuditType();
+  })();
+</script>
+{% endblock %}

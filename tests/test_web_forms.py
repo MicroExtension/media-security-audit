@@ -24,6 +24,7 @@ from media_security_audit.web_forms import (  # noqa: E402
     create_client_from_form,
     create_guided_audit_from_form,
     create_mission_from_form,
+    credential_review_requested,
     new_form_token,
     parse_checkbox,
     parse_confidence,
@@ -231,6 +232,64 @@ class WebFormTests(unittest.TestCase):
         self.assertEqual(client.id, existing.id)
         self.assertEqual(mission.client_id, existing.id)
         self.assertNotIn("New client created", mission.notes or "")
+
+    def test_create_guided_audit_from_form_records_credential_review_guardrails(self) -> None:
+        store = JsonStore(clean_data_dir("web-form-guided-credentials"))
+
+        _, mission = create_guided_audit_from_form(
+            store,
+            {
+                "client_name": "Client Credential",
+                "mission_name": "Credential hygiene audit",
+                "audit_type": "internal",
+                "authorization_reference": "AUTH-CRED-001",
+                "internal_targets": "10.20.30.0/24",
+                "check_nmap": "on",
+                "scope_approved": "on",
+                "credential_review_requested": "on",
+                "credential_dataset_name": "Domain password policy review",
+                "credential_dataset_source": "Vault ref SEC-123",
+                "credential_record_count": "120",
+                "credential_scope_notes": "AD users in Pilot OU",
+                "credential_guardrails_confirmed": "on",
+            },
+        )
+
+        notes = mission.notes or ""
+        self.assertIn("Credential review requested: yes", notes)
+        self.assertIn("Credential dataset name: Domain password policy review", notes)
+        self.assertIn("Credential approved source: Vault ref SEC-123", notes)
+        self.assertIn("Credential estimated records: 120", notes)
+        self.assertIn("Credential scope: AD users in Pilot OU", notes)
+        self.assertIn("Credential guardrails confirmed: yes", notes)
+        self.assertIn("Credential execution is not launched by the wizard.", notes)
+
+    def test_create_guided_audit_from_form_requires_credential_guardrails(self) -> None:
+        store = JsonStore(clean_data_dir("web-form-guided-credentials-invalid"))
+
+        with self.assertRaises(ValueError) as error:
+            create_guided_audit_from_form(
+                store,
+                {
+                    "client_name": "Client Credential",
+                    "mission_name": "Credential hygiene audit",
+                    "audit_type": "internal",
+                    "authorization_reference": "AUTH-CRED-002",
+                    "internal_targets": "10.20.30.0/24",
+                    "check_nmap": "on",
+                    "scope_approved": "on",
+                    "credential_dataset_name": "Domain password policy review",
+                },
+            )
+
+        self.assertIn("credential guardrails confirmation", str(error.exception))
+        self.assertEqual(store.list_clients(), [])
+        self.assertEqual(store.list_missions(), [])
+
+    def test_credential_review_requested_detects_explicit_and_metadata_fields(self) -> None:
+        self.assertTrue(credential_review_requested({"credential_review_requested": "on"}))
+        self.assertTrue(credential_review_requested({"credential_dataset_source": "Vault"}))
+        self.assertFalse(credential_review_requested({}))
 
     def test_create_guided_audit_from_form_requires_checks_scope_and_targets(self) -> None:
         store = JsonStore(clean_data_dir("web-form-guided-invalid"))

@@ -637,6 +637,10 @@ Current GUI status:
   field for faster correction
 - guided audit wizard shows compact target field guidance before target entry
 - guided audit wizard shows field trial readiness checks before audit creation
+- guided audit wizard records credential review requests with explicit guardrail
+  confirmation and does not launch brute force from audit creation
+- dedicated Clients and Audits pages separate customer identity from mission
+  work so the dashboard does not carry every operational form
 - dashboard can show clients and missions
 - dashboard shows a technician workflow from guided audit creation to report
   handoff

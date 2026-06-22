@@ -16,7 +16,8 @@
   <a href="#wizard-mission">Mission <span>2</span></a>
   <a href="#wizard-scope">Targets <span>3</span></a>
   <a href="#wizard-checks">Checks <span>4</span></a>
-  <a href="#wizard-review">Review <span>5</span></a>
+  <a href="#wizard-credentials">Credentials <span>5</span></a>
+  <a href="#wizard-review">Review <span>6</span></a>
 </section>
 
 <form class="form-panel wizard-form" method="post" action="/wizard" aria-label="Create guided audit">
@@ -76,7 +77,8 @@
         <button type="button" data-wizard-progress="1">2. Mission</button>
         <button type="button" data-wizard-progress="2">3. Targets</button>
         <button type="button" data-wizard-progress="3">4. Checks</button>
-        <button type="button" data-wizard-progress="4">5. Review</button>
+        <button type="button" data-wizard-progress="4">5. Credentials</button>
+        <button type="button" data-wizard-progress="5">6. Review</button>
       </div>
 
       <p class="wizard-step-message" data-wizard-step-message role="status" aria-live="polite"></p>
@@ -275,6 +277,59 @@
         </fieldset>
       </section>
 
+      <section class="wizard-step" id="wizard-credentials" data-wizard-step data-step-title="Credentials">
+        <div class="section-title">
+          <h2>Credentials</h2>
+          <span class="muted">Controlled review only</span>
+        </div>
+        <div class="credential-guardrail">
+          <span class="badge status-warning">guarded</span>
+          <div>
+            <strong>No brute force is launched from this wizard.</strong>
+            <p>
+              This step only records that a credential exposure or password-policy review is
+              expected. Any live credential validation must be a separate, written-authorized,
+              rate-limited module.
+            </p>
+          </div>
+        </div>
+        <fieldset class="field-group">
+          <legend>Credential Review</legend>
+          <label class="check-selection-option">
+            <input type="checkbox" name="credential_review_requested" value="1" data-wizard-credential-requested>
+            <span>
+              <strong>Prepare credential dataset review</strong>
+              <small>Declare the approved source without storing raw passwords in the normal mission notes.</small>
+            </span>
+          </label>
+        </fieldset>
+        <div class="field-grid">
+          <label>
+            <span>Dataset Name</span>
+            <input name="credential_dataset_name" data-wizard-credential-field>
+          </label>
+          <label>
+            <span>Approved Source</span>
+            <input name="credential_dataset_source" placeholder="vault reference, customer file reference, or ticket" data-wizard-credential-field>
+          </label>
+          <label>
+            <span>Estimated Records</span>
+            <input name="credential_record_count" type="number" min="0" step="1" data-wizard-credential-field>
+          </label>
+          <label>
+            <span>Credential Scope</span>
+            <input name="credential_scope_notes" placeholder="users, AD OU, SaaS tenant, or policy scope" data-wizard-credential-field>
+          </label>
+        </div>
+        <fieldset class="field-group wizard-confirmation">
+          <legend>Credential Guardrail</legend>
+          <label>
+            <input type="checkbox" name="credential_guardrails_confirmed" value="1" data-wizard-credential-guardrails>
+            <span>Credential review is explicitly authorized, non-destructive, and separated from normal scans.</span>
+          </label>
+        </fieldset>
+      </section>
+
       <section class="wizard-step" id="wizard-review" data-wizard-step data-step-title="Review">
         <div class="section-title">
           <h2>Review</h2>
@@ -309,6 +364,10 @@
               <span class="wizard-pill">none</span>
             </div>
           </div>
+          <div>
+            <span class="muted block">Credential review</span>
+            <strong data-wizard-review-credentials>not requested</strong>
+          </div>
         </div>
         <div class="wizard-creation-checklist" aria-label="Audit creation checklist">
           <article class="wizard-gate is-missing" data-wizard-gate="client">
@@ -330,6 +389,11 @@
             <span class="wizard-gate-status" data-wizard-gate-status>Missing</span>
             <strong>Checks covered</strong>
             <p data-wizard-gate-detail>Select checks, confirm scope, and add matching targets.</p>
+          </article>
+          <article class="wizard-gate is-ready" data-wizard-gate="credentials">
+            <span class="wizard-gate-status" data-wizard-gate-status>Ready</span>
+            <strong>Credential guardrails</strong>
+            <p data-wizard-gate-detail>No credential review requested.</p>
           </article>
         </div>
         <section class="wizard-field-trial" aria-label="Field trial readiness">
@@ -410,6 +474,10 @@
     const reviewAuthorization = document.querySelector("[data-wizard-review-authorization]");
     const reviewTargetList = document.querySelector("[data-wizard-review-target-list]");
     const reviewCheckList = document.querySelector("[data-wizard-review-check-list]");
+    const reviewCredentials = document.querySelector("[data-wizard-review-credentials]");
+    const credentialRequestedInput = document.querySelector("[data-wizard-credential-requested]");
+    const credentialGuardrailsInput = document.querySelector("[data-wizard-credential-guardrails]");
+    const credentialFields = [...document.querySelectorAll("[data-wizard-credential-field]")];
     const reviewStatus = document.querySelector("[data-wizard-review-status]");
     const creationGateItems = [...document.querySelectorAll("[data-wizard-gate]")];
     const coverageList = document.querySelector("[data-wizard-coverage-list]");
@@ -492,15 +560,28 @@
       return coverage.length > 0 && coverage.every((check) => check.ready);
     };
     const authorizationReady = () => Boolean(authorizationReferenceInput?.value.trim()) && Boolean(scopeApprovedInput?.checked);
+    const credentialRequested = () => Boolean(credentialRequestedInput?.checked)
+      || credentialFields.some((field) => Boolean(field.value.trim()));
+    const credentialReady = () => !credentialRequested() || Boolean(credentialGuardrailsInput?.checked);
+    const credentialLabel = () => {
+      if (!credentialRequested()) {
+        return "not requested";
+      }
+      const datasetName = document.querySelector('[name="credential_dataset_name"]')?.value.trim() || "dataset declared";
+      return credentialReady()
+        ? `${datasetName} | guardrails ready`
+        : `${datasetName} | guardrails missing`;
+    };
     const readiness = () => ({
       client: clientLabel() !== "Not selected",
       mission: Boolean(missionNameInput?.value.trim()) && Boolean(authorizationReferenceInput?.value.trim()) && Boolean(auditTypeSelect.value),
       scope: targetTotal() > 0,
       checks: selectedChecks().length > 0 && Boolean(scopeApprovedInput?.checked) && coverageReady(),
+      credentials: credentialReady(),
     });
     const readyToCreate = () => {
       const state = readiness();
-      return state.client && state.mission && state.scope && state.checks;
+      return state.client && state.mission && state.scope && state.checks && state.credentials;
     };
     const renderPills = (container, items) => {
       container.innerHTML = "";
@@ -607,6 +688,13 @@
           ? `${snapshot.checks.length} check${snapshot.checks.length === 1 ? "" : "s"} selected, covered, and scope confirmed.`
           : "Select checks, add matching targets, and confirm the scope.",
       );
+      setGate(
+        "credentials",
+        state.credentials,
+        snapshot.credentialRequested
+          ? snapshot.credentialDetail
+          : "No credential review requested.",
+      );
     };
     const setMessage = (message, state = "warning") => {
       if (!stepMessage) {
@@ -623,9 +711,10 @@
         "Enter the mission name, audit type, and authorization reference.",
         "Add at least one target in the approved scope.",
         "Select services, add matching targets, and confirm the authorized scope.",
-        "Review is blocked until client, mission, scope, services, and authorization are ready.",
+        "Confirm credential guardrails or leave credential review disabled.",
+        "Review is blocked until client, mission, scope, services, authorization, and credential guardrails are ready.",
       ];
-      const checksByStep = [state.client, state.mission, state.scope, state.checks, readyToCreate()];
+      const checksByStep = [state.client, state.mission, state.scope, state.checks, state.credentials, readyToCreate()];
       const isValid = checksByStep[index] ?? true;
       if (!isValid && showMessage) {
         setMessage(messages[index]);
@@ -702,6 +791,9 @@
       reviewMission.textContent = missionName;
       reviewProfile.textContent = auditTypeSelect.value || "not selected";
       reviewAuthorization.textContent = isAuthorizationReady ? "ready" : "missing";
+      if (reviewCredentials) {
+        reviewCredentials.textContent = credentialLabel();
+      }
       renderPills(reviewTargetList, targets.map((item) => `${item.label}: ${item.count}`));
       renderPills(reviewCheckList, checks);
       reviewStatus.textContent = readyToCreate()
@@ -711,6 +803,8 @@
       updateCreationChecklist(state, {
         checks,
         client,
+        credentialDetail: credentialLabel(),
+        credentialRequested: credentialRequested(),
         missionName,
         targetTotal: targetCount,
       });
@@ -777,6 +871,9 @@
       auditTypeSelect,
       ...targetInputs,
       ...checkboxes,
+      credentialRequestedInput,
+      credentialGuardrailsInput,
+      ...credentialFields,
     ].filter(Boolean).forEach((field) => {
       field.addEventListener("input", updateSnapshot);
       field.addEventListener("change", updateSnapshot);

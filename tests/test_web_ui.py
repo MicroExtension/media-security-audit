@@ -128,9 +128,9 @@ class WebUiTests(unittest.TestCase):
         self.assertIn('aria-label="Workspace metadata"', template)
 
         self.assertIn(">Overview</a>", template)
-        self.assertIn('href="/#clients"', template)
+        self.assertIn('href="/clients"', template)
         self.assertIn(">Clients</a>", template)
-        self.assertIn('href="/#missions"', template)
+        self.assertIn('href="/audits"', template)
         self.assertIn(">Audits</a>", template)
         self.assertIn('href="/exports"', template)
         self.assertIn(">Exports</a>", template)
@@ -142,6 +142,8 @@ class WebUiTests(unittest.TestCase):
         self.assertIn(">Pilot</a>", template)
 
         for prefix in [
+            "/clients",
+            "/audits",
             "/wizard",
             "/vulnerabilities",
             "/activity",
@@ -201,6 +203,11 @@ class WebUiTests(unittest.TestCase):
         self.assertIn(".catalog-card", css)
         self.assertIn(".scan-progress-overlay", css)
         self.assertIn(".scan-progress-track", css)
+        self.assertIn(".operator-note", css)
+        self.assertIn(".compact-create-layout", css)
+        self.assertIn(".audit-status-strip", css)
+        self.assertIn(".audit-card-grid", css)
+        self.assertIn(".credential-guardrail", css)
 
     def test_global_styles_expose_anchor_target_context(self) -> None:
         css_path = (
@@ -235,7 +242,9 @@ class WebUiTests(unittest.TestCase):
         self.assertIn(".sr-only", css)
         for filename in [
             "activity.html",
+            "audits.html",
             "client.html",
+            "clients.html",
             "dashboard.html",
             "exports.html",
             "mission.html",
@@ -373,6 +382,67 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("selectedOption.dataset.auditType", template)
         self.assertIn('templateSelect.addEventListener("change", syncAuditType)', template)
 
+    def test_clients_template_exposes_dedicated_client_workspace(self) -> None:
+        template_path = (
+            Path(__file__).resolve().parents[1]
+            / "app"
+            / "media_security_audit"
+            / "web_templates"
+            / "clients.html"
+        )
+        web_path = (
+            Path(__file__).resolve().parents[1]
+            / "app"
+            / "media_security_audit"
+            / "web.py"
+        )
+        template = template_path.read_text(encoding="utf-8")
+        web = web_path.read_text(encoding="utf-8")
+
+        self.assertIn('@app.get("/clients"', web)
+        self.assertIn('"clients.html"', web)
+        self.assertIn("Customer workspace", template)
+        self.assertIn('aria-label="Client workspace summary"', template)
+        self.assertIn('id="new-client"', template)
+        self.assertIn('aria-label="Create client"', template)
+        self.assertIn("operator-note", template)
+        self.assertIn("Client page purpose", template)
+        self.assertIn('id="client-list"', template)
+        self.assertIn('<caption class="sr-only">Clients</caption>', template)
+        self.assertIn("client.next_action_href", template)
+
+    def test_audits_template_exposes_dedicated_audit_workspace(self) -> None:
+        template_path = (
+            Path(__file__).resolve().parents[1]
+            / "app"
+            / "media_security_audit"
+            / "web_templates"
+            / "audits.html"
+        )
+        web_path = (
+            Path(__file__).resolve().parents[1]
+            / "app"
+            / "media_security_audit"
+            / "web.py"
+        )
+        template = template_path.read_text(encoding="utf-8")
+        web = web_path.read_text(encoding="utf-8")
+
+        self.assertIn('@app.get("/audits"', web)
+        self.assertIn('"audits.html"', web)
+        self.assertIn("Audit tasks", template)
+        self.assertIn('aria-label="Audit workspace summary"', template)
+        self.assertIn("audit-status-strip", template)
+        self.assertIn('href="#ready-audits"', template)
+        self.assertIn('href="#review-audits"', template)
+        self.assertIn('href="#blocked-audits"', template)
+        self.assertIn('id="quick-mission"', template)
+        self.assertIn('aria-label="Create quick mission"', template)
+        self.assertIn("Recommended path", template)
+        self.assertIn('id="all-audits"', template)
+        self.assertIn('<caption class="sr-only">Audits</caption>', template)
+        self.assertIn("mission.preparation_action_href", template)
+
     def test_wizard_template_exposes_guided_audit_flow(self) -> None:
         template_path = (
             Path(__file__).resolve().parents[1]
@@ -433,8 +503,10 @@ class WebUiTests(unittest.TestCase):
         self.assertIn('id="wizard-mission"', template)
         self.assertIn('id="wizard-scope"', template)
         self.assertIn('id="wizard-checks"', template)
+        self.assertIn('id="wizard-credentials"', template)
         self.assertIn('id="wizard-review"', template)
         self.assertIn('id="wizard-summary"', template)
+        self.assertIn('href="#wizard-credentials"', template)
         self.assertIn('href="#wizard-review"', template)
         self.assertIn('aria-label="Guided audit snapshot"', template)
         self.assertIn('aria-live="polite"', template)
@@ -476,12 +548,21 @@ class WebUiTests(unittest.TestCase):
         self.assertIn('data-wizard-gate="mission"', template)
         self.assertIn('data-wizard-gate="scope"', template)
         self.assertIn('data-wizard-gate="checks"', template)
+        self.assertIn('data-wizard-gate="credentials"', template)
         self.assertIn("data-wizard-gate-status", template)
         self.assertIn("data-wizard-gate-detail", template)
         self.assertIn("Client ready", template)
         self.assertIn("Mission authorized", template)
         self.assertIn("Scope approved", template)
         self.assertIn("Checks covered", template)
+        self.assertIn("Credential guardrails", template)
+        self.assertIn("No brute force is launched from this wizard.", template)
+        self.assertIn("Any live credential validation must be a separate", template)
+        self.assertIn("Prepare credential dataset review", template)
+        self.assertIn("data-wizard-credential-requested", template)
+        self.assertIn("data-wizard-credential-guardrails", template)
+        self.assertIn("data-wizard-credential-field", template)
+        self.assertIn("data-wizard-review-credentials", template)
         self.assertIn("wizard-field-trial", template)
         self.assertIn('aria-label="Field trial readiness"', template)
         self.assertIn("Field Trial Readiness", template)
@@ -509,6 +590,12 @@ class WebUiTests(unittest.TestCase):
             'name="web_urls"',
             'name="ad_servers"',
             'name="scope_approved"',
+            'name="credential_review_requested"',
+            'name="credential_dataset_name"',
+            'name="credential_dataset_source"',
+            'name="credential_record_count"',
+            'name="credential_scope_notes"',
+            'name="credential_guardrails_confirmed"',
         ]:
             self.assertIn(field, template)
 
@@ -528,7 +615,11 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("Choose an existing client or enter a new client name.", template)
         self.assertIn("Add at least one target in the approved scope.", template)
         self.assertIn("Select services, add matching targets, and confirm the authorized scope.", template)
+        self.assertIn("Confirm credential guardrails or leave credential review disabled.", template)
         self.assertIn("Ready to create. Live execution remains separate", template)
+        self.assertIn("const credentialRequested = () =>", template)
+        self.assertIn("const credentialReady = () =>", template)
+        self.assertIn("const credentialLabel = () =>", template)
         self.assertIn("const updateSnapshot = () =>", template)
         self.assertIn("const validateStep = (index, showMessage = false) =>", template)
         self.assertIn("const setStep = (index) =>", template)
@@ -588,6 +679,7 @@ class WebUiTests(unittest.TestCase):
         self.assertIn(".wizard-gate.is-missing", css)
         self.assertIn(".wizard-gate-status", css)
         self.assertIn(".wizard-field-trial", css)
+        self.assertIn(".credential-guardrail", css)
         self.assertIn(".wizard-review-grid", css)
         self.assertIn(".wizard-nav", css)
 

@@ -292,6 +292,50 @@ def create_web_app(
             )
         )
 
+    @app.get("/clients", response_class=HTMLResponse, dependencies=protected)
+    def clients_index(
+        request: Request,
+        message: str | None = None,
+        error: str | None = None,
+    ) -> HTMLResponse:
+        return HTMLResponse(
+            render_template(
+                templates,
+                "clients.html",
+                {
+                    "request": request,
+                    "data_dir": data_dir,
+                    "view": build_dashboard_view(store),
+                    "form_token": form_token,
+                    "message": message,
+                    "error": error,
+                },
+            )
+        )
+
+    @app.get("/audits", response_class=HTMLResponse, dependencies=protected)
+    def audits_index(
+        request: Request,
+        message: str | None = None,
+        error: str | None = None,
+    ) -> HTMLResponse:
+        return HTMLResponse(
+            render_template(
+                templates,
+                "audits.html",
+                {
+                    "request": request,
+                    "data_dir": data_dir,
+                    "view": build_dashboard_view(store),
+                    "audit_types": [item.value for item in AuditType],
+                    "audit_templates": build_audit_template_library_view().templates,
+                    "form_token": form_token,
+                    "message": message,
+                    "error": error,
+                },
+            )
+        )
+
     @app.get("/pilot", response_class=HTMLResponse, dependencies=protected)
     def pilot_runbook(
         request: Request,

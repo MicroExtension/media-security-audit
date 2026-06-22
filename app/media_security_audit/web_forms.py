@@ -87,6 +87,14 @@ def create_guided_audit_from_form(store: JsonStore, form: dict[str, str]) -> tup
         raise ValueError("at least one target is required")
     validate_guided_check_target_coverage(selected_checks, scope_items)
 
+    if credential_review_requested(form) and not parse_checkbox(
+        form,
+        "credential_guardrails_confirmed",
+    ):
+        raise ValueError(
+            "credential guardrails confirmation is required when credential review is requested"
+        )
+
     template_id = optional_text(form, "audit_template_id")
     template = get_audit_template(template_id)
     if template_id and template is None:
@@ -347,6 +355,18 @@ def validate_guided_check_target_coverage(
         )
 
 
+def credential_review_requested(form: dict[str, str]) -> bool:
+    return any(
+        [
+            parse_checkbox(form, "credential_review_requested"),
+            optional_text(form, "credential_dataset_name"),
+            optional_text(form, "credential_dataset_source"),
+            optional_text(form, "credential_record_count"),
+            optional_text(form, "credential_scope_notes"),
+        ]
+    )
+
+
 def split_targets(value: str | None) -> list[str]:
     if value is None:
         return []
@@ -372,10 +392,29 @@ def normalize_url_target(value: str) -> str:
 
 def guided_mission_notes(form: dict[str, str], created_client: bool) -> str | None:
     notes = optional_text(form, "mission_notes")
-    context = "Created from guided audit wizard."
+    context = ["Created from guided audit wizard."]
     if created_client:
-        context = f"{context} New client created during audit setup."
-    return f"{context}\n\n{notes}" if notes else context
+        context.append("New client created during audit setup.")
+
+    if credential_review_requested(form):
+        credential_fields = [
+            ("Credential dataset name", "credential_dataset_name"),
+            ("Credential approved source", "credential_dataset_source"),
+            ("Credential estimated records", "credential_record_count"),
+            ("Credential scope", "credential_scope_notes"),
+        ]
+        context.append("Credential review requested: yes")
+        for label, field in credential_fields:
+            value = optional_text(form, field)
+            if value:
+                context.append(f"{label}: {value}")
+        guardrails = "yes" if parse_checkbox(form, "credential_guardrails_confirmed") else "no"
+        context.append(f"Credential guardrails confirmed: {guardrails}")
+        context.append("Credential execution is not launched by the wizard.")
+
+    if notes:
+        context.extend(["", notes])
+    return "\n".join(context)
 
 
 def optional_text(form: dict[str, str], field: str) -> str | None:

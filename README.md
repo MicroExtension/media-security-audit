@@ -64,15 +64,18 @@ Implemented so far:
 - web run monitor for CLI scan execution history
 - mission run monitor shows follow-up cards with outcome, counts, errors, and next action
 - local vulnerability catalog import and CVE/KEV correlation against mission findings
+- dedicated CVE/KEV catalog page with guarded CISA KEV refresh
 - reviewed CVE/KEV catalog import from mission pages without external downloads
 - mission pages summarize CVE/KEV candidate, known-exploited, critical/high, and stored finding counts
 - mission pages show a CVE/KEV review checklist before storing candidate findings
 - mission pages show CVE/KEV validation cards with priority, risk, remediation, and counter-test
 - CVE/KEV candidate storage skips duplicates for repeated review actions
 - mission pages show a Go/No-Go handoff gate across authorization, scope, scans, CVE/KEV, findings, and reports
+- mission scan launch forms show browser-side progress feedback before the run monitor opens
 - local Pilot page shows VM update, preflight, start, status, readiness, and closeout commands
 - local Pilot page shows a real-condition trial checklist for the first controlled customer test
 - local Pilot page exports the real-condition trial checklist as Markdown and JSON
+- product UX target documents page separation, scan progress, CVE catalog, and credential-check guardrails
 - generated reports include CVE/KEV candidate rollups and prioritized remediation entries
 - generated reports include a quick-read decision, immediate action, priority focus, and next counter-test
 - generated reports include a client action plan explaining why, what to fix, when, and how to validate

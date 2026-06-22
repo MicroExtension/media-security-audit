@@ -128,9 +128,11 @@ from media_security_audit.web_scan_runs import run_web_scan_check_from_form
 from media_security_audit.web_system import build_system_status
 from media_security_audit.vulnerability_catalog import (
     parse_vulnerability_catalog,
+    refresh_cisa_kev_catalog,
     save_vulnerability_catalog,
     store_vulnerability_findings_for_mission,
 )
+from media_security_audit.web_vulnerabilities import build_vulnerability_catalog_view
 
 
 PACKAGE_DIR = Path(__file__).resolve().parent
@@ -357,6 +359,56 @@ def create_web_app(
                     "error": error,
                 },
             )
+        )
+
+    @app.get("/vulnerabilities", response_class=HTMLResponse, dependencies=protected)
+    def vulnerabilities(
+        request: Request,
+        message: str | None = None,
+        error: str | None = None,
+    ) -> HTMLResponse:
+        return HTMLResponse(
+            render_template(
+                templates,
+                "vulnerabilities.html",
+                {
+                    "request": request,
+                    "data_dir": data_dir,
+                    "view": build_vulnerability_catalog_view(data_dir),
+                    "form_token": form_token,
+                    "message": message,
+                    "error": error,
+                },
+            )
+        )
+
+    @app.post("/vulnerabilities/refresh-kev", dependencies=protected)
+    async def vulnerabilities_refresh_kev(request: Request):
+        try:
+            form = parse_urlencoded_form(await request.body())
+            validate_form_token(form, form_token)
+            catalog = refresh_cisa_kev_catalog(data_dir)
+        except (RuntimeError, OSError, ValueError, ValidationError) as error:
+            return redirect_with_status("/vulnerabilities", error=format_web_error(error))
+        return redirect_with_status(
+            "/vulnerabilities",
+            message=f"refreshed {len(catalog.advisories)} CVE/KEV catalog item(s)",
+        )
+
+    @app.post("/vulnerabilities/catalog", dependencies=protected)
+    async def vulnerabilities_catalog_import(request: Request):
+        try:
+            form = parse_urlencoded_form(await request.body())
+            validate_form_token(form, form_token)
+            content = (form.get("catalog_json") or "").strip()
+            if not content:
+                raise ValueError("vulnerability catalog JSON is required")
+            catalog = save_vulnerability_catalog(data_dir, parse_vulnerability_catalog(content))
+        except (RuntimeError, OSError, ValueError, ValidationError) as error:
+            return redirect_with_status("/vulnerabilities", error=format_web_error(error))
+        return redirect_with_status(
+            "/vulnerabilities",
+            message=f"imported {len(catalog.advisories)} vulnerability advisory item(s)",
         )
 
     @app.get("/pilot/runbook.md", dependencies=protected)

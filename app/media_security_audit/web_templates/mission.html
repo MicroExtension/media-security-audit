@@ -383,7 +383,7 @@
             <li>Execution may contact target systems and will store results in this mission.</li>
           </ul>
         </div>
-        <form method="post" action="/missions/{{ view.mission.id }}/scan-runs" aria-label="Run {{ plan.label }} check">
+        <form method="post" action="/missions/{{ view.mission.id }}/scan-runs" aria-label="Run {{ plan.label }} check" data-scan-run-form data-scan-run-label="{{ plan.label }}">
           <input type="hidden" name="_csrf" value="{{ form_token }}">
           <input type="hidden" name="check" value="{{ plan.check }}">
           <label class="run-confirmation">
@@ -404,6 +404,69 @@
     {% endfor %}
   </div>
 </section>
+
+<div class="scan-progress-overlay" data-scan-progress hidden role="status" aria-live="polite">
+  <div class="scan-progress-dialog">
+    <span class="badge status-warning">running</span>
+    <h2 data-scan-progress-title>Starting scan</h2>
+    <p data-scan-progress-detail>Preparing guarded execution.</p>
+    <div class="scan-progress-track" aria-label="Scan progress">
+      <span data-scan-progress-bar style="width: 8%"></span>
+    </div>
+    <ol class="scan-progress-steps">
+      <li data-scan-progress-step="0" class="is-active">Authorization confirmed</li>
+      <li data-scan-progress-step="1">Command prepared</li>
+      <li data-scan-progress-step="2">Scan running</li>
+      <li data-scan-progress-step="3">Findings importing</li>
+      <li data-scan-progress-step="4">Redirecting to monitor</li>
+    </ol>
+  </div>
+</div>
+
+<script>
+  (() => {
+    const forms = [...document.querySelectorAll("[data-scan-run-form]")];
+    const overlay = document.querySelector("[data-scan-progress]");
+    const title = document.querySelector("[data-scan-progress-title]");
+    const detail = document.querySelector("[data-scan-progress-detail]");
+    const bar = document.querySelector("[data-scan-progress-bar]");
+    const steps = [...document.querySelectorAll("[data-scan-progress-step]")];
+    if (!forms.length || !overlay || !title || !detail || !bar || !steps.length) {
+      return;
+    }
+    const states = [
+      { width: 12, title: "Authorization confirmed", detail: "The guarded scan request is being submitted." },
+      { width: 34, title: "Command prepared", detail: "The server is validating scope, selected service, and exact command list." },
+      { width: 62, title: "Scan running", detail: "The approved check is running. Keep this page open until the monitor loads." },
+      { width: 84, title: "Findings importing", detail: "Evidence and findings are being stored for this mission." },
+      { width: 96, title: "Opening run monitor", detail: "The page will redirect when execution has completed." },
+    ];
+    const setState = (index) => {
+      const state = states[Math.min(index, states.length - 1)];
+      title.textContent = state.title;
+      detail.textContent = state.detail;
+      bar.style.width = `${state.width}%`;
+      steps.forEach((step, stepIndex) => {
+        step.classList.toggle("is-active", stepIndex === index);
+        step.classList.toggle("is-complete", stepIndex < index);
+      });
+    };
+    forms.forEach((form) => {
+      form.addEventListener("submit", () => {
+        const label = form.dataset.scanRunLabel || "selected check";
+        overlay.hidden = false;
+        title.textContent = `Starting ${label}`;
+        detail.textContent = "Submitting guarded execution request.";
+        let index = 0;
+        setState(index);
+        window.setInterval(() => {
+          index = Math.min(index + 1, states.length - 1);
+          setState(index);
+        }, 1400);
+      });
+    });
+  })();
+</script>
 
 <section class="section" id="run-monitor">
   <div class="section-title">

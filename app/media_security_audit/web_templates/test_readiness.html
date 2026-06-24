@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block title %}VM Test Readiness | MEDIA Security Audit{% endblock %}
+{% block content %}
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">Pilot VM</p>
+    <h1>VM Test Readiness</h1>
+  </div>
+  <div class="actions">
+    <a class="button secondary-button" href="/system">System</a>
+    <a class="button secondary-button" href="/pilot">Pilot</a>
+    <a class="button secondary-button" href="/wizard">New Guided Audit</a>
+  </div>
+</section>
+
+<section class="metrics" aria-label="VM test readiness summary">
+  <div class="metric"><span>Update</span><strong>main</strong></div>
+  <div class="metric"><span>Smoke report</span><strong>local</strong></div>
+  <div class="metric"><span>UI flow</span><strong>guided</strong></div>
+  <div class="metric"><span>Scanner launch</span><strong>separate</strong></div>
+</section>
+
+<section class="page-shortcuts" aria-label="VM test readiness shortcuts">
+  <a href="#vm-update">Update <span>VM</span></a>
+  <a href="#vm-smoke">Smoke Test <span>script</span></a>
+  <a href="#ui-flow">UI Flow <span>browser</span></a>
+  <a href="#feedback">Feedback <span>notes</span></a>
+</section>
+
+<section class="section" id="vm-update">
+  <div class="section-title">
+    <h2>Update And Restart</h2>
+    <span class="muted">Run after the PR is merged</span>
+  </div>
+  <div class="test-command-grid" aria-label="VM update commands">
+    <article class="test-command-card">
+      <strong>Pull latest code</strong>
+      <p>Use this first so the VM follows the merged main branch.</p>
+      <pre><code>cd ~/media-security-audit
+git pull --ff-only</code></pre>
+    </article>
+    <article class="test-command-card">
+      <strong>Apply the application update</strong>
+      <p>The guarded update helper backs up, rebuilds, restarts, and checks status.</p>
+      <pre><code>bash scripts/debian-vm-update.sh
+bash scripts/debian-vm-status.sh</code></pre>
+    </article>
+    <article class="test-command-card">
+      <strong>Open the UI through SSH</strong>
+      <p>Keep the browser local to your workstation while the service stays bound to the VM.</p>
+      <pre><code>ssh -L 8080:127.0.0.1:8080 mediaadmin@172.1.1.123</code></pre>
+    </article>
+  </div>
+</section>
+
+<section class="section" id="vm-smoke">
+  <div class="section-title">
+    <h2>Local Smoke Test</h2>
+    <span class="muted">No scanner command is launched by this page.</span>
+  </div>
+  <div class="test-command-grid" aria-label="VM smoke test commands">
+    <article class="test-command-card test-command-card-wide">
+      <strong>Generate the VM test report</strong>
+      <p>The helper checks Git state, web authentication, Compose readiness, service status, and the local HTTP endpoint without printing secrets.</p>
+      <pre><code>bash scripts/debian-vm-ui-smoke-test.sh
+ls -lh reports/test-readiness
+tail -n 40 reports/test-readiness/media-audit-ui-smoke-test-*.txt</code></pre>
+    </article>
+    <article class="test-command-card">
+      <strong>Expected result</strong>
+      <p>The report should end with <code>ui_smoke_test=ready</code> or a clear warning to document before the pilot.</p>
+      <a class="readiness-action" href="/system">Review System Status</a>
+    </article>
+  </div>
+</section>
+
+<section class="section" id="ui-flow">
+  <div class="section-title">
+    <h2>Browser Flow To Test</h2>
+    <span class="muted">One page, one purpose</span>
+  </div>
+  <div class="test-checklist-grid" aria-label="VM UI smoke checklist">
+    <article class="test-checklist-card">
+      <span class="badge status-ready">1</span>
+      <strong>Login</strong>
+      <p>Open <code>http://127.0.0.1:8080/test-readiness</code> and confirm authentication works.</p>
+    </article>
+    <article class="test-checklist-card">
+      <span class="badge status-ready">2</span>
+      <strong>Create Client</strong>
+      <p>Open Clients, add a pilot client, and keep the customer record simple.</p>
+      <a class="readiness-action" href="/clients#new-client">Clients</a>
+    </article>
+    <article class="test-checklist-card">
+      <span class="badge status-ready">3</span>
+      <strong>Create Guided Audit</strong>
+      <p>Use the wizard, select internal or external, add approved targets, and choose services to test.</p>
+      <a class="readiness-action" href="/wizard">New Guided Audit</a>
+    </article>
+    <article class="test-checklist-card">
+      <span class="badge status-ready">4</span>
+      <strong>Open Audit Console</strong>
+      <p>Use the console to review scope, checks, CVE/KEV candidates, progress feedback, and report delivery.</p>
+      <a class="readiness-action" href="/audits">Audits</a>
+    </article>
+    <article class="test-checklist-card">
+      <span class="badge status-ready">5</span>
+      <strong>Generate Reports</strong>
+      <p>Export PDF, JSON, and package artifacts after adding or importing findings.</p>
+      <a class="readiness-action" href="/exports">Exports</a>
+    </article>
+    <article class="test-checklist-card">
+      <span class="badge status-ready">6</span>
+      <strong>Record Feedback</strong>
+      <p>Note screens that feel crowded, unclear labels, missing progress, or remediation wording to improve next.</p>
+    </article>
+  </div>
+</section>
+
+<section class="section" id="feedback">
+  <div class="section-title">
+    <h2>Feedback To Capture</h2>
+    <span class="muted">For the next UX sprint</span>
+  </div>
+  <div class="test-safety-note">
+    <strong>Keep live checks controlled.</strong>
+    <p>Run only authorized, non-destructive checks from the mission console. Credential validation and any brute-force style workflow remain blocked until a separate governance design is approved.</p>
+  </div>
+  <div class="test-feedback-list" aria-label="Pilot feedback prompts">
+    <div><strong>Creation flow</strong><span>Which step is still confusing for a technician?</span></div>
+    <div><strong>Scan launch</strong><span>Is the progress feedback visible enough during a run?</span></div>
+    <div><strong>CVE catalog</strong><span>Are CVE/KEV candidates understandable before storing findings?</span></div>
+    <div><strong>Reports</strong><span>Are critical points, remediation, and counter-test actions clear enough?</span></div>
+  </div>
+</section>
+{% endblock %}

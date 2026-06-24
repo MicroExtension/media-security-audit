@@ -321,6 +321,13 @@ Check status:
 bash scripts/debian-vm-status.sh
 ```
 
+Generate the UI smoke test report:
+
+```bash
+bash scripts/debian-vm-ui-smoke-test.sh
+grep -h 'ui_smoke_test=' reports/test-readiness/media-audit-ui-smoke-test-*.txt | tail -n 1
+```
+
 Check health:
 
 ```bash
@@ -339,6 +346,7 @@ From the VM:
 
 ```text
 http://127.0.0.1:8080
+http://127.0.0.1:8080/test-readiness
 ```
 
 If you need access from an admin workstation on the customer LAN, first prepare

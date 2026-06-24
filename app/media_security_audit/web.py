@@ -292,6 +292,25 @@ def create_web_app(
             )
         )
 
+    @app.get("/test-readiness", response_class=HTMLResponse, dependencies=protected)
+    def test_readiness(
+        request: Request,
+        message: str | None = None,
+        error: str | None = None,
+    ) -> HTMLResponse:
+        return HTMLResponse(
+            render_template(
+                templates,
+                "test_readiness.html",
+                {
+                    "request": request,
+                    "data_dir": data_dir,
+                    "message": message,
+                    "error": error,
+                },
+            )
+        )
+
     @app.get("/clients", response_class=HTMLResponse, dependencies=protected)
     def clients_index(
         request: Request,

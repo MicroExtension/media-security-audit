@@ -138,6 +138,8 @@ class WebUiTests(unittest.TestCase):
         self.assertIn(">New Audit</a>", template)
         self.assertIn('href="/vulnerabilities"', template)
         self.assertIn(">CVE Catalog</a>", template)
+        self.assertIn('href="/test-readiness"', template)
+        self.assertIn(">Test VM</a>", template)
         self.assertIn('href="/pilot"', template)
         self.assertIn(">Pilot</a>", template)
 
@@ -150,6 +152,7 @@ class WebUiTests(unittest.TestCase):
             "/exports",
             "/templates",
             "/remediations",
+            "/test-readiness",
             "/pilot",
             "/system",
         ]:
@@ -688,6 +691,61 @@ class WebUiTests(unittest.TestCase):
         self.assertIn(".credential-guardrail", css)
         self.assertIn(".wizard-review-grid", css)
         self.assertIn(".wizard-nav", css)
+
+    def test_test_readiness_template_exposes_vm_smoke_test_flow(self) -> None:
+        template_path = (
+            Path(__file__).resolve().parents[1]
+            / "app"
+            / "media_security_audit"
+            / "web_templates"
+            / "test_readiness.html"
+        )
+        css_path = (
+            Path(__file__).resolve().parents[1]
+            / "app"
+            / "media_security_audit"
+            / "web_static"
+            / "app.css"
+        )
+        web_path = (
+            Path(__file__).resolve().parents[1]
+            / "app"
+            / "media_security_audit"
+            / "web.py"
+        )
+        template = template_path.read_text(encoding="utf-8")
+        css = css_path.read_text(encoding="utf-8")
+        web = web_path.read_text(encoding="utf-8")
+
+        self.assertIn('@app.get("/test-readiness"', web)
+        self.assertIn('"test_readiness.html"', web)
+        self.assertIn("VM Test Readiness", template)
+        self.assertIn('aria-label="VM test readiness shortcuts"', template)
+        self.assertIn('aria-label="VM update commands"', template)
+        self.assertIn('aria-label="VM smoke test commands"', template)
+        self.assertIn('aria-label="VM UI smoke checklist"', template)
+        self.assertIn("git pull --ff-only", template)
+        self.assertIn("bash scripts/debian-vm-update.sh", template)
+        self.assertIn("bash scripts/debian-vm-status.sh", template)
+        self.assertIn("bash scripts/debian-vm-ui-smoke-test.sh", template)
+        self.assertIn("reports/test-readiness", template)
+        self.assertIn("ssh -L 8080:127.0.0.1:8080", template)
+        self.assertIn("http://127.0.0.1:8080/test-readiness", template)
+        self.assertIn("No scanner command is launched by this page.", template)
+        self.assertIn("Create Guided Audit", template)
+        self.assertIn("Open Audit Console", template)
+        self.assertIn("Generate Reports", template)
+        self.assertIn("Credential validation and any brute-force style workflow remain blocked", template)
+        self.assertIn('href="/clients#new-client"', template)
+        self.assertIn('href="/wizard"', template)
+        self.assertIn('href="/audits"', template)
+        self.assertIn('href="/exports"', template)
+        self.assertIn(".test-command-grid", css)
+        self.assertIn(".test-command-card", css)
+        self.assertIn(".test-checklist-grid", css)
+        self.assertIn(".test-checklist-card", css)
+        self.assertIn(".test-safety-note", css)
+        self.assertIn(".test-feedback-list", css)
 
     def test_vulnerability_catalog_template_exposes_catalog_workflow(self) -> None:
         template_path = (

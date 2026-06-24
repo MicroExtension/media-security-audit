@@ -168,6 +168,7 @@ Codex action:
 - keep Debian VM update helpers guarded by backup, manifest verification, and deployment preflight
 - keep Debian VM scanner tooling plans read-only, technician-reviewed, and optional-module aware
 - keep Debian VM V1 readiness reports scanner-free, package-free, log-free, and tied to pilot acceptance
+- keep the VM Test Readiness page and UI smoke test aligned with the real pilot workflow before each field trial
 
 ## Step 2.2 - Nmap Dry-Run Planning
 

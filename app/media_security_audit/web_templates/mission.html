@@ -7,6 +7,7 @@
     <h1>{{ view.mission.name }}</h1>
   </div>
   <div class="actions">
+    <a class="button" href="/missions/{{ view.mission.id }}/console">Open Console</a>
     <a class="button secondary-button" href="/clients/{{ view.mission.client_id }}">Open Client</a>
     <a class="button secondary-button" href="{{ view.activity_log_url }}">Activity Log</a>
     <a class="button secondary-button" href="/missions/{{ view.mission.id }}/report.html">Live HTML</a>

@@ -1029,8 +1029,39 @@ def create_web_app(
         except (FileNotFoundError, RuntimeError, ValueError, ValidationError) as error:
             return redirect_with_status("/wizard", error=format_web_error(error))
         return redirect_with_status(
-            f"/missions/{mission.id}",
+            f"/missions/{mission.id}/console",
             message="guided audit prepared",
+        )
+
+    @app.get(
+        "/missions/{mission_id}/console",
+        response_class=HTMLResponse,
+        dependencies=protected,
+    )
+    def mission_console(
+        request: Request,
+        mission_id: str,
+        message: str | None = None,
+        error: str | None = None,
+    ) -> HTMLResponse:
+        try:
+            view = build_mission_view(store, mission_id, reports_dir=reports_dir)
+        except FileNotFoundError as error:
+            raise HTTPException(status_code=404, detail=str(error)) from error
+
+        return HTMLResponse(
+            render_template(
+                templates,
+                "mission_console.html",
+                {
+                    "request": request,
+                    "data_dir": data_dir,
+                    "view": view,
+                    "form_token": form_token,
+                    "message": message,
+                    "error": error,
+                },
+            )
         )
 
     @app.get("/missions/{mission_id}", response_class=HTMLResponse, dependencies=protected)

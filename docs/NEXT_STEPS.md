@@ -641,6 +641,8 @@ Current GUI status:
   confirmation and does not launch brute force from audit creation
 - dedicated Clients and Audits pages separate customer identity from mission
   work so the dashboard does not carry every operational form
+- mission Audit Console provides a focused prepare, launch, analyze, and deliver
+  workflow while the full mission page keeps detailed editing tools
 - dashboard can show clients and missions
 - dashboard shows a technician workflow from guided audit creation to report
   handoff

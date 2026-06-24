@@ -78,6 +78,7 @@ Implemented so far:
 - local Pilot page shows a real-condition trial checklist for the first controlled customer test
 - local Pilot page exports the real-condition trial checklist as Markdown and JSON
 - product UX target documents page separation, scan progress, CVE catalog, and credential-check guardrails
+- mission Audit Console gives technicians a simplified prepare, launch, analyze, and deliver workflow
 - generated reports include CVE/KEV candidate rollups and prioritized remediation entries
 - generated reports include a quick-read decision, immediate action, priority focus, and next counter-test
 - generated reports include a client action plan explaining why, what to fix, when, and how to validate

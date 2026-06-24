@@ -11,6 +11,7 @@ handoff actions.
 - Overview: workspace health, urgent actions, ready audits, and recent results.
 - Clients: client list, client creation, client context, missions, and history.
 - Audits: mission list, status, progress, and next technician action.
+- Audit Console: one mission workflow split into prepare, launch, analyze, and deliver.
 - New Audit: step-by-step wizard with Previous and Next controls.
 - CVE Catalog: automatic CISA KEV refresh, reviewed local imports, and catalog status.
 - Remediations: readable remediation library and counter-test guidance.
@@ -72,6 +73,19 @@ Every finding shown to a technician or customer must include:
 
 Reports should highlight critical and high findings first, then group the rest
 by action priority instead of raw scanner order.
+
+## Mission Console
+
+The mission console is the technician's operational view during a customer test.
+It should show only the decisions needed to move the audit forward:
+
+- prepare: authorization, scope, evidence, CVE, finding review, and delivery gates
+- launch: selected services, blocked services, run state, and guarded launch links
+- analyze: priority findings and CVE/KEV candidates
+- deliver: reports, JSON tracking, package, and customer handoff state
+
+Detailed editing, manual finding forms, raw tables, and package integrity
+diagnostics should remain on the full mission page.
 
 ## Credential Checks
 

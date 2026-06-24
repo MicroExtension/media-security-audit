@@ -99,6 +99,7 @@
       <span class="badge status-ready">ready</span>
       <strong><a href="/missions/{{ item.mission_id }}">{{ item.mission_name }}</a></strong>
       <p><a href="/clients/{{ item.client_id }}">{{ item.client_name }}</a></p>
+      <a class="readiness-action" href="/missions/{{ item.mission_id }}/console">Open Console</a>
       <a class="readiness-action" href="{{ item.next_action_href }}">{{ item.next_action_label }}</a>
     </article>
     {% else %}
@@ -118,6 +119,7 @@
       <span class="badge status-warning">review</span>
       <strong><a href="/missions/{{ item.mission_id }}">{{ item.mission_name }}</a></strong>
       <p>{{ item.next_action }}</p>
+      <a class="readiness-action" href="/missions/{{ item.mission_id }}/console">Open Console</a>
       <a class="readiness-action" href="{{ item.next_action_href }}">{{ item.next_action_label }}</a>
     </article>
     {% else %}
@@ -137,6 +139,7 @@
       <span class="badge status-blocked">blocked</span>
       <strong><a href="/missions/{{ item.mission_id }}">{{ item.mission_name }}</a></strong>
       <p>{{ item.next_action }}</p>
+      <a class="readiness-action" href="/missions/{{ item.mission_id }}/console">Open Console</a>
       <a class="readiness-action" href="{{ item.next_action_href }}">{{ item.next_action_label }}</a>
     </article>
     {% else %}
@@ -162,6 +165,7 @@
           <th>Scope</th>
           <th>Findings</th>
           <th>Risk</th>
+          <th>Action</th>
         </tr>
       </thead>
       <tbody>
@@ -182,9 +186,10 @@
           <td>{{ mission.approved_scope_count }}/{{ mission.scope_count }}</td>
           <td>{{ mission.finding_count }}</td>
           <td><span class="risk risk-{{ mission.risk_level }}">{{ mission.risk_score }}/100</span></td>
+          <td><a class="table-action" href="/missions/{{ mission.id }}/console">Console</a></td>
         </tr>
         {% else %}
-        <tr><td colspan="7" class="empty">No audit found.</td></tr>
+        <tr><td colspan="8" class="empty">No audit found.</td></tr>
         {% endfor %}
       </tbody>
     </table>

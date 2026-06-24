@@ -208,6 +208,9 @@ class WebUiTests(unittest.TestCase):
         self.assertIn(".audit-status-strip", css)
         self.assertIn(".audit-card-grid", css)
         self.assertIn(".credential-guardrail", css)
+        self.assertIn(".console-hero", css)
+        self.assertIn(".console-phase-nav", css)
+        self.assertIn(".console-card-grid", css)
 
     def test_global_styles_expose_anchor_target_context(self) -> None:
         css_path = (
@@ -442,6 +445,8 @@ class WebUiTests(unittest.TestCase):
         self.assertIn('id="all-audits"', template)
         self.assertIn('<caption class="sr-only">Audits</caption>', template)
         self.assertIn("mission.preparation_action_href", template)
+        self.assertIn('/missions/{{ item.mission_id }}/console', template)
+        self.assertIn('/missions/{{ mission.id }}/console', template)
 
     def test_wizard_template_exposes_guided_audit_flow(self) -> None:
         template_path = (
@@ -470,6 +475,7 @@ class WebUiTests(unittest.TestCase):
 
         self.assertIn('@app.get("/wizard"', web)
         self.assertIn('@app.post("/wizard"', web)
+        self.assertIn('f"/missions/{mission.id}/console"', web)
         self.assertIn("create_guided_audit_from_form", web)
         self.assertIn("CHECK_SCOPE_REQUIREMENTS", web)
         self.assertIn("CHECK_SCOPE_TYPES", web)
@@ -726,6 +732,56 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("Scan running", template)
         self.assertIn("Findings importing", template)
         self.assertIn('form.addEventListener("submit"', template)
+
+    def test_mission_console_template_exposes_operator_flow(self) -> None:
+        template_path = (
+            Path(__file__).resolve().parents[1]
+            / "app"
+            / "media_security_audit"
+            / "web_templates"
+            / "mission_console.html"
+        )
+        css_path = (
+            Path(__file__).resolve().parents[1]
+            / "app"
+            / "media_security_audit"
+            / "web_static"
+            / "app.css"
+        )
+        web_path = (
+            Path(__file__).resolve().parents[1]
+            / "app"
+            / "media_security_audit"
+            / "web.py"
+        )
+        template = template_path.read_text(encoding="utf-8")
+        css = css_path.read_text(encoding="utf-8")
+        web = web_path.read_text(encoding="utf-8")
+
+        self.assertIn('@app.get(\n        "/missions/{mission_id}/console"', web)
+        self.assertIn('"mission_console.html"', web)
+        self.assertIn("Audit Console", template)
+        self.assertIn('aria-label="Audit console summary"', template)
+        self.assertIn('aria-label="Audit console phases"', template)
+        self.assertIn('id="console-prepare"', template)
+        self.assertIn('id="console-launch"', template)
+        self.assertIn('id="console-analyze"', template)
+        self.assertIn('id="console-deliver"', template)
+        self.assertIn("Detailed Launch", template)
+        self.assertIn("Full Mission", template)
+        self.assertIn("view.go_no_go.decision", template)
+        self.assertIn("view.cockpit.next_action_label", template)
+        self.assertIn("view.scan_launch.ready_count", template)
+        self.assertIn("view.cockpit.services", template)
+        self.assertIn("view.vulnerability_matches", template)
+        self.assertIn("view.report_delivery.items", template)
+        self.assertIn('aria-label="Selected service launch cards"', template)
+        self.assertIn('aria-label="Priority vulnerability candidates"', template)
+        self.assertIn('aria-label="Delivery checklist"', template)
+        self.assertIn(".console-hero", css)
+        self.assertIn(".console-phase-nav", css)
+        self.assertIn(".console-status-panel", css)
+        self.assertIn(".console-card-grid", css)
 
     def test_client_template_exposes_preparation_action_links(self) -> None:
         template_path = (
@@ -2245,6 +2301,8 @@ class WebUiTests(unittest.TestCase):
         ]:
             self.assertIn(f"{{{{ {counter} }}}}", template)
 
+        self.assertIn("Open Console", template)
+        self.assertIn('/missions/{{ view.mission.id }}/console', template)
         self.assertIn("Technician Cockpit", template)
         self.assertIn("Mission Go/No-Go", template)
         self.assertIn("Mission Focus", template)

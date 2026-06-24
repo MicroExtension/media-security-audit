@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% block title %}Audit Console | {{ view.mission.name }} | MEDIA Security Audit{% endblock %}
+{% block content %}
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">{{ view.mission.client_name }}</p>
+    <h1>Audit Console</h1>
+  </div>
+  <div class="actions">
+    <a class="button" href="/missions/{{ view.mission.id }}#scan-plan">Detailed Launch</a>
+    <a class="button secondary-button" href="/missions/{{ view.mission.id }}">Full Mission</a>
+    <a class="button secondary-button" href="/clients/{{ view.mission.client_id }}">Client</a>
+  </div>
+</section>
+
+<section class="console-hero" aria-label="Audit console summary">
+  <div class="console-hero-main">
+    <p class="eyebrow">Current Decision</p>
+    <h2>{{ view.go_no_go.decision }}</h2>
+    <p>{{ view.go_no_go.detail }}</p>
+    <div class="console-hero-actions">
+      <a class="button" href="{{ view.cockpit.next_action_href }}">{{ view.cockpit.next_action_label }}</a>
+      <a class="button secondary-button" href="#console-launch">Launch Center</a>
+    </div>
+  </div>
+  <div class="console-hero-metrics">
+    <article>
+      <span>Workflow</span>
+      <strong>{{ view.cockpit.ready_step_count }}/{{ view.cockpit.total_step_count }}</strong>
+    </article>
+    <article>
+      <span>Ready services</span>
+      <strong>{{ view.scan_launch.ready_count }}</strong>
+    </article>
+    <article>
+      <span>Findings</span>
+      <strong>{{ view.mission.finding_count }}</strong>
+    </article>
+    <article>
+      <span>Handoff</span>
+      <strong>{{ view.customer_handoff.ready_count }}/{{ view.customer_handoff.total_count }}</strong>
+    </article>
+  </div>
+</section>
+
+<nav class="console-phase-nav" aria-label="Audit console phases">
+  <a href="#console-prepare">1. Prepare <span>{{ view.go_no_go.ready_count }}/{{ view.go_no_go.total_count }}</span></a>
+  <a href="#console-launch">2. Launch <span>{{ view.scan_launch.ready_count }}</span></a>
+  <a href="#console-analyze">3. Analyze <span>{{ view.vulnerability_matches|length }}</span></a>
+  <a href="#console-deliver">4. Deliver <span>{{ view.report_delivery.ready_count }}/{{ view.report_delivery.total_count }}</span></a>
+</nav>
+
+<section class="console-section" id="console-prepare">
+  <div class="section-title">
+    <h2>Prepare</h2>
+    <a class="table-action" href="/missions/{{ view.mission.id }}#mission-readiness">Open readiness details</a>
+  </div>
+  <div class="console-card-grid" aria-label="Preparation gates">
+    {% for item in view.go_no_go.items %}
+    <article class="console-card console-card-{{ item.status }}">
+      <span class="badge status-{{ item.status }}">{{ item.status }}</span>
+      <strong>{{ item.label }}</strong>
+      <p>{{ item.detail }}</p>
+      <a class="readiness-action" href="/missions/{{ view.mission.id }}{{ item.action_href }}">{{ item.action_label }}</a>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="console-section" id="console-launch">
+  <div class="section-title">
+    <h2>Launch Center</h2>
+    <a class="table-action" href="/missions/{{ view.mission.id }}#scan-plan">Open detailed scan forms</a>
+  </div>
+  <div class="console-status-panel">
+    <span class="badge status-{{ view.scan_launch.status }}">{{ view.scan_launch.status }}</span>
+    <div>
+      <strong>{{ view.scan_launch.detail }}</strong>
+      <p>{{ view.scan_launch.ready_count }} ready | {{ view.scan_launch.blocked_count }} blocked | {{ view.scan_launch.run_count }} run(s)</p>
+    </div>
+  </div>
+  <div class="console-card-grid" aria-label="Selected service launch cards">
+    {% for service in view.cockpit.services %}
+    <article class="console-card console-card-{{ service.status }}">
+      <div class="console-card-head">
+        <strong>{{ service.label }}</strong>
+        <span class="badge status-{{ service.status }}">{{ service.status }}</span>
+      </div>
+      <p>{{ service.detail }}</p>
+      <span class="muted block">{{ service.run_detail }}</span>
+      <a class="readiness-action" href="/missions/{{ view.mission.id }}{{ service.action_href }}">{{ service.action_label }}</a>
+    </article>
+    {% else %}
+    <article class="console-card console-card-missing">
+      <span class="badge status-missing">missing</span>
+      <strong>No service selected</strong>
+      <p>Select HTTP, TLS, DNS/Mail, SMB, LDAP, or Nmap checks before launch.</p>
+      <a class="readiness-action" href="/missions/{{ view.mission.id }}#check-selection">Select checks</a>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="console-section" id="console-analyze">
+  <div class="section-title">
+    <h2>Analyze</h2>
+    <a class="table-action" href="/missions/{{ view.mission.id }}#vulnerabilities">Open CVE/KEV details</a>
+  </div>
+  <div class="console-status-panel">
+    <span class="badge status-{{ view.vulnerability_summary.status }}">{{ view.vulnerability_summary.status }}</span>
+    <div>
+      <strong>{{ view.vulnerability_summary.detail }}</strong>
+      <p>
+        {{ view.vulnerability_summary.match_count }} candidate(s) |
+        {{ view.vulnerability_summary.known_exploited_count }} KEV |
+        {{ view.vulnerability_summary.critical_or_high_count }} critical/high
+      </p>
+    </div>
+  </div>
+  <div class="console-card-grid" aria-label="Priority vulnerability candidates">
+    {% for item in view.vulnerability_matches %}
+    {% if loop.index <= 3 %}
+    <article class="console-card console-card-{{ item.severity }}">
+      <div class="console-card-head">
+        <strong>{{ item.cve_id }}</strong>
+        <span class="badge severity-{{ item.severity }}">{{ item.severity }}</span>
+      </div>
+      <p>{{ item.title }}</p>
+      <span class="muted block">{{ item.affected_asset }}</span>
+      <a class="readiness-action" href="/missions/{{ view.mission.id }}#vulnerabilities">Review candidate</a>
+    </article>
+    {% endif %}
+    {% else %}
+    <article class="console-card console-card-missing">
+      <span class="badge status-missing">missing</span>
+      <strong>No CVE/KEV candidate yet</strong>
+      <p>Import or refresh the catalog, then correlate it after findings exist.</p>
+      <a class="readiness-action" href="/vulnerabilities">Open CVE Catalog</a>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="console-section" id="console-deliver">
+  <div class="section-title">
+    <h2>Deliver</h2>
+    <a class="table-action" href="/missions/{{ view.mission.id }}#reports">Open report details</a>
+  </div>
+  <div class="console-status-panel">
+    <span class="badge status-{{ view.report_delivery.status }}">{{ view.report_delivery.status }}</span>
+    <div>
+      <strong>{{ view.report_delivery.detail }}</strong>
+      <p>{{ view.report_delivery.ready_count }}/{{ view.report_delivery.total_count }} deliverable item(s) ready</p>
+    </div>
+  </div>
+  <div class="console-card-grid" aria-label="Delivery checklist">
+    {% for item in view.report_delivery.items %}
+    <article class="console-card console-card-{{ item.status }}">
+      <span class="badge status-{{ item.status }}">{{ item.status }}</span>
+      <strong>{{ item.label }}</strong>
+      <p>{{ item.detail }}</p>
+      <a class="readiness-action" href="/missions/{{ view.mission.id }}{{ item.action_href }}">{{ item.action_label }}</a>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

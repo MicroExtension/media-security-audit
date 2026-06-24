@@ -8,6 +8,7 @@
   </div>
   <div class="actions">
     <a class="button" href="/missions/{{ view.mission.id }}/console">Open Console</a>
+    <a class="button secondary-button" href="/missions/{{ view.mission.id }}/session">Session Dashboard</a>
     <a class="button secondary-button" href="/clients/{{ view.mission.client_id }}">Open Client</a>
     <a class="button secondary-button" href="{{ view.activity_log_url }}">Activity Log</a>
     <a class="button secondary-button" href="/missions/{{ view.mission.id }}/report.html">Live HTML</a>
@@ -85,6 +86,7 @@
 
 <section class="page-shortcuts" aria-label="Mission shortcuts">
   <a href="#mission-go-no-go">Go/No-Go <span>{{ view.go_no_go.decision }}</span></a>
+  <a href="/missions/{{ view.mission.id }}/session">Session <span>{{ view.session_dashboard.progress_percent }}%</span></a>
   <a href="#mission-cockpit">Cockpit <span>{{ view.cockpit.ready_step_count }}/{{ view.cockpit.total_step_count }}</span></a>
   <a href="#action-roadmap">Roadmap <span>{{ view.action_roadmap|length }}</span></a>
   <a href="#mission-readiness">Readiness <span>{{ view.readiness_items|length }}</span></a>

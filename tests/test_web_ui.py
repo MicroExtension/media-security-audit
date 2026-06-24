@@ -819,6 +819,9 @@ class WebUiTests(unittest.TestCase):
         self.assertIn('@app.get(\n        "/missions/{mission_id}/console"', web)
         self.assertIn('"mission_console.html"', web)
         self.assertIn("Audit Console", template)
+        self.assertIn('/missions/{{ view.mission.id }}/session', template)
+        self.assertIn("Session Dashboard", template)
+        self.assertIn("view.session_dashboard.progress_percent", template)
         self.assertIn('aria-label="Audit console summary"', template)
         self.assertIn('aria-label="Audit console phases"', template)
         self.assertIn('id="console-prepare"', template)
@@ -840,6 +843,63 @@ class WebUiTests(unittest.TestCase):
         self.assertIn(".console-phase-nav", css)
         self.assertIn(".console-status-panel", css)
         self.assertIn(".console-card-grid", css)
+
+    def test_session_dashboard_template_exposes_analysis_progress(self) -> None:
+        template_path = (
+            Path(__file__).resolve().parents[1]
+            / "app"
+            / "media_security_audit"
+            / "web_templates"
+            / "session_dashboard.html"
+        )
+        css_path = (
+            Path(__file__).resolve().parents[1]
+            / "app"
+            / "media_security_audit"
+            / "web_static"
+            / "app.css"
+        )
+        web_path = (
+            Path(__file__).resolve().parents[1]
+            / "app"
+            / "media_security_audit"
+            / "web.py"
+        )
+        mission_template = (
+            Path(__file__).resolve().parents[1]
+            / "app"
+            / "media_security_audit"
+            / "web_templates"
+            / "mission.html"
+        ).read_text(encoding="utf-8")
+        template = template_path.read_text(encoding="utf-8")
+        css = css_path.read_text(encoding="utf-8")
+        web = web_path.read_text(encoding="utf-8")
+
+        self.assertIn('@app.get(\n        "/missions/{mission_id}/session"', web)
+        self.assertIn('"session_dashboard.html"', web)
+        self.assertIn("Analysis Session Dashboard", template)
+        self.assertIn('aria-label="Analysis session status"', template)
+        self.assertIn('aria-label="Analysis session progress"', template)
+        self.assertIn('aria-label="Analysis session counters"', template)
+        self.assertIn('aria-label="Analysis session progress steps"', template)
+        self.assertIn('aria-label="Selected session services"', template)
+        self.assertIn('aria-label="Approved session targets"', template)
+        self.assertIn('<caption class="sr-only">Analysis session run dashboard</caption>', template)
+        self.assertIn("view.session_dashboard.progress_percent", template)
+        self.assertIn("view.session_dashboard.current_phase", template)
+        self.assertIn("view.session_dashboard.selected_service_count", template)
+        self.assertIn("view.session_dashboard.completed_service_count", template)
+        self.assertIn("view.session_dashboard.vulnerability_match_count", template)
+        self.assertIn("CVE and CVSS explanation", template)
+        self.assertIn("PDF and JSON deliverables", template)
+        self.assertIn("Remediation follow-up", template)
+        self.assertIn('/missions/{{ view.mission.id }}/session', mission_template)
+        self.assertIn(".session-hero", css)
+        self.assertIn(".session-progress-track", css)
+        self.assertIn(".session-step-grid", css)
+        self.assertIn(".session-service-list", css)
+        self.assertIn(".session-remediation-grid", css)
 
     def test_client_template_exposes_preparation_action_links(self) -> None:
         template_path = (
@@ -3589,6 +3649,7 @@ class WebUiTests(unittest.TestCase):
             Mission(
                 client_id=client.id,
                 name="Internal Audit",
+                audit_type=AuditType.INTERNAL,
                 audit_template_id="tpl_internal_hygiene",
                 authorization_reference="AUTH-002",
                 authorization_contact="RSSI Client",
@@ -3633,6 +3694,19 @@ class WebUiTests(unittest.TestCase):
         view = build_mission_view(store, mission.id)
 
         self.assertEqual(view.mission.client_name, "Client Y")
+        self.assertEqual(view.session_dashboard.mode, "internal")
+        self.assertEqual(view.session_dashboard.status, "warning")
+        self.assertGreaterEqual(view.session_dashboard.progress_percent, 35)
+        self.assertLess(view.session_dashboard.progress_percent, 100)
+        self.assertEqual(view.session_dashboard.selected_service_count, 3)
+        self.assertEqual(view.session_dashboard.completed_service_count, 1)
+        self.assertEqual(view.session_dashboard.failed_service_count, 0)
+        self.assertEqual(view.session_dashboard.run_count, 1)
+        self.assertEqual(view.session_dashboard.finding_count, 1)
+        self.assertEqual(view.session_dashboard.report_count, 0)
+        self.assertIn("unknown:ip:192.0.2.10", view.session_dashboard.target_summary)
+        self.assertIn("Nmap", view.session_dashboard.selected_services)
+        self.assertIn("Execution", [step.label for step in view.session_dashboard.steps])
         self.assertEqual(view.activity_log_url, f"/activity?mission_id={mission.id}")
         self.assertEqual(view.mission.audit_template_id, "tpl_internal_hygiene")
         self.assertEqual(view.mission.audit_template_title, "Internal Network Hygiene")

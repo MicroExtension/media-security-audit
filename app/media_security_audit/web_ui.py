@@ -379,6 +379,46 @@ class MissionCockpit:
 
 
 @dataclass(frozen=True)
+class AnalysisSessionStep:
+    label: str
+    status: str
+    detail: str
+    weight: int
+    earned: int
+    action_label: str
+    action_href: str
+
+
+@dataclass(frozen=True)
+class AnalysisSessionDashboard:
+    status: str
+    title: str
+    detail: str
+    mode: str
+    progress_percent: int
+    current_phase: str
+    next_action_label: str
+    next_action_href: str
+    internal_target_count: int
+    external_target_count: int
+    ad_target_count: int
+    domain_target_count: int
+    selected_service_count: int
+    ready_service_count: int
+    blocked_service_count: int
+    completed_service_count: int
+    failed_service_count: int
+    run_count: int
+    finding_count: int
+    vulnerability_match_count: int
+    report_count: int
+    package_ready: bool
+    selected_services: tuple[str, ...]
+    target_summary: tuple[str, ...]
+    steps: list[AnalysisSessionStep]
+
+
+@dataclass(frozen=True)
 class ScanLaunchChecklistItem:
     label: str
     status: str
@@ -541,6 +581,7 @@ class ClientView:
 @dataclass(frozen=True)
 class MissionView:
     mission: MissionRow
+    session_dashboard: AnalysisSessionDashboard
     go_no_go: MissionGoNoGoSummary
     cockpit: MissionCockpit
     scan_launch: ScanLaunchCenter
@@ -1935,6 +1976,274 @@ def scan_launch_center(
     )
 
 
+def analysis_session_dashboard(
+    mission: Mission,
+    findings: list[Finding],
+    scan_plans: list[ScanPlanPreview],
+    scan_runs: list[ScanRun],
+    reports: list[GeneratedReportLink],
+    mission_export: MissionExportLink | None,
+    vulnerability: VulnerabilitySummary,
+) -> AnalysisSessionDashboard:
+    latest_runs = latest_scan_runs_by_check(scan_runs)
+    selected_checks = [plan.check for plan in scan_plans]
+    selected_count = len(selected_checks)
+    completed_count = len(
+        [
+            check
+            for check in selected_checks
+            if latest_runs.get(check) is not None
+            and latest_runs[check].status is ScanRunStatus.COMPLETED
+        ]
+    )
+    failed_count = len(
+        [
+            check
+            for check in selected_checks
+            if latest_runs.get(check) is not None
+            and latest_runs[check].status is ScanRunStatus.FAILED
+        ]
+    )
+    ready_count = len([plan for plan in scan_plans if plan.status == "ready"])
+    blocked_count = len([plan for plan in scan_plans if plan.status == "blocked"])
+    approved_scope = [
+        item for item in mission.scope if item.approved and not item.excluded
+    ]
+    internal_targets = [
+        item for item in approved_scope if item.environment.value == "internal"
+    ]
+    external_targets = [
+        item for item in approved_scope if item.environment.value == "external"
+    ]
+    ad_targets = [item for item in approved_scope if item.type == ScopeType.HOST]
+    domain_targets = [item for item in approved_scope if item.type == ScopeType.DOMAIN]
+    reports_ready = bool(reports)
+    package_ready = mission_export is not None and mission_export.handoff_status == "ready"
+
+    steps = [
+        analysis_session_step(
+            label="Authorization",
+            ready=mission.is_authorized,
+            warning=False,
+            detail=(
+                "Written authorization is recorded."
+                if mission.is_authorized
+                else "Record written authorization before live checks."
+            ),
+            weight=15,
+            action_label="Review Authorization",
+            action_href="#mission-setup",
+        ),
+        analysis_session_step(
+            label="Approved Scope",
+            ready=bool(approved_scope),
+            warning=False,
+            detail=(
+                f"{len(approved_scope)} approved target(s)."
+                if approved_scope
+                else "Add and approve internal or external targets."
+            ),
+            weight=15,
+            action_label="Review Scope",
+            action_href="#scope",
+        ),
+        analysis_session_step(
+            label="Service Selection",
+            ready=selected_count > 0 and ready_count > 0,
+            warning=blocked_count > 0,
+            detail=(
+                f"{ready_count} ready service(s), {blocked_count} blocked."
+                if selected_count
+                else "Select protocols/services to test."
+            ),
+            weight=20,
+            action_label="Review Services",
+            action_href="#check-selection",
+        ),
+        analysis_session_run_step(
+            completed_count=completed_count,
+            failed_count=failed_count,
+            selected_count=selected_count,
+        ),
+        analysis_session_step(
+            label="CVE/KEV Review",
+            ready=vulnerability.status == "ready",
+            warning=vulnerability.status == "warning",
+            detail=vulnerability.detail,
+            weight=10,
+            action_label=vulnerability.action_label,
+            action_href=vulnerability.action_href,
+        ),
+        analysis_session_step(
+            label="Reports",
+            ready=reports_ready,
+            warning=bool(findings) and not reports_ready,
+            detail=(
+                f"{len(reports)} report file(s) generated."
+                if reports_ready
+                else "Generate PDF, JSON, Markdown, and HTML reports after review."
+            ),
+            weight=10,
+            action_label="Generate Reports",
+            action_href="#reports",
+        ),
+        analysis_session_step(
+            label="Handoff Package",
+            ready=package_ready,
+            warning=reports_ready and not package_ready,
+            detail=(
+                "Mission export package is ready for handoff."
+                if package_ready
+                else "Generate and verify the mission export package before delivery."
+            ),
+            weight=5,
+            action_label="Review Exports",
+            action_href="#mission-export",
+        ),
+    ]
+    earned = sum(step.earned for step in steps)
+    weight = sum(step.weight for step in steps) or 1
+    progress_percent = min(100, round((earned / weight) * 100))
+    status = analysis_session_status(steps)
+    current_phase = analysis_current_phase(steps)
+    next_step = next(
+        (step for step in steps if step.status in {"blocked", "missing", "warning"}),
+        steps[-1],
+    )
+    title = analysis_session_title(status, progress_percent)
+    detail = (
+        f"{completed_count}/{selected_count} selected service(s) completed, "
+        f"{len(findings)} finding(s), {vulnerability.match_count} CVE/KEV candidate(s)."
+    )
+    return AnalysisSessionDashboard(
+        status=status,
+        title=title,
+        detail=detail,
+        mode=mission.audit_type.value,
+        progress_percent=progress_percent,
+        current_phase=current_phase,
+        next_action_label=next_step.action_label,
+        next_action_href=next_step.action_href,
+        internal_target_count=len(internal_targets),
+        external_target_count=len(external_targets),
+        ad_target_count=len(ad_targets),
+        domain_target_count=len(domain_targets),
+        selected_service_count=selected_count,
+        ready_service_count=ready_count,
+        blocked_service_count=blocked_count,
+        completed_service_count=completed_count,
+        failed_service_count=failed_count,
+        run_count=len(scan_runs),
+        finding_count=len(active_findings(findings)),
+        vulnerability_match_count=vulnerability.match_count,
+        report_count=len(reports),
+        package_ready=package_ready,
+        selected_services=tuple(plan.label for plan in scan_plans),
+        target_summary=tuple(session_target_summary_item(item) for item in approved_scope[:8]),
+        steps=steps,
+    )
+
+
+def analysis_session_step(
+    label: str,
+    ready: bool,
+    warning: bool,
+    detail: str,
+    weight: int,
+    action_label: str,
+    action_href: str,
+) -> AnalysisSessionStep:
+    if ready:
+        status = "ready"
+        earned = weight
+    elif warning:
+        status = "warning"
+        earned = max(weight // 2, 1)
+    else:
+        status = "missing"
+        earned = 0
+    return AnalysisSessionStep(
+        label=label,
+        status=status,
+        detail=detail,
+        weight=weight,
+        earned=earned,
+        action_label=action_label,
+        action_href=action_href,
+    )
+
+
+def analysis_session_run_step(
+    completed_count: int,
+    failed_count: int,
+    selected_count: int,
+) -> AnalysisSessionStep:
+    weight = 25
+    if selected_count == 0:
+        return AnalysisSessionStep(
+            label="Execution",
+            status="missing",
+            detail="No selected service can be executed yet.",
+            weight=weight,
+            earned=0,
+            action_label="Select Services",
+            action_href="#check-selection",
+        )
+    earned = round(weight * (completed_count / selected_count))
+    if failed_count:
+        status = "blocked"
+        detail = f"{failed_count} failed service(s) need review before delivery."
+    elif completed_count == selected_count:
+        status = "ready"
+        detail = f"All {selected_count} selected service(s) completed."
+    elif completed_count:
+        status = "warning"
+        detail = f"{completed_count}/{selected_count} selected service(s) completed."
+    else:
+        status = "missing"
+        detail = "No selected service has been launched yet."
+    return AnalysisSessionStep(
+        label="Execution",
+        status=status,
+        detail=detail,
+        weight=weight,
+        earned=earned,
+        action_label="Open Launch Center",
+        action_href="#scan-plan",
+    )
+
+
+def analysis_session_status(steps: list[AnalysisSessionStep]) -> str:
+    if any(step.status == "blocked" for step in steps):
+        return "blocked"
+    if any(step.status in {"missing", "warning"} for step in steps):
+        return "warning"
+    return "ready"
+
+
+def analysis_current_phase(steps: list[AnalysisSessionStep]) -> str:
+    for step in steps:
+        if step.status in {"blocked", "missing", "warning"}:
+            return step.label
+    return "Handoff"
+
+
+def analysis_session_title(status: str, progress_percent: int) -> str:
+    if status == "ready":
+        return "Session ready for customer handoff"
+    if status == "blocked":
+        return "Session blocked before delivery"
+    if progress_percent >= 70:
+        return "Session mostly complete"
+    if progress_percent >= 35:
+        return "Session in progress"
+    return "Session preparation started"
+
+
+def session_target_summary_item(item: ScopeItem) -> str:
+    return f"{item.environment.value}:{item.type.value}:{item.value}"
+
+
 def scan_launch_checklist(scan_plans: list[ScanPlanPreview]) -> list[ScanLaunchChecklistItem]:
     return [scan_launch_checklist_item(plan) for plan in scan_plans]
 
@@ -2738,9 +3047,19 @@ def build_mission_view(
         reports=reports,
         mission_export=mission_export,
     )
+    session_dashboard = analysis_session_dashboard(
+        mission=mission,
+        findings=findings,
+        scan_plans=scan_plans,
+        scan_runs=scan_runs,
+        reports=reports,
+        mission_export=mission_export,
+        vulnerability=vulnerability,
+    )
 
     return MissionView(
         mission=mission_row(mission, findings, client_name_by_id(store)),
+        session_dashboard=session_dashboard,
         go_no_go=mission_go_no_go_summary(
             mission=mission,
             scope_intake=scope_intake,

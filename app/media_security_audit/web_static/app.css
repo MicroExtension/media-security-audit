@@ -2728,6 +2728,143 @@ code {
   color: var(--muted);
 }
 
+.session-hero {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: 6px;
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(0, 1.4fr) minmax(280px, .8fr);
+  margin-bottom: 22px;
+  padding: 22px;
+}
+
+.session-ready {
+  border-left-color: var(--green);
+}
+
+.session-warning {
+  border-left-color: var(--amber);
+}
+
+.session-blocked {
+  border-left-color: var(--red);
+}
+
+.session-hero-main {
+  display: grid;
+  gap: 12px;
+}
+
+.session-hero-main h2,
+.session-hero-main p {
+  margin: 0;
+}
+
+.session-hero-main p {
+  color: var(--muted);
+}
+
+.session-hero-main .button {
+  justify-self: start;
+}
+
+.session-hero-metrics {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.session-hero-metrics article,
+.session-step,
+.session-service,
+.session-remediation-grid article {
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 14px;
+}
+
+.session-hero-metrics span,
+.session-progress-head span {
+  color: var(--muted);
+  display: block;
+  font-size: 13px;
+}
+
+.session-hero-metrics strong {
+  display: block;
+  font-size: 22px;
+  margin-top: 4px;
+}
+
+.session-progress {
+  display: grid;
+  gap: 8px;
+  max-width: 680px;
+}
+
+.session-progress-head {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.session-progress-track {
+  background: var(--surface-muted);
+  border-radius: 999px;
+  height: 12px;
+  overflow: hidden;
+}
+
+.session-progress-track span {
+  background: linear-gradient(90deg, var(--accent), var(--green));
+  display: block;
+  height: 100%;
+}
+
+.session-step-grid,
+.session-service-list,
+.session-remediation-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.session-step-grid,
+.session-remediation-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.session-service-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.session-step,
+.session-service,
+.session-remediation-grid article {
+  align-content: start;
+  display: grid;
+  gap: 10px;
+}
+
+.session-step p,
+.session-service p,
+.session-remediation-grid p {
+  color: var(--muted);
+  margin: 0;
+}
+
+.session-service {
+  align-items: start;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.session-service p,
+.session-service .readiness-action {
+  grid-column: 1 / -1;
+}
+
 .scan-progress-overlay[hidden] {
   display: none;
 }
@@ -2870,7 +3007,11 @@ code {
   .catalog-remediation,
   .test-command-grid,
   .test-checklist-grid,
-  .test-feedback-list {
+  .test-feedback-list,
+  .session-hero,
+  .session-step-grid,
+  .session-service-list,
+  .session-remediation-grid {
     grid-template-columns: 1fr;
   }
 

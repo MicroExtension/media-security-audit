@@ -1083,6 +1083,37 @@ def create_web_app(
             )
         )
 
+    @app.get(
+        "/missions/{mission_id}/session",
+        response_class=HTMLResponse,
+        dependencies=protected,
+    )
+    def mission_session_dashboard(
+        request: Request,
+        mission_id: str,
+        message: str | None = None,
+        error: str | None = None,
+    ) -> HTMLResponse:
+        try:
+            view = build_mission_view(store, mission_id, reports_dir=reports_dir)
+        except FileNotFoundError as error:
+            raise HTTPException(status_code=404, detail=str(error)) from error
+
+        return HTMLResponse(
+            render_template(
+                templates,
+                "session_dashboard.html",
+                {
+                    "request": request,
+                    "data_dir": data_dir,
+                    "view": view,
+                    "form_token": form_token,
+                    "message": message,
+                    "error": error,
+                },
+            )
+        )
+
     @app.get("/missions/{mission_id}", response_class=HTMLResponse, dependencies=protected)
     def mission_detail(
         request: Request,

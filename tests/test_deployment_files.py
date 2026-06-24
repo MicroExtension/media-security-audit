@@ -315,6 +315,41 @@ class DeploymentFileTests(unittest.TestCase):
         self.assertNotIn("nuclei -update-templates", script)
         self.assertNotIn("rm -rf", script)
 
+    def test_final_appliance_firewall_and_coverage_docs_are_present(self) -> None:
+        appliance = (ROOT / "docs" / "FINAL_VM_APPLIANCE.md").read_text(
+            encoding="utf-8"
+        )
+        firewall = (ROOT / "docs" / "CUSTOMER_FIREWALL_REQUIREMENTS.md").read_text(
+            encoding="utf-8"
+        )
+        coverage = (ROOT / "docs" / "TEST_COVERAGE_CATALOG.md").read_text(
+            encoding="utf-8"
+        )
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        deployment = (ROOT / "docs" / "DEPLOYMENT.md").read_text(encoding="utf-8")
+
+        self.assertIn("VMware: exported OVA", appliance)
+        self.assertIn("Hyper-V: exported VHDX", appliance)
+        self.assertIn("sudo apt install -y git docker.io curl ca-certificates nmap smbclient ldap-utils", appliance)
+        self.assertIn("sudo apt install -y docker-compose-plugin || sudo apt install -y docker-compose-v2", appliance)
+        self.assertIn("sudo apt install -y testssl.sh", appliance)
+        self.assertIn("bash scripts/debian-vm-ui-smoke-test.sh", appliance)
+        self.assertIn("maintenance password vault", appliance)
+        self.assertIn("MEDIA_AUDIT_BIND=127.0.0.1", firewall)
+        self.assertIn("ssh -L 8080:127.0.0.1:8080", firewall)
+        self.assertIn("bash scripts/debian-vm-firewall-plan.sh --admin-cidr", firewall)
+        self.assertIn("Nmap TCP service discovery", coverage)
+        self.assertIn("CVE/KEV correlation", coverage)
+        self.assertIn("automated exploitation", coverage)
+        self.assertIn("password brute force", coverage)
+        self.assertIn("CVE And CVSS Handling", coverage)
+        self.assertIn("FINAL_VM_APPLIANCE.md", readme)
+        self.assertIn("CUSTOMER_FIREWALL_REQUIREMENTS.md", readme)
+        self.assertIn("TEST_COVERAGE_CATALOG.md", readme)
+        self.assertIn("FINAL_VM_APPLIANCE.md", deployment)
+        self.assertIn("CUSTOMER_FIREWALL_REQUIREMENTS.md", deployment)
+        self.assertIn("TEST_COVERAGE_CATALOG.md", deployment)
+
     def test_debian_vm_pilot_closeout_is_safe_aggregate_only(self) -> None:
         script = (ROOT / "scripts" / "debian-vm-pilot-closeout.sh").read_text(
             encoding="utf-8"

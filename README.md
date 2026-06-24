@@ -81,6 +81,9 @@ Implemented so far:
 - mission Audit Console gives technicians a simplified prepare, launch, analyze, and deliver workflow
 - VM Test Readiness page centralizes update commands, smoke test commands, browser checkpoints, and feedback capture
 - Debian VM UI smoke test report checks Git state, authentication, Compose readiness, service status, and local UI reachability without collecting logs or customer files
+- final VM appliance target documents VMware/Hyper-V delivery, preconfiguration, package commands, and customer finalization
+- customer firewall requirements document UI access, outbound update flows, and authorized internal/external audit traffic
+- test coverage catalog separates safe audit checks from excluded exploitation and brute-force capabilities
 - generated reports include CVE/KEV candidate rollups and prioritized remediation entries
 - generated reports include a quick-read decision, immediate action, priority focus, and next counter-test
 - generated reports include a client action plan explaining why, what to fix, when, and how to validate
@@ -671,6 +674,10 @@ reports highlight active critical and high findings before the full remediation
 plan so urgent customer actions are visible first.
 
 Detailed instructions are in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+Final appliance and customer-site planning documents:
+[docs/FINAL_VM_APPLIANCE.md](docs/FINAL_VM_APPLIANCE.md),
+[docs/CUSTOMER_FIREWALL_REQUIREMENTS.md](docs/CUSTOMER_FIREWALL_REQUIREMENTS.md),
+and [docs/TEST_COVERAGE_CATALOG.md](docs/TEST_COVERAGE_CATALOG.md).
 
 ## Repository Map
 

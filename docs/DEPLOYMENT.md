@@ -20,6 +20,13 @@ For the first controlled customer pilot, follow
 [`REAL_CONDITION_TEST_RUNBOOK.md`](REAL_CONDITION_TEST_RUNBOOK.md) after V1
 readiness is green and before live checks.
 
+For the final appliance target, package commands, and customer-site firewall
+review, keep these documents with the deployment file:
+
+- [`FINAL_VM_APPLIANCE.md`](FINAL_VM_APPLIANCE.md)
+- [`CUSTOMER_FIREWALL_REQUIREMENTS.md`](CUSTOMER_FIREWALL_REQUIREMENTS.md)
+- [`TEST_COVERAGE_CATALOG.md`](TEST_COVERAGE_CATALOG.md)
+
 ## Hosting Model
 
 Use GitHub only to host the private source repository.

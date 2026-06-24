@@ -7,6 +7,7 @@
     <h1>Audit Console</h1>
   </div>
   <div class="actions">
+    <a class="button" href="/missions/{{ view.mission.id }}/session">Session Dashboard</a>
     <a class="button" href="/missions/{{ view.mission.id }}#scan-plan">Detailed Launch</a>
     <a class="button secondary-button" href="/missions/{{ view.mission.id }}">Full Mission</a>
     <a class="button secondary-button" href="/clients/{{ view.mission.client_id }}">Client</a>
@@ -20,10 +21,15 @@
     <p>{{ view.go_no_go.detail }}</p>
     <div class="console-hero-actions">
       <a class="button" href="{{ view.cockpit.next_action_href }}">{{ view.cockpit.next_action_label }}</a>
+      <a class="button secondary-button" href="/missions/{{ view.mission.id }}/session">Session Dashboard</a>
       <a class="button secondary-button" href="#console-launch">Launch Center</a>
     </div>
   </div>
   <div class="console-hero-metrics">
+    <article>
+      <span>Progress</span>
+      <strong>{{ view.session_dashboard.progress_percent }}%</strong>
+    </article>
     <article>
       <span>Workflow</span>
       <strong>{{ view.cockpit.ready_step_count }}/{{ view.cockpit.total_step_count }}</strong>

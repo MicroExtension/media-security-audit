@@ -79,6 +79,8 @@ Implemented so far:
 - local Pilot page exports the real-condition trial checklist as Markdown and JSON
 - product UX target documents page separation, scan progress, CVE catalog, and credential-check guardrails
 - mission Audit Console gives technicians a simplified prepare, launch, analyze, and deliver workflow
+- VM Test Readiness page centralizes update commands, smoke test commands, browser checkpoints, and feedback capture
+- Debian VM UI smoke test report checks Git state, authentication, Compose readiness, service status, and local UI reachability without collecting logs or customer files
 - generated reports include CVE/KEV candidate rollups and prioritized remediation entries
 - generated reports include a quick-read decision, immediate action, priority focus, and next counter-test
 - generated reports include a client action plan explaining why, what to fix, when, and how to validate
@@ -646,12 +648,14 @@ bash scripts/debian-vm-offline-update-preview-inventory.sh --verify-manifests
 bash scripts/debian-vm-offline-update-plan.sh --package media-audit-offline-update-YYYYMMDDTHHMMSSZ.tgz --preview reports/offline-update-previews/<preview-folder>
 bash scripts/debian-vm-offline-update-apply-checklist.sh --package media-audit-offline-update-YYYYMMDDTHHMMSSZ.tgz --preview reports/offline-update-previews/<preview-folder>
 bash scripts/debian-vm-update.sh
+bash scripts/debian-vm-ui-smoke-test.sh
 ```
 
 Default URL:
 
 ```text
 http://127.0.0.1:8080
+http://127.0.0.1:8080/test-readiness
 ```
 
 For LAN access from another workstation, set `MEDIA_AUDIT_BIND=0.0.0.0` in

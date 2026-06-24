@@ -2651,6 +2651,83 @@ code {
   padding: 6px 8px;
 }
 
+.test-command-grid,
+.test-checklist-grid,
+.test-feedback-list {
+  display: grid;
+  gap: 14px;
+}
+
+.test-command-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.test-checklist-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.test-feedback-list {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.test-command-card,
+.test-checklist-card,
+.test-feedback-list > div,
+.test-safety-note {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+}
+
+.test-command-card-wide {
+  grid-column: span 2;
+}
+
+.test-command-card p,
+.test-checklist-card p,
+.test-safety-note p {
+  color: var(--muted);
+  margin: 0;
+}
+
+.test-command-card pre {
+  background: #101828;
+  border-radius: 6px;
+  color: #f8fafc;
+  margin: 0;
+  overflow-x: auto;
+  padding: 14px;
+}
+
+.test-command-card code {
+  white-space: pre-wrap;
+}
+
+.test-checklist-card {
+  align-content: start;
+}
+
+.test-checklist-card .badge {
+  justify-self: start;
+}
+
+.test-safety-note {
+  border-left: 4px solid var(--amber);
+  margin-bottom: 14px;
+}
+
+.test-feedback-list strong,
+.test-feedback-list span {
+  display: block;
+}
+
+.test-feedback-list span {
+  color: var(--muted);
+}
+
 .scan-progress-overlay[hidden] {
   display: none;
 }
@@ -2790,8 +2867,15 @@ code {
 
   .catalog-hero,
   .catalog-card-grid,
-  .catalog-remediation {
+  .catalog-remediation,
+  .test-command-grid,
+  .test-checklist-grid,
+  .test-feedback-list {
     grid-template-columns: 1fr;
+  }
+
+  .test-command-card-wide {
+    grid-column: auto;
   }
 
   .catalog-card-head,

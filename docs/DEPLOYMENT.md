@@ -224,6 +224,33 @@ The status helper reports `.env` readiness, Docker Compose configuration,
 service status, and deployment preflight JSON. It does not collect application
 logs or customer file contents.
 
+Run the UI smoke test before a technician or customer pilot review:
+
+```bash
+bash scripts/debian-vm-ui-smoke-test.sh
+ls -lh reports/test-readiness
+tail -n 40 reports/test-readiness/media-audit-ui-smoke-test-*.txt
+```
+
+The smoke test writes a local report under `reports/test-readiness`, checks Git
+state, web authentication, Docker Compose readiness, service status, and local
+UI reachability. It does not run scanners, install packages, print secrets,
+collect application logs, or read customer file contents. Review the generated
+`ui_smoke_test=` status before opening the UI for a pilot.
+
+After the service is running, open the dedicated test page:
+
+```text
+http://127.0.0.1:8080/test-readiness
+```
+
+When accessing the VM from your workstation, keep the UI local to the VM and
+forward the port over SSH:
+
+```bash
+ssh -L 8080:127.0.0.1:8080 mediaadmin@172.1.1.123
+```
+
 Stop the local service for maintenance:
 
 ```bash

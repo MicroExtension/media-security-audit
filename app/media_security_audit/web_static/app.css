@@ -1482,8 +1482,15 @@ a.filter-chip:hover {
   margin-bottom: 18px;
 }
 
+.detail-hero {
+  margin-bottom: 18px;
+  min-height: 260px;
+}
+
 .client-directory-hero,
-.audit-directory-hero {
+.audit-directory-hero,
+.client-detail-hero,
+.mission-detail-hero {
   min-height: 260px;
 }
 

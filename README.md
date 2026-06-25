@@ -63,6 +63,7 @@ Implemented so far:
 - guided audit UX now uses a French operator flow, mode cards, step help, and a persistent audit summary for visual validation
 - audit console and session dashboard now use a French cockpit flow with preparation, launch, analysis, and delivery phases
 - Clients and Audits pages now use operator-style hero sections, local search bars, shortcuts, and clearer French task labels
+- Client and Mission detail pages now open with operator-style cockpit summaries and clearer action routing
 - failed counter-tests drive dashboard, client, and mission next-action links
 - finding review requires notes for false positives, accepted risks, and counter-test results
 - web mission activity log for traceability

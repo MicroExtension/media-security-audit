@@ -126,8 +126,12 @@ def run_nmap_web_check(mission_id: str, data_dir: Path, evidence_dir: Path) -> N
 
 
 def run_http_web_check(mission_id: str, data_dir: Path, evidence_dir: Path) -> None:
-    _ = evidence_dir
-    run_http_headers_audit(mission_id=mission_id, data_dir=data_dir, execute=True)
+    run_http_headers_audit(
+        mission_id=mission_id,
+        data_dir=data_dir,
+        output_dir=evidence_dir,
+        execute=True,
+    )
 
 
 def run_dns_mail_web_check(mission_id: str, data_dir: Path, evidence_dir: Path) -> None:

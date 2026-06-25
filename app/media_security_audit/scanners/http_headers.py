@@ -5,13 +5,14 @@ from __future__ import annotations
 import urllib.error
 import urllib.request
 from dataclasses import dataclass
-from typing import Callable, Mapping
+from typing import Any, Callable, Mapping
 from urllib.parse import urlparse
 
 from media_security_audit.models import Finding, ScopeItem, ScopeType, Severity
 
 
 HttpFetcher = Callable[[str], "HttpHeaderResponse"]
+MIN_HSTS_MAX_AGE_SECONDS = 15552000
 
 
 @dataclass(frozen=True)
@@ -83,16 +84,64 @@ def audit_http_headers(response: HttpHeaderResponse) -> list[Finding]:
     headers = normalize_headers(response.headers)
     findings = []
 
-    if response.url.startswith("https://") and "strict-transport-security" not in headers:
+    parsed_url = urlparse(response.url)
+    hsts_header = headers.get("strict-transport-security", "")
+    if parsed_url.scheme == "https":
+        if not hsts_header:
+            findings.append(
+                _finding(
+                    response,
+                    title="Missing HTTP Strict Transport Security header",
+                    severity=Severity.MEDIUM,
+                    proof="Strict-Transport-Security header was not present.",
+                    risk="Browsers may allow protocol downgrade attempts for this site.",
+                    remediation=(
+                        "Enable Strict-Transport-Security on HTTPS responses after confirming "
+                        "the site and expected subdomains are consistently available over HTTPS."
+                    ),
+                    counter_test=(
+                        "Repeat the HTTP header audit and confirm Strict-Transport-Security "
+                        "is present with an approved max-age."
+                    ),
+                    metadata={"header": "strict-transport-security", "observed": "missing"},
+                )
+            )
+        else:
+            max_age = parse_hsts_max_age(hsts_header)
+            if max_age is None or max_age < MIN_HSTS_MAX_AGE_SECONDS:
+                findings.append(
+                    _finding(
+                        response,
+                        title="HTTP Strict Transport Security max-age is too low",
+                        severity=Severity.LOW,
+                        proof=f"Strict-Transport-Security header value: {hsts_header}",
+                        risk="Short HSTS duration reduces browser-side downgrade protection.",
+                        remediation=(
+                            "Increase HSTS max-age to at least 15552000 seconds once HTTPS "
+                            "coverage has been validated for the site."
+                        ),
+                        counter_test=(
+                            "Repeat the HTTP header audit and confirm the HSTS max-age meets "
+                            "the approved baseline."
+                        ),
+                        metadata={
+                            "header": "strict-transport-security",
+                            "observed": hsts_header,
+                            "minimum_max_age": str(MIN_HSTS_MAX_AGE_SECONDS),
+                        },
+                    )
+                )
+    elif parsed_url.scheme == "http":
         findings.append(
             _finding(
                 response,
-                title="Missing HTTP Strict Transport Security header",
+                title="HTTP endpoint is not protected by HTTPS",
                 severity=Severity.MEDIUM,
-                proof="Strict-Transport-Security header was not present.",
-                risk="Browsers may allow protocol downgrade attempts for this site.",
-                remediation="Enable Strict-Transport-Security with an appropriate max-age.",
-                counter_test="Repeat the HTTP header audit and confirm Strict-Transport-Security is present.",
+                proof=f"Approved URL was requested over clear-text HTTP: {response.url}",
+                risk="Credentials, cookies, or sensitive pages may be exposed if users access the site over HTTP.",
+                remediation="Redirect HTTP to HTTPS and verify that the HTTPS endpoint uses valid TLS.",
+                counter_test="Repeat the audit with the approved URL and confirm it redirects to HTTPS.",
+                metadata={"scheme": "http"},
             )
         )
 
@@ -106,6 +155,7 @@ def audit_http_headers(response: HttpHeaderResponse) -> list[Finding]:
                 risk="Browsers may attempt MIME sniffing on responses.",
                 remediation="Set X-Content-Type-Options to nosniff.",
                 counter_test="Repeat the HTTP header audit and confirm X-Content-Type-Options: nosniff.",
+                metadata={"header": "x-content-type-options", "expected": "nosniff"},
             )
         )
 
@@ -121,6 +171,7 @@ def audit_http_headers(response: HttpHeaderResponse) -> list[Finding]:
                 risk="Pages may be embedded in hostile frames if the application is vulnerable to clickjacking.",
                 remediation="Set X-Frame-Options or a Content-Security-Policy frame-ancestors directive.",
                 counter_test="Repeat the HTTP header audit and confirm frame embedding is restricted.",
+                metadata={"headers": "x-frame-options, content-security-policy frame-ancestors"},
             )
         )
 
@@ -134,6 +185,54 @@ def audit_http_headers(response: HttpHeaderResponse) -> list[Finding]:
                 risk="Browser-side injection impact may be higher without a CSP baseline.",
                 remediation="Define a Content-Security-Policy appropriate for the application.",
                 counter_test="Repeat the HTTP header audit and confirm Content-Security-Policy is present.",
+                metadata={"header": "content-security-policy", "observed": "missing"},
+            )
+        )
+    elif content_security_policy_is_permissive(content_security_policy):
+        findings.append(
+            _finding(
+                response,
+                title="Content-Security-Policy appears permissive",
+                severity=Severity.LOW,
+                proof=f"Content-Security-Policy header value: {content_security_policy}",
+                risk="A permissive CSP may reduce browser-side protection against injection impact.",
+                remediation=(
+                    "Review the CSP and remove broad wildcards or unsafe inline allowances where "
+                    "the application can support a stricter policy."
+                ),
+                counter_test="Repeat the HTTP header audit and confirm the CSP matches the approved baseline.",
+                metadata={"header": "content-security-policy", "observed": content_security_policy},
+            )
+        )
+
+    if "referrer-policy" not in headers:
+        findings.append(
+            _finding(
+                response,
+                title="Missing Referrer-Policy header",
+                severity=Severity.LOW,
+                proof="Referrer-Policy header was not present.",
+                risk="Browsers may send more URL context to third-party sites than intended.",
+                remediation="Set a Referrer-Policy such as strict-origin-when-cross-origin or no-referrer.",
+                counter_test="Repeat the HTTP header audit and confirm Referrer-Policy is present.",
+                metadata={"header": "referrer-policy", "observed": "missing"},
+            )
+        )
+
+    if "permissions-policy" not in headers:
+        findings.append(
+            _finding(
+                response,
+                title="Missing Permissions-Policy header",
+                severity=Severity.INFO,
+                proof="Permissions-Policy header was not present.",
+                risk="Browsers may leave powerful features available to pages that do not need them.",
+                remediation=(
+                    "Define a Permissions-Policy baseline for features such as camera, microphone, "
+                    "geolocation, and fullscreen according to the application need."
+                ),
+                counter_test="Repeat the HTTP header audit and confirm Permissions-Policy is present.",
+                metadata={"header": "permissions-policy", "observed": "missing"},
             )
         )
 
@@ -148,6 +247,7 @@ def audit_http_headers(response: HttpHeaderResponse) -> list[Finding]:
                 risk="Technology disclosure can help attackers tailor reconnaissance.",
                 remediation="Reduce Server header detail where supported by the web server or reverse proxy.",
                 counter_test="Repeat the HTTP header audit and confirm the Server header is absent or generic.",
+                metadata={"header": "server", "observed": server_header},
             )
         )
 
@@ -158,6 +258,39 @@ def normalize_headers(headers: Mapping[str, str]) -> dict[str, str]:
     return {key.lower(): value.strip() for key, value in headers.items()}
 
 
+def parse_hsts_max_age(header_value: str) -> int | None:
+    for directive in header_value.split(";"):
+        name, _, value = directive.strip().partition("=")
+        if name.lower() == "max-age":
+            try:
+                return int(value)
+            except ValueError:
+                return None
+    return None
+
+
+def content_security_policy_is_permissive(header_value: str) -> bool:
+    normalized = " ".join(header_value.lower().split())
+    permissive_tokens = (
+        "default-src *",
+        "script-src *",
+        "object-src *",
+        "'unsafe-inline'",
+        "'unsafe-eval'",
+    )
+    return any(token in normalized for token in permissive_tokens)
+
+
+def http_header_evidence(response: HttpHeaderResponse) -> dict[str, Any]:
+    return {
+        "schema_version": 1,
+        "url": response.url,
+        "status_code": response.status_code,
+        "method": response.method,
+        "headers": dict(sorted(response.headers.items())),
+    }
+
+
 def _finding(
     response: HttpHeaderResponse,
     title: str,
@@ -166,6 +299,7 @@ def _finding(
     risk: str,
     remediation: str,
     counter_test: str,
+    metadata: dict[str, str] | None = None,
 ) -> Finding:
     return Finding(
         title=title,
@@ -178,5 +312,10 @@ def _finding(
         remediation=remediation,
         counter_test=counter_test,
         confidence=0.85,
+        metadata={
+            "http_status": str(response.status_code),
+            "http_method": response.method,
+            **(metadata or {}),
+        },
     )
 

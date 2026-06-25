@@ -89,6 +89,7 @@ Implemented so far:
 - generated reports include a quick-read decision, immediate action, priority focus, and next counter-test
 - generated reports include a client action plan explaining why, what to fix, when, and how to validate
 - guarded TLS testssl.sh plan, execution wrapper, and JSON parser
+- guarded HTTP headers audit now records per-target JSON evidence and checks HSTS, CSP, clickjacking, MIME sniffing, referrer, permissions, HTTPS, and platform disclosure posture
 - guarded SMB anonymous listing plan, execution wrapper, and parser
 - guarded LDAP RootDSE plan, execution wrapper, and parser
 - consolidated CLI scan plan output for selected checks

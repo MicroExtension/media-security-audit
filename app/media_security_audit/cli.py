@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 from datetime import date
 from pathlib import Path
 
@@ -47,8 +48,10 @@ from media_security_audit.scanners.dns_mail import (
 from media_security_audit.scanners.http_headers import (
     HttpFetcher,
     HttpHeaderFetcher,
+    HttpHeaderResponse,
     approved_http_targets,
     audit_http_headers,
+    http_header_evidence,
 )
 from media_security_audit.scanners.ldap import (
     LdapCommandBuilder,
@@ -416,6 +419,7 @@ def plan_http_headers_audit(mission_id: str, data_dir: Path) -> list[str]:
 def run_http_headers_audit(
     mission_id: str,
     data_dir: Path,
+    output_dir: Path | None = None,
     execute: bool = False,
     fetcher: HttpFetcher | None = None,
 ) -> list[Finding]:
@@ -435,9 +439,12 @@ def run_http_headers_audit(
 
     http_fetcher = fetcher or HttpHeaderFetcher().fetch
     findings: list[Finding] = []
+    responses = []
     try:
         for target in targets:
-            findings.extend(audit_http_headers(http_fetcher(target)))
+            response = http_fetcher(target)
+            responses.append(response)
+            findings.extend(audit_http_headers(response))
     except Exception as error:
         record_scan_run(
             store,
@@ -450,6 +457,10 @@ def run_http_headers_audit(
         )
         raise
 
+    evidence_paths = write_http_header_evidence_files(
+        responses=responses,
+        output_dir=output_dir or Path("runs") / mission_id / "evidence",
+    )
     stored_findings = store.add_findings(mission_id, findings)
     record_scan_run(
         store,
@@ -458,9 +469,26 @@ def run_http_headers_audit(
         ScanRunStatus.COMPLETED,
         command_count=len(targets),
         finding_count=len(stored_findings),
+        evidence_paths=evidence_paths,
         metadata={"target_count": str(len(targets))},
     )
     return stored_findings
+
+
+def write_http_header_evidence_files(
+    responses: list[HttpHeaderResponse],
+    output_dir: Path,
+) -> list[str]:
+    output_dir.mkdir(parents=True, exist_ok=True)
+    evidence_paths: list[str] = []
+    for index, response in enumerate(responses, start=1):
+        evidence_path = output_dir / f"http-headers-{index}.json"
+        evidence_path.write_text(
+            json.dumps(http_header_evidence(response), indent=2, sort_keys=True),
+            encoding="utf-8",
+        )
+        evidence_paths.append(str(evidence_path))
+    return evidence_paths
 
 
 def plan_dns_mail_audit(
@@ -1245,12 +1273,14 @@ try:
     def scan_http_run(
         mission_id: str = typer.Option(..., "--mission-id"),
         data_dir: Path = typer.Option(Path("data"), "--data-dir"),
+        output_dir: Path | None = typer.Option(None, "--output-dir"),
         execute: bool = typer.Option(False, "--execute", help="Required to make HTTP requests."),
     ) -> None:
         """Audit HTTP headers only when --execute is explicitly provided."""
         findings = run_http_headers_audit(
             mission_id=mission_id,
             data_dir=data_dir,
+            output_dir=output_dir,
             execute=execute,
         )
         typer.echo(f"Stored {len(findings)} HTTP header finding(s).")
@@ -1581,6 +1611,7 @@ except ModuleNotFoundError:
         )
         http_run_parser.add_argument("--mission-id", required=True)
         http_run_parser.add_argument("--data-dir", type=Path, default=Path("data"))
+        http_run_parser.add_argument("--output-dir", type=Path)
         http_run_parser.add_argument("--execute", action="store_true")
         dns_plan_parser = scan_subparsers.add_parser(
             "dns-plan",
@@ -1883,6 +1914,7 @@ except ModuleNotFoundError:
                 findings = run_http_headers_audit(
                     mission_id=args.mission_id,
                     data_dir=args.data_dir,
+                    output_dir=args.output_dir,
                     execute=args.execute,
                 )
                 print(f"Stored {len(findings)} HTTP header finding(s).")

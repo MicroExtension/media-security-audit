@@ -428,6 +428,52 @@ class CliWorkflowTests(unittest.TestCase):
         self.assertEqual(runs[0].status.value, "failed")
         self.assertIn("request failed", runs[0].error or "")
 
+    def test_http_run_writes_evidence_files(self) -> None:
+        root_dir = Path(__file__).resolve().parents[1] / ".tmp-tests" / "cli-http-evidence"
+        data_dir = root_dir / "data"
+        output_dir = root_dir / "evidence"
+
+        client = create_client(name="Client X", data_dir=data_dir)
+        mission = create_mission(
+            client_id=client.id,
+            name="External audit",
+            audit_type=AuditType.EXTERNAL,
+            authorization_reference="signed-order",
+            data_dir=data_dir,
+        )
+        add_scope(
+            mission_id=mission.id,
+            scope_type=ScopeType.URL,
+            value="https://example.invalid",
+            approved=True,
+            data_dir=data_dir,
+        )
+
+        def fake_fetcher(url: str) -> HttpHeaderResponse:
+            return HttpHeaderResponse(
+                url=url,
+                status_code=200,
+                headers={"X-Content-Type-Options": "nosniff"},
+                method="GET",
+            )
+
+        run_http_headers_audit(
+            mission_id=mission.id,
+            data_dir=data_dir,
+            output_dir=output_dir,
+            execute=True,
+            fetcher=fake_fetcher,
+        )
+
+        runs = JsonStore(data_dir).list_scan_runs(mission.id)
+        evidence_path = output_dir / "http-headers-1.json"
+        payload = json.loads(evidence_path.read_text(encoding="utf-8"))
+
+        self.assertEqual(runs[0].evidence_paths, [str(evidence_path)])
+        self.assertEqual(payload["url"], "https://example.invalid")
+        self.assertEqual(payload["method"], "GET")
+        self.assertEqual(payload["headers"], {"X-Content-Type-Options": "nosniff"})
+
     def test_dns_run_requires_execute_flag(self) -> None:
         root_dir = Path(__file__).resolve().parents[1] / ".tmp-tests" / "cli-dns-guard"
         data_dir = root_dir / "data"

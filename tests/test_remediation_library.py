@@ -49,6 +49,9 @@ class RemediationLibraryTests(unittest.TestCase):
 
         self.assertGreaterEqual(len(entries), 8)
         self.assertEqual(len(ids), len(set(ids)))
+        self.assertIn("rem_http_csp_baseline", ids)
+        self.assertIn("rem_http_referrer_policy", ids)
+        self.assertIn("rem_http_permissions_policy", ids)
         self.assertTrue(all(entry.title.strip() for entry in entries))
         self.assertTrue(all(entry.risk.strip() for entry in entries))
         self.assertTrue(all(entry.remediation.strip() for entry in entries))

@@ -50,6 +50,49 @@ BUILTIN_REMEDIATIONS: tuple[RemediationEntry, ...] = (
         counter_test="Request the approved URL and confirm a frame-ancestors or X-Frame-Options policy is returned.",
     ),
     RemediationEntry(
+        id="rem_http_csp_baseline",
+        title="Define A Content Security Policy Baseline",
+        category="http_headers",
+        severity=Severity.LOW,
+        effort="medium",
+        applies_to=("web", "reverse_proxy", "admin_portal"),
+        risk="Browser-side injection impact may be higher when no CSP baseline is enforced.",
+        remediation=(
+            "Start with a report-only policy, identify required script, style, image, "
+            "and API sources, then enforce a Content-Security-Policy that avoids broad "
+            "wildcards and unsafe inline allowances where possible."
+        ),
+        counter_test="Request the approved URL and confirm the CSP matches the approved baseline.",
+    ),
+    RemediationEntry(
+        id="rem_http_referrer_policy",
+        title="Set A Referrer Policy",
+        category="http_headers",
+        severity=Severity.LOW,
+        effort="low",
+        applies_to=("web", "reverse_proxy", "admin_portal"),
+        risk="Browsers may send more URL context to third-party sites than intended.",
+        remediation=(
+            "Set a Referrer-Policy header such as strict-origin-when-cross-origin "
+            "or no-referrer according to the application need."
+        ),
+        counter_test="Request the approved URL and confirm the Referrer-Policy header is present.",
+    ),
+    RemediationEntry(
+        id="rem_http_permissions_policy",
+        title="Limit Browser Feature Permissions",
+        category="http_headers",
+        severity=Severity.INFO,
+        effort="low",
+        applies_to=("web", "reverse_proxy", "admin_portal"),
+        risk="Pages may leave powerful browser features available even when they are not needed.",
+        remediation=(
+            "Define a Permissions-Policy baseline for features such as camera, "
+            "microphone, geolocation, fullscreen, and payment based on business need."
+        ),
+        counter_test="Request the approved URL and confirm the Permissions-Policy header is present.",
+    ),
+    RemediationEntry(
         id="rem_dmarc_enforcement",
         title="Move DMARC Toward Enforcement",
         category="dns_mail",

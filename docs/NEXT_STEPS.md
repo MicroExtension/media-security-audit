@@ -870,7 +870,7 @@ Status: after V1 foundation.
 
 Initial module order:
 1. Nmap safe adapter and XML parser
-2. HTTP headers
+2. HTTP headers: evidence JSON and expanded header checks added
 3. DNS/Mail
 4. TLS via testssl.sh: started
 5. SMB basic checks: started

@@ -64,6 +64,7 @@ Implemented so far:
 - audit console and session dashboard now use a French cockpit flow with preparation, launch, analysis, and delivery phases
 - Clients and Audits pages now use operator-style hero sections, local search bars, shortcuts, and clearer French task labels
 - Client and Mission detail pages now open with operator-style cockpit summaries and clearer action routing
+- Exports and Remediations pages now use delivery/remediation operator workspaces with clearer handoff and search flows
 - failed counter-tests drive dashboard, client, and mission next-action links
 - finding review requires notes for false positives, accepted risks, and counter-test results
 - web mission activity log for traceability

@@ -1,39 +1,53 @@
 {% extends "base.html" %}
 {% block title %}Remediations | MEDIA Security Audit{% endblock %}
 {% block content %}
-<section class="page-heading">
+<section class="operator-hero detail-hero remediation-hero">
   <div>
-    <p class="eyebrow">Library</p>
-    <h1>Remediation Library</h1>
+    <p class="eyebrow">Library | Base de remédiation</p>
+    <h1>Remédiations</h1>
+    <p>
+      Retrouvez rapidement l'explication simple, le risque, la correction et la commande
+      de contre-test à proposer au client.
+    </p>
+    <div class="operator-hero-actions">
+      <a class="button" href="#remediation-entries">Voir les entrées</a>
+      <a class="button secondary-button" href="#remediation-filters">Filtrer</a>
+      <a class="button secondary-button" href="/vulnerabilities">Catalogue CVE/KEV</a>
+    </div>
+  </div>
+  <div class="operator-hero-stats" aria-label="Remediation summary">
+    <article><span>Entrées visibles</span><strong>{{ view.total_count }}</strong></article>
+    <article><span>Catégories</span><strong>{{ view.categories | length }}</strong></article>
+    <article><span>Exports</span><strong>{{ view.export_links|length }}</strong></article>
+    <article><span>Recherche</span><strong data-remediation-visible-count>{{ view.total_count }}</strong></article>
   </div>
 </section>
 
-<section class="metrics" aria-label="Remediation summary">
-  <div class="metric">
-    <span>Visible entries</span>
-    <strong>{{ view.total_count }}</strong>
-  </div>
-  <div class="metric">
-    <span>Categories</span>
-    <strong>{{ view.categories | length }}</strong>
-  </div>
-</section>
-
-<section class="page-shortcuts" aria-label="Remediation shortcuts">
-  <a href="#remediation-filters">Filters <span>{{ view.categories | length }}</span></a>
-  <a href="#remediation-entries">Entries <span>{{ view.total_count }}</span></a>
-  <a href="#remediation-exports">Exports <span>{{ view.export_links|length }}</span></a>
+<section class="directory-command-bar remediation-command-bar" aria-label="Recherche remédiations">
+  <label class="directory-search">
+    <span class="sr-only">Rechercher une remédiation</span>
+    <input type="search" placeholder="Rechercher une faille, un service, une correction ou un contre-test" data-remediation-search>
+  </label>
+  <nav class="directory-shortcuts" aria-label="Remediation shortcuts">
+    <a href="#remediation-filters">Filtres <span>{{ view.categories | length }}</span></a>
+    <a href="#remediation-entries">Entrées <span>{{ view.total_count }}</span></a>
+    <a href="#remediation-exports">Exports <span>{{ view.export_links|length }}</span></a>
+  </nav>
 </section>
 
 <section class="section" id="remediation-filters">
   <form class="form-panel" method="get" action="/remediations" aria-label="Filter remediation library">
+    <div class="section-title">
+      <h2>Filtres</h2>
+      <span class="muted">Filtrage côté serveur pour construire une bibliothèque ciblée</span>
+    </div>
     <div class="field-grid">
       <label>
-        <span>Search</span>
+        <span>Recherche</span>
         <input name="q" value="{{ view.query }}">
       </label>
       <label>
-        <span>Category</span>
+        <span>Catégorie</span>
         <select name="category">
           <option value=""></option>
           {% for category in view.categories %}
@@ -43,7 +57,7 @@
       </label>
     </div>
     <div class="form-actions">
-      <button class="button secondary-button" type="submit">Filter</button>
+      <button class="button secondary-button" type="submit">Filtrer</button>
     </div>
   </form>
 </section>
@@ -59,7 +73,7 @@
   </div>
   <div class="library-grid">
     {% for entry in view.entries %}
-    <article class="library-card severity-border-{{ entry.severity.value | severity_class }}">
+    <article class="library-card remediation-entry-card severity-border-{{ entry.severity.value | severity_class }}" data-remediation-row data-remediation-search="{{ entry.title }} {{ entry.id }} {{ entry.category }} {{ entry.effort }} {{ entry.severity.value }} {{ entry.applies_to | join(' ') }} {{ entry.risk }} {{ entry.remediation }} {{ entry.counter_test }}">
       <div class="library-card-head">
         <div>
           <h3>{{ entry.title }}</h3>
@@ -78,5 +92,39 @@
     <p class="empty">No remediation entry found.</p>
     {% endfor %}
   </div>
+  <p class="empty" data-remediation-search-empty hidden>Aucune remédiation ne correspond à cette recherche.</p>
 </section>
+
+<script>
+  (() => {
+    const searchInput = document.querySelector("[data-remediation-search]");
+    const rows = Array.from(document.querySelectorAll("[data-remediation-row]"));
+    const emptyState = document.querySelector("[data-remediation-search-empty]");
+    const visibleCount = document.querySelector("[data-remediation-visible-count]");
+    if (!searchInput || !rows.length) {
+      return;
+    }
+    const normalize = (value) => value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    const applyFilter = () => {
+      const query = normalize(searchInput.value.trim());
+      let shown = 0;
+      rows.forEach((row) => {
+        const haystack = normalize(row.dataset.remediationSearch || "");
+        const match = !query || haystack.includes(query);
+        row.hidden = !match;
+        if (match) {
+          shown += 1;
+        }
+      });
+      if (visibleCount) {
+        visibleCount.textContent = String(shown);
+      }
+      if (emptyState) {
+        emptyState.hidden = shown !== 0;
+      }
+    };
+    searchInput.addEventListener("input", applyFilter);
+    applyFilter();
+  })();
+</script>
 {% endblock %}

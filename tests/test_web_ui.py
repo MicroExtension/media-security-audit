@@ -231,6 +231,9 @@ class WebUiTests(unittest.TestCase):
         self.assertIn(".directory-command-bar", css)
         self.assertIn(".directory-search", css)
         self.assertIn(".directory-shortcuts", css)
+        self.assertIn(".delivery-command-bar", css)
+        self.assertIn(".delivery-toggle", css)
+        self.assertIn(".remediation-entry-card", css)
         self.assertIn("color-scheme: dark", css)
         self.assertIn(".brand-mark", css)
         self.assertIn(".topbar-utilities", css)
@@ -1103,6 +1106,9 @@ class WebUiTests(unittest.TestCase):
         )
         template = template_path.read_text(encoding="utf-8")
 
+        self.assertIn("delivery-hero", template)
+        self.assertIn("Centre de livraison", template)
+        self.assertIn('aria-label="Actions rapides exports"', template)
         self.assertIn('aria-label="Mission export shortcuts"', template)
         self.assertIn('href="#export-filters"', template)
         self.assertIn('href="#handoff-readiness"', template)
@@ -1151,6 +1157,33 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("/missions/{{ item.mission_id }}/export-verification/markdown", template)
         self.assertIn("/missions/{{ item.mission_id }}#reports", template)
         self.assertIn("/exports?{{ toggle_query }}", template)
+
+    def test_remediation_template_exposes_operator_library_workflow(self) -> None:
+        template_path = (
+            Path(__file__).resolve().parents[1]
+            / "app"
+            / "media_security_audit"
+            / "web_templates"
+            / "remediations.html"
+        )
+        template = template_path.read_text(encoding="utf-8")
+
+        self.assertIn("remediation-hero", template)
+        self.assertIn("Base de remédiation", template)
+        self.assertIn('aria-label="Remediation summary"', template)
+        self.assertIn('aria-label="Recherche remédiations"', template)
+        self.assertIn("data-remediation-search", template)
+        self.assertIn("data-remediation-row", template)
+        self.assertIn("data-remediation-visible-count", template)
+        self.assertIn("data-remediation-search-empty", template)
+        self.assertIn('aria-label="Remediation shortcuts"', template)
+        self.assertIn('href="#remediation-filters"', template)
+        self.assertIn('href="#remediation-entries"', template)
+        self.assertIn('href="#remediation-exports"', template)
+        self.assertIn('aria-label="Filter remediation library"', template)
+        self.assertIn("entry.remediation", template)
+        self.assertIn("entry.counter_test", template)
+        self.assertIn("view.export_links", template)
 
     def test_web_exports_route_is_inventory_only(self) -> None:
         web_path = (

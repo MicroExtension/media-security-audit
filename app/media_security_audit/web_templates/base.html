@@ -9,7 +9,10 @@
 <body>
   <a class="skip-link" href="#main-content">Skip to main content</a>
   <header class="topbar">
-    <a class="brand" href="/">MEDIA Security Audit</a>
+    <a class="brand" href="/">
+      <span class="brand-mark" aria-hidden="true">M</span>
+      <span>MEDIA Audit</span>
+    </a>
     {% set current_path = request.url.path %}
     {% set dashboard_active = current_path == "/" or current_path.startswith("/clients") or current_path.startswith("/missions") %}
     <nav class="topnav" aria-label="Primary navigation">
@@ -27,6 +30,10 @@
       <a href="/pilot" class="{{ 'active' if current_path.startswith('/pilot') else '' }}" {% if current_path.startswith('/pilot') %}aria-current="page"{% endif %}>Pilot</a>
       <a href="/system" class="{{ 'active' if current_path.startswith('/system') else '' }}" {% if current_path.startswith('/system') %}aria-current="page"{% endif %}>System</a>
     </nav>
+    <div class="topbar-utilities" aria-label="Operator utilities">
+      <span class="topbar-pill">Local VM</span>
+      <a class="topbar-icon" href="/test-readiness" aria-label="Open VM test readiness">VM</a>
+    </div>
   </header>
   <main class="shell" id="main-content" tabindex="-1">
     {% if message %}

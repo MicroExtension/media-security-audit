@@ -863,6 +863,8 @@ Current GUI status:
 - operator start page becomes the recommended technician entry point for
   client setup, guided audit creation, console launch, session progress,
   reports, CVE catalog, and VM test readiness
+- dark operator shell is ready for visual review before continuing scanner
+  module development
 
 ## Step 7 - Add Safe Scanner Modules
 

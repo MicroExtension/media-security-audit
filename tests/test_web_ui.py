@@ -122,6 +122,11 @@ class WebUiTests(unittest.TestCase):
         self.assertIn('id="main-content"', template)
         self.assertIn('tabindex="-1"', template)
         self.assertIn('aria-label="Primary navigation"', template)
+        self.assertIn('class="brand-mark"', template)
+        self.assertIn('class="topbar-utilities"', template)
+        self.assertIn('class="topbar-pill"', template)
+        self.assertIn('class="topbar-icon"', template)
+        self.assertIn('aria-label="Operator utilities"', template)
         self.assertIn('role="status"', template)
         self.assertIn('aria-live="polite"', template)
         self.assertIn('role="alert"', template)
@@ -222,6 +227,13 @@ class WebUiTests(unittest.TestCase):
         self.assertIn(".operator-action-grid", css)
         self.assertIn(".operator-session-grid", css)
         self.assertIn(".operator-ops-grid", css)
+        self.assertIn("color-scheme: dark", css)
+        self.assertIn(".brand-mark", css)
+        self.assertIn(".topbar-utilities", css)
+        self.assertIn(".topbar-pill", css)
+        self.assertIn(".topbar-icon", css)
+        self.assertIn("Dark operator shell inspired by modern security dashboards", css)
+        self.assertIn("var(--accent-soft)", css)
 
     def test_global_styles_expose_anchor_target_context(self) -> None:
         css_path = (

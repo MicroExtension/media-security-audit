@@ -1,38 +1,54 @@
 {% extends "base.html" %}
 {% block title %}Clients | MEDIA Security Audit{% endblock %}
 {% block content %}
-<section class="page-heading">
+<section class="operator-hero directory-hero client-directory-hero">
   <div>
-    <p class="eyebrow">Customer workspace</p>
+    <p class="eyebrow">Customer workspace | Annuaire client</p>
     <h1>Clients</h1>
+    <p>
+      Centralisez les clients sous maintenance, vérifiez les dossiers à risque, puis lancez
+      un audit guidé sans revenir au menu principal.
+    </p>
+    <div class="operator-hero-actions">
+      <a class="button" href="#new-client">Ajouter un client</a>
+      <a class="button secondary-button" href="/wizard">Créer un audit</a>
+      <a class="button secondary-button" href="/operator">Accueil opérateur</a>
+    </div>
   </div>
-  <div class="actions">
-    <a class="button" href="#new-client">Add Client</a>
-    <a class="button secondary-button" href="/wizard">New Audit</a>
+  <div class="operator-hero-stats" aria-label="Client workspace summary">
+    <article><span>Clients suivis</span><strong>{{ view.total_clients }}</strong></article>
+    <article><span>Dossiers bloqués</span><strong>{{ view.blocked_clients|length }}</strong></article>
+    <article><span>Risques prioritaires</span><strong>{{ view.top_risk_clients|length }}</strong></article>
+    <article><span>Findings à revoir</span><strong>{{ view.review_backlog_clients|length }}</strong></article>
   </div>
 </section>
 
-<section class="metrics" aria-label="Client workspace summary">
-  <div class="metric"><span>Clients</span><strong>{{ view.total_clients }}</strong></div>
-  <div class="metric"><span>Blocked</span><strong>{{ view.blocked_clients|length }}</strong></div>
-  <div class="metric"><span>Top Risk</span><strong>{{ view.top_risk_clients|length }}</strong></div>
-  <div class="metric"><span>Review Backlog</span><strong>{{ view.review_backlog_clients|length }}</strong></div>
+<section class="directory-command-bar" aria-label="Actions rapides clients">
+  <label class="directory-search">
+    <span class="sr-only">Rechercher un client</span>
+    <input type="search" placeholder="Rechercher un client, une référence ou une action" data-client-search>
+  </label>
+  <nav class="directory-shortcuts" aria-label="Raccourcis clients">
+    <a href="#client-list">Liste <span data-client-visible-count>{{ view.clients|length }}</span></a>
+    <a href="#new-client">Nouveau</a>
+    <a href="/wizard">Audit guidé</a>
+  </nav>
 </section>
 
 <section class="section form-layout compact-create-layout">
   <form class="form-panel" id="new-client" method="post" action="/clients" aria-label="Create client">
     <input type="hidden" name="_csrf" value="{{ form_token }}">
     <div class="section-title">
-      <h2>Add Client</h2>
-      <span class="muted">Minimal customer record</span>
+      <h2>Ajouter un client</h2>
+      <span class="muted">Fiche minimale avant création d'audit</span>
     </div>
     <div class="field-grid">
       <label>
-        <span>Name</span>
+        <span>Nom</span>
         <input name="name" required>
       </label>
       <label>
-        <span>Reference</span>
+        <span>Référence</span>
         <input name="reference">
       </label>
       <label class="span-2">
@@ -41,22 +57,22 @@
       </label>
     </div>
     <div class="form-actions">
-      <button class="button" type="submit">Create Client</button>
+      <button class="button" type="submit">Créer le client</button>
     </div>
   </form>
 
   <aside class="operator-note" aria-label="Client workflow note">
-    <strong>Client page purpose</strong>
+    <strong>Utilisation de la page client <span class="sr-only">Client page purpose</span></strong>
     <p>
-      Keep this page for customer identity, mission history, and the next operational
-      action. Audit setup and scan execution stay on dedicated audit pages.
+      Cette page sert à retrouver un client, voir son niveau de priorité et repartir
+      vers la prochaine action utile. La préparation complète reste dans l'audit guidé.
     </p>
   </aside>
 </section>
 
 <section class="section" id="client-list">
   <div class="section-title">
-    <h2>Client List</h2>
+    <h2>Liste des clients</h2>
     <span class="muted">{{ view.clients|length }} total</span>
   </div>
   <div class="table-wrap">
@@ -65,18 +81,18 @@
       <thead>
         <tr>
           <th>Client</th>
-          <th>Priority</th>
-          <th>Reference</th>
+          <th>Priorité</th>
+          <th>Référence</th>
           <th>Missions</th>
-          <th>Risk</th>
-          <th>Preparation</th>
-          <th>Review</th>
-          <th>Next Action</th>
+          <th>Risque</th>
+          <th>Préparation</th>
+          <th>Revue</th>
+          <th>Prochaine action</th>
         </tr>
       </thead>
       <tbody>
         {% for client in view.clients %}
-        <tr>
+        <tr data-client-row data-client-search="{{ client.name }} {{ client.reference or '' }} {{ client.preparation_priority }} {{ client.next_action }} {{ client.next_action_label }}">
           <td>
             <a href="/clients/{{ client.id }}">{{ client.name }}</a>
             <span class="muted block">{{ client.id }}</span>
@@ -86,16 +102,16 @@
           <td>{{ client.mission_count }}</td>
           <td>
             <span class="risk risk-{{ client.risk_level }}">{{ client.risk_score }}/100</span>
-            <span class="muted block">Active {{ client.active_finding_count }} | High+ {{ client.high_or_critical_finding_count }}</span>
+            <span class="muted block">Actifs {{ client.active_finding_count }} | Critiques/hauts {{ client.high_or_critical_finding_count }}</span>
           </td>
           <td>
-            <span class="status status-blocked">Blocked {{ client.blocked_preparation_count }}</span>
-            <span class="status status-warning">Review {{ client.warning_preparation_count }}</span>
-            <span class="status status-ready">Ready {{ client.ready_preparation_count }}</span>
+            <span class="status status-blocked">Bloqué {{ client.blocked_preparation_count }}</span>
+            <span class="status status-warning">À revoir {{ client.warning_preparation_count }}</span>
+            <span class="status status-ready">Prêt {{ client.ready_preparation_count }}</span>
           </td>
           <td>
-            <span class="status status-new">New {{ client.new_finding_count }}</span>
-            <span class="status status-accepted_risk">Accepted {{ client.accepted_risk_count }}</span>
+            <span class="status status-new">Nouveau {{ client.new_finding_count }}</span>
+            <span class="status status-accepted_risk">Accepté {{ client.accepted_risk_count }}</span>
             <span class="status status-false_positive">FP {{ client.false_positive_count }}</span>
           </td>
           <td>
@@ -106,10 +122,44 @@
           </td>
         </tr>
         {% else %}
-        <tr><td colspan="8" class="empty">No client found.</td></tr>
+        <tr><td colspan="8" class="empty">Aucun client trouvé.</td></tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
+  <p class="empty" data-client-search-empty hidden>Aucun client ne correspond à cette recherche.</p>
 </section>
+
+<script>
+  (() => {
+    const searchInput = document.querySelector("[data-client-search]");
+    const rows = Array.from(document.querySelectorAll("[data-client-row]"));
+    const emptyState = document.querySelector("[data-client-search-empty]");
+    const visibleCount = document.querySelector("[data-client-visible-count]");
+    if (!searchInput || !rows.length) {
+      return;
+    }
+    const normalize = (value) => value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    const applyFilter = () => {
+      const query = normalize(searchInput.value.trim());
+      let shown = 0;
+      rows.forEach((row) => {
+        const haystack = normalize(row.dataset.clientSearch || "");
+        const match = !query || haystack.includes(query);
+        row.hidden = !match;
+        if (match) {
+          shown += 1;
+        }
+      });
+      if (visibleCount) {
+        visibleCount.textContent = String(shown);
+      }
+      if (emptyState) {
+        emptyState.hidden = shown !== 0;
+      }
+    };
+    searchInput.addEventListener("input", applyFilter);
+    applyFilter();
+  })();
+</script>
 {% endblock %}

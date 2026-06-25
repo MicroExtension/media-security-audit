@@ -1478,6 +1478,72 @@ a.filter-chip:hover {
   grid-template-columns: minmax(0, 1fr) minmax(260px, 360px);
 }
 
+.directory-hero {
+  margin-bottom: 18px;
+}
+
+.client-directory-hero,
+.audit-directory-hero {
+  min-height: 260px;
+}
+
+.directory-command-bar {
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 16px 34px rgba(0, 0, 0, .14);
+  display: grid;
+  gap: 14px;
+  grid-template-columns: minmax(260px, 1fr) auto;
+  margin: 0 0 22px;
+  padding: 14px;
+}
+
+.directory-search input {
+  border-radius: 999px;
+  min-height: 44px;
+  padding-left: 16px;
+  width: 100%;
+}
+
+.directory-shortcuts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.directory-shortcuts a {
+  align-items: center;
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text);
+  display: inline-flex;
+  font-size: 13px;
+  font-weight: 800;
+  gap: 8px;
+  padding: 9px 12px;
+}
+
+.directory-shortcuts a:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: #ffffff;
+}
+
+.directory-shortcuts span {
+  background: var(--accent);
+  border-radius: 999px;
+  color: #ffffff;
+  font-size: 12px;
+  line-height: 1;
+  min-width: 20px;
+  padding: 4px 7px;
+  text-align: center;
+}
+
 .form-panel {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -3452,7 +3518,8 @@ code {
 .scope-intake-item,
 .service-cockpit,
 .cockpit-step,
-.cockpit-metric {
+.cockpit-metric,
+.directory-command-bar {
   background: var(--surface);
   border-color: var(--border);
   box-shadow: 0 16px 34px rgba(0, 0, 0, .16);
@@ -3651,7 +3718,8 @@ button.button:hover {
 
 .dashboard-shortcuts a,
 .page-shortcuts a,
-.audit-status-strip a {
+.audit-status-strip a,
+.directory-shortcuts a {
   background: #202024;
   border-color: var(--border);
   border-radius: 999px;
@@ -3660,7 +3728,8 @@ button.button:hover {
 
 .dashboard-shortcuts a:hover,
 .page-shortcuts a:hover,
-.audit-status-strip a:hover {
+.audit-status-strip a:hover,
+.directory-shortcuts a:hover {
   background: var(--accent-soft);
   border-color: var(--accent);
   color: #ffffff;
@@ -3668,7 +3737,8 @@ button.button:hover {
 
 .dashboard-shortcuts span,
 .page-shortcuts span,
-.audit-status-strip span {
+.audit-status-strip span,
+.directory-shortcuts span {
   background: var(--accent);
   color: #ffffff;
 }
@@ -3702,6 +3772,7 @@ button.button:hover {
   .topbar,
   .page-heading,
   .operator-hero,
+  .directory-command-bar,
   .console-status-panel,
   .finding-head,
   .library-card-head,
@@ -3720,8 +3791,13 @@ button.button:hover {
   .two-column,
   .operator-hero,
   .console-hero,
+  .directory-command-bar,
   .console-phase-nav {
     grid-template-columns: 1fr;
+  }
+
+  .directory-shortcuts {
+    justify-content: flex-start;
   }
 
   .form-layout,

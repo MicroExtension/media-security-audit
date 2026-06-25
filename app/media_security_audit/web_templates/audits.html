@@ -1,38 +1,54 @@
 {% extends "base.html" %}
 {% block title %}Audits | MEDIA Security Audit{% endblock %}
 {% block content %}
-<section class="page-heading">
+<section class="operator-hero directory-hero audit-directory-hero">
   <div>
-    <p class="eyebrow">Audit tasks</p>
+    <p class="eyebrow">Audit tasks | Sessions d'analyse</p>
     <h1>Audits</h1>
+    <p>
+      Retrouvez les audits à lancer, les dossiers bloqués par la préparation et les
+      missions prêtes pour analyse ou restitution.
+    </p>
+    <div class="operator-hero-actions">
+      <a class="button" href="/wizard">Créer un audit guidé</a>
+      <a class="button secondary-button" href="#quick-mission">Mission rapide</a>
+      <a class="button secondary-button" href="/operator">Accueil opérateur</a>
+    </div>
   </div>
-  <div class="actions">
-    <a class="button" href="/wizard">New Guided Audit</a>
-    <a class="button secondary-button" href="#quick-mission">Quick Mission</a>
+  <div class="operator-hero-stats" aria-label="Audit workspace summary">
+    <article><span>Missions</span><strong>{{ view.total_missions }}</strong></article>
+    <article><span>Prêtes</span><strong>{{ view.ready_preparation_count }}</strong></article>
+    <article><span>À revoir</span><strong>{{ view.warning_preparation_count }}</strong></article>
+    <article><span>Bloquées</span><strong>{{ view.blocked_preparation_count }}</strong></article>
   </div>
-</section>
-
-<section class="metrics" aria-label="Audit workspace summary">
-  <div class="metric"><span>Missions</span><strong>{{ view.total_missions }}</strong></div>
-  <div class="metric"><span>Ready</span><strong>{{ view.ready_preparation_count }}</strong></div>
-  <div class="metric"><span>Review</span><strong>{{ view.warning_preparation_count }}</strong></div>
-  <div class="metric"><span>Blocked</span><strong>{{ view.blocked_preparation_count }}</strong></div>
-  <div class="metric"><span>High/Critical</span><strong>{{ view.high_or_critical_findings }}</strong></div>
 </section>
 
 <section class="audit-status-strip" aria-label="Audit status shortcuts">
-  <a href="#ready-audits">Ready <span>{{ view.ready_missions|length }}</span></a>
-  <a href="#review-audits">Review <span>{{ view.review_missions|length }}</span></a>
-  <a href="#blocked-audits">Blocked <span>{{ view.blocked_missions|length }}</span></a>
-  <a href="#all-audits">All Audits <span>{{ view.missions|length }}</span></a>
+  <a href="#ready-audits">Prêts <span>{{ view.ready_missions|length }}</span></a>
+  <a href="#review-audits">À revoir <span>{{ view.review_missions|length }}</span></a>
+  <a href="#blocked-audits">Bloqués <span>{{ view.blocked_missions|length }}</span></a>
+  <a href="#all-audits">Tous <span data-audit-visible-count>{{ view.missions|length }}</span></a>
+</section>
+
+<section class="directory-command-bar audit-command-bar" aria-label="Recherche et filtres audits">
+  <label class="directory-search">
+    <span class="sr-only">Rechercher un audit</span>
+    <input type="search" placeholder="Rechercher un audit, client, mode, statut ou action" data-audit-search>
+  </label>
+  <nav class="directory-shortcuts" aria-label="Raccourcis audits">
+    <a href="#ready-audits">Prêts</a>
+    <a href="#review-audits">À revoir</a>
+    <a href="#blocked-audits">Bloqués</a>
+    <a href="#all-audits">Tableau complet</a>
+  </nav>
 </section>
 
 <section class="section form-layout compact-create-layout">
   <form class="form-panel" id="quick-mission" method="post" action="/missions" aria-label="Create quick mission">
     <input type="hidden" name="_csrf" value="{{ form_token }}">
     <div class="section-title">
-      <h2>Quick Mission</h2>
-      <span class="muted">Use the guided wizard for full setup</span>
+      <h2>Mission rapide</h2>
+      <span class="muted">Préférez l'audit guidé pour une mission client réelle</span>
     </div>
     <div class="field-grid">
       <label>
@@ -45,7 +61,7 @@
         </select>
       </label>
       <label>
-        <span>Template</span>
+        <span>Modèle</span>
         <select name="audit_template_id" data-template-audit-select>
           <option value=""></option>
           {% for template in audit_templates %}
@@ -54,7 +70,7 @@
         </select>
       </label>
       <label>
-        <span>Audit Type</span>
+        <span>Mode d'analyse</span>
         <select name="audit_type" required data-audit-type-select>
           {% for audit_type in audit_types %}
           <option value="{{ audit_type }}">{{ audit_type }}</option>
@@ -62,11 +78,11 @@
         </select>
       </label>
       <label>
-        <span>Name</span>
+        <span>Nom</span>
         <input name="name" required>
       </label>
       <label class="span-2">
-        <span>Authorization Reference</span>
+        <span>Référence d'autorisation</span>
         <input name="authorization_reference">
       </label>
       <label class="span-2">
@@ -75,82 +91,82 @@
       </label>
     </div>
     <div class="form-actions">
-      <button class="button secondary-button" type="submit">Create Draft Mission</button>
+      <button class="button secondary-button" type="submit">Créer le brouillon</button>
     </div>
   </form>
 
   <aside class="operator-note" aria-label="Audit workflow note">
-    <strong>Recommended path</strong>
+    <strong>Chemin recommandé <span class="sr-only">Recommended path</span></strong>
     <p>
-      Use New Guided Audit for real customer work. It captures client, mode, targets,
-      services, AD/LDAP scope, CVE/KEV expectations, and authorization guardrails.
+      Pour un audit client, utilisez l'assistant. Il collecte le client, le mode interne
+      ou externe, les cibles, les services, l'AD/LDAP, le CVE/KEV et les garde-fous.
     </p>
   </aside>
 </section>
 
 <section class="section" id="ready-audits">
   <div class="section-title">
-    <h2>Ready Audits</h2>
-    <span class="muted">Authorized and prepared</span>
+    <h2>Audits prêts</h2>
+    <span class="muted">Autorisés et préparés</span>
   </div>
   <div class="audit-card-grid">
     {% for item in view.ready_missions %}
-    <article class="audit-card audit-ready">
+    <article class="audit-card audit-ready" data-audit-card data-audit-search="{{ item.mission_name }} {{ item.client_name }} ready {{ item.next_action }} {{ item.next_action_label }}">
       <span class="badge status-ready">ready</span>
       <strong><a href="/missions/{{ item.mission_id }}">{{ item.mission_name }}</a></strong>
       <p><a href="/clients/{{ item.client_id }}">{{ item.client_name }}</a></p>
-      <a class="readiness-action" href="/missions/{{ item.mission_id }}/console">Open Console</a>
+      <a class="readiness-action" href="/missions/{{ item.mission_id }}/console">Console</a>
       <a class="readiness-action" href="{{ item.next_action_href }}">{{ item.next_action_label }}</a>
     </article>
     {% else %}
-    <p class="empty">No ready audit found.</p>
+    <p class="empty">Aucun audit prêt.</p>
     {% endfor %}
   </div>
 </section>
 
 <section class="section" id="review-audits">
   <div class="section-title">
-    <h2>Review Audits</h2>
-    <span class="muted">Close to ready</span>
+    <h2>Audits à revoir</h2>
+    <span class="muted">Presque prêts</span>
   </div>
   <div class="audit-card-grid">
     {% for item in view.review_missions %}
-    <article class="audit-card audit-warning">
+    <article class="audit-card audit-warning" data-audit-card data-audit-search="{{ item.mission_name }} review {{ item.next_action }} {{ item.next_action_label }}">
       <span class="badge status-warning">review</span>
       <strong><a href="/missions/{{ item.mission_id }}">{{ item.mission_name }}</a></strong>
       <p>{{ item.next_action }}</p>
-      <a class="readiness-action" href="/missions/{{ item.mission_id }}/console">Open Console</a>
+      <a class="readiness-action" href="/missions/{{ item.mission_id }}/console">Console</a>
       <a class="readiness-action" href="{{ item.next_action_href }}">{{ item.next_action_label }}</a>
     </article>
     {% else %}
-    <p class="empty">No review audit found.</p>
+    <p class="empty">Aucun audit à revoir.</p>
     {% endfor %}
   </div>
 </section>
 
 <section class="section" id="blocked-audits">
   <div class="section-title">
-    <h2>Blocked Audits</h2>
-    <span class="muted">Needs technician action</span>
+    <h2>Audits bloqués</h2>
+    <span class="muted">Action technicien nécessaire</span>
   </div>
   <div class="audit-card-grid">
     {% for item in view.blocked_missions %}
-    <article class="audit-card audit-blocked">
+    <article class="audit-card audit-blocked" data-audit-card data-audit-search="{{ item.mission_name }} blocked {{ item.next_action }} {{ item.next_action_label }}">
       <span class="badge status-blocked">blocked</span>
       <strong><a href="/missions/{{ item.mission_id }}">{{ item.mission_name }}</a></strong>
       <p>{{ item.next_action }}</p>
-      <a class="readiness-action" href="/missions/{{ item.mission_id }}/console">Open Console</a>
+      <a class="readiness-action" href="/missions/{{ item.mission_id }}/console">Console</a>
       <a class="readiness-action" href="{{ item.next_action_href }}">{{ item.next_action_label }}</a>
     </article>
     {% else %}
-    <p class="empty">No blocked audit found.</p>
+    <p class="empty">Aucun audit bloqué.</p>
     {% endfor %}
   </div>
 </section>
 
 <section class="section" id="all-audits">
   <div class="section-title">
-    <h2>All Audits</h2>
+    <h2>Tous les audits</h2>
     <span class="muted">{{ view.missions|length }} total</span>
   </div>
   <div class="table-wrap">
@@ -161,16 +177,16 @@
           <th>Audit</th>
           <th>Client</th>
           <th>Mode</th>
-          <th>Prep</th>
-          <th>Scope</th>
+          <th>Préparation</th>
+          <th>Périmètre</th>
           <th>Findings</th>
-          <th>Risk</th>
+          <th>Risque</th>
           <th>Action</th>
         </tr>
       </thead>
       <tbody>
         {% for mission in view.missions %}
-        <tr>
+        <tr data-audit-row data-audit-search="{{ mission.name }} {{ mission.client_name }} {{ mission.audit_type }} {{ mission.status }} {{ mission.preparation_status }} {{ mission.preparation_action_label }}">
           <td>
             <a href="/missions/{{ mission.id }}">{{ mission.name }}</a>
             <span class="muted block">{{ mission.status }}</span>
@@ -189,11 +205,12 @@
           <td><a class="table-action" href="/missions/{{ mission.id }}/console">Console</a></td>
         </tr>
         {% else %}
-        <tr><td colspan="8" class="empty">No audit found.</td></tr>
+        <tr><td colspan="8" class="empty">Aucun audit trouvé.</td></tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
+  <p class="empty" data-audit-search-empty hidden>Aucun audit ne correspond à cette recherche.</p>
 </section>
 
 <script>
@@ -212,6 +229,42 @@
     };
     templateSelect.addEventListener("change", syncAuditType);
     syncAuditType();
+  })();
+
+  (() => {
+    const searchInput = document.querySelector("[data-audit-search]");
+    const rows = Array.from(document.querySelectorAll("[data-audit-row]"));
+    const cards = Array.from(document.querySelectorAll("[data-audit-card]"));
+    const emptyState = document.querySelector("[data-audit-search-empty]");
+    const visibleCount = document.querySelector("[data-audit-visible-count]");
+    if (!searchInput || !rows.length) {
+      return;
+    }
+    const normalize = (value) => value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    const applyFilter = () => {
+      const query = normalize(searchInput.value.trim());
+      let shown = 0;
+      rows.forEach((row) => {
+        const haystack = normalize(row.dataset.auditSearch || "");
+        const match = !query || haystack.includes(query);
+        row.hidden = !match;
+        if (match) {
+          shown += 1;
+        }
+      });
+      cards.forEach((card) => {
+        const haystack = normalize(card.dataset.auditSearch || "");
+        card.hidden = Boolean(query) && !haystack.includes(query);
+      });
+      if (visibleCount) {
+        visibleCount.textContent = String(shown);
+      }
+      if (emptyState) {
+        emptyState.hidden = shown !== 0;
+      }
+    };
+    searchInput.addEventListener("input", applyFilter);
+    applyFilter();
   })();
 </script>
 {% endblock %}

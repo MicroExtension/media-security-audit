@@ -61,6 +61,7 @@ Implemented so far:
 - operator start page gives technicians one clear entry point for client setup, guided audit creation, console launch, session progress, reports, CVE catalog, and VM testing
 - dark operator UI shell introduces a red security-app navigation, dark workspace, dashboard cards, tables, forms, and action buttons for visual validation
 - guided audit UX now uses a French operator flow, mode cards, step help, and a persistent audit summary for visual validation
+- audit console and session dashboard now use a French cockpit flow with preparation, launch, analysis, and delivery phases
 - failed counter-tests drive dashboard, client, and mission next-action links
 - finding review requires notes for false positives, accepted risks, and counter-test results
 - web mission activity log for traceability

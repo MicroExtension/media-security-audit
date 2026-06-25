@@ -1,33 +1,37 @@
 {% extends "base.html" %}
-{% block title %}Audit Console | {{ view.mission.name }} | MEDIA Security Audit{% endblock %}
+{% block title %}Console Audit | {{ view.mission.name }} | MEDIA Security Audit{% endblock %}
 {% block content %}
 <section class="page-heading">
   <div>
     <p class="eyebrow">{{ view.mission.client_name }}</p>
-    <h1>Audit Console</h1>
+    <h1>Console D'audit</h1>
+    <p class="page-lead">
+      Pilote la mission depuis un ecran unique : validation Go/No-Go, lancement
+      des controles autorises, analyse CVE/KEV et restitution client.
+    </p>
   </div>
   <div class="actions">
-    <a class="button" href="/missions/{{ view.mission.id }}/session">Session Dashboard</a>
-    <a class="button" href="/missions/{{ view.mission.id }}#scan-plan">Detailed Launch</a>
-    <a class="button secondary-button" href="/missions/{{ view.mission.id }}">Full Mission</a>
+    <a class="button" href="/missions/{{ view.mission.id }}/session">Tableau de session</a>
+    <a class="button" href="/missions/{{ view.mission.id }}#scan-plan">Lancement detaille</a>
+    <a class="button secondary-button" href="/missions/{{ view.mission.id }}">Mission complete</a>
     <a class="button secondary-button" href="/clients/{{ view.mission.client_id }}">Client</a>
   </div>
 </section>
 
 <section class="console-hero" aria-label="Audit console summary">
   <div class="console-hero-main">
-    <p class="eyebrow">Current Decision</p>
+    <p class="eyebrow">Decision actuelle</p>
     <h2>{{ view.go_no_go.decision }}</h2>
     <p>{{ view.go_no_go.detail }}</p>
     <div class="console-hero-actions">
       <a class="button" href="{{ view.cockpit.next_action_href }}">{{ view.cockpit.next_action_label }}</a>
-      <a class="button secondary-button" href="/missions/{{ view.mission.id }}/session">Session Dashboard</a>
-      <a class="button secondary-button" href="#console-launch">Launch Center</a>
+      <a class="button secondary-button" href="/missions/{{ view.mission.id }}/session">Suivi session</a>
+      <a class="button secondary-button" href="#console-launch">Centre lancement</a>
     </div>
   </div>
   <div class="console-hero-metrics">
     <article>
-      <span>Progress</span>
+      <span>Progression</span>
       <strong>{{ view.session_dashboard.progress_percent }}%</strong>
     </article>
     <article>
@@ -35,7 +39,7 @@
       <strong>{{ view.cockpit.ready_step_count }}/{{ view.cockpit.total_step_count }}</strong>
     </article>
     <article>
-      <span>Ready services</span>
+      <span>Services prets</span>
       <strong>{{ view.scan_launch.ready_count }}</strong>
     </article>
     <article>
@@ -43,23 +47,23 @@
       <strong>{{ view.mission.finding_count }}</strong>
     </article>
     <article>
-      <span>Handoff</span>
+      <span>Restitution</span>
       <strong>{{ view.customer_handoff.ready_count }}/{{ view.customer_handoff.total_count }}</strong>
     </article>
   </div>
 </section>
 
 <nav class="console-phase-nav" aria-label="Audit console phases">
-  <a href="#console-prepare">1. Prepare <span>{{ view.go_no_go.ready_count }}/{{ view.go_no_go.total_count }}</span></a>
-  <a href="#console-launch">2. Launch <span>{{ view.scan_launch.ready_count }}</span></a>
-  <a href="#console-analyze">3. Analyze <span>{{ view.vulnerability_matches|length }}</span></a>
-  <a href="#console-deliver">4. Deliver <span>{{ view.report_delivery.ready_count }}/{{ view.report_delivery.total_count }}</span></a>
+  <a href="#console-prepare">1. Preparation <span>{{ view.go_no_go.ready_count }}/{{ view.go_no_go.total_count }}</span></a>
+  <a href="#console-launch">2. Lancement <span>{{ view.scan_launch.ready_count }}</span></a>
+  <a href="#console-analyze">3. Analyse <span>{{ view.vulnerability_matches|length }}</span></a>
+  <a href="#console-deliver">4. Restitution <span>{{ view.report_delivery.ready_count }}/{{ view.report_delivery.total_count }}</span></a>
 </nav>
 
 <section class="console-section" id="console-prepare">
   <div class="section-title">
-    <h2>Prepare</h2>
-    <a class="table-action" href="/missions/{{ view.mission.id }}#mission-readiness">Open readiness details</a>
+    <h2>Preparation</h2>
+    <a class="table-action" href="/missions/{{ view.mission.id }}#mission-readiness">Voir les pre-requis</a>
   </div>
   <div class="console-card-grid" aria-label="Preparation gates">
     {% for item in view.go_no_go.items %}
@@ -75,14 +79,14 @@
 
 <section class="console-section" id="console-launch">
   <div class="section-title">
-    <h2>Launch Center</h2>
-    <a class="table-action" href="/missions/{{ view.mission.id }}#scan-plan">Open detailed scan forms</a>
+    <h2>Centre De Lancement</h2>
+    <a class="table-action" href="/missions/{{ view.mission.id }}#scan-plan">Ouvrir les controles detailles</a>
   </div>
   <div class="console-status-panel">
     <span class="badge status-{{ view.scan_launch.status }}">{{ view.scan_launch.status }}</span>
     <div>
       <strong>{{ view.scan_launch.detail }}</strong>
-      <p>{{ view.scan_launch.ready_count }} ready | {{ view.scan_launch.blocked_count }} blocked | {{ view.scan_launch.run_count }} run(s)</p>
+      <p>{{ view.scan_launch.ready_count }} pret(s) | {{ view.scan_launch.blocked_count }} bloque(s) | {{ view.scan_launch.run_count }} execution(s)</p>
     </div>
   </div>
   <div class="console-card-grid" aria-label="Selected service launch cards">
@@ -99,9 +103,9 @@
     {% else %}
     <article class="console-card console-card-missing">
       <span class="badge status-missing">missing</span>
-      <strong>No service selected</strong>
-      <p>Select HTTP, TLS, DNS/Mail, SMB, LDAP, or Nmap checks before launch.</p>
-      <a class="readiness-action" href="/missions/{{ view.mission.id }}#check-selection">Select checks</a>
+      <strong>Aucun service selectionne</strong>
+      <p>Selectionne HTTP, TLS, DNS/Mail, SMB, LDAP ou Nmap avant le lancement.</p>
+      <a class="readiness-action" href="/missions/{{ view.mission.id }}#check-selection">Choisir les services</a>
     </article>
     {% endfor %}
   </div>
@@ -109,15 +113,15 @@
 
 <section class="console-section" id="console-analyze">
   <div class="section-title">
-    <h2>Analyze</h2>
-    <a class="table-action" href="/missions/{{ view.mission.id }}#vulnerabilities">Open CVE/KEV details</a>
+    <h2>Analyse</h2>
+    <a class="table-action" href="/missions/{{ view.mission.id }}#vulnerabilities">Voir les details CVE/KEV</a>
   </div>
   <div class="console-status-panel">
     <span class="badge status-{{ view.vulnerability_summary.status }}">{{ view.vulnerability_summary.status }}</span>
     <div>
       <strong>{{ view.vulnerability_summary.detail }}</strong>
       <p>
-        {{ view.vulnerability_summary.match_count }} candidate(s) |
+        {{ view.vulnerability_summary.match_count }} candidat(s) |
         {{ view.vulnerability_summary.known_exploited_count }} KEV |
         {{ view.vulnerability_summary.critical_or_high_count }} critical/high
       </p>
@@ -133,15 +137,15 @@
       </div>
       <p>{{ item.title }}</p>
       <span class="muted block">{{ item.affected_asset }}</span>
-      <a class="readiness-action" href="/missions/{{ view.mission.id }}#vulnerabilities">Review candidate</a>
+      <a class="readiness-action" href="/missions/{{ view.mission.id }}#vulnerabilities">Verifier le candidat</a>
     </article>
     {% endif %}
     {% else %}
     <article class="console-card console-card-missing">
       <span class="badge status-missing">missing</span>
-      <strong>No CVE/KEV candidate yet</strong>
-      <p>Import or refresh the catalog, then correlate it after findings exist.</p>
-      <a class="readiness-action" href="/vulnerabilities">Open CVE Catalog</a>
+      <strong>Aucun candidat CVE/KEV</strong>
+      <p>Importe ou rafraichis le catalogue, puis correle-le apres les premiers constats.</p>
+      <a class="readiness-action" href="/vulnerabilities">Ouvrir le catalogue CVE</a>
     </article>
     {% endfor %}
   </div>
@@ -149,14 +153,14 @@
 
 <section class="console-section" id="console-deliver">
   <div class="section-title">
-    <h2>Deliver</h2>
-    <a class="table-action" href="/missions/{{ view.mission.id }}#reports">Open report details</a>
+    <h2>Restitution</h2>
+    <a class="table-action" href="/missions/{{ view.mission.id }}#reports">Voir les rapports</a>
   </div>
   <div class="console-status-panel">
     <span class="badge status-{{ view.report_delivery.status }}">{{ view.report_delivery.status }}</span>
     <div>
       <strong>{{ view.report_delivery.detail }}</strong>
-      <p>{{ view.report_delivery.ready_count }}/{{ view.report_delivery.total_count }} deliverable item(s) ready</p>
+      <p>{{ view.report_delivery.ready_count }}/{{ view.report_delivery.total_count }} element(s) de restitution pret(s)</p>
     </div>
   </div>
   <div class="console-card-grid" aria-label="Delivery checklist">

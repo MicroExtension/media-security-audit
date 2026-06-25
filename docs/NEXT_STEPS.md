@@ -867,6 +867,8 @@ Current GUI status:
   module development
 - guided audit UX should be visually reviewed next: French step labels, mode
   cards, target coverage, credential guardrails, and console handoff
+- audit console and session dashboard now follow a French cockpit flow across
+  preparation, launch, analysis, and delivery
 
 ## Step 7 - Add Safe Scanner Modules
 

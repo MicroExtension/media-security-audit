@@ -1,24 +1,27 @@
 {% extends "base.html" %}
 {% block title %}{{ view.client.name }} | MEDIA Security Audit{% endblock %}
 {% block content %}
-<section class="page-heading">
+<section class="operator-hero detail-hero client-detail-hero">
   <div>
-    <p class="eyebrow">Client</p>
+    <p class="eyebrow">Client | Dossier de maintenance</p>
     <h1>{{ view.client.name }}</h1>
-    <p class="muted">{{ view.client.reference or view.client.id }}</p>
+    <p>
+      {{ view.client.reference or view.client.id }} | Retrouvez les missions,
+      les préparations bloquées, les retests et les livrables client.
+    </p>
+    <div class="operator-hero-actions">
+      <a class="button" href="/wizard">Créer un audit</a>
+      <a class="button secondary-button" href="{{ view.export_inventory_url }}">Exports</a>
+      <a class="button secondary-button" href="{{ view.activity_log_url }}">Activité</a>
+      <a class="button secondary-button" href="/clients">Tous les clients</a>
+    </div>
   </div>
-  <div class="actions">
-    <a class="button secondary-button" href="{{ view.export_inventory_url }}">Open Exports</a>
-    <a class="button secondary-button" href="{{ view.activity_log_url }}">Open Activity</a>
+  <div class="operator-hero-stats" aria-label="Client summary">
+    <article><span>Missions</span><strong>{{ view.total_missions }}</strong></article>
+    <article><span>Findings</span><strong>{{ view.total_findings }}</strong></article>
+    <article><span>Critiques/hauts</span><strong>{{ view.high_or_critical_findings }}</strong></article>
+    <article><span>Périmètre approuvé</span><strong>{{ view.approved_scope_count }}/{{ view.scope_count }}</strong></article>
   </div>
-</section>
-
-<section class="metrics" aria-label="Client summary">
-  <div class="metric"><span>Missions</span><strong>{{ view.total_missions }}</strong></div>
-  <div class="metric"><span>Findings</span><strong>{{ view.total_findings }}</strong></div>
-  <div class="metric"><span>High/Critical</span><strong>{{ view.high_or_critical_findings }}</strong></div>
-  <div class="metric"><span>Approved scope</span><strong>{{ view.approved_scope_count }}/{{ view.scope_count }}</strong></div>
-  <div class="metric"><span>Blocked prep</span><strong>{{ view.blocked_preparation_count }}</strong></div>
 </section>
 
 <section class="page-shortcuts" aria-label="Client shortcuts">
@@ -28,6 +31,18 @@
   <a href="#client-preparation">Preparation <span>{{ view.preparation_items|length }}</span></a>
   <a href="#client-activity">Activity <span>{{ view.recent_activity_events|length }}</span></a>
   <a href="#client-missions">Missions <span>{{ view.missions|length }}</span></a>
+</section>
+
+<section class="directory-command-bar client-detail-command-bar" aria-label="Recherche missions client">
+  <label class="directory-search">
+    <span class="sr-only">Rechercher une mission client</span>
+    <input type="search" placeholder="Rechercher une mission, un statut, un risque ou une action" data-client-mission-search>
+  </label>
+  <nav class="directory-shortcuts" aria-label="Raccourcis dossier client">
+    <a href="#client-preparation">Préparation</a>
+    <a href="#client-failed-counter-tests">Retests échoués</a>
+    <a href="#client-missions">Missions <span data-client-mission-visible-count>{{ view.missions|length }}</span></a>
+  </nav>
 </section>
 
 {% if view.client.notes %}
@@ -193,7 +208,7 @@
       </thead>
       <tbody>
         {% for mission in view.missions %}
-        <tr>
+        <tr data-client-mission-row data-client-mission-search="{{ mission.name }} {{ mission.status }} {{ mission.audit_type }} {{ mission.preparation_status }} {{ mission.preparation_next_action }} {{ mission.preparation_action_label }} {{ mission.risk_level }}">
           <td>
             <a href="/missions/{{ mission.id }}">{{ mission.name }}</a>
             <span class="muted block">{{ mission.audit_type }}{% if mission.audit_template_title %} | {{ mission.audit_template_title }}{% endif %}</span>
@@ -229,5 +244,39 @@
       </tbody>
     </table>
   </div>
+  <p class="empty" data-client-mission-search-empty hidden>Aucune mission ne correspond à cette recherche.</p>
 </section>
+
+<script>
+  (() => {
+    const searchInput = document.querySelector("[data-client-mission-search]");
+    const rows = Array.from(document.querySelectorAll("[data-client-mission-row]"));
+    const emptyState = document.querySelector("[data-client-mission-search-empty]");
+    const visibleCount = document.querySelector("[data-client-mission-visible-count]");
+    if (!searchInput || !rows.length) {
+      return;
+    }
+    const normalize = (value) => value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    const applyFilter = () => {
+      const query = normalize(searchInput.value.trim());
+      let shown = 0;
+      rows.forEach((row) => {
+        const haystack = normalize(row.dataset.clientMissionSearch || "");
+        const match = !query || haystack.includes(query);
+        row.hidden = !match;
+        if (match) {
+          shown += 1;
+        }
+      });
+      if (visibleCount) {
+        visibleCount.textContent = String(shown);
+      }
+      if (emptyState) {
+        emptyState.hidden = shown !== 0;
+      }
+    };
+    searchInput.addEventListener("input", applyFilter);
+    applyFilter();
+  })();
+</script>
 {% endblock %}

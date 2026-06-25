@@ -123,6 +123,7 @@ Codex action:
 - keep activity filter summaries readable and linked to their context pages
 - keep activity page shortcuts aligned with filters, events, and exports
 - keep Clients and Audits list pages focused on search, status, and next technician action
+- keep Client and Mission detail pages focused on context, next action, and handoff routes
 - keep remediation library shortcuts aligned with filters, entries, and exports
 - keep audit template shortcuts aligned with filters and template lists
 - keep system status shortcuts aligned with auth, storage, inventory, backup, and tools

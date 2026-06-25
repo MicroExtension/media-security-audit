@@ -1,17 +1,27 @@
 {% extends "base.html" %}
 {% block title %}{{ view.mission.name }} | MEDIA Security Audit{% endblock %}
 {% block content %}
-<section class="page-heading">
+<section class="operator-hero detail-hero mission-detail-hero">
   <div>
-    <p class="eyebrow">{{ view.mission.client_name }}</p>
+    <p class="eyebrow">Mission | {{ view.mission.client_name }}</p>
     <h1>{{ view.mission.name }}</h1>
+    <p>
+      {{ view.mission.audit_type }} | {{ view.mission.status }} | Priorisez la préparation,
+      le lancement contrôlé, l'analyse CVE/KEV et les livrables.
+    </p>
+    <div class="operator-hero-actions">
+      <a class="button" href="/missions/{{ view.mission.id }}/console">Console <span class="sr-only">Open Console</span></a>
+      <a class="button secondary-button" href="/missions/{{ view.mission.id }}/session">Tableau de session <span class="sr-only">Session Dashboard</span></a>
+      <a class="button secondary-button" href="/clients/{{ view.mission.client_id }}">Client</a>
+      <a class="button secondary-button" href="{{ view.activity_log_url }}">Activité</a>
+      <a class="button secondary-button" href="/missions/{{ view.mission.id }}/report.html">Rapport HTML</a>
+    </div>
   </div>
-  <div class="actions">
-    <a class="button" href="/missions/{{ view.mission.id }}/console">Open Console</a>
-    <a class="button secondary-button" href="/missions/{{ view.mission.id }}/session">Session Dashboard</a>
-    <a class="button secondary-button" href="/clients/{{ view.mission.client_id }}">Open Client</a>
-    <a class="button secondary-button" href="{{ view.activity_log_url }}">Activity Log</a>
-    <a class="button secondary-button" href="/missions/{{ view.mission.id }}/report.html">Live HTML</a>
+  <div class="operator-hero-stats" aria-label="Mission summary">
+    <article><span>Score de risque</span><strong>{{ view.mission.risk_score }}/100</strong></article>
+    <article><span>Niveau</span><strong>{{ view.mission.risk_level }}</strong></article>
+    <article><span>Findings</span><strong>{{ view.mission.finding_count }}</strong></article>
+    <article><span>Périmètre</span><strong>{{ view.mission.approved_scope_count }}</strong></article>
   </div>
 </section>
 
@@ -44,14 +54,6 @@
     </article>
   </div>
   <a class="readiness-action" href="{{ view.quick_read.action_href }}">{{ view.quick_read.action_label }}</a>
-</section>
-
-<section class="metrics" aria-label="Mission summary">
-  <div class="metric"><span>Risk score</span><strong>{{ view.mission.risk_score }}/100</strong></div>
-  <div class="metric"><span>Risk level</span><strong>{{ view.mission.risk_level }}</strong></div>
-  <div class="metric"><span>Findings</span><strong>{{ view.mission.finding_count }}</strong></div>
-  <div class="metric"><span>Approved scope</span><strong>{{ view.mission.approved_scope_count }}</strong></div>
-  <div class="metric"><span>Authorization</span><strong>{{ "yes" if view.mission.authorization_present else "no" }}</strong></div>
 </section>
 
 <section class="mission-focus" aria-label="Mission focus">

@@ -1490,7 +1490,9 @@ a.filter-chip:hover {
 .client-directory-hero,
 .audit-directory-hero,
 .client-detail-hero,
-.mission-detail-hero {
+.mission-detail-hero,
+.delivery-hero,
+.remediation-hero {
   min-height: 260px;
 }
 
@@ -1549,6 +1551,20 @@ a.filter-chip:hover {
   min-width: 20px;
   padding: 4px 7px;
   text-align: center;
+}
+
+.delivery-command-bar {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.delivery-toggle {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.remediation-entry-card[hidden],
+tr[hidden] {
+  display: none;
 }
 
 .form-panel {
@@ -3804,6 +3820,10 @@ button.button:hover {
   }
 
   .directory-shortcuts {
+    justify-content: flex-start;
+  }
+
+  .delivery-toggle {
     justify-content: flex-start;
   }
 

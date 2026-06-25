@@ -1,28 +1,43 @@
 {% extends "base.html" %}
 {% block title %}Mission Exports | MEDIA Security Audit{% endblock %}
 {% block content %}
-<section class="page-heading">
+<section class="operator-hero detail-hero delivery-hero">
   <div>
-    <p class="eyebrow">Handoff</p>
-    <h1>Mission Exports</h1>
+    <p class="eyebrow">Handoff | Centre de livraison</p>
+    <h1>Exports de mission</h1>
+    <p>
+      Vérifiez les paquets ZIP, les rapports PDF/JSON et les éléments à corriger
+      avant de remettre un audit au client.
+    </p>
+    <div class="operator-hero-actions">
+      <a class="button" href="#handoff-readiness">Vérifier les livrables</a>
+      <a class="button secondary-button" href="/exports/download/csv?{{ download_query }}">CSV</a>
+      <a class="button secondary-button" href="/exports/download/markdown?{{ download_query }}">Markdown</a>
+      <a class="button secondary-button" href="/exports/download/json?{{ download_query }}">JSON</a>
+    </div>
   </div>
-  <div class="actions">
-    <a class="button secondary-button" href="/exports/download/csv?{{ download_query }}">CSV</a>
-    <a class="button secondary-button" href="/exports/download/markdown?{{ download_query }}">Markdown</a>
-    <a class="button secondary-button" href="/exports/download/json?{{ download_query }}">JSON</a>
-    {% if include_missing %}
-    <a class="button secondary-button" href="/exports?{{ toggle_query }}">Hide Missing</a>
-    {% else %}
-    <a class="button secondary-button" href="/exports?{{ toggle_query }}">Show Missing</a>
-    {% endif %}
+  <div class="operator-hero-stats" aria-label="Mission export inventory summary">
+    <article><span>Éléments visibles</span><strong>{{ summary["items"] }}</strong></article>
+    <article><span>Paquets prêts</span><strong>{{ summary.ready }}</strong></article>
+    <article><span>Livraison OK</span><strong>{{ summary["handoff_ready"] }}</strong></article>
+    <article><span>À corriger</span><strong>{{ summary["handoff_attention"] }}</strong></article>
   </div>
 </section>
 
-<section class="page-shortcuts" aria-label="Mission export shortcuts">
-  <a href="#export-filters">Filters <span>{{ active_filters|length }}</span></a>
-  <a href="#handoff-readiness">Handoff <span>{{ summary["handoff_ready"] }}/{{ summary["items"] }}</span></a>
-  <a href="#mission-export-inventory">Inventory <span>{{ summary["items"] }}</span></a>
-  <a href="#export-downloads">Downloads <span>3</span></a>
+<section class="directory-command-bar delivery-command-bar" aria-label="Actions rapides exports">
+  <nav class="directory-shortcuts" aria-label="Mission export shortcuts">
+    <a href="#export-filters">Filtres <span>{{ active_filters|length }}</span></a>
+    <a href="#handoff-readiness">Livraison <span>{{ summary["handoff_ready"] }}/{{ summary["items"] }}</span></a>
+    <a href="#mission-export-inventory">Inventaire <span>{{ summary["items"] }}</span></a>
+    <a href="#export-downloads">Téléchargements <span>3</span></a>
+  </nav>
+  <div class="delivery-toggle">
+    {% if include_missing %}
+    <a class="button secondary-button" href="/exports?{{ toggle_query }}">Masquer les manquants</a>
+    {% else %}
+    <a class="button secondary-button" href="/exports?{{ toggle_query }}">Afficher les manquants</a>
+    {% endif %}
+  </div>
 </section>
 
 {% if has_filters %}
@@ -42,9 +57,13 @@
 
 <section class="section" id="export-filters">
   <form class="form-panel" method="get" action="/exports" aria-label="Filter mission exports">
+    <div class="section-title">
+      <h2>Filtres de livraison</h2>
+      <span class="muted">Affinez par client, statut ou paquet manquant</span>
+    </div>
     <div class="field-grid">
       <label>
-        <span>Search</span>
+        <span>Recherche</span>
         <input name="q" value="{{ query }}">
       </label>
       <label>
@@ -66,15 +85,15 @@
         </select>
       </label>
       <label>
-        <span>Missing packages</span>
+        <span>Paquets manquants</span>
         <select name="include_missing">
-          <option value="true" {% if include_missing %}selected{% endif %}>show</option>
-          <option value="false" {% if not include_missing %}selected{% endif %}>hide</option>
+          <option value="true" {% if include_missing %}selected{% endif %}>afficher</option>
+          <option value="false" {% if not include_missing %}selected{% endif %}>masquer</option>
         </select>
       </label>
     </div>
     <div class="form-actions">
-      <button class="button secondary-button" type="submit">Filter</button>
+      <button class="button secondary-button" type="submit">Filtrer</button>
     </div>
   </form>
 </section>
@@ -92,8 +111,8 @@
 
 <section class="section" id="handoff-readiness">
   <div class="section-title">
-    <h2>Handoff Readiness</h2>
-    <span class="muted">Package verification and next action</span>
+    <h2>Prêt pour livraison</h2>
+    <span class="muted">Vérification du paquet et prochaine action</span>
   </div>
   <div class="readiness-grid" aria-label="Mission export handoff readiness">
     {% for item in items %}
@@ -117,7 +136,7 @@
 
 <section class="section" id="mission-export-inventory">
   <div class="section-title">
-    <h2>Export Inventory</h2>
+    <h2>Inventaire des exports</h2>
     <div class="report-links" id="export-downloads" aria-label="Mission export inventory downloads">
       <a href="/exports/download/csv?{{ download_query }}">CSV</a>
       <a href="/exports/download/markdown?{{ download_query }}">Markdown</a>

@@ -130,6 +130,8 @@ class WebUiTests(unittest.TestCase):
         self.assertIn(">Overview</a>", template)
         self.assertIn('href="/clients"', template)
         self.assertIn(">Clients</a>", template)
+        self.assertIn('href="/operator"', template)
+        self.assertIn(">Start</a>", template)
         self.assertIn('href="/audits"', template)
         self.assertIn(">Audits</a>", template)
         self.assertIn('href="/exports"', template)
@@ -144,6 +146,7 @@ class WebUiTests(unittest.TestCase):
         self.assertIn(">Pilot</a>", template)
 
         for prefix in [
+            "/operator",
             "/clients",
             "/audits",
             "/wizard",
@@ -214,6 +217,11 @@ class WebUiTests(unittest.TestCase):
         self.assertIn(".console-hero", css)
         self.assertIn(".console-phase-nav", css)
         self.assertIn(".console-card-grid", css)
+        self.assertIn(".operator-hero", css)
+        self.assertIn(".operator-flow", css)
+        self.assertIn(".operator-action-grid", css)
+        self.assertIn(".operator-session-grid", css)
+        self.assertIn(".operator-ops-grid", css)
 
     def test_global_styles_expose_anchor_target_context(self) -> None:
         css_path = (
@@ -387,6 +395,76 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("data-audit-type-select", template)
         self.assertIn("selectedOption.dataset.auditType", template)
         self.assertIn('templateSelect.addEventListener("change", syncAuditType)', template)
+
+    def test_operator_template_exposes_simplified_start_workflow(self) -> None:
+        template_path = (
+            Path(__file__).resolve().parents[1]
+            / "app"
+            / "media_security_audit"
+            / "web_templates"
+            / "operator.html"
+        )
+        css_path = (
+            Path(__file__).resolve().parents[1]
+            / "app"
+            / "media_security_audit"
+            / "web_static"
+            / "app.css"
+        )
+        web_path = (
+            Path(__file__).resolve().parents[1]
+            / "app"
+            / "media_security_audit"
+            / "web.py"
+        )
+        dashboard_path = (
+            Path(__file__).resolve().parents[1]
+            / "app"
+            / "media_security_audit"
+            / "web_templates"
+            / "dashboard.html"
+        )
+        template = template_path.read_text(encoding="utf-8")
+        css = css_path.read_text(encoding="utf-8")
+        web = web_path.read_text(encoding="utf-8")
+        dashboard = dashboard_path.read_text(encoding="utf-8")
+
+        self.assertIn('@app.get("/operator"', web)
+        self.assertIn('"operator.html"', web)
+        self.assertIn("build_dashboard_view(store)", web)
+        self.assertIn("Start A Security Audit", template)
+        self.assertIn('aria-label="Operator start page"', template)
+        self.assertIn('aria-label="Operator workflow"', template)
+        self.assertIn('aria-label="Operator next actions"', template)
+        self.assertIn('aria-label="Operator active sessions"', template)
+        self.assertIn('aria-label="Operator operations center"', template)
+        self.assertIn('aria-label="Operator safety guardrails"', template)
+        self.assertIn('href="/clients#new-client"', template)
+        self.assertIn('href="/wizard"', template)
+        self.assertIn('href="/wizard#wizard-scope"', template)
+        self.assertIn('href="/wizard#wizard-checks"', template)
+        self.assertIn('href="/audits"', template)
+        self.assertIn('href="/exports"', template)
+        self.assertIn('href="/test-readiness"', template)
+        self.assertIn('href="/vulnerabilities"', template)
+        self.assertIn('href="/remediations"', template)
+        self.assertIn("view.technician_workflow_steps", template)
+        self.assertIn("view.missions[:6]", template)
+        self.assertIn("mission.preparation_action_href", template)
+        self.assertIn('/missions/{{ mission.id }}/console', template)
+        self.assertIn('/missions/{{ mission.id }}/session', template)
+        self.assertIn("brute-force testing stay outside the V1", template)
+        self.assertIn('href="/operator"', dashboard)
+
+        for css_class in [
+            ".operator-hero",
+            ".operator-flow",
+            ".operator-action-grid",
+            ".operator-session-grid",
+            ".operator-ops-grid",
+            ".operator-guardrail",
+        ]:
+            self.assertIn(css_class, css)
 
     def test_clients_template_exposes_dedicated_client_workspace(self) -> None:
         template_path = (

@@ -860,6 +860,9 @@ Current GUI status:
 - product UX target is documented for Overview, Clients, Audits, guided setup,
   scan progress, CVE catalog, remediations, exports, and credential-check
   guardrails
+- operator start page becomes the recommended technician entry point for
+  client setup, guided audit creation, console launch, session progress,
+  reports, CVE catalog, and VM test readiness
 
 ## Step 7 - Add Safe Scanner Modules
 

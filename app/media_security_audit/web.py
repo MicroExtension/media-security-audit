@@ -271,6 +271,26 @@ def create_web_app(
             )
         )
 
+    @app.get("/operator", response_class=HTMLResponse, dependencies=protected)
+    def operator_home(
+        request: Request,
+        message: str | None = None,
+        error: str | None = None,
+    ) -> HTMLResponse:
+        return HTMLResponse(
+            render_template(
+                templates,
+                "operator.html",
+                {
+                    "request": request,
+                    "data_dir": data_dir,
+                    "view": build_dashboard_view(store),
+                    "message": message,
+                    "error": error,
+                },
+            )
+        )
+
     @app.get("/system", response_class=HTMLResponse, dependencies=protected)
     def system_status(
         request: Request,

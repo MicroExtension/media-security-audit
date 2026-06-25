@@ -58,6 +58,7 @@ Implemented so far:
 - dashboard and client mission tables show per-mission counter-test counts
 - dashboard and client pages show failed counter-test mission watchlists
 - dashboard shows a technician workflow from guided audit creation to report handoff
+- operator start page gives technicians one clear entry point for client setup, guided audit creation, console launch, session progress, reports, CVE catalog, and VM testing
 - failed counter-tests drive dashboard, client, and mission next-action links
 - finding review requires notes for false positives, accepted risks, and counter-test results
 - web mission activity log for traceability

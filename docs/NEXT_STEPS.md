@@ -865,6 +865,8 @@ Current GUI status:
   reports, CVE catalog, and VM test readiness
 - dark operator shell is ready for visual review before continuing scanner
   module development
+- guided audit UX should be visually reviewed next: French step labels, mode
+  cards, target coverage, credential guardrails, and console handoff
 
 ## Step 7 - Add Safe Scanner Modules
 

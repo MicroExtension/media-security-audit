@@ -3240,6 +3240,59 @@ code {
   height: 100%;
 }
 
+.session-phase-lane {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0 0 22px;
+  position: relative;
+}
+
+.session-phase-lane::before {
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  content: "";
+  height: 2px;
+  left: 8%;
+  position: absolute;
+  right: 8%;
+  top: 27px;
+  z-index: 0;
+}
+
+.session-phase-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  display: grid;
+  gap: 8px;
+  min-height: 132px;
+  padding: 16px;
+  position: relative;
+  z-index: 1;
+}
+
+.session-phase-item span {
+  align-items: center;
+  background: var(--accent);
+  border-radius: 999px;
+  color: #ffffff;
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 900;
+  height: 30px;
+  justify-content: center;
+  width: 30px;
+}
+
+.session-phase-item strong {
+  color: var(--text);
+}
+
+.session-phase-item p {
+  color: var(--muted);
+  margin: 0;
+}
+
 .session-step-grid,
 .session-service-list,
 .session-remediation-grid {
@@ -3384,6 +3437,7 @@ code {
 .wizard-intro article,
 .wizard-step,
 .wizard-mode-card,
+.session-phase-item,
 .session-step,
 .session-service,
 .session-remediation-grid article,

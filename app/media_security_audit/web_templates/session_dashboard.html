@@ -1,26 +1,30 @@
 {% extends "base.html" %}
-{% block title %}Analysis Session | {{ view.mission.name }} | MEDIA Security Audit{% endblock %}
+{% block title %}Session Analyse | {{ view.mission.name }} | MEDIA Security Audit{% endblock %}
 {% block content %}
 <section class="page-heading">
   <div>
     <p class="eyebrow">{{ view.mission.client_name }} | {{ view.session_dashboard.mode }}</p>
-    <h1>Analysis Session Dashboard</h1>
+    <h1>Tableau De Session</h1>
+    <p class="page-lead">
+      Suis la mission pendant et apres les controles : progression, services,
+      cibles, executions, constats et actions de remediation.
+    </p>
   </div>
   <div class="actions">
-    <a class="button" href="/missions/{{ view.mission.id }}/console">Audit Console</a>
-    <a class="button secondary-button" href="/missions/{{ view.mission.id }}#scan-plan">Launch Checks</a>
-    <a class="button secondary-button" href="/missions/{{ view.mission.id }}#reports">Reports</a>
+    <a class="button" href="/missions/{{ view.mission.id }}/console">Console Audit</a>
+    <a class="button secondary-button" href="/missions/{{ view.mission.id }}#scan-plan">Lancer les controles</a>
+    <a class="button secondary-button" href="/missions/{{ view.mission.id }}#reports">Rapports</a>
   </div>
 </section>
 
 <section class="session-hero session-{{ view.session_dashboard.status }}" aria-label="Analysis session status">
   <div class="session-hero-main">
-    <p class="eyebrow">Current Phase: {{ view.session_dashboard.current_phase }}</p>
+    <p class="eyebrow">Phase actuelle : {{ view.session_dashboard.current_phase }}</p>
     <h2>{{ view.session_dashboard.title }}</h2>
     <p>{{ view.session_dashboard.detail }}</p>
     <div class="session-progress" aria-label="Analysis session progress">
       <div class="session-progress-head">
-        <span>Progress</span>
+        <span>Progression</span>
         <strong>{{ view.session_dashboard.progress_percent }}%</strong>
       </div>
       <div class="session-progress-track">
@@ -31,35 +35,58 @@
   </div>
   <div class="session-hero-metrics">
     <article><span>Mode</span><strong>{{ view.session_dashboard.mode }}</strong></article>
-    <article><span>Services</span><strong>{{ view.session_dashboard.completed_service_count }}/{{ view.session_dashboard.selected_service_count }}</strong></article>
-    <article><span>Findings</span><strong>{{ view.session_dashboard.finding_count }}</strong></article>
+    <article><span>Services termines</span><strong>{{ view.session_dashboard.completed_service_count }}/{{ view.session_dashboard.selected_service_count }}</strong></article>
+    <article><span>Constats</span><strong>{{ view.session_dashboard.finding_count }}</strong></article>
     <article><span>CVE/KEV</span><strong>{{ view.session_dashboard.vulnerability_match_count }}</strong></article>
   </div>
 </section>
 
+<section class="session-phase-lane" aria-label="Phases de la session">
+  <article class="session-phase-item">
+    <span>01</span>
+    <strong>Preparation</strong>
+    <p>Autorisation, cibles et services sont verifies avant execution.</p>
+  </article>
+  <article class="session-phase-item">
+    <span>02</span>
+    <strong>Decouverte</strong>
+    <p>Les controles autorises identifient hotes, services et exposition.</p>
+  </article>
+  <article class="session-phase-item">
+    <span>03</span>
+    <strong>Analyse</strong>
+    <p>Les constats, CVE/KEV et remediations sont qualifies.</p>
+  </article>
+  <article class="session-phase-item">
+    <span>04</span>
+    <strong>Restitution</strong>
+    <p>PDF, JSON et suivi remediation sont prepares pour le client.</p>
+  </article>
+</section>
+
 <section class="metrics" aria-label="Analysis session counters">
-  <div class="metric"><span>Internal targets</span><strong>{{ view.session_dashboard.internal_target_count }}</strong></div>
-  <div class="metric"><span>External targets</span><strong>{{ view.session_dashboard.external_target_count }}</strong></div>
-  <div class="metric"><span>AD/LDAP hosts</span><strong>{{ view.session_dashboard.ad_target_count }}</strong></div>
-  <div class="metric"><span>Domains</span><strong>{{ view.session_dashboard.domain_target_count }}</strong></div>
-  <div class="metric"><span>Ready services</span><strong>{{ view.session_dashboard.ready_service_count }}</strong></div>
-  <div class="metric"><span>Blocked services</span><strong>{{ view.session_dashboard.blocked_service_count }}</strong></div>
-  <div class="metric"><span>Failed services</span><strong>{{ view.session_dashboard.failed_service_count }}</strong></div>
-  <div class="metric"><span>Reports</span><strong>{{ view.session_dashboard.report_count }}</strong></div>
+  <div class="metric"><span>Cibles internes</span><strong>{{ view.session_dashboard.internal_target_count }}</strong></div>
+  <div class="metric"><span>Cibles externes</span><strong>{{ view.session_dashboard.external_target_count }}</strong></div>
+  <div class="metric"><span>Hotes AD/LDAP</span><strong>{{ view.session_dashboard.ad_target_count }}</strong></div>
+  <div class="metric"><span>Domaines</span><strong>{{ view.session_dashboard.domain_target_count }}</strong></div>
+  <div class="metric"><span>Services prets</span><strong>{{ view.session_dashboard.ready_service_count }}</strong></div>
+  <div class="metric"><span>Services bloques</span><strong>{{ view.session_dashboard.blocked_service_count }}</strong></div>
+  <div class="metric"><span>Services echoues</span><strong>{{ view.session_dashboard.failed_service_count }}</strong></div>
+  <div class="metric"><span>Rapports</span><strong>{{ view.session_dashboard.report_count }}</strong></div>
 </section>
 
 <section class="page-shortcuts" aria-label="Analysis session shortcuts">
-  <a href="#session-steps">Progress <span>{{ view.session_dashboard.progress_percent }}%</span></a>
+  <a href="#session-steps">Progression <span>{{ view.session_dashboard.progress_percent }}%</span></a>
   <a href="#session-services">Services <span>{{ view.session_dashboard.selected_service_count }}</span></a>
-  <a href="#session-targets">Targets <span>{{ view.mission.approved_scope_count }}</span></a>
-  <a href="#session-runs">Runs <span>{{ view.scan_runs|length }}</span></a>
-  <a href="#session-findings">Findings <span>{{ view.findings|length }}</span></a>
+  <a href="#session-targets">Cibles <span>{{ view.mission.approved_scope_count }}</span></a>
+  <a href="#session-runs">Executions <span>{{ view.scan_runs|length }}</span></a>
+  <a href="#session-findings">Constats <span>{{ view.findings|length }}</span></a>
 </section>
 
 <section class="section" id="session-steps">
   <div class="section-title">
-    <h2>Session Progress</h2>
-    <span class="muted">Operational progress, not a time estimate</span>
+    <h2>Progression De Session</h2>
+    <span class="muted">Progression operationnelle, pas une estimation de temps</span>
   </div>
   <div class="session-step-grid" aria-label="Analysis session progress steps">
     {% for step in view.session_dashboard.steps %}
@@ -76,8 +103,8 @@
 
 <section class="section" id="session-services">
   <div class="section-title">
-    <h2>Selected Protocols And Checks</h2>
-    <a class="table-action" href="/missions/{{ view.mission.id }}#check-selection">Edit services</a>
+    <h2>Protocoles Et Controles</h2>
+    <a class="table-action" href="/missions/{{ view.mission.id }}#check-selection">Modifier les services</a>
   </div>
   <div class="session-service-list" aria-label="Selected session services">
     {% for service in view.cockpit.services %}
@@ -91,15 +118,15 @@
       <a class="readiness-action" href="/missions/{{ view.mission.id }}{{ service.action_href }}">{{ service.action_label }}</a>
     </article>
     {% else %}
-    <div class="empty">No protocol or check is selected yet.</div>
+    <div class="empty">Aucun protocole ou controle n'est encore selectionne.</div>
     {% endfor %}
   </div>
 </section>
 
 <section class="section" id="session-targets">
   <div class="section-title">
-    <h2>Approved Targets</h2>
-    <a class="table-action" href="/missions/{{ view.mission.id }}#scope">Edit scope</a>
+    <h2>Cibles Autorisees</h2>
+    <a class="table-action" href="/missions/{{ view.mission.id }}#scope">Modifier le perimetre</a>
   </div>
   {% if view.session_dashboard.target_summary %}
   <div class="pill-list" aria-label="Approved session targets">
@@ -108,26 +135,26 @@
     {% endfor %}
   </div>
   {% else %}
-  <p class="empty">No approved target is available for this session.</p>
+  <p class="empty">Aucune cible autorisee n'est disponible pour cette session.</p>
   {% endif %}
 </section>
 
 <section class="section" id="session-runs">
   <div class="section-title">
-    <h2>Run Dashboard</h2>
-    <a class="table-action" href="/missions/{{ view.mission.id }}#run-monitor">Open run monitor</a>
+    <h2>Executions</h2>
+    <a class="table-action" href="/missions/{{ view.mission.id }}#run-monitor">Ouvrir le suivi</a>
   </div>
   <div class="table-wrap">
     <table>
       <caption class="sr-only">Analysis session run dashboard</caption>
       <thead>
         <tr>
-          <th>Check</th>
-          <th>Status</th>
-          <th>Started</th>
-          <th>Commands</th>
-          <th>Findings</th>
-          <th>Evidence</th>
+          <th>Controle</th>
+          <th>Statut</th>
+          <th>Demarre</th>
+          <th>Commandes</th>
+          <th>Constats</th>
+          <th>Preuves</th>
           <th>Action</th>
         </tr>
       </thead>
@@ -143,7 +170,7 @@
           <td><a class="table-action" href="/missions/{{ view.mission.id }}{{ run.action_href }}">{{ run.action_label }}</a></td>
         </tr>
         {% else %}
-        <tr><td colspan="7" class="empty">No run recorded yet.</td></tr>
+        <tr><td colspan="7" class="empty">Aucune execution enregistree pour le moment.</td></tr>
         {% endfor %}
       </tbody>
     </table>
@@ -152,24 +179,24 @@
 
 <section class="section" id="session-findings">
   <div class="section-title">
-    <h2>Findings And Remediation</h2>
-    <a class="table-action" href="/missions/{{ view.mission.id }}#findings">Open findings</a>
+    <h2>Constats Et Remediation</h2>
+    <a class="table-action" href="/missions/{{ view.mission.id }}#findings">Ouvrir les constats</a>
   </div>
   <div class="session-remediation-grid" aria-label="Session remediation summary">
     <article>
-      <strong>PDF and JSON deliverables</strong>
-      <p>Generate PDF for customer reading and JSON for tracking remediation and counter-tests.</p>
-      <a class="readiness-action" href="/missions/{{ view.mission.id }}#reports">Generate Reports</a>
+      <strong>Livrables PDF et JSON</strong>
+      <p>Genere un PDF lisible par le client et un JSON pour suivre remediations et contre-tests.</p>
+      <a class="readiness-action" href="/missions/{{ view.mission.id }}#reports">Generer les rapports</a>
     </article>
     <article>
-      <strong>CVE and CVSS explanation</strong>
-      <p>CVE/KEV candidates are treated as validation items: confirm the exposed product/version before storing them as customer findings.</p>
-      <a class="readiness-action" href="/missions/{{ view.mission.id }}#vulnerabilities">Review CVE/KEV</a>
+      <strong>Explication CVE et CVSS</strong>
+      <p>Les candidats CVE/KEV restent a valider : confirme le produit et la version avant d'en faire un constat client.</p>
+      <a class="readiness-action" href="/missions/{{ view.mission.id }}#vulnerabilities">Verifier CVE/KEV</a>
     </article>
     <article>
-      <strong>Remediation follow-up</strong>
-      <p>Each finding should keep a simple risk explanation, remediation action, and counter-test command or procedure.</p>
-      <a class="readiness-action" href="/remediations">Remediation Library</a>
+      <strong>Suivi remediation</strong>
+      <p>Chaque constat doit garder une explication simple, une action de correction et un contre-test.</p>
+      <a class="readiness-action" href="/remediations">Bibliotheque remediation</a>
     </article>
   </div>
 </section>

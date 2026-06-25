@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% block title %}Start | MEDIA Security Audit{% endblock %}
+{% block content %}
+<section class="operator-hero" aria-label="Operator start page">
+  <div>
+    <p class="eyebrow">Technician start</p>
+    <h1>Start A Security Audit</h1>
+    <p>
+      Create the client, define internal or external scope, select safe checks,
+      launch from the audit console, and follow progress from the session dashboard.
+    </p>
+    <div class="operator-hero-actions">
+      <a class="button" href="/wizard">New Guided Audit</a>
+      <a class="button secondary-button" href="/clients#new-client">Add Client</a>
+      <a class="button secondary-button" href="/test-readiness">Test VM</a>
+    </div>
+  </div>
+  <div class="operator-hero-stats" aria-label="Operator workspace summary">
+    <article><span>Clients</span><strong>{{ view.total_clients }}</strong></article>
+    <article><span>Audits</span><strong>{{ view.total_missions }}</strong></article>
+    <article><span>Ready</span><strong>{{ view.ready_preparation_count }}</strong></article>
+    <article><span>Review</span><strong>{{ view.warning_preparation_count }}</strong></article>
+  </div>
+</section>
+
+<section class="operator-flow" aria-label="Operator workflow">
+  <article class="operator-flow-card">
+    <span>1</span>
+    <strong>Client</strong>
+    <p>Create or select the customer record before planning any scan.</p>
+    <a href="/clients#new-client">Open clients</a>
+  </article>
+  <article class="operator-flow-card">
+    <span>2</span>
+    <strong>Audit Mode</strong>
+    <p>Choose internal LAN or external public perimeter in the guided wizard.</p>
+    <a href="/wizard">New guided audit</a>
+  </article>
+  <article class="operator-flow-card">
+    <span>3</span>
+    <strong>Targets</strong>
+    <p>Add approved ranges, IPs, domains, URLs, or AD/LDAP hosts.</p>
+    <a href="/wizard#wizard-scope">Prepare scope</a>
+  </article>
+  <article class="operator-flow-card">
+    <span>4</span>
+    <strong>Services</strong>
+    <p>Select safe checks such as HTTP, DNS/Mail, TLS, SMB, LDAP, and Nmap.</p>
+    <a href="/wizard#wizard-checks">Select checks</a>
+  </article>
+  <article class="operator-flow-card">
+    <span>5</span>
+    <strong>Run</strong>
+    <p>Open the audit console, verify Go/No-Go, then launch guarded checks.</p>
+    <a href="/audits">Open audits</a>
+  </article>
+  <article class="operator-flow-card">
+    <span>6</span>
+    <strong>Report</strong>
+    <p>Generate PDF and JSON outputs with remediation and counter-test actions.</p>
+    <a href="/exports">Open exports</a>
+  </article>
+</section>
+
+<section class="section">
+  <div class="section-title">
+    <h2>Next Best Actions</h2>
+    <span class="muted">Follow these before live customer testing</span>
+  </div>
+  <div class="operator-action-grid" aria-label="Operator next actions">
+    {% for step in view.technician_workflow_steps %}
+    <article class="operator-action operator-action-{{ step.status }}">
+      <span class="badge status-{{ step.status }}">{{ step.status }}</span>
+      <strong>{{ step.label }}</strong>
+      <p>{{ step.detail }}</p>
+      <a class="readiness-action" href="{{ step.action_href }}">{{ step.action_label }}</a>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-title">
+    <h2>Active Audit Sessions</h2>
+    <span class="muted">{{ view.missions|length }} total</span>
+  </div>
+  <div class="operator-session-grid" aria-label="Operator active sessions">
+    {% for mission in view.missions[:6] %}
+    <article class="operator-session-card operator-session-{{ mission.preparation_status }}">
+      <div class="operator-session-head">
+        <span class="badge status-{{ mission.preparation_status }}">{{ mission.preparation_status }}</span>
+        <span class="risk risk-{{ mission.risk_level }}">{{ mission.risk_score }}/100</span>
+      </div>
+      <strong><a href="/missions/{{ mission.id }}">{{ mission.name }}</a></strong>
+      <p>{{ mission.client_name }} | {{ mission.audit_type }}</p>
+      <div class="operator-session-metrics">
+        <span>Scope <strong>{{ mission.approved_scope_count }}/{{ mission.scope_count }}</strong></span>
+        <span>Findings <strong>{{ mission.finding_count }}</strong></span>
+      </div>
+      <div class="operator-session-actions">
+        <a class="readiness-action" href="/missions/{{ mission.id }}/console">Console</a>
+        <a class="readiness-action" href="/missions/{{ mission.id }}/session">Session</a>
+        <a class="readiness-action" href="{{ mission.preparation_action_href }}">{{ mission.preparation_action_label }}</a>
+      </div>
+    </article>
+    {% else %}
+    <article class="operator-empty">
+      <strong>No audit session yet.</strong>
+      <p>Create a guided audit to start testing the workflow.</p>
+      <a class="readiness-action" href="/wizard">New Guided Audit</a>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-title">
+    <h2>Operations Center</h2>
+    <span class="muted">VM, catalog, remediations, reports</span>
+  </div>
+  <div class="operator-ops-grid" aria-label="Operator operations center">
+    <a href="/test-readiness">
+      <strong>Test VM</strong>
+      <span>Update, smoke test, browser checks</span>
+    </a>
+    <a href="/system">
+      <strong>System</strong>
+      <span>Service, storage, and preflight status</span>
+    </a>
+    <a href="/vulnerabilities">
+      <strong>CVE Catalog</strong>
+      <span>Local CVE/KEV review and refresh</span>
+    </a>
+    <a href="/remediations">
+      <strong>Remediations</strong>
+      <span>Plain-language fix guidance</span>
+    </a>
+    <a href="/exports">
+      <strong>Reports</strong>
+      <span>PDF, JSON, bundles, evidence package</span>
+    </a>
+    <a href="/pilot">
+      <strong>Pilot</strong>
+      <span>Controlled real-condition test checklist</span>
+    </a>
+  </div>
+</section>
+
+<section class="operator-guardrail" aria-label="Operator safety guardrails">
+  <strong>Safe audit mode stays enforced.</strong>
+  <p>
+    The workflow supports authorized, non-destructive checks only. Exploitation,
+    payloads, post-exploitation, and brute-force testing stay outside the V1
+    operator flow until a separate governance decision is approved.
+  </p>
+</section>
+{% endblock %}

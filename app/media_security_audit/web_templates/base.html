@@ -14,6 +14,7 @@
     {% set dashboard_active = current_path == "/" or current_path.startswith("/clients") or current_path.startswith("/missions") %}
     <nav class="topnav" aria-label="Primary navigation">
       <a href="/" class="{{ 'active' if current_path == '/' else '' }}" {% if current_path == '/' %}aria-current="page"{% endif %}>Overview</a>
+      <a href="/operator" class="{{ 'active' if current_path.startswith('/operator') else '' }}" {% if current_path.startswith('/operator') %}aria-current="page"{% endif %}>Start</a>
       <a href="/clients" class="{{ 'active' if current_path.startswith('/clients') else '' }}" {% if current_path.startswith('/clients') %}aria-current="page"{% endif %}>Clients</a>
       <a href="/audits" class="{{ 'active' if current_path.startswith('/audits') or current_path.startswith('/missions') else '' }}" {% if current_path.startswith('/audits') or current_path.startswith('/missions') %}aria-current="page"{% endif %}>Audits</a>
       <a href="/wizard" class="{{ 'active' if current_path.startswith('/wizard') else '' }}" {% if current_path.startswith('/wizard') %}aria-current="page"{% endif %}>New Audit</a>

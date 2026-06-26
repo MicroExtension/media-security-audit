@@ -67,6 +67,7 @@ Implemented so far:
 - Exports and Remediations pages now use delivery/remediation operator workspaces with clearer handoff and search flows
 - Mission detail pages now expose a service readiness center with service filters, visible counts, and execution guardrails
 - Mission run monitors now expose execution metrics, local filters, and synchronized run cards/tables
+- Session dashboards now show a priority command center for go/no-go, executions, CVE/KEV, and delivery
 - failed counter-tests drive dashboard, client, and mission next-action links
 - finding review requires notes for false positives, accepted risks, and counter-test results
 - web mission activity log for traceability

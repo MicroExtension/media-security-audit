@@ -41,6 +41,50 @@
   </div>
 </section>
 
+<section class="session-command-center" aria-label="Session command center">
+  <div class="session-command-head">
+    <div>
+      <p class="eyebrow">Poste operateur</p>
+      <h2>Actions Prioritaires</h2>
+      <p>
+        Utilise ces cartes pour piloter l'audit sans parcourir toute la page :
+        preparation, executions, CVE/KEV et restitution client.
+      </p>
+    </div>
+    <a class="button secondary-button" href="/missions/{{ view.mission.id }}">Mission complete</a>
+  </div>
+  <div class="session-command-grid" aria-label="Session priority actions">
+    <article class="session-command-card session-command-{{ view.go_no_go.status }}">
+      <span class="badge status-{{ view.go_no_go.status }}">{{ view.go_no_go.status }}</span>
+      <strong>{{ view.go_no_go.decision }}</strong>
+      <p>{{ view.go_no_go.detail }}</p>
+      <span class="muted">{{ view.go_no_go.ready_count }}/{{ view.go_no_go.total_count }} pre-requis prets</span>
+      <a class="readiness-action" href="/missions/{{ view.mission.id }}{{ view.go_no_go.action_href }}">{{ view.go_no_go.action_label }}</a>
+    </article>
+    <article class="session-command-card session-command-{{ view.scan_run_outcome.status }}">
+      <span class="badge status-{{ view.scan_run_outcome.status }}">{{ view.scan_run_outcome.status }}</span>
+      <strong>{{ view.scan_run_outcome.title }}</strong>
+      <p>{{ view.scan_run_outcome.detail }}</p>
+      <span class="muted">{{ view.scan_run_outcome.run_count }} run(s), {{ view.scan_run_outcome.evidence_count }} preuve(s)</span>
+      <a class="readiness-action" href="/missions/{{ view.mission.id }}{{ view.scan_run_outcome.action_href }}">{{ view.scan_run_outcome.action_label }}</a>
+    </article>
+    <article class="session-command-card session-command-{{ view.vulnerability_summary.status }}">
+      <span class="badge status-{{ view.vulnerability_summary.status }}">{{ view.vulnerability_summary.status }}</span>
+      <strong>Revue CVE/KEV</strong>
+      <p>{{ view.vulnerability_summary.detail }}</p>
+      <span class="muted">{{ view.vulnerability_summary.match_count }} candidat(s), {{ view.vulnerability_summary.known_exploited_count }} KEV</span>
+      <a class="readiness-action" href="/missions/{{ view.mission.id }}{{ view.vulnerability_summary.action_href }}">{{ view.vulnerability_summary.action_label }}</a>
+    </article>
+    <article class="session-command-card session-command-{{ view.report_delivery.status }}">
+      <span class="badge status-{{ view.report_delivery.status }}">{{ view.report_delivery.status }}</span>
+      <strong>Restitution client</strong>
+      <p>{{ view.report_delivery.detail }}</p>
+      <span class="muted">{{ view.report_delivery.ready_count }}/{{ view.report_delivery.total_count }} livrable(s) prets</span>
+      <a class="readiness-action" href="/missions/{{ view.mission.id }}{{ view.report_delivery.action_href }}">{{ view.report_delivery.action_label }}</a>
+    </article>
+  </div>
+</section>
+
 <section class="session-phase-lane" aria-label="Phases de la session">
   <article class="session-phase-item">
     <span>01</span>

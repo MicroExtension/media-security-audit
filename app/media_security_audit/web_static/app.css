@@ -3551,6 +3551,80 @@ code {
   height: 100%;
 }
 
+.session-command-center {
+  background: linear-gradient(135deg, rgba(196, 18, 30, 0.10), rgba(18, 18, 18, 0.02));
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: grid;
+  gap: 14px;
+  margin: 0 0 22px;
+  padding: 18px;
+}
+
+.session-command-head {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.session-command-head div {
+  display: grid;
+  gap: 4px;
+  max-width: 780px;
+}
+
+.session-command-head h2,
+.session-command-head p {
+  margin: 0;
+}
+
+.session-command-head p {
+  color: var(--muted);
+}
+
+.session-command-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.session-command-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 5px solid var(--border);
+  border-radius: 6px;
+  display: grid;
+  gap: 8px;
+  min-height: 210px;
+  padding: 14px;
+}
+
+.session-command-card strong {
+  font-size: 16px;
+}
+
+.session-command-card p {
+  color: var(--muted);
+  margin: 0;
+}
+
+.session-command-ready,
+.session-command-completed {
+  border-left-color: var(--green);
+}
+
+.session-command-warning,
+.session-command-missing {
+  border-left-color: var(--amber);
+}
+
+.session-command-blocked,
+.session-command-failed {
+  border-left-color: var(--red);
+}
+
 .session-phase-lane {
   display: grid;
   gap: 14px;
@@ -4091,6 +4165,7 @@ button.button:hover {
   .test-checklist-grid,
   .test-feedback-list,
   .session-hero,
+  .session-command-grid,
   .session-step-grid,
   .session-service-list,
   .session-remediation-grid {

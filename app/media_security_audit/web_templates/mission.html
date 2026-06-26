@@ -524,6 +524,59 @@
   })();
 
   (() => {
+    const cards = [...document.querySelectorAll("[data-run-card]")];
+    const rows = [...document.querySelectorAll("[data-run-table-row]")];
+    const search = document.querySelector("[data-run-search]");
+    const filters = [...document.querySelectorAll("[data-run-filter]")];
+    const visibleCount = document.querySelector("[data-run-visible-count]");
+    const empty = document.querySelector("[data-run-empty]");
+    if (!search || !filters.length || !visibleCount || !empty) {
+      return;
+    }
+    let activeFilter = "all";
+    const normalized = (value) => (value || "").toString().toLowerCase();
+    const tableRowsById = new Map(rows.map((row) => [row.dataset.runId, row]));
+    const matchesFilter = (card) => {
+      if (activeFilter === "all") {
+        return true;
+      }
+      if (activeFilter === "findings") {
+        return card.dataset.runHasFindings === "true";
+      }
+      return card.dataset.runStatus === activeFilter;
+    };
+    const render = () => {
+      const query = normalized(search.value);
+      let visible = 0;
+      cards.forEach((card) => {
+        const text = normalized(card.dataset.runSearchText);
+        const show = text.includes(query) && matchesFilter(card);
+        card.hidden = !show;
+        const row = tableRowsById.get(card.dataset.runId);
+        if (row) {
+          row.hidden = !show;
+        }
+        visible += show ? 1 : 0;
+      });
+      visibleCount.textContent = `${visible}/${cards.length} run(s) visible(s)`;
+      empty.hidden = visible > 0 || cards.length === 0;
+      filters.forEach((filter) => {
+        const selected = filter.dataset.runFilter === activeFilter;
+        filter.classList.toggle("is-active", selected);
+        filter.setAttribute("aria-pressed", selected ? "true" : "false");
+      });
+    };
+    filters.forEach((filter) => {
+      filter.addEventListener("click", () => {
+        activeFilter = filter.dataset.runFilter || "all";
+        render();
+      });
+    });
+    search.addEventListener("input", render);
+    render();
+  })();
+
+  (() => {
     const forms = [...document.querySelectorAll("[data-scan-run-form]")];
     const overlay = document.querySelector("[data-scan-progress]");
     const title = document.querySelector("[data-scan-progress-title]");
@@ -585,9 +638,48 @@
       <a class="readiness-action" href="{{ view.scan_run_outcome.action_href }}">{{ view.scan_run_outcome.action_label }}</a>
     </div>
   </div>
+  <div class="run-monitor-panel" aria-label="Run monitor control center">
+    <div class="run-monitor-panel-head">
+      <div>
+        <p class="eyebrow">Suivi d'execution</p>
+        <h3>Centre de suivi des tests lances</h3>
+        <p>
+          Filtrez les executions, identifiez les erreurs et revenez rapidement
+          vers les constats, preuves ou rapports a traiter.
+        </p>
+      </div>
+      <a class="readiness-action" href="#scan-plan">Relancer un service pret</a>
+    </div>
+    <div class="run-monitor-summary-grid" aria-label="Run monitor metrics">
+      <article><span>Runs</span><strong>{{ view.scan_run_outcome.run_count }}</strong></article>
+      <article><span>Findings actifs</span><strong>{{ view.scan_run_outcome.finding_count }}</strong></article>
+      <article><span>Preuves</span><strong>{{ view.scan_run_outcome.evidence_count }}</strong></article>
+      <article><span>Services prets</span><strong>{{ view.scan_launch.ready_count }}</strong></article>
+    </div>
+    <div class="run-monitor-controls" aria-label="Run monitor filters">
+      <label class="run-search">
+        <span class="sr-only">Rechercher une execution</span>
+        <input type="search" placeholder="Filtrer par service, statut, erreur..." data-run-search>
+      </label>
+      <div class="run-filter-group" role="group" aria-label="Filtrer les executions">
+        <button type="button" class="run-filter is-active" data-run-filter="all" aria-pressed="true">Toutes</button>
+        <button type="button" class="run-filter" data-run-filter="completed" aria-pressed="false">Reussies</button>
+        <button type="button" class="run-filter" data-run-filter="failed" aria-pressed="false">Erreurs</button>
+        <button type="button" class="run-filter" data-run-filter="findings" aria-pressed="false">Avec findings</button>
+      </div>
+      <p class="muted" data-run-visible-count>{{ view.scan_runs|length }}/{{ view.scan_runs|length }} run(s) visible(s)</p>
+    </div>
+  </div>
   <div class="run-monitor-grid" aria-label="Scan run follow-up cards">
     {% for run in view.scan_runs %}
-    <article class="run-monitor-card run-monitor-{{ run.status }}">
+    <article
+      class="run-monitor-card run-monitor-{{ run.status }}"
+      data-run-card
+      data-run-id="{{ run.id }}"
+      data-run-status="{{ run.status }}"
+      data-run-has-findings="{{ 'true' if run.finding_count else 'false' }}"
+      data-run-search-text="{{ run.label }} {{ run.check }} {{ run.status }} {{ run.status_title }} {{ run.summary }} {{ run.error }}"
+    >
       <div class="run-monitor-head">
         <div>
           <strong>{{ run.label }}</strong>
@@ -626,6 +718,7 @@
     </article>
     {% endfor %}
   </div>
+  <p class="empty run-empty" data-run-empty hidden>Aucune execution ne correspond au filtre.</p>
   <div class="table-wrap">
     <table>
       <caption class="sr-only">Mission CLI run monitor</caption>
@@ -642,7 +735,7 @@
       </thead>
       <tbody>
         {% for run in view.scan_runs %}
-        <tr>
+        <tr data-run-table-row data-run-id="{{ run.id }}">
           <td>{{ run.label }}<br><code>{{ run.check }}</code></td>
           <td><span class="badge status-{{ run.status }}">{{ run.status }}</span></td>
           <td>{{ run.started_at }}</td>

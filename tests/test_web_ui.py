@@ -2559,6 +2559,7 @@ class WebUiTests(unittest.TestCase):
         for anchor in [
             "mission-go-no-go",
             "mission-cockpit",
+            "service-readiness",
             "action-roadmap",
             "mission-readiness",
             "scan-launch",
@@ -2686,6 +2687,27 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("step.action_href", template)
         self.assertIn("view.cockpit.steps", template)
         self.assertIn("view.cockpit.services", template)
+        self.assertIn("Service readiness center", template)
+        self.assertIn("Centre de preparation des services", template)
+        self.assertIn('aria-label="Service readiness center"', template)
+        self.assertIn('aria-label="Service readiness metrics"', template)
+        self.assertIn('aria-label="Service readiness filters"', template)
+        self.assertIn('aria-label="Service execution guard"', template)
+        self.assertIn("data-service-search", template)
+        self.assertIn("data-service-filter", template)
+        self.assertIn("data-service-row", template)
+        self.assertIn("data-service-grid", template)
+        self.assertIn("data-service-visible-count", template)
+        self.assertIn("data-service-empty", template)
+        self.assertIn("data-service-status", template)
+        self.assertIn("data-service-selected", template)
+        self.assertIn("data-service-search-text", template)
+        self.assertIn("Garde-fou execution", template)
+        self.assertIn("Un service pret ne lance rien automatiquement.", template)
+        self.assertIn(".service-readiness-panel", css)
+        self.assertIn(".service-readiness-controls", css)
+        self.assertIn(".service-filter.is-active", css)
+        self.assertIn(".service-readiness-guard", css)
         self.assertIn("service.run_status", template)
         self.assertIn("service.run_detail", template)
         self.assertIn("service-run-summary", template)

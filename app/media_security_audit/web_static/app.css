@@ -1122,6 +1122,125 @@ tr:last-child td {
   grid-template-columns: minmax(0, 1fr) auto;
 }
 
+.service-readiness-panel {
+  background: linear-gradient(135deg, rgba(196, 18, 30, 0.10), rgba(18, 18, 18, 0.02));
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: grid;
+  gap: 14px;
+  margin-top: 14px;
+  padding: 16px;
+}
+
+.service-readiness-head,
+.service-readiness-controls {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.service-readiness-head div {
+  display: grid;
+  gap: 4px;
+  max-width: 760px;
+}
+
+.service-readiness-head h3,
+.service-readiness-head p {
+  margin: 0;
+}
+
+.service-readiness-head p,
+.service-readiness-guard p {
+  color: var(--muted);
+}
+
+.service-readiness-metrics {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+}
+
+.service-readiness-metrics article {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+}
+
+.service-readiness-metrics span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.service-readiness-metrics strong {
+  font-size: 24px;
+}
+
+.service-search {
+  flex: 1 1 260px;
+}
+
+.service-search input {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text);
+  min-height: 42px;
+  padding: 10px 14px;
+  width: 100%;
+}
+
+.service-filter-group {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.service-filter {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text);
+  cursor: pointer;
+  font-weight: 800;
+  min-height: 38px;
+  padding: 8px 12px;
+}
+
+.service-filter:hover,
+.service-filter:focus,
+.service-filter.is-active {
+  background: var(--red);
+  border-color: var(--red);
+  color: #fff;
+}
+
+.service-readiness-guard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 5px solid var(--red);
+  border-radius: 6px;
+  display: grid;
+  gap: 5px;
+  padding: 12px;
+}
+
+.service-readiness-guard strong,
+.service-readiness-guard p {
+  margin: 0;
+}
+
+.service-empty {
+  margin-top: 12px;
+}
+
 .service-cockpit p,
 .service-cockpit .service-run-summary,
 .service-cockpit .table-action {

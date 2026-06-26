@@ -872,6 +872,8 @@ Current GUI status:
   cards, target coverage, credential guardrails, and console handoff
 - audit console and session dashboard now follow a French cockpit flow across
   preparation, launch, analysis, and delivery
+- mission pages now include a service readiness center with protocol filters,
+  visible counts, readiness metrics, and execution guardrails before launch
 
 ## Step 7 - Add Safe Scanner Modules
 

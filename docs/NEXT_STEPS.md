@@ -643,6 +643,9 @@ Current GUI status:
 - guided audit wizard shows field trial readiness checks before audit creation
 - guided audit wizard records credential review requests with explicit guardrail
   confirmation and does not launch brute force from audit creation
+- guided audit wizard offers quick audit profiles so technicians can start from
+  internal LAN, external web/mail, AD/LDAP, or full safe review scenarios
+  before entering authorized targets
 - dedicated Clients and Audits pages separate customer identity from mission
   work so the dashboard does not carry every operational form
 - mission Audit Console provides a focused prepare, launch, analyze, and deliver

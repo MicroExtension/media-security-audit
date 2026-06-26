@@ -876,6 +876,8 @@ Current GUI status:
   visible counts, readiness metrics, and execution guardrails before launch
 - mission run monitors now include execution metrics, status/search filters,
   and synchronized cards/tables for easier real-condition review
+- session dashboards now expose a priority command center for go/no-go,
+  execution follow-up, CVE/KEV review, and delivery actions
 
 ## Step 7 - Add Safe Scanner Modules
 

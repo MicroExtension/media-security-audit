@@ -90,6 +90,7 @@
   <a href="#mission-go-no-go">Go/No-Go <span>{{ view.go_no_go.decision }}</span></a>
   <a href="/missions/{{ view.mission.id }}/session">Session <span>{{ view.session_dashboard.progress_percent }}%</span></a>
   <a href="#mission-cockpit">Cockpit <span>{{ view.cockpit.ready_step_count }}/{{ view.cockpit.total_step_count }}</span></a>
+  <a href="#service-readiness">Services <span>{{ view.cockpit.ready_check_count }}/{{ view.cockpit.selected_check_count }}</span></a>
   <a href="#action-roadmap">Roadmap <span>{{ view.action_roadmap|length }}</span></a>
   <a href="#mission-readiness">Readiness <span>{{ view.readiness_items|length }}</span></a>
   <a href="#scan-launch">Launch <span>{{ view.scan_launch.ready_count }}</span></a>
@@ -164,9 +165,54 @@
     </article>
     {% endfor %}
   </div>
-  <div class="service-cockpit-grid" aria-label="Selected service cockpit">
+  <div class="service-readiness-panel" id="service-readiness" aria-label="Service readiness center">
+    <div class="service-readiness-head">
+      <div>
+        <p class="eyebrow">Services a tester</p>
+        <h3>Centre de preparation des services</h3>
+        <p>
+          Visualisez les protocoles choisis, les prerequis manquants et le dernier
+          etat d'execution avant de lancer un test controle.
+        </p>
+      </div>
+      <a class="readiness-action" href="#check-selection">Modifier les services</a>
+    </div>
+    <div class="service-readiness-metrics" aria-label="Service readiness metrics">
+      <article><span>Selectionnes</span><strong>{{ view.cockpit.selected_check_count }}</strong></article>
+      <article><span>Prets</span><strong>{{ view.cockpit.ready_check_count }}</strong></article>
+      <article><span>Bloques</span><strong>{{ view.cockpit.blocked_check_count }}</strong></article>
+      <article><span>Runs</span><strong>{{ view.scan_launch.run_count }}</strong></article>
+    </div>
+    <div class="service-readiness-controls" aria-label="Service readiness filters">
+      <label class="service-search">
+        <span class="sr-only">Rechercher un service</span>
+        <input type="search" placeholder="Filtrer Nmap, HTTP, DNS, SMB..." data-service-search>
+      </label>
+      <div class="service-filter-group" role="group" aria-label="Filtrer les services">
+        <button type="button" class="service-filter is-active" data-service-filter="all" aria-pressed="true">Tous</button>
+        <button type="button" class="service-filter" data-service-filter="selected" aria-pressed="false">Selectionnes</button>
+        <button type="button" class="service-filter" data-service-filter="ready" aria-pressed="false">Prets</button>
+        <button type="button" class="service-filter" data-service-filter="blocked" aria-pressed="false">Bloques</button>
+      </div>
+      <p class="muted" data-service-visible-count>{{ view.cockpit.services|length }}/{{ view.cockpit.services|length }} service(s) visible(s)</p>
+    </div>
+    <aside class="service-readiness-guard" aria-label="Service execution guard">
+      <strong>Garde-fou execution</strong>
+      <p>
+        Un service pret ne lance rien automatiquement. Le technicien doit toujours
+        verifier la commande, confirmer l'autorisation et valider le perimetre.
+      </p>
+    </aside>
+  </div>
+  <div class="service-cockpit-grid" aria-label="Selected service cockpit" data-service-grid>
     {% for service in view.cockpit.services %}
-    <article class="service-cockpit service-{{ service.status }}">
+    <article
+      class="service-cockpit service-{{ service.status }}"
+      data-service-row
+      data-service-status="{{ service.status }}"
+      data-service-selected="{{ 'true' if service.selected else 'false' }}"
+      data-service-search-text="{{ service.label }} {{ service.value }} {{ service.status }} {{ service.run_status }}"
+    >
       <div>
         <strong>{{ service.label }}</strong>
         <span class="muted block">{{ service.value }}</span>
@@ -181,6 +227,7 @@
     </article>
     {% endfor %}
   </div>
+  <p class="empty service-empty" data-service-empty hidden>Aucun service ne correspond au filtre.</p>
 </section>
 
 <section class="section" id="scan-launch">
@@ -429,6 +476,53 @@
 </div>
 
 <script>
+  (() => {
+    const rows = [...document.querySelectorAll("[data-service-row]")];
+    const search = document.querySelector("[data-service-search]");
+    const filters = [...document.querySelectorAll("[data-service-filter]")];
+    const visibleCount = document.querySelector("[data-service-visible-count]");
+    const empty = document.querySelector("[data-service-empty]");
+    if (!rows.length || !search || !filters.length || !visibleCount || !empty) {
+      return;
+    }
+    let activeFilter = "all";
+    const normalized = (value) => (value || "").toString().toLowerCase();
+    const matchesFilter = (row) => {
+      if (activeFilter === "all") {
+        return true;
+      }
+      if (activeFilter === "selected") {
+        return row.dataset.serviceSelected === "true";
+      }
+      return row.dataset.serviceStatus === activeFilter;
+    };
+    const render = () => {
+      const query = normalized(search.value);
+      let visible = 0;
+      rows.forEach((row) => {
+        const text = normalized(row.dataset.serviceSearchText);
+        const show = text.includes(query) && matchesFilter(row);
+        row.hidden = !show;
+        visible += show ? 1 : 0;
+      });
+      visibleCount.textContent = `${visible}/${rows.length} service(s) visible(s)`;
+      empty.hidden = visible > 0;
+      filters.forEach((filter) => {
+        const selected = filter.dataset.serviceFilter === activeFilter;
+        filter.classList.toggle("is-active", selected);
+        filter.setAttribute("aria-pressed", selected ? "true" : "false");
+      });
+    };
+    filters.forEach((filter) => {
+      filter.addEventListener("click", () => {
+        activeFilter = filter.dataset.serviceFilter || "all";
+        render();
+      });
+    });
+    search.addEventListener("input", render);
+    render();
+  })();
+
   (() => {
     const forms = [...document.querySelectorAll("[data-scan-run-form]")];
     const overlay = document.querySelector("[data-scan-progress]");

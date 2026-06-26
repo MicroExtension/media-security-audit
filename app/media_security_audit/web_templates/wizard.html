@@ -47,6 +47,66 @@
   </article>
 </section>
 
+<section class="wizard-profile-strip" aria-label="Profils rapides d'audit">
+  <div class="wizard-profile-head">
+    <div>
+      <p class="eyebrow">Depart rapide</p>
+      <h2>Choisir Un Scenario</h2>
+      <p>
+        Selectionne un profil pour pre-cocher les services utiles. Tu gardes la
+        main sur les cibles, l'autorisation et le lancement depuis la console.
+      </p>
+    </div>
+    <span class="badge status-warning">aucun scan lance</span>
+  </div>
+  <div class="wizard-profile-grid">
+    <button
+      class="wizard-profile-card"
+      type="button"
+      data-wizard-profile="internal-lan"
+      data-wizard-profile-type="internal"
+      data-wizard-profile-checks="nmap,smb,ldap"
+    >
+      <span>LAN</span>
+      <strong>Audit Interne LAN</strong>
+      <small>Nmap, SMB et LDAP pour reseaux internes, serveurs et AD.</small>
+    </button>
+    <button
+      class="wizard-profile-card"
+      type="button"
+      data-wizard-profile="external-web-mail"
+      data-wizard-profile-type="external"
+      data-wizard-profile-checks="http_headers,dns_mail,tls"
+    >
+      <span>WAN</span>
+      <strong>Externe Web/Mail</strong>
+      <small>HTTP, DNS/Mail et TLS pour domaines, sites et exposition Internet.</small>
+    </button>
+    <button
+      class="wizard-profile-card"
+      type="button"
+      data-wizard-profile="ad-ldap"
+      data-wizard-profile-type="internal"
+      data-wizard-profile-checks="ldap,smb,nmap"
+    >
+      <span>AD</span>
+      <strong>AD / LDAP</strong>
+      <small>Controle annuaire encadre, partage SMB et cartographie douce.</small>
+    </button>
+    <button
+      class="wizard-profile-card"
+      type="button"
+      data-wizard-profile="safe-full-review"
+      data-wizard-profile-type="internal"
+      data-wizard-profile-checks="nmap,http_headers,dns_mail,tls,smb,ldap"
+    >
+      <span>SAFE</span>
+      <strong>Complet Prudent</strong>
+      <small>Tous les controles non destructifs actuellement disponibles.</small>
+    </button>
+  </div>
+</section>
+
 <form class="form-panel wizard-form" method="post" action="/wizard" aria-label="Create guided audit">
   <input type="hidden" name="_csrf" value="{{ form_token }}">
 
@@ -502,6 +562,7 @@
     const templateSelect = document.querySelector("[data-wizard-template-select]");
     const auditTypeSelect = document.querySelector("[data-wizard-audit-type-select]");
     const modeButtons = [...document.querySelectorAll("[data-wizard-mode-option]")];
+    const profileButtons = [...document.querySelectorAll("[data-wizard-profile]")];
     const clientSelect = document.querySelector("[data-wizard-client-select]");
     const clientNameInput = document.querySelector("[data-wizard-client-name]");
     const missionNameInput = document.querySelector("[data-wizard-mission-name]");
@@ -876,6 +937,12 @@
         submitButton.disabled = !readyToCreate();
       }
     };
+    const clearProfileSelection = () => {
+      profileButtons.forEach((profileButton) => {
+        profileButton.classList.remove("is-active");
+        profileButton.setAttribute("aria-pressed", "false");
+      });
+    };
     const syncTemplate = () => {
       const selectedOption = templateSelect.selectedOptions[0];
       if (!selectedOption) {
@@ -891,11 +958,34 @@
           checkbox.checked = checks.includes(checkbox.dataset.wizardCheck);
         });
       }
+      clearProfileSelection();
       updateSnapshot();
     };
+    const applyProfile = (button) => {
+      const auditType = button.dataset.wizardProfileType || "";
+      const checks = (button.dataset.wizardProfileChecks || "").split(",").filter(Boolean);
+      if (auditType) {
+        auditTypeSelect.value = auditType;
+      }
+      checkboxes.forEach((checkbox) => {
+        checkbox.checked = checks.includes(checkbox.dataset.wizardCheck || "");
+      });
+      profileButtons.forEach((profileButton) => {
+        const active = profileButton === button;
+        profileButton.classList.toggle("is-active", active);
+        profileButton.setAttribute("aria-pressed", active ? "true" : "false");
+      });
+      setMessage("Profil applique. Renseigne maintenant les cibles autorisees.");
+      setStep(2);
+    };
+    profileButtons.forEach((button) => {
+      button.setAttribute("aria-pressed", "false");
+      button.addEventListener("click", () => applyProfile(button));
+    });
     modeButtons.forEach((button) => {
       button.addEventListener("click", () => {
         auditTypeSelect.value = button.dataset.wizardModeOption || auditTypeSelect.value;
+        clearProfileSelection();
         updateSnapshot();
       });
     });
@@ -947,6 +1037,9 @@
     ].filter(Boolean).forEach((field) => {
       field.addEventListener("input", updateSnapshot);
       field.addEventListener("change", updateSnapshot);
+    });
+    [...checkboxes, auditTypeSelect].filter(Boolean).forEach((field) => {
+      field.addEventListener("change", clearProfileSelection);
     });
     setStep(0);
   })();

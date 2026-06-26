@@ -1931,6 +1931,83 @@ tr[hidden] {
   margin: 0;
 }
 
+.wizard-profile-strip {
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-left: 4px solid #c1121f;
+  border-radius: 6px;
+  display: grid;
+  gap: 16px;
+  margin-bottom: 18px;
+  padding: 16px;
+}
+
+.wizard-profile-head {
+  align-items: start;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+.wizard-profile-head h2 {
+  margin: 0;
+}
+
+.wizard-profile-head p {
+  color: var(--muted);
+  margin: 4px 0 0;
+  max-width: 72ch;
+}
+
+.wizard-profile-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.wizard-profile-card {
+  background: #fbfcfd;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  cursor: pointer;
+  display: grid;
+  gap: 8px;
+  min-height: 146px;
+  padding: 14px;
+  text-align: left;
+}
+
+.wizard-profile-card:hover,
+.wizard-profile-card:focus-visible {
+  border-color: #c1121f;
+  outline: 2px solid transparent;
+}
+
+.wizard-profile-card.is-active {
+  background: #fff5f5;
+  border-color: #c1121f;
+  box-shadow: inset 0 0 0 1px #c1121f;
+}
+
+.wizard-profile-card span {
+  color: #c1121f;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.wizard-profile-card strong {
+  color: var(--text);
+  font-size: 1rem;
+  line-height: 1.3;
+}
+
+.wizard-profile-card small {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
 .wizard-form {
   display: grid;
   gap: 22px;
@@ -4139,6 +4216,7 @@ button.button:hover {
   }
 
   .wizard-service-grid,
+  .wizard-profile-grid,
   .wizard-target-guidance,
   .wizard-coverage-list,
   .wizard-summary-grid,
@@ -4177,6 +4255,7 @@ button.button:hover {
   }
 
   .catalog-card-head,
+  .wizard-profile-head,
   .catalog-remediation,
   .credential-guardrail {
     flex-direction: column;

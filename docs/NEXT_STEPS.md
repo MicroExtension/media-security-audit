@@ -874,6 +874,8 @@ Current GUI status:
   preparation, launch, analysis, and delivery
 - mission pages now include a service readiness center with protocol filters,
   visible counts, readiness metrics, and execution guardrails before launch
+- mission run monitors now include execution metrics, status/search filters,
+  and synchronized cards/tables for easier real-condition review
 
 ## Step 7 - Add Safe Scanner Modules
 

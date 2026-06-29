@@ -648,6 +648,8 @@ Current GUI status:
   before entering authorized targets
 - guided audit wizard now shows required target cards with ready/missing
   status and direct jumps to the matching target field
+- guided audit wizard now offers service presets and a live service coach that
+  explains which selected controls are ready or still need compatible targets
 - dedicated Clients and Audits pages separate customer identity from mission
   work so the dashboard does not carry every operational form
 - mission Audit Console provides a focused prepare, launch, analyze, and deliver

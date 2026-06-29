@@ -107,6 +107,39 @@
   </div>
 </section>
 
+<section class="session-workflow-board" aria-label="Session workflow lanes">
+  <div class="session-workflow-head">
+    <div>
+      <p class="eyebrow">Lecture rapide</p>
+      <h2>Parcours De Session</h2>
+      <p>Chaque carte resume une partie de l'audit et indique ou agir ensuite.</p>
+    </div>
+    <span class="muted">{{ view.session_dashboard.ready_step_count }}/{{ view.session_dashboard.total_step_count }} jalon(s) prets</span>
+  </div>
+  <div class="session-workflow-grid">
+    {% for lane in view.session_dashboard.workflow_lanes %}
+    <article class="session-workflow-card session-workflow-{{ lane.status }}">
+      <div class="session-workflow-card-head">
+        <span class="badge status-{{ lane.status }}">{{ lane.status }}</span>
+        <strong>{{ lane.label }}</strong>
+      </div>
+      <p>{{ lane.detail }}</p>
+      <dl class="session-workflow-metrics">
+        <div>
+          <dt>{{ lane.primary_label }}</dt>
+          <dd>{{ lane.primary_value }}</dd>
+        </div>
+        <div>
+          <dt>{{ lane.secondary_label }}</dt>
+          <dd>{{ lane.secondary_value }}</dd>
+        </div>
+      </dl>
+      <a class="readiness-action" href="{{ lane.action_href }}">{{ lane.action_label }}</a>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+
 <section class="session-phase-lane" aria-label="Phases de la session">
   <article class="session-phase-item">
     <span>01</span>

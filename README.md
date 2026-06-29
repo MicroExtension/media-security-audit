@@ -43,6 +43,7 @@ Implemented so far:
 - guided audit wizard records credential review requests only after explicit guardrail confirmation
 - guided audit wizard offers quick audit profiles for internal LAN, external web/mail, AD/LDAP, and full safe review preparation
 - guided audit wizard shows a target coach that marks required target fields as ready or missing for the selected checks
+- guided audit wizard shows service presets and a live ready/missing service coach before audit creation
 - mission scan plans show a pre-launch decision box before guarded web execution
 - first web finding review workflow
 - web report generation for JSON, Markdown, HTML, and PDF exports

@@ -386,6 +386,41 @@
           Coche les controles utiles. L'assistant verifie automatiquement si les
           cibles renseignees correspondent aux services choisis.
         </p>
+        <section class="wizard-service-coach" aria-label="Assistant services a tester">
+          <div class="section-title">
+            <h3>Selection Rapide Des Services</h3>
+            <span class="muted" data-wizard-service-coach-summary>Aucun service selectionne</span>
+          </div>
+          <div class="wizard-check-preset-grid" aria-label="Presets de controles">
+            <button type="button" data-wizard-check-preset="lan" data-wizard-checks="nmap,smb">
+              <span>LAN</span>
+              <strong>Socle LAN</strong>
+              <small>Cartographie TCP et partages SMB.</small>
+            </button>
+            <button type="button" data-wizard-check-preset="web-mail" data-wizard-checks="http_headers,dns_mail,tls">
+              <span>WAN</span>
+              <strong>Web / Mail</strong>
+              <small>En-tetes HTTP, DNS/Mail et TLS.</small>
+            </button>
+            <button type="button" data-wizard-check-preset="directory" data-wizard-checks="ldap,smb,nmap">
+              <span>AD</span>
+              <strong>Annuaire</strong>
+              <small>LDAP, SMB et decouverte douce.</small>
+            </button>
+            <button type="button" data-wizard-check-preset="safe-all" data-wizard-checks="nmap,http_headers,dns_mail,tls,smb,ldap">
+              <span>SAFE</span>
+              <strong>Tout Prudent</strong>
+              <small>Tous les controles non destructifs.</small>
+            </button>
+          </div>
+          <div class="wizard-service-coach-list" data-wizard-service-coach-list>
+            <article class="wizard-service-coach-item is-missing">
+              <span class="wizard-service-coach-status">Manquant</span>
+              <strong>Aucun service selectionne</strong>
+              <p>Choisis un preset ou coche un controle pour voir ce qui sera prepare.</p>
+            </article>
+          </div>
+        </section>
         <div class="wizard-service-grid" aria-label="Service selection guidance">
           {% for check in check_options %}
           <article class="wizard-service-card">
@@ -650,6 +685,9 @@
     const targetCoachSummary = document.querySelector("[data-wizard-target-coach-summary]");
     const targetCoachCards = [...document.querySelectorAll("[data-wizard-target-card]")];
     const targetJumpButtons = [...document.querySelectorAll("[data-wizard-target-jump]")];
+    const checkPresetButtons = [...document.querySelectorAll("[data-wizard-check-preset]")];
+    const serviceCoachSummary = document.querySelector("[data-wizard-service-coach-summary]");
+    const serviceCoachList = document.querySelector("[data-wizard-service-coach-list]");
     if (!templateSelect || !auditTypeSelect || !checkboxes.length || !summaryStatus || !steps.length) {
       return;
     }
@@ -858,6 +896,47 @@
         coverageList.appendChild(item);
       });
     };
+    const renderServiceCoach = () => {
+      if (!serviceCoachSummary || !serviceCoachList) {
+        return;
+      }
+      const coverage = serviceCoverage();
+      serviceCoachList.innerHTML = "";
+      if (!coverage.length) {
+        serviceCoachSummary.textContent = "Aucun service selectionne";
+        const item = document.createElement("article");
+        item.className = "wizard-service-coach-item is-missing";
+        item.innerHTML = [
+          '<span class="wizard-service-coach-status">Manquant</span>',
+          "<strong>Aucun service selectionne</strong>",
+          "<p>Choisis un preset ou coche un controle pour voir ce qui sera prepare.</p>",
+        ].join("");
+        serviceCoachList.appendChild(item);
+        return;
+      }
+      const readyCount = coverage.filter((item) => item.ready).length;
+      serviceCoachSummary.textContent = `${readyCount}/${coverage.length} services prets`;
+      coverage.forEach((check) => {
+        const action = targetActionForCheck(check);
+        const item = document.createElement("article");
+        item.className = `wizard-service-coach-item ${check.ready ? "is-ready" : "is-missing"}`;
+        const status = document.createElement("span");
+        status.className = "wizard-service-coach-status";
+        status.textContent = check.ready ? "Pret" : "Cible requise";
+        const title = document.createElement("strong");
+        title.textContent = check.label;
+        const detail = document.createElement("p");
+        detail.textContent = check.ready
+          ? "Ce controle a une cible compatible et restera soumis au lancement explicite."
+          : `Ajoute une cible compatible: ${check.requiredTypes.join(", ")}.`;
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = check.ready ? "Voir la cible" : action.label;
+        button.addEventListener("click", () => focusTargetField(action.field));
+        item.append(status, title, detail, button);
+        serviceCoachList.appendChild(item);
+      });
+    };
     const syncModeButtons = () => {
       modeButtons.forEach((button) => {
         const active = button.dataset.wizardModeOption === auditTypeSelect.value;
@@ -1020,6 +1099,7 @@
         ? "Pret a creer. Les controles actifs resteront separes et exigeront une confirmation explicite."
         : "Complete les etapes precedentes avant de creer l'audit.";
       renderTargetCoach();
+      renderServiceCoach();
       renderServiceCoverage();
       syncModeButtons();
       updateCreationChecklist(state, {
@@ -1075,9 +1155,27 @@
       setMessage("Profil applique. Renseigne maintenant les cibles autorisees.");
       setStep(2);
     };
+    const applyCheckPreset = (button) => {
+      const checks = (button.dataset.wizardChecks || "").split(",").filter(Boolean);
+      checkboxes.forEach((checkbox) => {
+        checkbox.checked = checks.includes(checkbox.dataset.wizardCheck || "");
+      });
+      clearProfileSelection();
+      checkPresetButtons.forEach((presetButton) => {
+        const active = presetButton === button;
+        presetButton.classList.toggle("is-active", active);
+        presetButton.setAttribute("aria-pressed", active ? "true" : "false");
+      });
+      setMessage("Selection de services appliquee. Verifie les cibles requises.");
+      updateSnapshot();
+    };
     profileButtons.forEach((button) => {
       button.setAttribute("aria-pressed", "false");
       button.addEventListener("click", () => applyProfile(button));
+    });
+    checkPresetButtons.forEach((button) => {
+      button.setAttribute("aria-pressed", "false");
+      button.addEventListener("click", () => applyCheckPreset(button));
     });
     modeButtons.forEach((button) => {
       button.addEventListener("click", () => {
@@ -1140,6 +1238,14 @@
     });
     [...checkboxes, auditTypeSelect].filter(Boolean).forEach((field) => {
       field.addEventListener("change", clearProfileSelection);
+    });
+    checkboxes.forEach((checkbox) => {
+      checkbox.addEventListener("change", () => {
+        checkPresetButtons.forEach((button) => {
+          button.classList.remove("is-active");
+          button.setAttribute("aria-pressed", "false");
+        });
+      });
     });
     setStep(0);
   })();

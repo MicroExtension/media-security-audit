@@ -305,6 +305,54 @@
             <span>Controleurs de domaine ou hotes LDAP pour l'audit annuaire.</span>
           </li>
         </ul>
+        <section class="wizard-target-coach" aria-label="Assistant cibles attendues">
+          <div class="section-title">
+            <h3>Cibles Attendues</h3>
+            <span class="muted" data-wizard-target-coach-summary>Choisis un profil ou des services.</span>
+          </div>
+          <div class="wizard-target-coach-grid">
+            <article class="wizard-target-card" data-wizard-target-card="internal_targets">
+              <span class="wizard-target-status" data-wizard-target-card-status>Optionnel</span>
+              <strong>Reseaux / IP / Hotes</strong>
+              <p>Necessaire pour Nmap et SMB. Exemple: CIDR LAN, serveur, equipement ou IP.</p>
+              <div class="wizard-target-count">
+                <span data-wizard-target-card-count>0</span>
+                <small>ligne(s)</small>
+              </div>
+              <button type="button" data-wizard-target-jump="internal_targets">Renseigner</button>
+            </article>
+            <article class="wizard-target-card" data-wizard-target-card="external_domains">
+              <span class="wizard-target-status" data-wizard-target-card-status>Optionnel</span>
+              <strong>Domaines Publics</strong>
+              <p>Necessaire pour DNS/Mail. Exemple: domaine client, domaine mail ou sous-domaine.</p>
+              <div class="wizard-target-count">
+                <span data-wizard-target-card-count>0</span>
+                <small>ligne(s)</small>
+              </div>
+              <button type="button" data-wizard-target-jump="external_domains">Renseigner</button>
+            </article>
+            <article class="wizard-target-card" data-wizard-target-card="web_urls">
+              <span class="wizard-target-status" data-wizard-target-card-status>Optionnel</span>
+              <strong>URLs Web</strong>
+              <p>Necessaire pour HTTP headers et TLS Web. Exemple: URL HTTPS complete.</p>
+              <div class="wizard-target-count">
+                <span data-wizard-target-card-count>0</span>
+                <small>ligne(s)</small>
+              </div>
+              <button type="button" data-wizard-target-jump="web_urls">Renseigner</button>
+            </article>
+            <article class="wizard-target-card" data-wizard-target-card="ad_servers">
+              <span class="wizard-target-status" data-wizard-target-card-status>Optionnel</span>
+              <strong>AD / LDAP</strong>
+              <p>Necessaire pour LDAP. Exemple: controleur de domaine, IP ou nom DNS interne.</p>
+              <div class="wizard-target-count">
+                <span data-wizard-target-card-count>0</span>
+                <small>ligne(s)</small>
+              </div>
+              <button type="button" data-wizard-target-jump="ad_servers">Renseigner</button>
+            </article>
+          </div>
+        </section>
         <div class="field-grid">
           <label>
             <span>Reseaux Internes, IP, Hotes</span>
@@ -599,6 +647,9 @@
     const creationGateItems = [...document.querySelectorAll("[data-wizard-gate]")];
     const coverageList = document.querySelector("[data-wizard-coverage-list]");
     const coverageSummary = document.querySelector("[data-wizard-coverage-summary]");
+    const targetCoachSummary = document.querySelector("[data-wizard-target-coach-summary]");
+    const targetCoachCards = [...document.querySelectorAll("[data-wizard-target-card]")];
+    const targetJumpButtons = [...document.querySelectorAll("[data-wizard-target-jump]")];
     if (!templateSelect || !auditTypeSelect || !checkboxes.length || !summaryStatus || !steps.length) {
       return;
     }
@@ -671,6 +722,51 @@
         return { field: "internal_targets", label: "Ajouter hote/IP/CIDR" };
       }
       return { field: "web_urls", label: "Ajouter une cible" };
+    };
+    const targetFieldsForSelectedChecks = () => {
+      const fields = new Set();
+      selectedCheckDetails().forEach((check) => {
+        fields.add(targetActionForCheck(check).field);
+      });
+      return fields;
+    };
+    const targetLineCountForField = (fieldName) => {
+      const field = document.querySelector(`[name="${fieldName}"]`);
+      return field ? targetLines(field).length : 0;
+    };
+    const renderTargetCoach = () => {
+      if (!targetCoachSummary || !targetCoachCards.length) {
+        return;
+      }
+      const requiredFields = targetFieldsForSelectedChecks();
+      let requiredCount = 0;
+      let readyCount = 0;
+      targetCoachCards.forEach((card) => {
+        const fieldName = card.dataset.wizardTargetCard || "";
+        const isRequired = requiredFields.has(fieldName);
+        const lineCount = targetLineCountForField(fieldName);
+        const isReady = isRequired && lineCount > 0;
+        if (isRequired) {
+          requiredCount += 1;
+        }
+        if (isReady) {
+          readyCount += 1;
+        }
+        card.classList.toggle("is-required", isRequired);
+        card.classList.toggle("is-ready", isReady);
+        card.classList.toggle("is-missing", isRequired && !isReady);
+        const status = card.querySelector("[data-wizard-target-card-status]");
+        const count = card.querySelector("[data-wizard-target-card-count]");
+        if (status) {
+          status.textContent = isRequired ? (isReady ? "Pret" : "A remplir") : "Optionnel";
+        }
+        if (count) {
+          count.textContent = String(lineCount);
+        }
+      });
+      targetCoachSummary.textContent = requiredCount
+        ? `${readyCount}/${requiredCount} types de cibles attendues sont renseignes`
+        : "Choisis un profil ou des services.";
     };
     const coverageReady = () => {
       const coverage = serviceCoverage();
@@ -923,6 +1019,7 @@
       reviewStatus.textContent = readyToCreate()
         ? "Pret a creer. Les controles actifs resteront separes et exigeront une confirmation explicite."
         : "Complete les etapes precedentes avant de creer l'audit.";
+      renderTargetCoach();
       renderServiceCoverage();
       syncModeButtons();
       updateCreationChecklist(state, {
@@ -990,6 +1087,9 @@
       });
     });
     templateSelect.addEventListener("change", syncTemplate);
+    targetJumpButtons.forEach((button) => {
+      button.addEventListener("click", () => focusTargetField(button.dataset.wizardTargetJump || ""));
+    });
     previousButton.addEventListener("click", () => {
       setMessage("");
       setStep(currentStep - 1);

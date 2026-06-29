@@ -403,6 +403,17 @@ class AnalysisSessionWorkflowLane:
 
 
 @dataclass(frozen=True)
+class AnalysisSessionResultShortcut:
+    label: str
+    category: str
+    status: str
+    count: str
+    detail: str
+    action_label: str
+    action_href: str
+
+
+@dataclass(frozen=True)
 class AnalysisSessionDashboard:
     status: str
     title: str
@@ -435,6 +446,7 @@ class AnalysisSessionDashboard:
     target_summary: tuple[str, ...]
     steps: list[AnalysisSessionStep]
     workflow_lanes: list[AnalysisSessionWorkflowLane]
+    result_shortcuts: list[AnalysisSessionResultShortcut]
 
 
 @dataclass(frozen=True)
@@ -2140,6 +2152,7 @@ def analysis_session_dashboard(
         f"{completed_count}/{selected_count} selected service(s) completed, "
         f"{len(findings)} finding(s), {vulnerability.match_count} CVE/KEV candidate(s)."
     )
+    active_finding_count = len(active_findings(findings))
     workflow_lanes = analysis_session_workflow_lanes(
         approved_scope_count=len(approved_scope),
         selected_count=selected_count,
@@ -2148,7 +2161,21 @@ def analysis_session_dashboard(
         completed_count=completed_count,
         failed_count=failed_count,
         run_count=len(scan_runs),
-        finding_count=len(active_findings(findings)),
+        finding_count=active_finding_count,
+        vulnerability_match_count=vulnerability.match_count,
+        reports_ready=reports_ready,
+        report_count=len(reports),
+        package_ready=package_ready,
+    )
+    result_shortcuts = analysis_session_result_shortcuts(
+        approved_scope_count=len(approved_scope),
+        selected_count=selected_count,
+        ready_count=ready_count,
+        blocked_count=blocked_count,
+        completed_count=completed_count,
+        failed_count=failed_count,
+        run_count=len(scan_runs),
+        finding_count=active_finding_count,
         vulnerability_match_count=vulnerability.match_count,
         reports_ready=reports_ready,
         report_count=len(reports),
@@ -2178,7 +2205,7 @@ def analysis_session_dashboard(
         completed_service_count=completed_count,
         failed_service_count=failed_count,
         run_count=len(scan_runs),
-        finding_count=len(active_findings(findings)),
+        finding_count=active_finding_count,
         vulnerability_match_count=vulnerability.match_count,
         report_count=len(reports),
         package_ready=package_ready,
@@ -2186,6 +2213,7 @@ def analysis_session_dashboard(
         target_summary=tuple(session_target_summary_item(item) for item in approved_scope[:8]),
         steps=steps,
         workflow_lanes=workflow_lanes,
+        result_shortcuts=result_shortcuts,
     )
 
 
@@ -2287,6 +2315,104 @@ def analysis_session_workflow_lanes(
             primary_value=str(report_count),
             secondary_label="Package",
             secondary_value="pret" if package_ready else "a faire",
+            action_label="Voir livrables",
+            action_href="#session-findings",
+        ),
+    ]
+
+
+def analysis_session_result_shortcuts(
+    approved_scope_count: int,
+    selected_count: int,
+    ready_count: int,
+    blocked_count: int,
+    completed_count: int,
+    failed_count: int,
+    run_count: int,
+    finding_count: int,
+    vulnerability_match_count: int,
+    reports_ready: bool,
+    report_count: int,
+    package_ready: bool,
+) -> list[AnalysisSessionResultShortcut]:
+    service_status = "ready" if ready_count and not blocked_count else "missing"
+    if blocked_count:
+        service_status = "warning"
+
+    if failed_count:
+        execution_status = "blocked"
+        execution_detail = f"{failed_count} execution(s) a revoir avant livraison."
+    elif run_count:
+        execution_status = "ready" if selected_count and completed_count == selected_count else "warning"
+        execution_detail = f"{completed_count}/{selected_count} controle(s) termines."
+    else:
+        execution_status = "missing"
+        execution_detail = "Aucune execution enregistree."
+
+    finding_status = "ready" if finding_count else "missing"
+    if run_count and not finding_count:
+        finding_status = "warning"
+
+    cve_status = "ready" if vulnerability_match_count else "missing"
+    if finding_count and not vulnerability_match_count:
+        cve_status = "warning"
+
+    delivery_status = "ready" if reports_ready and package_ready else "missing"
+    if reports_ready and not package_ready:
+        delivery_status = "warning"
+
+    return [
+        AnalysisSessionResultShortcut(
+            label="Cibles",
+            category="Decouverte",
+            status="ready" if approved_scope_count else "missing",
+            count=str(approved_scope_count),
+            detail="Perimetre approuve et exploitable par les controles selectionnes.",
+            action_label="Voir cibles",
+            action_href="#session-targets",
+        ),
+        AnalysisSessionResultShortcut(
+            label="Services",
+            category="Decouverte",
+            status=service_status,
+            count=str(selected_count),
+            detail=f"{ready_count} pret(s), {blocked_count} bloque(s).",
+            action_label="Voir services",
+            action_href="#session-services",
+        ),
+        AnalysisSessionResultShortcut(
+            label="Executions",
+            category="Execution",
+            status=execution_status,
+            count=str(run_count),
+            detail=execution_detail,
+            action_label="Voir runs",
+            action_href="#session-runs",
+        ),
+        AnalysisSessionResultShortcut(
+            label="CVE/KEV",
+            category="Analyse",
+            status=cve_status,
+            count=str(vulnerability_match_count),
+            detail="Candidats a valider avant stockage en constats client.",
+            action_label="Verifier CVE",
+            action_href="#session-findings",
+        ),
+        AnalysisSessionResultShortcut(
+            label="Constats",
+            category="Analyse",
+            status=finding_status,
+            count=str(finding_count),
+            detail="Constats actifs a expliquer, corriger et contre-tester.",
+            action_label="Voir constats",
+            action_href="#session-findings",
+        ),
+        AnalysisSessionResultShortcut(
+            label="Livrables",
+            category="Restitution",
+            status=delivery_status,
+            count=str(report_count),
+            detail="Rapports et package a verifier avant remise client.",
             action_label="Voir livrables",
             action_href="#session-findings",
         ),

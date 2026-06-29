@@ -31,6 +31,28 @@
         <span style="width: {{ view.session_dashboard.progress_percent }}%"></span>
       </div>
     </div>
+    <div class="session-progress-summary" aria-label="Session progress summary">
+      <article>
+        <span>Phase active</span>
+        <strong>{{ view.session_dashboard.current_phase }}</strong>
+        <p>Point de pilotage prioritaire pour cette session.</p>
+      </article>
+      <article>
+        <span>Jalons prets</span>
+        <strong>{{ view.session_dashboard.ready_step_count }}/{{ view.session_dashboard.total_step_count }}</strong>
+        <p>{{ view.session_dashboard.needs_attention_step_count }} jalon(s) restent a traiter.</p>
+      </article>
+      <article>
+        <span>Blocages</span>
+        <strong>{{ view.session_dashboard.blocked_step_count }}</strong>
+        <p>Un blocage doit etre leve avant la restitution client.</p>
+      </article>
+      <article class="session-next-action">
+        <span>Prochaine action</span>
+        <strong>{{ view.session_dashboard.next_action_label }}</strong>
+        <p>{{ view.session_dashboard.next_action_detail }}</p>
+      </article>
+    </div>
     <a class="button" href="{{ view.session_dashboard.next_action_href }}">{{ view.session_dashboard.next_action_label }}</a>
   </div>
   <div class="session-hero-metrics">

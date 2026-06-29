@@ -397,8 +397,13 @@ class AnalysisSessionDashboard:
     mode: str
     progress_percent: int
     current_phase: str
+    ready_step_count: int
+    needs_attention_step_count: int
+    blocked_step_count: int
+    total_step_count: int
     next_action_label: str
     next_action_href: str
+    next_action_detail: str
     internal_target_count: int
     external_target_count: int
     ad_target_count: int
@@ -2106,6 +2111,12 @@ def analysis_session_dashboard(
     progress_percent = min(100, round((earned / weight) * 100))
     status = analysis_session_status(steps)
     current_phase = analysis_current_phase(steps)
+    ready_step_count = len([step for step in steps if step.status == "ready"])
+    needs_attention_step_count = len(
+        [step for step in steps if step.status in {"blocked", "missing", "warning"}]
+    )
+    blocked_step_count = len([step for step in steps if step.status == "blocked"])
+    total_step_count = len(steps)
     next_step = next(
         (step for step in steps if step.status in {"blocked", "missing", "warning"}),
         steps[-1],
@@ -2122,8 +2133,13 @@ def analysis_session_dashboard(
         mode=mission.audit_type.value,
         progress_percent=progress_percent,
         current_phase=current_phase,
+        ready_step_count=ready_step_count,
+        needs_attention_step_count=needs_attention_step_count,
+        blocked_step_count=blocked_step_count,
+        total_step_count=total_step_count,
         next_action_label=next_step.action_label,
         next_action_href=next_step.action_href,
+        next_action_detail=next_step.detail,
         internal_target_count=len(internal_targets),
         external_target_count=len(external_targets),
         ad_target_count=len(ad_targets),

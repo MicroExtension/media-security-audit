@@ -3962,6 +3962,43 @@ code {
   height: 100%;
 }
 
+.session-progress-summary {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.session-progress-summary article {
+  background: rgba(196, 18, 30, 0.06);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  display: grid;
+  gap: 6px;
+  min-height: 128px;
+  padding: 12px;
+}
+
+.session-progress-summary span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.session-progress-summary strong {
+  color: var(--text);
+  font-size: 17px;
+}
+
+.session-progress-summary p {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.session-next-action {
+  border-left: 4px solid var(--accent);
+}
+
 .session-command-center {
   background: linear-gradient(135deg, rgba(196, 18, 30, 0.10), rgba(18, 18, 18, 0.02));
   border: 1px solid var(--border);
@@ -4581,6 +4618,7 @@ button.button:hover {
   .test-checklist-grid,
   .test-feedback-list,
   .session-hero,
+  .session-progress-summary,
   .session-command-grid,
   .session-step-grid,
   .session-service-list,

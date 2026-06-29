@@ -2656,6 +2656,103 @@ tr[hidden] {
   outline-offset: 1px;
 }
 
+.wizard-final-readiness {
+  background: #fffbeb;
+  border: 1px solid #fedf89;
+  border-left: 4px solid #f79009;
+  border-radius: 6px;
+  display: grid;
+  gap: 14px;
+  margin-bottom: 14px;
+  padding: 14px;
+}
+
+.wizard-final-readiness.is-ready {
+  background: #ecfdf3;
+  border-color: #a6f4c5;
+  border-left-color: #12b76a;
+}
+
+.wizard-final-status {
+  align-items: flex-start;
+  display: flex;
+  gap: 12px;
+}
+
+.wizard-final-status > span {
+  background: #fef0c7;
+  border-radius: 999px;
+  color: #93370d;
+  flex: 0 0 auto;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 6px 10px;
+}
+
+.wizard-final-readiness.is-ready .wizard-final-status > span {
+  background: #d1fadf;
+  color: #05603a;
+}
+
+.wizard-final-status strong {
+  color: var(--text);
+  display: block;
+  font-size: 1rem;
+}
+
+.wizard-final-status p {
+  color: var(--muted);
+  margin: 4px 0 0;
+}
+
+.wizard-final-metrics {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.wizard-final-metrics article {
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  display: grid;
+  gap: 4px;
+  min-height: 68px;
+  padding: 10px;
+}
+
+.wizard-final-metrics span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.wizard-final-metrics strong {
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.wizard-final-next {
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px;
+}
+
+.wizard-final-next > strong {
+  color: var(--text);
+  display: block;
+  margin-bottom: 8px;
+}
+
+.wizard-final-next ol {
+  color: var(--muted);
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 20px;
+}
+
 .wizard-review-grid {
   display: grid;
   gap: 12px;
@@ -4461,6 +4558,7 @@ button.button:hover {
   .wizard-coverage-list,
   .wizard-summary-grid,
   .wizard-summary-details,
+  .wizard-final-metrics,
   .wizard-creation-checklist,
   .wizard-review-grid,
   .wizard-field-trial ul,

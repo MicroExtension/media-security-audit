@@ -533,6 +533,42 @@
           <h2>Validation</h2>
           <span class="muted">Dernier controle avant creation</span>
         </div>
+        <section class="wizard-final-readiness is-blocked" aria-label="Decision avant creation" data-wizard-final-readiness>
+          <div class="wizard-final-status">
+            <span data-wizard-final-status-pill>Bloque</span>
+            <div>
+              <strong data-wizard-final-status-title>Creation bloquee</strong>
+              <p data-wizard-final-status-detail>Complete les points manquants avant de creer la mission.</p>
+            </div>
+          </div>
+          <div class="wizard-final-metrics">
+            <article>
+              <span>Client</span>
+              <strong data-wizard-final-client>Manquant</strong>
+            </article>
+            <article>
+              <span>Mission</span>
+              <strong data-wizard-final-mission>Manquante</strong>
+            </article>
+            <article>
+              <span>Cibles</span>
+              <strong data-wizard-final-targets>0</strong>
+            </article>
+            <article>
+              <span>Services</span>
+              <strong data-wizard-final-services>0</strong>
+            </article>
+          </div>
+          <div class="wizard-final-next">
+            <strong>Apres creation</strong>
+            <ol>
+              <li>Ouvrir la console d'audit pour le Go/No-Go.</li>
+              <li>Verifier le plan de scans et les outils disponibles.</li>
+              <li>Lancer uniquement les controles explicitement autorises.</li>
+              <li>Generer les rapports PDF, JSON et le suivi des remediations.</li>
+            </ol>
+          </div>
+        </section>
         <div class="wizard-review-grid">
           <div>
             <span class="muted block">Client</span>
@@ -680,6 +716,14 @@
     const credentialFields = [...document.querySelectorAll("[data-wizard-credential-field]")];
     const reviewStatus = document.querySelector("[data-wizard-review-status]");
     const creationGateItems = [...document.querySelectorAll("[data-wizard-gate]")];
+    const finalReadiness = document.querySelector("[data-wizard-final-readiness]");
+    const finalStatusPill = document.querySelector("[data-wizard-final-status-pill]");
+    const finalStatusTitle = document.querySelector("[data-wizard-final-status-title]");
+    const finalStatusDetail = document.querySelector("[data-wizard-final-status-detail]");
+    const finalClient = document.querySelector("[data-wizard-final-client]");
+    const finalMission = document.querySelector("[data-wizard-final-mission]");
+    const finalTargets = document.querySelector("[data-wizard-final-targets]");
+    const finalServices = document.querySelector("[data-wizard-final-services]");
     const coverageList = document.querySelector("[data-wizard-coverage-list]");
     const coverageSummary = document.querySelector("[data-wizard-coverage-summary]");
     const targetCoachSummary = document.querySelector("[data-wizard-target-coach-summary]");
@@ -995,6 +1039,57 @@
           : "Aucune revue d'identifiants demandee.",
       );
     };
+    const readinessBlockers = (state) => {
+      const blockers = [];
+      if (!state.client) {
+        blockers.push("client");
+      }
+      if (!state.mission) {
+        blockers.push("mission/autorisation");
+      }
+      if (!state.scope) {
+        blockers.push("cibles");
+      }
+      if (!state.checks) {
+        blockers.push("services/couverture");
+      }
+      if (!state.credentials) {
+        blockers.push("garde-fous identifiants");
+      }
+      return blockers;
+    };
+    const updateFinalReadiness = (state, snapshot) => {
+      if (!finalReadiness) {
+        return;
+      }
+      const blockers = readinessBlockers(state);
+      const ready = blockers.length === 0;
+      finalReadiness.classList.toggle("is-ready", ready);
+      finalReadiness.classList.toggle("is-blocked", !ready);
+      if (finalStatusPill) {
+        finalStatusPill.textContent = ready ? "Pret" : `${blockers.length} point${blockers.length === 1 ? "" : "s"} a corriger`;
+      }
+      if (finalStatusTitle) {
+        finalStatusTitle.textContent = ready ? "Audit pret a creer" : "Creation bloquee";
+      }
+      if (finalStatusDetail) {
+        finalStatusDetail.textContent = ready
+          ? "La mission peut etre creee. Les controles actifs resteront separes dans la console."
+          : `A corriger: ${blockers.join(", ")}.`;
+      }
+      if (finalClient) {
+        finalClient.textContent = state.client ? "Pret" : "Manquant";
+      }
+      if (finalMission) {
+        finalMission.textContent = state.mission ? "Autorisee" : "Manquante";
+      }
+      if (finalTargets) {
+        finalTargets.textContent = String(snapshot.targetTotal);
+      }
+      if (finalServices) {
+        finalServices.textContent = String(snapshot.checks.length);
+      }
+    };
     const setMessage = (message, state = "warning") => {
       if (!stepMessage) {
         return;
@@ -1108,6 +1203,10 @@
         credentialDetail: credentialLabel(),
         credentialRequested: credentialRequested(),
         missionName,
+        targetTotal: targetCount,
+      });
+      updateFinalReadiness(state, {
+        checks,
         targetTotal: targetCount,
       });
       if (submitButton) {

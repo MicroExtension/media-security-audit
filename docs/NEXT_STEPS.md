@@ -650,6 +650,8 @@ Current GUI status:
   status and direct jumps to the matching target field
 - guided audit wizard now offers service presets and a live service coach that
   explains which selected controls are ready or still need compatible targets
+- guided audit wizard now shows a final ready/blocked creation decision and the
+  next steps that happen after the audit is created
 - dedicated Clients and Audits pages separate customer identity from mission
   work so the dashboard does not carry every operational form
 - mission Audit Console provides a focused prepare, launch, analyze, and deliver

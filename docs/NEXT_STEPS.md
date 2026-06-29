@@ -123,6 +123,7 @@ Codex action:
 - keep activity filter summaries readable and linked to their context pages
 - keep activity page shortcuts aligned with filters, events, and exports
 - keep session dashboard progress summaries focused on phase, blockers, and next technician action
+- keep session workflow lanes aligned with discovery, execution, analysis, and delivery data
 - keep Clients and Audits list pages focused on search, status, and next technician action
 - keep Client and Mission detail pages focused on context, next action, and handoff routes
 - keep delivery and remediation pages focused on client handoff, clear corrections, and quick search

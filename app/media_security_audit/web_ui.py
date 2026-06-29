@@ -390,6 +390,19 @@ class AnalysisSessionStep:
 
 
 @dataclass(frozen=True)
+class AnalysisSessionWorkflowLane:
+    label: str
+    status: str
+    detail: str
+    primary_label: str
+    primary_value: str
+    secondary_label: str
+    secondary_value: str
+    action_label: str
+    action_href: str
+
+
+@dataclass(frozen=True)
 class AnalysisSessionDashboard:
     status: str
     title: str
@@ -421,6 +434,7 @@ class AnalysisSessionDashboard:
     selected_services: tuple[str, ...]
     target_summary: tuple[str, ...]
     steps: list[AnalysisSessionStep]
+    workflow_lanes: list[AnalysisSessionWorkflowLane]
 
 
 @dataclass(frozen=True)
@@ -2126,6 +2140,20 @@ def analysis_session_dashboard(
         f"{completed_count}/{selected_count} selected service(s) completed, "
         f"{len(findings)} finding(s), {vulnerability.match_count} CVE/KEV candidate(s)."
     )
+    workflow_lanes = analysis_session_workflow_lanes(
+        approved_scope_count=len(approved_scope),
+        selected_count=selected_count,
+        ready_count=ready_count,
+        blocked_count=blocked_count,
+        completed_count=completed_count,
+        failed_count=failed_count,
+        run_count=len(scan_runs),
+        finding_count=len(active_findings(findings)),
+        vulnerability_match_count=vulnerability.match_count,
+        reports_ready=reports_ready,
+        report_count=len(reports),
+        package_ready=package_ready,
+    )
     return AnalysisSessionDashboard(
         status=status,
         title=title,
@@ -2157,7 +2185,112 @@ def analysis_session_dashboard(
         selected_services=tuple(plan.label for plan in scan_plans),
         target_summary=tuple(session_target_summary_item(item) for item in approved_scope[:8]),
         steps=steps,
+        workflow_lanes=workflow_lanes,
     )
+
+
+def analysis_session_workflow_lanes(
+    approved_scope_count: int,
+    selected_count: int,
+    ready_count: int,
+    blocked_count: int,
+    completed_count: int,
+    failed_count: int,
+    run_count: int,
+    finding_count: int,
+    vulnerability_match_count: int,
+    reports_ready: bool,
+    report_count: int,
+    package_ready: bool,
+) -> list[AnalysisSessionWorkflowLane]:
+    discovery_status = "ready" if approved_scope_count and ready_count else "missing"
+    if blocked_count:
+        discovery_status = "warning"
+    discovery_detail = (
+        "Perimetre et services compatibles sont prets pour une execution controlee."
+        if discovery_status == "ready"
+        else "Valide le perimetre et les services compatibles avant de lancer."
+    )
+
+    if failed_count:
+        execution_status = "blocked"
+        execution_detail = "Une execution a echoue et doit etre revue avant restitution."
+    elif selected_count and completed_count == selected_count:
+        execution_status = "ready"
+        execution_detail = "Tous les controles selectionnes ont une execution terminee."
+    elif run_count:
+        execution_status = "warning"
+        execution_detail = "Des executions existent mais la session n'est pas complete."
+    else:
+        execution_status = "missing"
+        execution_detail = "Aucun controle n'a encore ete execute pour cette session."
+
+    if finding_count or vulnerability_match_count:
+        analysis_status = "ready"
+        analysis_detail = "Des constats ou candidats CVE/KEV sont disponibles a qualifier."
+    elif run_count:
+        analysis_status = "warning"
+        analysis_detail = "Les executions sont enregistrees; verifie les preuves et resultats."
+    else:
+        analysis_status = "missing"
+        analysis_detail = "L'analyse demarre apres les premiers controles enregistres."
+
+    if reports_ready and package_ready:
+        delivery_status = "ready"
+        delivery_detail = "Rapports et package de remise sont disponibles."
+    elif reports_ready:
+        delivery_status = "warning"
+        delivery_detail = "Les rapports existent; prepare le package de remise client."
+    else:
+        delivery_status = "missing"
+        delivery_detail = "Genere les rapports apres qualification des constats."
+
+    return [
+        AnalysisSessionWorkflowLane(
+            label="Decouverte",
+            status=discovery_status,
+            detail=discovery_detail,
+            primary_label="Cibles",
+            primary_value=str(approved_scope_count),
+            secondary_label="Services prets",
+            secondary_value=f"{ready_count}/{selected_count}",
+            action_label="Voir cibles",
+            action_href="#session-targets",
+        ),
+        AnalysisSessionWorkflowLane(
+            label="Execution",
+            status=execution_status,
+            detail=execution_detail,
+            primary_label="Runs",
+            primary_value=str(run_count),
+            secondary_label="Termines",
+            secondary_value=f"{completed_count}/{selected_count}",
+            action_label="Voir executions",
+            action_href="#session-runs",
+        ),
+        AnalysisSessionWorkflowLane(
+            label="Analyse",
+            status=analysis_status,
+            detail=analysis_detail,
+            primary_label="Constats",
+            primary_value=str(finding_count),
+            secondary_label="CVE/KEV",
+            secondary_value=str(vulnerability_match_count),
+            action_label="Voir constats",
+            action_href="#session-findings",
+        ),
+        AnalysisSessionWorkflowLane(
+            label="Restitution",
+            status=delivery_status,
+            detail=delivery_detail,
+            primary_label="Rapports",
+            primary_value=str(report_count),
+            secondary_label="Package",
+            secondary_value="pret" if package_ready else "a faire",
+            action_label="Voir livrables",
+            action_href="#session-findings",
+        ),
+    ]
 
 
 def analysis_session_step(

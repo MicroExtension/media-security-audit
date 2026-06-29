@@ -4073,6 +4073,107 @@ code {
   border-left-color: var(--red);
 }
 
+.session-workflow-board {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: grid;
+  gap: 14px;
+  margin: 0 0 22px;
+  padding: 18px;
+}
+
+.session-workflow-head {
+  align-items: end;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.session-workflow-head div {
+  display: grid;
+  gap: 4px;
+}
+
+.session-workflow-head h2,
+.session-workflow-head p {
+  margin: 0;
+}
+
+.session-workflow-head p {
+  color: var(--muted);
+}
+
+.session-workflow-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.session-workflow-card {
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-top: 4px solid var(--border);
+  border-radius: 6px;
+  display: grid;
+  gap: 12px;
+  min-height: 216px;
+  padding: 14px;
+}
+
+.session-workflow-card-head {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.session-workflow-card p {
+  color: var(--muted);
+  margin: 0;
+}
+
+.session-workflow-ready {
+  border-top-color: var(--green);
+}
+
+.session-workflow-warning,
+.session-workflow-missing {
+  border-top-color: var(--amber);
+}
+
+.session-workflow-blocked,
+.session-workflow-failed {
+  border-top-color: var(--red);
+}
+
+.session-workflow-metrics {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+}
+
+.session-workflow-metrics div {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px;
+}
+
+.session-workflow-metrics dt {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.session-workflow-metrics dd {
+  color: var(--text);
+  font-size: 20px;
+  font-weight: 900;
+  margin: 4px 0 0;
+}
+
 .session-phase-lane {
   display: grid;
   gap: 14px;
@@ -4620,6 +4721,7 @@ button.button:hover {
   .session-hero,
   .session-progress-summary,
   .session-command-grid,
+  .session-workflow-grid,
   .session-step-grid,
   .session-service-list,
   .session-remediation-grid {

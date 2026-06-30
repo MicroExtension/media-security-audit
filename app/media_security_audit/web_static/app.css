@@ -4497,6 +4497,83 @@ code {
   gap: 14px;
 }
 
+.session-execution-queue {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.session-execution-card {
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-left: 5px solid var(--border);
+  border-radius: 6px;
+  display: grid;
+  gap: 10px;
+  min-height: 260px;
+  padding: 14px;
+}
+
+.session-execution-ready,
+.session-execution-completed {
+  border-left-color: var(--green);
+}
+
+.session-execution-warning,
+.session-execution-missing {
+  border-left-color: var(--amber);
+}
+
+.session-execution-blocked,
+.session-execution-failed {
+  border-left-color: var(--red);
+}
+
+.session-execution-head {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.session-execution-head strong {
+  font-size: 17px;
+}
+
+.session-execution-card p {
+  color: var(--muted);
+  margin: 0;
+}
+
+.session-execution-metrics {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
+}
+
+.session-execution-metrics div {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px;
+}
+
+.session-execution-metrics dt {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.session-execution-metrics dd {
+  color: var(--text);
+  font-size: 20px;
+  font-weight: 900;
+  margin: 4px 0 0;
+}
+
 .session-step-grid,
 .session-remediation-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -5100,6 +5177,7 @@ button.button:hover {
   .session-result-grid,
   .session-timeline-track,
   .session-step-grid,
+  .session-execution-queue,
   .session-service-list,
   .session-explainer-board,
   .session-priority-board,

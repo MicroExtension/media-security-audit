@@ -464,6 +464,21 @@ class AnalysisSessionFindingExplainer:
 
 
 @dataclass(frozen=True)
+class AnalysisSessionExecutionQueueItem:
+    check: str
+    label: str
+    status: str
+    readiness_detail: str
+    planned_command_count: int
+    last_run_status: str
+    last_run_summary: str
+    finding_count: int
+    evidence_count: int
+    action_label: str
+    action_href: str
+
+
+@dataclass(frozen=True)
 class AnalysisSessionDashboard:
     status: str
     title: str
@@ -501,6 +516,7 @@ class AnalysisSessionDashboard:
     remediation_priorities: list[AnalysisSessionRemediationPriority]
     client_brief: AnalysisSessionClientBrief
     finding_explainers: list[AnalysisSessionFindingExplainer]
+    execution_queue: list[AnalysisSessionExecutionQueueItem]
 
 
 @dataclass(frozen=True)
@@ -2252,6 +2268,7 @@ def analysis_session_dashboard(
         vulnerability_match_count=vulnerability.match_count,
     )
     finding_explainers = analysis_session_finding_explainers(findings)
+    execution_queue = analysis_session_execution_queue(scan_plans, latest_runs)
     return AnalysisSessionDashboard(
         status=status,
         title=title,
@@ -2289,6 +2306,7 @@ def analysis_session_dashboard(
         remediation_priorities=remediation_priorities,
         client_brief=client_brief,
         finding_explainers=finding_explainers,
+        execution_queue=execution_queue,
     )
 
 
@@ -2727,6 +2745,87 @@ def analysis_session_finding_explainers(
             )
         )
     return explainers
+
+
+def analysis_session_execution_queue(
+    scan_plans: list[ScanPlanPreview],
+    latest_runs: dict[str, ScanRun],
+) -> list[AnalysisSessionExecutionQueueItem]:
+    queue = []
+    for plan in scan_plans:
+        latest_run = latest_runs.get(plan.check)
+        planned_command_count = len(plan.commands)
+        if latest_run is not None:
+            evidence_count = len(latest_run.evidence_paths)
+            status = latest_run.status.value
+            if latest_run.status is ScanRunStatus.FAILED:
+                action_label = "Revoir erreur"
+                action_href = "#session-runs"
+                last_run_summary = (
+                    f"Dernier lancement echoue : {latest_run.command_count} commande(s), "
+                    f"{latest_run.finding_count} constat(s), {evidence_count} preuve(s)."
+                )
+            else:
+                action_label = "Voir resultats"
+                action_href = "#session-runs"
+                last_run_summary = (
+                    f"Dernier lancement termine : {latest_run.command_count} commande(s), "
+                    f"{latest_run.finding_count} constat(s), {evidence_count} preuve(s)."
+                )
+            if latest_run.error:
+                last_run_summary = f"{last_run_summary} Erreur : {latest_run.error}"
+            queue.append(
+                AnalysisSessionExecutionQueueItem(
+                    check=plan.check,
+                    label=plan.label,
+                    status=status,
+                    readiness_detail=plan.detail,
+                    planned_command_count=planned_command_count,
+                    last_run_status=latest_run.status.value,
+                    last_run_summary=last_run_summary,
+                    finding_count=latest_run.finding_count,
+                    evidence_count=evidence_count,
+                    action_label=action_label,
+                    action_href=action_href,
+                )
+            )
+            continue
+
+        if plan.status == "ready":
+            status = "ready"
+            action_label = "Lancer controle"
+            action_href = "#session-services"
+            last_run_status = "missing"
+            last_run_summary = "Aucun lancement enregistre pour ce controle."
+        elif plan.status == "blocked":
+            status = "blocked"
+            action_label = "Corriger preparation"
+            action_href = "#session-services"
+            last_run_status = "blocked"
+            last_run_summary = "Controle bloque tant que la preparation n'est pas corrigee."
+        else:
+            status = "warning"
+            action_label = "Verifier controle"
+            action_href = "#session-services"
+            last_run_status = "missing"
+            last_run_summary = "Controle a verifier avant lancement."
+
+        queue.append(
+            AnalysisSessionExecutionQueueItem(
+                check=plan.check,
+                label=plan.label,
+                status=status,
+                readiness_detail=plan.detail,
+                planned_command_count=planned_command_count,
+                last_run_status=last_run_status,
+                last_run_summary=last_run_summary,
+                finding_count=0,
+                evidence_count=0,
+                action_label=action_label,
+                action_href=action_href,
+            )
+        )
+    return queue
 
 
 def plain_finding_explanation(finding: Finding) -> str:

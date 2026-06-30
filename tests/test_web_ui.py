@@ -1130,6 +1130,7 @@ class WebUiTests(unittest.TestCase):
         self.assertIn('aria-label="Session priority actions"', template)
         self.assertIn('aria-label="Session workflow lanes"', template)
         self.assertIn('aria-label="Session result explorer"', template)
+        self.assertIn('aria-label="Session activity timeline"', template)
         self.assertIn('aria-label="Phases de la session"', template)
         self.assertIn('aria-label="Analysis session progress steps"', template)
         self.assertIn('aria-label="Selected session services"', template)
@@ -1144,6 +1145,7 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("view.session_dashboard.next_action_detail", template)
         self.assertIn("view.session_dashboard.workflow_lanes", template)
         self.assertIn("view.session_dashboard.result_shortcuts", template)
+        self.assertIn("view.session_dashboard.timeline_items", template)
         self.assertIn("view.session_dashboard.selected_service_count", template)
         self.assertIn("view.session_dashboard.completed_service_count", template)
         self.assertIn("view.session_dashboard.vulnerability_match_count", template)
@@ -1151,6 +1153,7 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("Actions Prioritaires", template)
         self.assertIn("Parcours De Session", template)
         self.assertIn("Explorateur De Session", template)
+        self.assertIn("Timeline De Session", template)
         self.assertIn("view.go_no_go.decision", template)
         self.assertIn("view.go_no_go.ready_count", template)
         self.assertIn("view.scan_run_outcome.title", template)
@@ -1187,6 +1190,11 @@ class WebUiTests(unittest.TestCase):
         self.assertIn(".session-result-card", css)
         self.assertIn(".session-result-ready", css)
         self.assertIn(".session-result-blocked", css)
+        self.assertIn(".session-activity-timeline", css)
+        self.assertIn(".session-timeline-track", css)
+        self.assertIn(".session-timeline-item", css)
+        self.assertIn(".session-timeline-completed", css)
+        self.assertIn(".session-timeline-failed", css)
         self.assertIn(".session-command-ready", css)
         self.assertIn(".session-command-failed", css)
         self.assertIn(".session-phase-lane", css)
@@ -4102,6 +4110,25 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(execution_result.status, "warning")
         self.assertEqual(execution_result.count, "1")
         self.assertEqual(execution_result.action_href, "#session-runs")
+        self.assertIn(
+            "Mission creee",
+            [item.label for item in view.session_dashboard.timeline_items],
+        )
+        self.assertIn(
+            "Controle Nmap services",
+            [item.label for item in view.session_dashboard.timeline_items],
+        )
+        self.assertIn(
+            "Revue constats",
+            [item.label for item in view.session_dashboard.timeline_items],
+        )
+        run_timeline = next(
+            item
+            for item in view.session_dashboard.timeline_items
+            if item.label == "Controle Nmap services"
+        )
+        self.assertEqual(run_timeline.status, "completed")
+        self.assertEqual(run_timeline.action_href, "#session-runs")
         self.assertIn("unknown:ip:192.0.2.10", view.session_dashboard.target_summary)
         self.assertIn("Nmap", view.session_dashboard.selected_services)
         self.assertIn("Execution", [step.label for step in view.session_dashboard.steps])

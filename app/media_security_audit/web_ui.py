@@ -414,6 +414,16 @@ class AnalysisSessionResultShortcut:
 
 
 @dataclass(frozen=True)
+class AnalysisSessionTimelineItem:
+    label: str
+    status: str
+    timestamp: str
+    detail: str
+    action_label: str
+    action_href: str
+
+
+@dataclass(frozen=True)
 class AnalysisSessionDashboard:
     status: str
     title: str
@@ -447,6 +457,7 @@ class AnalysisSessionDashboard:
     steps: list[AnalysisSessionStep]
     workflow_lanes: list[AnalysisSessionWorkflowLane]
     result_shortcuts: list[AnalysisSessionResultShortcut]
+    timeline_items: list[AnalysisSessionTimelineItem]
 
 
 @dataclass(frozen=True)
@@ -2181,6 +2192,14 @@ def analysis_session_dashboard(
         report_count=len(reports),
         package_ready=package_ready,
     )
+    timeline_items = analysis_session_timeline_items(
+        mission=mission,
+        findings=findings,
+        scan_runs=scan_runs,
+        reports=reports,
+        mission_export=mission_export,
+        vulnerability=vulnerability,
+    )
     return AnalysisSessionDashboard(
         status=status,
         title=title,
@@ -2214,6 +2233,7 @@ def analysis_session_dashboard(
         steps=steps,
         workflow_lanes=workflow_lanes,
         result_shortcuts=result_shortcuts,
+        timeline_items=timeline_items,
     )
 
 
@@ -2417,6 +2437,119 @@ def analysis_session_result_shortcuts(
             action_href="#session-findings",
         ),
     ]
+
+
+def analysis_session_timeline_items(
+    mission: Mission,
+    findings: list[Finding],
+    scan_runs: list[ScanRun],
+    reports: list[GeneratedReportLink],
+    mission_export: MissionExportLink | None,
+    vulnerability: VulnerabilitySummary,
+) -> list[AnalysisSessionTimelineItem]:
+    items = [
+        AnalysisSessionTimelineItem(
+            label="Mission creee",
+            status="ready" if mission.is_authorized else "missing",
+            timestamp=format_datetime(mission.created_at),
+            detail=(
+                "Autorisation renseignee; la session peut suivre les controles approuves."
+                if mission.is_authorized
+                else "Ajoute la reference d'autorisation avant tout controle live."
+            ),
+            action_label="Preparation",
+            action_href="#session-steps",
+        )
+    ]
+
+    for run in sorted(scan_runs, key=lambda item: item.started_at, reverse=True)[:3]:
+        check_label = CHECK_LABELS.get(run.check, run.check.value)
+        evidence_count = len(run.evidence_paths)
+        detail = (
+            f"{run.command_count} commande(s), {run.finding_count} constat(s), "
+            f"{evidence_count} preuve(s)."
+        )
+        if run.error:
+            detail = f"{detail} Erreur : {run.error}"
+        items.append(
+            AnalysisSessionTimelineItem(
+                label=f"Controle {check_label}",
+                status=run.status.value,
+                timestamp=format_datetime(run.started_at),
+                detail=detail,
+                action_label="Voir execution",
+                action_href="#session-runs",
+            )
+        )
+
+    active = active_findings(findings)
+    if active:
+        latest_finding = max(active, key=lambda finding: finding.last_seen)
+        critical_or_high = any(
+            finding.severity in {Severity.CRITICAL, Severity.HIGH} for finding in active
+        )
+        items.append(
+            AnalysisSessionTimelineItem(
+                label="Revue constats",
+                status="warning" if critical_or_high else "ready",
+                timestamp=format_datetime(latest_finding.last_seen),
+                detail=f"{len(active)} constat(s) actif(s) a expliquer et prioriser.",
+                action_label="Voir constats",
+                action_href="#session-findings",
+            )
+        )
+    else:
+        items.append(
+            AnalysisSessionTimelineItem(
+                label="Revue constats",
+                status="missing",
+                timestamp="A venir",
+                detail="Aucun constat actif n'est encore disponible pour cette session.",
+                action_label="Voir constats",
+                action_href="#session-findings",
+            )
+        )
+
+    if vulnerability.match_count:
+        items.append(
+            AnalysisSessionTimelineItem(
+                label="CVE/KEV a valider",
+                status="warning",
+                timestamp="A valider",
+                detail=(
+                    f"{vulnerability.match_count} candidat(s), "
+                    f"{vulnerability.known_exploited_count} connu(s) exploite(s)."
+                ),
+                action_label="Verifier CVE",
+                action_href="#session-findings",
+            )
+        )
+
+    if reports:
+        items.append(
+            AnalysisSessionTimelineItem(
+                label="Rapports generes",
+                status="ready",
+                timestamp="Disponible",
+                detail=f"{len(reports)} livrable(s) rapport sont disponibles.",
+                action_label="Voir livrables",
+                action_href="#session-findings",
+            )
+        )
+
+    if mission_export is not None:
+        items.append(
+            AnalysisSessionTimelineItem(
+                label="Package remise",
+                status=mission_export.handoff_status,
+                timestamp="Package",
+                detail=mission_export.handoff_detail,
+                action_label="Verifier package",
+                action_href="#session-findings",
+            )
+        )
+
+    return items[:8]
 
 
 def analysis_session_step(

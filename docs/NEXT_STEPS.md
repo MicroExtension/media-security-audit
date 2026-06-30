@@ -128,6 +128,7 @@ Codex action:
 - keep session activity timelines short, status-driven, and linked to the matching review sections
 - keep session remediation priorities short, severity-driven, and focused on risk, correction, and counter-test
 - keep session client briefs concise, remediation-led, and aligned with report/export readiness
+- keep session finding explanations plain-language, short, and tied to remediation and counter-test guidance
 - keep Clients and Audits list pages focused on search, status, and next technician action
 - keep Client and Mission detail pages focused on context, next action, and handoff routes
 - keep delivery and remediation pages focused on client handoff, clear corrections, and quick search

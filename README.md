@@ -78,6 +78,7 @@ Implemented so far:
 - Session dashboards now show an activity timeline for preparation, latest runs, findings, CVE/KEV, reports, and handoff package
 - Session dashboards now highlight remediation priorities with risk, correction, and counter-test
 - Session dashboards now show a client briefing block with decision, priority, immediate action, validation, and delivery status
+- Session dashboards now explain priority findings in plain language with impact, correction, and validation
 - failed counter-tests drive dashboard, client, and mission next-action links
 - finding review requires notes for false positives, accepted risks, and counter-test results
 - web mission activity log for traceability

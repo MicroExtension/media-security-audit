@@ -4514,6 +4514,58 @@ code {
   gap: 10px;
 }
 
+.session-explainer-board {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-bottom: 18px;
+}
+
+.session-explainer-card {
+  background: linear-gradient(135deg, rgba(196, 18, 30, 0.08), var(--surface-muted));
+  border: 1px solid var(--border);
+  border-top: 5px solid var(--border);
+  border-radius: 6px;
+  display: grid;
+  gap: 10px;
+  min-height: 360px;
+  padding: 14px;
+}
+
+.session-explainer-critical {
+  border-top-color: var(--red);
+}
+
+.session-explainer-high {
+  border-top-color: var(--accent);
+}
+
+.session-explainer-medium {
+  border-top-color: var(--amber);
+}
+
+.session-explainer-low,
+.session-explainer-info {
+  border-top-color: var(--green);
+}
+
+.session-explainer-head {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.session-explainer-card strong {
+  font-size: 17px;
+}
+
+.session-explainer-card p {
+  color: var(--muted);
+  margin: 4px 0 0;
+}
+
 .session-priority-board {
   display: grid;
   gap: 14px;
@@ -5049,6 +5101,7 @@ button.button:hover {
   .session-timeline-track,
   .session-step-grid,
   .session-service-list,
+  .session-explainer-board,
   .session-priority-board,
   .session-remediation-grid {
     grid-template-columns: 1fr;

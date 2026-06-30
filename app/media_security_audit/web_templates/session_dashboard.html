@@ -359,6 +359,37 @@
     <h2>Constats Et Remediation</h2>
     <a class="table-action" href="/missions/{{ view.mission.id }}#findings">Ouvrir les constats</a>
   </div>
+  <div class="session-explainer-board" aria-label="Session finding explainers">
+    {% for item in view.session_dashboard.finding_explainers %}
+    <article class="session-explainer-card session-explainer-{{ item.severity }}">
+      <div class="session-explainer-head">
+        <span class="risk risk-{{ item.severity }}">{{ item.severity }}</span>
+        <span class="badge status-{{ item.status }}">{{ item.status }}</span>
+      </div>
+      <strong>{{ item.title }}</strong>
+      <span class="muted">{{ item.asset }}</span>
+      <div>
+        <span class="session-priority-label">Explication simple</span>
+        <p>{{ item.plain_explanation }}</p>
+      </div>
+      <div>
+        <span class="session-priority-label">Pourquoi c'est important</span>
+        <p>{{ item.why_it_matters }}</p>
+      </div>
+      <div>
+        <span class="session-priority-label">A faire</span>
+        <p>{{ item.remediation }}</p>
+      </div>
+      <div>
+        <span class="session-priority-label">Validation</span>
+        <p>{{ item.validation }}</p>
+      </div>
+      <a class="readiness-action" href="/missions/{{ view.mission.id }}#findings">{{ item.action_label }}</a>
+    </article>
+    {% else %}
+    <p class="empty">Aucun constat actif a expliquer pour cette session.</p>
+    {% endfor %}
+  </div>
   <div class="session-priority-board" aria-label="Session remediation priorities">
     {% for item in view.session_dashboard.remediation_priorities %}
     <article class="session-priority-card session-priority-{{ item.severity }}">

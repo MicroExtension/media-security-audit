@@ -450,6 +450,20 @@ class AnalysisSessionClientBrief:
 
 
 @dataclass(frozen=True)
+class AnalysisSessionFindingExplainer:
+    title: str
+    severity: str
+    status: str
+    asset: str
+    plain_explanation: str
+    why_it_matters: str
+    remediation: str
+    validation: str
+    action_label: str
+    action_href: str
+
+
+@dataclass(frozen=True)
 class AnalysisSessionDashboard:
     status: str
     title: str
@@ -486,6 +500,7 @@ class AnalysisSessionDashboard:
     timeline_items: list[AnalysisSessionTimelineItem]
     remediation_priorities: list[AnalysisSessionRemediationPriority]
     client_brief: AnalysisSessionClientBrief
+    finding_explainers: list[AnalysisSessionFindingExplainer]
 
 
 @dataclass(frozen=True)
@@ -2236,6 +2251,7 @@ def analysis_session_dashboard(
         run_count=len(scan_runs),
         vulnerability_match_count=vulnerability.match_count,
     )
+    finding_explainers = analysis_session_finding_explainers(findings)
     return AnalysisSessionDashboard(
         status=status,
         title=title,
@@ -2272,6 +2288,7 @@ def analysis_session_dashboard(
         timeline_items=timeline_items,
         remediation_priorities=remediation_priorities,
         client_brief=client_brief,
+        finding_explainers=finding_explainers,
     )
 
 
@@ -2687,6 +2704,102 @@ def analysis_session_client_brief(
         delivery_status=delivery_status,
         action_label="Preparer controles",
         action_href="#check-selection",
+    )
+
+
+def analysis_session_finding_explainers(
+    findings: list[Finding],
+) -> list[AnalysisSessionFindingExplainer]:
+    explainers = []
+    for finding in sorted_findings(active_findings(findings))[:3]:
+        explainers.append(
+            AnalysisSessionFindingExplainer(
+                title=finding.title,
+                severity=finding.severity.value,
+                status=finding.status.value,
+                asset=finding.affected_asset,
+                plain_explanation=plain_finding_explanation(finding),
+                why_it_matters=plain_finding_impact(finding),
+                remediation=finding.remediation,
+                validation=finding.counter_test,
+                action_label="Ouvrir constat",
+                action_href="#session-findings",
+            )
+        )
+    return explainers
+
+
+def plain_finding_explanation(finding: Finding) -> str:
+    text = " ".join(
+        [
+            finding.title,
+            finding.category,
+            finding.source_module,
+            finding.proof,
+            finding.risk,
+        ]
+    ).lower()
+
+    if any(marker in text for marker in ["rdp", "3389", "administr"]):
+        return (
+            "Un service d'administration distant semble accessible sur la cible. "
+            "Il doit etre limite aux sources autorisees et surveille."
+        )
+    if any(marker in text for marker in ["smb", "445", "share"]):
+        return (
+            "Un service de partage de fichiers est visible. Une mauvaise "
+            "configuration peut exposer des fichiers ou des informations internes."
+        )
+    if any(marker in text for marker in ["ldap", "389", "active directory"]):
+        return (
+            "Le service d'annuaire repond aux controles. Il faut verifier que les "
+            "informations exposees et les signatures LDAP respectent la politique client."
+        )
+    if any(marker in text for marker in ["tls", "ssl", "certificate", "certificat"]):
+        return (
+            "La configuration TLS ou certificat presente un point a corriger pour "
+            "eviter les protocoles faibles ou les erreurs de confiance."
+        )
+    if any(marker in text for marker in ["http", "header", "web"]):
+        return (
+            "Le service web expose une configuration de securite incomplete. "
+            "Des en-tetes ou restrictions peuvent reduire le risque cote navigateur."
+        )
+    if any(marker in text for marker in ["cve", "kev", "vulnerab"]):
+        return (
+            "Une vulnerabilite connue est candidate sur cet actif. Le produit et "
+            "la version doivent etre confirmes avant restitution client."
+        )
+    if any(marker in text for marker in ["dns", "spf", "dmarc", "dkim", "mail"]):
+        return (
+            "La configuration DNS ou mail doit etre renforcee pour limiter "
+            "l'usurpation, les erreurs de routage ou les faiblesses de domaine."
+        )
+    return (
+        "Ce constat signale un point de configuration ou d'exposition a verifier "
+        "sur la cible avant restitution."
+    )
+
+
+def plain_finding_impact(finding: Finding) -> str:
+    if finding.severity in {Severity.CRITICAL, Severity.HIGH}:
+        return (
+            "Impact prioritaire : une exploitation ou une exposition non maitrisee "
+            "peut avoir un effet direct sur la securite du client."
+        )
+    if finding.severity is Severity.MEDIUM:
+        return (
+            "Impact modere : le risque doit etre corrige ou planifie, surtout si "
+            "l'actif est expose ou sensible."
+        )
+    if finding.severity is Severity.LOW:
+        return (
+            "Impact faible : le point contribue a l'hygiene globale et doit etre "
+            "traite dans le suivi de maintenance."
+        )
+    return (
+        "Information : ce point aide a documenter l'etat de securite et les "
+        "controles de suivi."
     )
 
 

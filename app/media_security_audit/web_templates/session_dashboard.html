@@ -140,6 +140,28 @@
   </div>
 </section>
 
+<section class="session-result-explorer" aria-label="Session result explorer">
+  <div class="session-result-head">
+    <div>
+      <p class="eyebrow">Resultats</p>
+      <h2>Explorateur De Session</h2>
+      <p>Accede rapidement aux elements qui comptent pour lire l'audit sans parcourir toute la page.</p>
+    </div>
+    <a class="button secondary-button" href="/missions/{{ view.mission.id }}/run-monitor">Ouvrir le suivi</a>
+  </div>
+  <div class="session-result-grid">
+    {% for item in view.session_dashboard.result_shortcuts %}
+    <a class="session-result-card session-result-{{ item.status }}" href="{{ item.action_href }}">
+      <span class="session-result-category">{{ item.category }}</span>
+      <strong>{{ item.label }}</strong>
+      <b>{{ item.count }}</b>
+      <p>{{ item.detail }}</p>
+      <span class="readiness-action">{{ item.action_label }}</span>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+
 <section class="session-phase-lane" aria-label="Phases de la session">
   <article class="session-phase-item">
     <span>01</span>

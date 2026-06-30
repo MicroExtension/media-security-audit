@@ -4174,6 +4174,98 @@ code {
   margin: 4px 0 0;
 }
 
+.session-result-explorer {
+  background: linear-gradient(135deg, rgba(196, 18, 30, 0.08), rgba(16, 24, 40, 0.04));
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: grid;
+  gap: 14px;
+  margin: 0 0 22px;
+  padding: 18px;
+}
+
+.session-result-head {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.session-result-head div {
+  display: grid;
+  gap: 4px;
+}
+
+.session-result-head h2,
+.session-result-head p {
+  margin: 0;
+}
+
+.session-result-head p {
+  color: var(--muted);
+}
+
+.session-result-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.session-result-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-bottom: 4px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  display: grid;
+  gap: 8px;
+  min-height: 184px;
+  padding: 14px;
+  text-decoration: none;
+}
+
+.session-result-card:hover,
+.session-result-card:focus-visible {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.session-result-category {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.session-result-card strong {
+  font-size: 17px;
+}
+
+.session-result-card b {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.session-result-card p {
+  color: var(--muted);
+  margin: 0;
+}
+
+.session-result-ready {
+  border-bottom-color: var(--green);
+}
+
+.session-result-warning,
+.session-result-missing {
+  border-bottom-color: var(--amber);
+}
+
+.session-result-blocked,
+.session-result-failed {
+  border-bottom-color: var(--red);
+}
+
 .session-phase-lane {
   display: grid;
   gap: 14px;
@@ -4722,6 +4814,7 @@ button.button:hover {
   .session-progress-summary,
   .session-command-grid,
   .session-workflow-grid,
+  .session-result-grid,
   .session-step-grid,
   .session-service-list,
   .session-remediation-grid {

@@ -74,6 +74,7 @@ Implemented so far:
 - Session dashboards now show a priority command center for go/no-go, executions, CVE/KEV, and delivery
 - Session dashboards now show a readable progress summary with phase, ready steps, blockers, and next action
 - Session dashboards now show guided workflow lanes for discovery, execution, analysis, and delivery
+- Session dashboards now show a result explorer for targets, services, executions, CVE/KEV, findings, and deliverables
 - failed counter-tests drive dashboard, client, and mission next-action links
 - finding review requires notes for false positives, accepted risks, and counter-test results
 - web mission activity log for traceability

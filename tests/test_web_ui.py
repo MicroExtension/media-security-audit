@@ -1148,9 +1148,12 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("view.session_dashboard.result_shortcuts", template)
         self.assertIn("view.session_dashboard.timeline_items", template)
         self.assertIn("view.session_dashboard.remediation_priorities", template)
+        self.assertIn("view.session_dashboard.client_brief", template)
         self.assertIn("view.session_dashboard.selected_service_count", template)
         self.assertIn("view.session_dashboard.completed_service_count", template)
         self.assertIn("view.session_dashboard.vulnerability_match_count", template)
+        self.assertIn("Brief client", template)
+        self.assertIn('aria-label="Session client brief"', template)
         self.assertIn("Poste operateur", template)
         self.assertIn("Actions Prioritaires", template)
         self.assertIn("Parcours De Session", template)
@@ -1180,6 +1183,9 @@ class WebUiTests(unittest.TestCase):
         self.assertIn(".session-hero", css)
         self.assertIn(".session-progress-summary", css)
         self.assertIn(".session-next-action", css)
+        self.assertIn(".session-client-brief", css)
+        self.assertIn(".session-client-brief-grid", css)
+        self.assertIn(".session-client-brief-warning", css)
         self.assertIn(".session-command-center", css)
         self.assertIn(".session-command-grid", css)
         self.assertIn(".session-command-card", css)
@@ -4142,6 +4148,24 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(priority.severity, "high")
         self.assertEqual(priority.asset, "192.0.2.10")
         self.assertEqual(priority.action_href, "#session-findings")
+        self.assertEqual(view.session_dashboard.client_brief.status, "warning")
+        self.assertEqual(
+            view.session_dashboard.client_brief.title,
+            "Brief Client : Action Prioritaire",
+        )
+        self.assertIn(
+            "Open administrative service",
+            view.session_dashboard.client_brief.priority_focus,
+        )
+        self.assertEqual(
+            view.session_dashboard.client_brief.immediate_action,
+            "Restrict access to trusted sources.",
+        )
+        self.assertEqual(
+            view.session_dashboard.client_brief.validation,
+            "Run the approved Nmap plan again.",
+        )
+        self.assertEqual(view.session_dashboard.client_brief.action_href, "#session-findings")
         self.assertIn("unknown:ip:192.0.2.10", view.session_dashboard.target_summary)
         self.assertIn("Nmap", view.session_dashboard.selected_services)
         self.assertIn("Execution", [step.label for step in view.session_dashboard.steps])

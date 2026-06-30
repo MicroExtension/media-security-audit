@@ -4266,6 +4266,97 @@ code {
   border-bottom-color: var(--red);
 }
 
+.session-activity-timeline {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: grid;
+  gap: 14px;
+  margin: 0 0 22px;
+  padding: 18px;
+}
+
+.session-timeline-head {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.session-timeline-head div {
+  display: grid;
+  gap: 4px;
+}
+
+.session-timeline-head h2,
+.session-timeline-head p {
+  margin: 0;
+}
+
+.session-timeline-head p {
+  color: var(--muted);
+}
+
+.session-timeline-track {
+  display: grid;
+  gap: 12px;
+  grid-auto-columns: minmax(230px, 1fr);
+  grid-auto-flow: column;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  position: relative;
+}
+
+.session-timeline-track::before {
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  content: "";
+  height: 2px;
+  left: 16px;
+  position: absolute;
+  right: 16px;
+  top: 24px;
+}
+
+.session-timeline-item {
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-top: 4px solid var(--border);
+  border-radius: 6px;
+  display: grid;
+  gap: 8px;
+  min-height: 188px;
+  padding: 14px;
+  position: relative;
+  z-index: 1;
+}
+
+.session-timeline-ready,
+.session-timeline-completed {
+  border-top-color: var(--green);
+}
+
+.session-timeline-warning,
+.session-timeline-missing {
+  border-top-color: var(--amber);
+}
+
+.session-timeline-blocked,
+.session-timeline-failed {
+  border-top-color: var(--red);
+}
+
+.session-timeline-item time {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.session-timeline-item p {
+  color: var(--muted);
+  margin: 0;
+}
+
 .session-phase-lane {
   display: grid;
   gap: 14px;
@@ -4815,10 +4906,16 @@ button.button:hover {
   .session-command-grid,
   .session-workflow-grid,
   .session-result-grid,
+  .session-timeline-track,
   .session-step-grid,
   .session-service-list,
   .session-remediation-grid {
     grid-template-columns: 1fr;
+  }
+
+  .session-timeline-track {
+    grid-auto-flow: row;
+    overflow-x: visible;
   }
 
   .test-command-card-wide {

@@ -162,6 +162,28 @@
   </div>
 </section>
 
+<section class="session-activity-timeline" aria-label="Session activity timeline">
+  <div class="session-timeline-head">
+    <div>
+      <p class="eyebrow">Activite</p>
+      <h2>Timeline De Session</h2>
+      <p>Lis les derniers jalons de la mission : preparation, executions, constats et livrables.</p>
+    </div>
+    <a class="button secondary-button" href="/activity?mission_id={{ view.mission.id }}">Journal complet</a>
+  </div>
+  <div class="session-timeline-track">
+    {% for item in view.session_dashboard.timeline_items %}
+    <article class="session-timeline-item session-timeline-{{ item.status }}">
+      <span class="badge status-{{ item.status }}">{{ item.status }}</span>
+      <strong>{{ item.label }}</strong>
+      <time>{{ item.timestamp }}</time>
+      <p>{{ item.detail }}</p>
+      <a class="readiness-action" href="{{ item.action_href }}">{{ item.action_label }}</a>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+
 <section class="session-phase-lane" aria-label="Phases de la session">
   <article class="session-phase-item">
     <span>01</span>

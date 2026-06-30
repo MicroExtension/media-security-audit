@@ -3999,6 +3999,86 @@ code {
   border-left: 4px solid var(--accent);
 }
 
+.session-client-brief {
+  background: linear-gradient(135deg, rgba(196, 18, 30, 0.08), var(--surface));
+  border: 1px solid var(--border);
+  border-left: 5px solid var(--accent);
+  border-radius: 8px;
+  display: grid;
+  gap: 14px;
+  margin: 0 0 22px;
+  padding: 18px;
+}
+
+.session-client-brief-ready {
+  border-left-color: var(--green);
+}
+
+.session-client-brief-warning,
+.session-client-brief-missing {
+  border-left-color: var(--amber);
+}
+
+.session-client-brief-blocked,
+.session-client-brief-failed {
+  border-left-color: var(--red);
+}
+
+.session-client-brief-head {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.session-client-brief-head div {
+  display: grid;
+  gap: 4px;
+  max-width: 840px;
+}
+
+.session-client-brief-head h2,
+.session-client-brief-head p {
+  margin: 0;
+}
+
+.session-client-brief-head p {
+  color: var(--muted);
+}
+
+.session-client-brief-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1.1fr 1.2fr 1.4fr 1.2fr 1fr;
+}
+
+.session-client-brief-grid article {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  display: grid;
+  gap: 6px;
+  min-height: 128px;
+  padding: 12px;
+}
+
+.session-client-brief-grid span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.session-client-brief-grid strong,
+.session-client-brief-grid p {
+  margin: 0;
+}
+
+.session-client-brief-grid p {
+  color: var(--text);
+}
+
 .session-command-center {
   background: linear-gradient(135deg, rgba(196, 18, 30, 0.10), rgba(18, 18, 18, 0.02));
   border: 1px solid var(--border);
@@ -4962,6 +5042,7 @@ button.button:hover {
   .test-feedback-list,
   .session-hero,
   .session-progress-summary,
+  .session-client-brief-grid,
   .session-command-grid,
   .session-workflow-grid,
   .session-result-grid,

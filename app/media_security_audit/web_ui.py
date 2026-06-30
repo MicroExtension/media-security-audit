@@ -437,6 +437,19 @@ class AnalysisSessionRemediationPriority:
 
 
 @dataclass(frozen=True)
+class AnalysisSessionClientBrief:
+    status: str
+    title: str
+    decision: str
+    priority_focus: str
+    immediate_action: str
+    validation: str
+    delivery_status: str
+    action_label: str
+    action_href: str
+
+
+@dataclass(frozen=True)
 class AnalysisSessionDashboard:
     status: str
     title: str
@@ -472,6 +485,7 @@ class AnalysisSessionDashboard:
     result_shortcuts: list[AnalysisSessionResultShortcut]
     timeline_items: list[AnalysisSessionTimelineItem]
     remediation_priorities: list[AnalysisSessionRemediationPriority]
+    client_brief: AnalysisSessionClientBrief
 
 
 @dataclass(frozen=True)
@@ -2215,6 +2229,13 @@ def analysis_session_dashboard(
         vulnerability=vulnerability,
     )
     remediation_priorities = analysis_session_remediation_priorities(findings)
+    client_brief = analysis_session_client_brief(
+        findings=findings,
+        reports_ready=reports_ready,
+        package_ready=package_ready,
+        run_count=len(scan_runs),
+        vulnerability_match_count=vulnerability.match_count,
+    )
     return AnalysisSessionDashboard(
         status=status,
         title=title,
@@ -2250,6 +2271,7 @@ def analysis_session_dashboard(
         result_shortcuts=result_shortcuts,
         timeline_items=timeline_items,
         remediation_priorities=remediation_priorities,
+        client_brief=client_brief,
     )
 
 
@@ -2587,6 +2609,85 @@ def analysis_session_remediation_priorities(
             )
         )
     return priorities
+
+
+def analysis_session_client_brief(
+    findings: list[Finding],
+    reports_ready: bool,
+    package_ready: bool,
+    run_count: int,
+    vulnerability_match_count: int,
+) -> AnalysisSessionClientBrief:
+    active = sorted_findings(active_findings(findings))
+    priority = active[0] if active else None
+
+    if package_ready:
+        delivery_status = "Package de remise pret pour validation client."
+    elif reports_ready:
+        delivery_status = "Rapports generes ; package de remise a finaliser."
+    elif priority:
+        delivery_status = "Rapports a generer apres qualification des constats."
+    else:
+        delivery_status = "Rapports a generer apres execution ou validation."
+
+    if priority is not None:
+        is_urgent = priority.severity in {Severity.CRITICAL, Severity.HIGH}
+        status = "warning" if is_urgent else "ready"
+        title = (
+            "Brief Client : Action Prioritaire"
+            if is_urgent
+            else "Brief Client : Ameliorations A Planifier"
+        )
+        decision = (
+            "Prioriser une correction avant cloture"
+            if is_urgent
+            else "Planifier les corrections dans le suivi de maintenance"
+        )
+        priority_focus = f"{priority.title} sur {priority.affected_asset}"
+        if vulnerability_match_count:
+            priority_focus = (
+                f"{priority_focus} ; {vulnerability_match_count} candidat(s) CVE/KEV a verifier"
+            )
+        return AnalysisSessionClientBrief(
+            status=status,
+            title=title,
+            decision=decision,
+            priority_focus=priority_focus,
+            immediate_action=priority.remediation,
+            validation=priority.counter_test,
+            delivery_status=delivery_status,
+            action_label="Voir priorites",
+            action_href="#session-findings",
+        )
+
+    if run_count:
+        return AnalysisSessionClientBrief(
+            status="ready",
+            title="Brief Client : Aucun Constat Actif",
+            decision="Restitution possible apres verification des preuves",
+            priority_focus="Aucun constat actif stocke pour cette session.",
+            immediate_action=(
+                "Verifier que les executions attendues sont terminees puis generer les livrables."
+            ),
+            validation="Conserver le rapport JSON pour le suivi et le contre-test.",
+            delivery_status=delivery_status,
+            action_label="Voir rapports",
+            action_href="#reports",
+        )
+
+    return AnalysisSessionClientBrief(
+        status="missing",
+        title="Brief Client : En Attente D'Execution",
+        decision="Executer les controles autorises",
+        priority_focus="Aucun resultat exploitable pour le moment.",
+        immediate_action=(
+            "Valider le perimetre, les services selectionnes et lancer les controles prets."
+        ),
+        validation="Revenir sur ce dashboard quand les executions auront produit des preuves.",
+        delivery_status=delivery_status,
+        action_label="Preparer controles",
+        action_href="#check-selection",
+    )
 
 
 def analysis_session_step(

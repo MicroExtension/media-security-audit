@@ -63,6 +63,40 @@
   </div>
 </section>
 
+<section class="session-client-brief session-client-brief-{{ view.session_dashboard.client_brief.status }}" aria-label="Session client brief">
+  <div class="session-client-brief-head">
+    <div>
+      <p class="eyebrow">Brief client</p>
+      <h2>{{ view.session_dashboard.client_brief.title }}</h2>
+      <p>Resume pret a utiliser pour expliquer la situation, l'action prioritaire et la validation attendue.</p>
+    </div>
+    <span class="badge status-{{ view.session_dashboard.client_brief.status }}">{{ view.session_dashboard.client_brief.status }}</span>
+  </div>
+  <div class="session-client-brief-grid">
+    <article>
+      <span>Decision</span>
+      <strong>{{ view.session_dashboard.client_brief.decision }}</strong>
+    </article>
+    <article>
+      <span>Priorite</span>
+      <p>{{ view.session_dashboard.client_brief.priority_focus }}</p>
+    </article>
+    <article>
+      <span>Action immediate</span>
+      <p>{{ view.session_dashboard.client_brief.immediate_action }}</p>
+    </article>
+    <article>
+      <span>Validation</span>
+      <p>{{ view.session_dashboard.client_brief.validation }}</p>
+    </article>
+    <article>
+      <span>Livrables</span>
+      <p>{{ view.session_dashboard.client_brief.delivery_status }}</p>
+    </article>
+  </div>
+  <a class="readiness-action" href="{{ view.session_dashboard.client_brief.action_href }}">{{ view.session_dashboard.client_brief.action_label }}</a>
+</section>
+
 <section class="session-command-center" aria-label="Session command center">
   <div class="session-command-head">
     <div>

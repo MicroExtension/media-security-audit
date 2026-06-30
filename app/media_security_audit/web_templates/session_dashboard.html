@@ -325,6 +325,33 @@
     <h2>Constats Et Remediation</h2>
     <a class="table-action" href="/missions/{{ view.mission.id }}#findings">Ouvrir les constats</a>
   </div>
+  <div class="session-priority-board" aria-label="Session remediation priorities">
+    {% for item in view.session_dashboard.remediation_priorities %}
+    <article class="session-priority-card session-priority-{{ item.severity }}">
+      <div class="session-priority-head">
+        <span class="risk risk-{{ item.severity }}">{{ item.severity }}</span>
+        <span class="badge status-{{ item.status }}">{{ item.status }}</span>
+      </div>
+      <strong>{{ item.title }}</strong>
+      <span class="muted">{{ item.asset }}</span>
+      <div>
+        <span class="session-priority-label">Risque</span>
+        <p>{{ item.risk }}</p>
+      </div>
+      <div>
+        <span class="session-priority-label">Correction</span>
+        <p>{{ item.remediation }}</p>
+      </div>
+      <div>
+        <span class="session-priority-label">Contre-test</span>
+        <p>{{ item.counter_test }}</p>
+      </div>
+      <a class="readiness-action" href="/missions/{{ view.mission.id }}#findings">{{ item.action_label }}</a>
+    </article>
+    {% else %}
+    <p class="empty">Aucune priorite de remediation active n'est disponible pour cette session.</p>
+    {% endfor %}
+  </div>
   <div class="session-remediation-grid" aria-label="Session remediation summary">
     <article>
       <strong>Livrables PDF et JSON</strong>

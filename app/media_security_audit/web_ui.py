@@ -424,6 +424,19 @@ class AnalysisSessionTimelineItem:
 
 
 @dataclass(frozen=True)
+class AnalysisSessionRemediationPriority:
+    title: str
+    severity: str
+    status: str
+    asset: str
+    risk: str
+    remediation: str
+    counter_test: str
+    action_label: str
+    action_href: str
+
+
+@dataclass(frozen=True)
 class AnalysisSessionDashboard:
     status: str
     title: str
@@ -458,6 +471,7 @@ class AnalysisSessionDashboard:
     workflow_lanes: list[AnalysisSessionWorkflowLane]
     result_shortcuts: list[AnalysisSessionResultShortcut]
     timeline_items: list[AnalysisSessionTimelineItem]
+    remediation_priorities: list[AnalysisSessionRemediationPriority]
 
 
 @dataclass(frozen=True)
@@ -2200,6 +2214,7 @@ def analysis_session_dashboard(
         mission_export=mission_export,
         vulnerability=vulnerability,
     )
+    remediation_priorities = analysis_session_remediation_priorities(findings)
     return AnalysisSessionDashboard(
         status=status,
         title=title,
@@ -2234,6 +2249,7 @@ def analysis_session_dashboard(
         workflow_lanes=workflow_lanes,
         result_shortcuts=result_shortcuts,
         timeline_items=timeline_items,
+        remediation_priorities=remediation_priorities,
     )
 
 
@@ -2550,6 +2566,27 @@ def analysis_session_timeline_items(
         )
 
     return items[:8]
+
+
+def analysis_session_remediation_priorities(
+    findings: list[Finding],
+) -> list[AnalysisSessionRemediationPriority]:
+    priorities = []
+    for finding in sorted_findings(active_findings(findings))[:4]:
+        priorities.append(
+            AnalysisSessionRemediationPriority(
+                title=finding.title,
+                severity=finding.severity.value,
+                status=finding.status.value,
+                asset=finding.affected_asset,
+                risk=finding.risk,
+                remediation=finding.remediation,
+                counter_test=finding.counter_test,
+                action_label="Qualifier",
+                action_href="#session-findings",
+            )
+        )
+    return priorities
 
 
 def analysis_session_step(

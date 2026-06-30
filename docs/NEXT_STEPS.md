@@ -126,6 +126,7 @@ Codex action:
 - keep session workflow lanes aligned with discovery, execution, analysis, and delivery data
 - keep session result explorer shortcuts aligned with targets, services, runs, CVE/KEV, findings, and deliverables
 - keep session activity timelines short, status-driven, and linked to the matching review sections
+- keep session remediation priorities short, severity-driven, and focused on risk, correction, and counter-test
 - keep Clients and Audits list pages focused on search, status, and next technician action
 - keep Client and Mission detail pages focused on context, next action, and handoff routes
 - keep delivery and remediation pages focused on client handoff, clear corrections, and quick search

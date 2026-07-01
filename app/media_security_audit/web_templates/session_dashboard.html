@@ -63,6 +63,52 @@
   </div>
 </section>
 
+<section class="session-test-gate session-test-gate-{{ view.session_dashboard.controlled_test_gate.status }}" aria-label="Controlled test decision">
+  <div class="session-test-gate-main">
+    <div>
+      <p class="eyebrow">Decision test reel controle</p>
+      <h2>{{ view.session_dashboard.controlled_test_gate.title }}</h2>
+      <p>{{ view.session_dashboard.controlled_test_gate.detail }}</p>
+    </div>
+    <span class="badge status-{{ view.session_dashboard.controlled_test_gate.status }}">{{ view.session_dashboard.controlled_test_gate.status }}</span>
+  </div>
+  <div class="session-test-gate-grid">
+    <article>
+      <span>Decision</span>
+      <strong>{{ view.session_dashboard.controlled_test_gate.decision }}</strong>
+    </article>
+    <article>
+      <span>Prerequis prets</span>
+      <strong>{{ view.session_dashboard.controlled_test_gate.ready_count }}/{{ view.session_dashboard.controlled_test_gate.total_count }}</strong>
+    </article>
+    <article>
+      <span>Blocages</span>
+      {% if view.session_dashboard.controlled_test_gate.blocker_summary %}
+      <ul>
+        {% for blocker in view.session_dashboard.controlled_test_gate.blocker_summary %}
+        <li>{{ blocker }}</li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p>Aucun blocage mission.</p>
+      {% endif %}
+    </article>
+    <article>
+      <span>Points d'attention</span>
+      {% if view.session_dashboard.controlled_test_gate.warning_summary %}
+      <ul>
+        {% for warning in view.session_dashboard.controlled_test_gate.warning_summary %}
+        <li>{{ warning }}</li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p>Aucun point d'attention actif.</p>
+      {% endif %}
+    </article>
+  </div>
+  <a class="readiness-action" href="{{ view.session_dashboard.controlled_test_gate.action_href }}">{{ view.session_dashboard.controlled_test_gate.action_label }}</a>
+</section>
+
 <section class="session-client-brief session-client-brief-{{ view.session_dashboard.client_brief.status }}" aria-label="Session client brief">
   <div class="session-client-brief-head">
     <div>

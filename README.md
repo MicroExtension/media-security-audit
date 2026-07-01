@@ -81,6 +81,7 @@ Implemented so far:
 - Session dashboards now explain priority findings in plain language with impact, correction, and validation
 - Session dashboards now show an execution queue for selected checks with planned commands, latest run status, findings, and evidence
 - Session dashboards now show a controlled real-test decision gate before customer pilot execution
+- Session dashboards now show a controlled test operator runbook for before, during, and after pilot execution
 - failed counter-tests drive dashboard, client, and mission next-action links
 - finding review requires notes for false positives, accepted risks, and counter-test results
 - web mission activity log for traceability

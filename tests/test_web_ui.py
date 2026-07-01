@@ -1152,11 +1152,14 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("view.session_dashboard.finding_explainers", template)
         self.assertIn("view.session_dashboard.execution_queue", template)
         self.assertIn("view.session_dashboard.controlled_test_gate", template)
+        self.assertIn("view.session_dashboard.controlled_test_runbook", template)
         self.assertIn("view.session_dashboard.selected_service_count", template)
         self.assertIn("view.session_dashboard.completed_service_count", template)
         self.assertIn("view.session_dashboard.vulnerability_match_count", template)
         self.assertIn("Decision test reel controle", template)
         self.assertIn('aria-label="Controlled test decision"', template)
+        self.assertIn("Runbook operateur", template)
+        self.assertIn('aria-label="Controlled test runbook"', template)
         self.assertIn("Brief client", template)
         self.assertIn('aria-label="Session client brief"', template)
         self.assertIn('aria-label="Session finding explainers"', template)
@@ -1196,6 +1199,9 @@ class WebUiTests(unittest.TestCase):
         self.assertIn(".session-test-gate", css)
         self.assertIn(".session-test-gate-grid", css)
         self.assertIn(".session-test-gate-warning", css)
+        self.assertIn(".session-runbook", css)
+        self.assertIn(".session-runbook-grid", css)
+        self.assertIn(".session-runbook-warning", css)
         self.assertIn(".session-client-brief", css)
         self.assertIn(".session-client-brief-grid", css)
         self.assertIn(".session-client-brief-warning", css)
@@ -4189,6 +4195,27 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(
             view.session_dashboard.controlled_test_gate.action_href,
             "#session-execution-queue",
+        )
+        self.assertEqual(len(view.session_dashboard.controlled_test_runbook), 5)
+        runbook_by_label = {
+            step.label: step for step in view.session_dashboard.controlled_test_runbook
+        }
+        self.assertEqual(runbook_by_label["Mettre la VM a jour"].status, "warning")
+        self.assertEqual(
+            runbook_by_label["Verifier autorisation et perimetre"].status,
+            "ready",
+        )
+        self.assertEqual(
+            runbook_by_label["Lancer uniquement les controles prets"].status,
+            "warning",
+        )
+        self.assertEqual(
+            runbook_by_label["Surveiller preuves et erreurs"].status,
+            "ready",
+        )
+        self.assertEqual(
+            runbook_by_label["Generer livrables et limites"].status,
+            "missing",
         )
         self.assertEqual(len(view.session_dashboard.remediation_priorities), 1)
         priority = view.session_dashboard.remediation_priorities[0]

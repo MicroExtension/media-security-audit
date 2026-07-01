@@ -4084,6 +4084,96 @@ code {
   color: var(--text);
 }
 
+.session-runbook {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: grid;
+  gap: 14px;
+  margin: 0 0 22px;
+  padding: 18px;
+}
+
+.session-runbook-head {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.session-runbook-head div {
+  display: grid;
+  gap: 4px;
+  max-width: 840px;
+}
+
+.session-runbook-head h2,
+.session-runbook-head p {
+  margin: 0;
+}
+
+.session-runbook-head p {
+  color: var(--muted);
+}
+
+.session-runbook-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.session-runbook-card {
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-top: 5px solid var(--border);
+  border-radius: 6px;
+  display: grid;
+  gap: 8px;
+  min-height: 218px;
+  padding: 12px;
+}
+
+.session-runbook-ready,
+.session-runbook-completed {
+  border-top-color: var(--green);
+}
+
+.session-runbook-warning,
+.session-runbook-missing {
+  border-top-color: var(--amber);
+}
+
+.session-runbook-blocked,
+.session-runbook-failed {
+  border-top-color: var(--red);
+}
+
+.session-runbook-card-head {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.session-runbook-phase {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.session-runbook-card strong {
+  color: var(--text);
+  font-size: 15px;
+}
+
+.session-runbook-card p {
+  color: var(--muted);
+  margin: 0;
+}
+
 .session-client-brief {
   background: linear-gradient(135deg, rgba(196, 18, 30, 0.08), var(--surface));
   border: 1px solid var(--border);
@@ -5257,6 +5347,7 @@ button.button:hover {
   .session-hero,
   .session-progress-summary,
   .session-test-gate-grid,
+  .session-runbook-grid,
   .session-client-brief-grid,
   .session-command-grid,
   .session-workflow-grid,

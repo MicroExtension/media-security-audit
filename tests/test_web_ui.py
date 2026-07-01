@@ -1151,9 +1151,12 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("view.session_dashboard.client_brief", template)
         self.assertIn("view.session_dashboard.finding_explainers", template)
         self.assertIn("view.session_dashboard.execution_queue", template)
+        self.assertIn("view.session_dashboard.controlled_test_gate", template)
         self.assertIn("view.session_dashboard.selected_service_count", template)
         self.assertIn("view.session_dashboard.completed_service_count", template)
         self.assertIn("view.session_dashboard.vulnerability_match_count", template)
+        self.assertIn("Decision test reel controle", template)
+        self.assertIn('aria-label="Controlled test decision"', template)
         self.assertIn("Brief client", template)
         self.assertIn('aria-label="Session client brief"', template)
         self.assertIn('aria-label="Session finding explainers"', template)
@@ -1190,6 +1193,9 @@ class WebUiTests(unittest.TestCase):
         self.assertIn(".session-hero", css)
         self.assertIn(".session-progress-summary", css)
         self.assertIn(".session-next-action", css)
+        self.assertIn(".session-test-gate", css)
+        self.assertIn(".session-test-gate-grid", css)
+        self.assertIn(".session-test-gate-warning", css)
         self.assertIn(".session-client-brief", css)
         self.assertIn(".session-client-brief-grid", css)
         self.assertIn(".session-client-brief-warning", css)
@@ -4167,6 +4173,23 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(nmap_queue.finding_count, 2)
         self.assertEqual(nmap_queue.evidence_count, 1)
         self.assertEqual(nmap_queue.action_href, "#session-runs")
+        self.assertEqual(view.session_dashboard.controlled_test_gate.status, "warning")
+        self.assertEqual(
+            view.session_dashboard.controlled_test_gate.title,
+            "Test Reel Partiel",
+        )
+        self.assertEqual(view.session_dashboard.controlled_test_gate.ready_count, 5)
+        self.assertEqual(view.session_dashboard.controlled_test_gate.total_count, 5)
+        self.assertEqual(view.session_dashboard.controlled_test_gate.blocker_summary, ())
+        gate_warnings = " ".join(
+            view.session_dashboard.controlled_test_gate.warning_summary
+        )
+        self.assertIn("2 controle(s) bloque(s)", gate_warnings)
+        self.assertIn("1 controle(s) ont deja un resultat stocke", gate_warnings)
+        self.assertEqual(
+            view.session_dashboard.controlled_test_gate.action_href,
+            "#session-execution-queue",
+        )
         self.assertEqual(len(view.session_dashboard.remediation_priorities), 1)
         priority = view.session_dashboard.remediation_priorities[0]
         self.assertEqual(priority.title, "Open administrative service")

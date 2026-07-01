@@ -479,6 +479,20 @@ class AnalysisSessionExecutionQueueItem:
 
 
 @dataclass(frozen=True)
+class AnalysisSessionControlledTestGate:
+    status: str
+    title: str
+    decision: str
+    detail: str
+    ready_count: int
+    total_count: int
+    blocker_summary: tuple[str, ...]
+    warning_summary: tuple[str, ...]
+    action_label: str
+    action_href: str
+
+
+@dataclass(frozen=True)
 class AnalysisSessionDashboard:
     status: str
     title: str
@@ -517,6 +531,7 @@ class AnalysisSessionDashboard:
     client_brief: AnalysisSessionClientBrief
     finding_explainers: list[AnalysisSessionFindingExplainer]
     execution_queue: list[AnalysisSessionExecutionQueueItem]
+    controlled_test_gate: AnalysisSessionControlledTestGate
 
 
 @dataclass(frozen=True)
@@ -2269,6 +2284,16 @@ def analysis_session_dashboard(
     )
     finding_explainers = analysis_session_finding_explainers(findings)
     execution_queue = analysis_session_execution_queue(scan_plans, latest_runs)
+    controlled_test_gate = analysis_session_controlled_test_gate(
+        mission=mission,
+        approved_scope_count=len(approved_scope),
+        selected_count=selected_count,
+        ready_count=ready_count,
+        blocked_count=blocked_count,
+        completed_count=completed_count,
+        failed_count=failed_count,
+        planned_command_count=sum(len(plan.commands) for plan in scan_plans),
+    )
     return AnalysisSessionDashboard(
         status=status,
         title=title,
@@ -2307,6 +2332,7 @@ def analysis_session_dashboard(
         client_brief=client_brief,
         finding_explainers=finding_explainers,
         execution_queue=execution_queue,
+        controlled_test_gate=controlled_test_gate,
     )
 
 
@@ -2826,6 +2852,110 @@ def analysis_session_execution_queue(
             )
         )
     return queue
+
+
+def analysis_session_controlled_test_gate(
+    mission: Mission,
+    approved_scope_count: int,
+    selected_count: int,
+    ready_count: int,
+    blocked_count: int,
+    completed_count: int,
+    failed_count: int,
+    planned_command_count: int,
+) -> AnalysisSessionControlledTestGate:
+    checks = [
+        (
+            bool(mission.is_authorized),
+            "Autorisation ecrite",
+            "Renseigner la reference et le contact d'autorisation.",
+            "#mission-setup",
+        ),
+        (
+            approved_scope_count > 0,
+            "Perimetre approuve",
+            "Ajouter au moins une cible approuvee et non exclue.",
+            "#scope",
+        ),
+        (
+            selected_count > 0,
+            "Services selectionnes",
+            "Selectionner les protocoles a tester.",
+            "#check-selection",
+        ),
+        (
+            ready_count > 0,
+            "Controle executable",
+            "Corriger les services bloques avant lancement.",
+            "#session-services",
+        ),
+        (
+            planned_command_count > 0,
+            "Commandes preparees",
+            "Verifier que la file d'execution contient des commandes.",
+            "#session-execution-queue",
+        ),
+    ]
+    ready_items = [item for item in checks if item[0]]
+    blockers = [item for item in checks if not item[0]]
+    warnings: list[str] = []
+    if blocked_count:
+        warnings.append(f"{blocked_count} controle(s) bloque(s) restent a traiter.")
+    if failed_count:
+        warnings.append(f"{failed_count} execution(s) echouee(s) doivent etre revues.")
+    if completed_count:
+        warnings.append(
+            f"{completed_count} controle(s) ont deja un resultat stocke pour cette session."
+        )
+
+    if blockers:
+        label = blockers[0][1]
+        action = blockers[0][3]
+        return AnalysisSessionControlledTestGate(
+            status="blocked",
+            title="Test Reel Bloque",
+            decision=f"Corriger le prerequis : {label}",
+            detail="La mission n'est pas encore prete pour un essai controle chez un client pilote.",
+            ready_count=len(ready_items),
+            total_count=len(checks),
+            blocker_summary=tuple(blocker[2] for blocker in blockers),
+            warning_summary=tuple(warnings),
+            action_label="Corriger prerequis",
+            action_href=action,
+        )
+
+    if warnings:
+        return AnalysisSessionControlledTestGate(
+            status="warning",
+            title="Test Reel Partiel",
+            decision="Lancer uniquement les controles prets et documenter les limites.",
+            detail=(
+                f"{ready_count}/{selected_count} controle(s) pret(s), "
+                f"{planned_command_count} commande(s) preparee(s)."
+            ),
+            ready_count=len(ready_items),
+            total_count=len(checks),
+            blocker_summary=(),
+            warning_summary=tuple(warnings),
+            action_label="Voir file d'execution",
+            action_href="#session-execution-queue",
+        )
+
+    return AnalysisSessionControlledTestGate(
+        status="ready",
+        title="Test Reel Pret",
+        decision="Lancer l'essai controle sur le perimetre approuve.",
+        detail=(
+            f"{ready_count}/{selected_count} controle(s) pret(s), "
+            f"{planned_command_count} commande(s) preparee(s), aucun blocage mission."
+        ),
+        ready_count=len(ready_items),
+        total_count=len(checks),
+        blocker_summary=(),
+        warning_summary=(),
+        action_label="Voir file d'execution",
+        action_href="#session-execution-queue",
+    )
 
 
 def plain_finding_explanation(finding: Finding) -> str:

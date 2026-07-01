@@ -4258,6 +4258,88 @@ code {
   margin: 0;
 }
 
+.session-post-test-review {
+  background: linear-gradient(135deg, rgba(196, 18, 30, 0.08), rgba(18, 18, 18, 0.02));
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: grid;
+  gap: 14px;
+  margin: 0 0 22px;
+  padding: 18px;
+}
+
+.session-post-test-head {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.session-post-test-head div {
+  display: grid;
+  gap: 4px;
+  max-width: 840px;
+}
+
+.session-post-test-head h2,
+.session-post-test-head p {
+  margin: 0;
+}
+
+.session-post-test-head p {
+  color: var(--muted);
+}
+
+.session-post-test-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.session-post-test-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top: 5px solid var(--border);
+  border-radius: 6px;
+  display: grid;
+  gap: 8px;
+  min-height: 210px;
+  padding: 12px;
+}
+
+.session-post-test-ready,
+.session-post-test-completed {
+  border-top-color: var(--green);
+}
+
+.session-post-test-warning,
+.session-post-test-missing {
+  border-top-color: var(--amber);
+}
+
+.session-post-test-blocked,
+.session-post-test-failed {
+  border-top-color: var(--red);
+}
+
+.session-post-test-card strong {
+  color: var(--text);
+  font-size: 15px;
+}
+
+.session-post-test-value {
+  color: var(--text);
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 1.1;
+}
+
+.session-post-test-card p {
+  color: var(--muted);
+  margin: 0;
+}
+
 .session-client-brief {
   background: linear-gradient(135deg, rgba(196, 18, 30, 0.08), var(--surface));
   border: 1px solid var(--border);
@@ -5433,6 +5515,7 @@ button.button:hover {
   .session-test-gate-grid,
   .session-runbook-grid,
   .session-pilot-pack-grid,
+  .session-post-test-grid,
   .session-client-brief-grid,
   .session-command-grid,
   .session-workflow-grid,

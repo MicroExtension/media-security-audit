@@ -513,6 +513,16 @@ class AnalysisSessionPilotPackItem:
 
 
 @dataclass(frozen=True)
+class AnalysisSessionPostTestReviewItem:
+    label: str
+    status: str
+    value: str
+    detail: str
+    action_label: str
+    action_href: str
+
+
+@dataclass(frozen=True)
 class AnalysisSessionDashboard:
     status: str
     title: str
@@ -554,6 +564,7 @@ class AnalysisSessionDashboard:
     controlled_test_gate: AnalysisSessionControlledTestGate
     controlled_test_runbook: list[AnalysisSessionControlledTestRunbookStep]
     pilot_pack: list[AnalysisSessionPilotPackItem]
+    post_test_review: list[AnalysisSessionPostTestReviewItem]
 
 
 @dataclass(frozen=True)
@@ -2335,6 +2346,15 @@ def analysis_session_dashboard(
         report_count=len(reports),
         package_ready=package_ready,
     )
+    post_test_review = analysis_session_post_test_review(
+        findings=findings,
+        completed_count=completed_count,
+        failed_count=failed_count,
+        run_count=len(scan_runs),
+        report_count=len(reports),
+        package_ready=package_ready,
+        vulnerability_match_count=vulnerability.match_count,
+    )
     return AnalysisSessionDashboard(
         status=status,
         title=title,
@@ -2376,6 +2396,7 @@ def analysis_session_dashboard(
         controlled_test_gate=controlled_test_gate,
         controlled_test_runbook=controlled_test_runbook,
         pilot_pack=pilot_pack,
+        post_test_review=post_test_review,
     )
 
 
@@ -3163,6 +3184,120 @@ def analysis_session_pilot_pack(
                 "partage client."
             ),
             action_label="Voir rapports",
+            action_href="#reports",
+        ),
+    ]
+
+
+def analysis_session_post_test_review(
+    findings: list[Finding],
+    completed_count: int,
+    failed_count: int,
+    run_count: int,
+    report_count: int,
+    package_ready: bool,
+    vulnerability_match_count: int,
+) -> list[AnalysisSessionPostTestReviewItem]:
+    active = active_findings(findings)
+    priority_findings = [
+        finding
+        for finding in active
+        if finding.severity in {Severity.CRITICAL, Severity.HIGH}
+    ]
+
+    if failed_count:
+        execution_status = "failed"
+        execution_detail = (
+            "Certaines executions ont echoue. Conserve les erreurs et decide "
+            "si un relancement controle est necessaire."
+        )
+    elif completed_count:
+        execution_status = "ready"
+        execution_detail = (
+            "Les executions stockees peuvent alimenter la revue des preuves "
+            "et la restitution."
+        )
+    else:
+        execution_status = "missing"
+        execution_detail = (
+            "Aucune execution stockee. Lance un controle pret avant la revue "
+            "post-test."
+        )
+
+    cve_status = "warning" if vulnerability_match_count else "ready"
+    if not run_count and not vulnerability_match_count:
+        cve_status = "missing"
+
+    critical_status = "warning" if priority_findings else "ready"
+    if not run_count and not active:
+        critical_status = "missing"
+
+    remediation_status = "warning" if active else "ready"
+    if not run_count and not active:
+        remediation_status = "missing"
+
+    delivery_status = "ready" if report_count and package_ready else "missing"
+    if report_count and not package_ready:
+        delivery_status = "warning"
+
+    return [
+        AnalysisSessionPostTestReviewItem(
+            label="Executions Pilote",
+            status=execution_status,
+            value=f"{completed_count} termine(s), {failed_count} echec(s)",
+            detail=execution_detail,
+            action_label="Voir executions",
+            action_href="#session-runs",
+        ),
+        AnalysisSessionPostTestReviewItem(
+            label="Revue CVE/KEV",
+            status=cve_status,
+            value=f"{vulnerability_match_count} candidat(s)",
+            detail=(
+                "Valide chaque correlation CVE/KEV avant de la presenter "
+                "comme risque client."
+                if vulnerability_match_count
+                else "Aucun candidat CVE/KEV prioritaire n'est stocke pour cette session."
+            ),
+            action_label="Voir CVE/KEV",
+            action_href="#vulnerabilities",
+        ),
+        AnalysisSessionPostTestReviewItem(
+            label="Constats Critiques",
+            status=critical_status,
+            value=f"{len(priority_findings)} critique/haute",
+            detail=(
+                "Ces constats doivent etre expliques simplement et traites "
+                "avant les points de moindre risque."
+                if priority_findings
+                else "Aucun constat critique ou eleve actif n'est prioritaire."
+            ),
+            action_label="Voir constats",
+            action_href="#session-findings",
+        ),
+        AnalysisSessionPostTestReviewItem(
+            label="Remediations A Suivre",
+            status=remediation_status,
+            value=f"{len(active)} action(s)",
+            detail=(
+                "Transforme chaque constat actif en correction, responsable "
+                "et contre-test attendu."
+                if active
+                else "Aucune remediation active n'est en attente dans cette session."
+            ),
+            action_label="Voir remediations",
+            action_href="#session-remediation",
+        ),
+        AnalysisSessionPostTestReviewItem(
+            label="Restitution Client",
+            status=delivery_status,
+            value=f"{report_count} rapport(s)",
+            detail=(
+                "Les rapports et le package sont prets pour une remise client."
+                if delivery_status == "ready"
+                else "Genere les rapports PDF/JSON puis le package avant partage."
+            ),
+            action_label="Voir livrables",
             action_href="#reports",
         ),
     ]

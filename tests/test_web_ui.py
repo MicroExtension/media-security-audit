@@ -1154,6 +1154,7 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("view.session_dashboard.controlled_test_gate", template)
         self.assertIn("view.session_dashboard.controlled_test_runbook", template)
         self.assertIn("view.session_dashboard.pilot_pack", template)
+        self.assertIn("view.session_dashboard.post_test_review", template)
         self.assertIn("view.session_dashboard.selected_service_count", template)
         self.assertIn("view.session_dashboard.completed_service_count", template)
         self.assertIn("view.session_dashboard.vulnerability_match_count", template)
@@ -1163,6 +1164,8 @@ class WebUiTests(unittest.TestCase):
         self.assertIn('aria-label="Controlled test runbook"', template)
         self.assertIn("Pack test pilote", template)
         self.assertIn('aria-label="Controlled test pilot pack"', template)
+        self.assertIn("Revue apres test", template)
+        self.assertIn('aria-label="Post-test review center"', template)
         self.assertIn("Brief client", template)
         self.assertIn('aria-label="Session client brief"', template)
         self.assertIn('aria-label="Session finding explainers"', template)
@@ -1208,6 +1211,9 @@ class WebUiTests(unittest.TestCase):
         self.assertIn(".session-pilot-pack", css)
         self.assertIn(".session-pilot-pack-grid", css)
         self.assertIn(".session-pilot-pack-warning", css)
+        self.assertIn(".session-post-test-review", css)
+        self.assertIn(".session-post-test-grid", css)
+        self.assertIn(".session-post-test-warning", css)
         self.assertIn(".session-client-brief", css)
         self.assertIn(".session-client-brief-grid", css)
         self.assertIn(".session-client-brief-warning", css)
@@ -4248,6 +4254,39 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(
             pilot_pack_by_label["Controles a lancer"].action_href,
             "#session-execution-queue",
+        )
+        self.assertEqual(len(view.session_dashboard.post_test_review), 5)
+        post_test_by_label = {
+            item.label: item for item in view.session_dashboard.post_test_review
+        }
+        self.assertEqual(
+            post_test_by_label["Executions Pilote"].status,
+            "ready",
+        )
+        self.assertEqual(
+            post_test_by_label["Executions Pilote"].value,
+            "1 termine(s), 0 echec(s)",
+        )
+        self.assertEqual(post_test_by_label["Revue CVE/KEV"].status, "ready")
+        self.assertEqual(
+            post_test_by_label["Constats Critiques"].status,
+            "warning",
+        )
+        self.assertEqual(
+            post_test_by_label["Constats Critiques"].value,
+            "1 critique/haute",
+        )
+        self.assertEqual(
+            post_test_by_label["Remediations A Suivre"].status,
+            "warning",
+        )
+        self.assertEqual(
+            post_test_by_label["Restitution Client"].status,
+            "missing",
+        )
+        self.assertEqual(
+            post_test_by_label["Restitution Client"].action_href,
+            "#reports",
         )
         self.assertEqual(len(view.session_dashboard.remediation_priorities), 1)
         priority = view.session_dashboard.remediation_priorities[0]

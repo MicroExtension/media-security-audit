@@ -155,6 +155,28 @@
   </div>
 </section>
 
+<section class="session-post-test-review" aria-label="Post-test review center">
+  <div class="session-post-test-head">
+    <div>
+      <p class="eyebrow">Revue apres test</p>
+      <h2>Decisions Avant Restitution</h2>
+      <p>Resume ce qui doit etre confirme apres un essai pilote avant d'envoyer les livrables client.</p>
+    </div>
+    <a class="button secondary-button" href="/missions/{{ view.mission.id }}#findings">Revue constats</a>
+  </div>
+  <div class="session-post-test-grid">
+    {% for item in view.session_dashboard.post_test_review %}
+    <article class="session-post-test-card session-post-test-{{ item.status }}">
+      <span class="badge status-{{ item.status }}">{{ item.status }}</span>
+      <strong>{{ item.label }}</strong>
+      <span class="session-post-test-value">{{ item.value }}</span>
+      <p>{{ item.detail }}</p>
+      <a class="readiness-action" href="{{ item.action_href }}">{{ item.action_label }}</a>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+
 <section class="session-client-brief session-client-brief-{{ view.session_dashboard.client_brief.status }}" aria-label="Session client brief">
   <div class="session-client-brief-head">
     <div>

@@ -254,6 +254,7 @@
 
 <section class="page-shortcuts" aria-label="Analysis session shortcuts">
   <a href="#session-steps">Progression <span>{{ view.session_dashboard.progress_percent }}%</span></a>
+  <a href="#session-execution-queue">File <span>{{ view.session_dashboard.execution_queue|length }}</span></a>
   <a href="#session-services">Services <span>{{ view.session_dashboard.selected_service_count }}</span></a>
   <a href="#session-targets">Cibles <span>{{ view.mission.approved_scope_count }}</span></a>
   <a href="#session-runs">Executions <span>{{ view.scan_runs|length }}</span></a>
@@ -274,6 +275,43 @@
       <span class="muted">{{ step.earned }}/{{ step.weight }} point(s)</span>
       <a class="readiness-action" href="/missions/{{ view.mission.id }}{{ step.action_href }}">{{ step.action_label }}</a>
     </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="section" id="session-execution-queue">
+  <div class="section-title">
+    <h2>File D'Execution</h2>
+    <a class="table-action" href="/missions/{{ view.mission.id }}#scan-plan">Ouvrir les commandes</a>
+  </div>
+  <div class="session-execution-queue" aria-label="Session execution queue">
+    {% for item in view.session_dashboard.execution_queue %}
+    <article class="session-execution-card session-execution-{{ item.status }}">
+      <div class="session-execution-head">
+        <span class="badge status-{{ item.status }}">{{ item.status }}</span>
+        <strong>{{ item.label }}</strong>
+      </div>
+      <p>{{ item.readiness_detail }}</p>
+      <dl class="session-execution-metrics">
+        <div>
+          <dt>Commandes</dt>
+          <dd>{{ item.planned_command_count }}</dd>
+        </div>
+        <div>
+          <dt>Constats</dt>
+          <dd>{{ item.finding_count }}</dd>
+        </div>
+        <div>
+          <dt>Preuves</dt>
+          <dd>{{ item.evidence_count }}</dd>
+        </div>
+      </dl>
+      <span class="badge status-{{ item.last_run_status }}">{{ item.last_run_status }}</span>
+      <p>{{ item.last_run_summary }}</p>
+      <a class="readiness-action" href="{{ item.action_href }}">{{ item.action_label }}</a>
+    </article>
+    {% else %}
+    <p class="empty">Aucun controle n'est encore dans la file d'execution.</p>
     {% endfor %}
   </div>
 </section>

@@ -133,6 +133,28 @@
   </div>
 </section>
 
+<section class="session-pilot-pack" aria-label="Controlled test pilot pack">
+  <div class="session-pilot-pack-head">
+    <div>
+      <p class="eyebrow">Pack test pilote</p>
+      <h2>Elements A Verifier Sur Site</h2>
+      <p>Commandes, limites et preuves utiles pour un essai terrain reproductible.</p>
+    </div>
+    <a class="button secondary-button" href="/missions/{{ view.mission.id }}#reports">Livrables</a>
+  </div>
+  <div class="session-pilot-pack-grid">
+    {% for item in view.session_dashboard.pilot_pack %}
+    <article class="session-pilot-pack-card session-pilot-pack-{{ item.status }}">
+      <span class="badge status-{{ item.status }}">{{ item.status }}</span>
+      <strong>{{ item.label }}</strong>
+      <code>{{ item.value }}</code>
+      <p>{{ item.detail }}</p>
+      <a class="readiness-action" href="{{ item.action_href }}">{{ item.action_label }}</a>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+
 <section class="session-client-brief session-client-brief-{{ view.session_dashboard.client_brief.status }}" aria-label="Session client brief">
   <div class="session-client-brief-head">
     <div>

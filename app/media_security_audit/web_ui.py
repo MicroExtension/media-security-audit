@@ -493,6 +493,16 @@ class AnalysisSessionControlledTestGate:
 
 
 @dataclass(frozen=True)
+class AnalysisSessionControlledTestRunbookStep:
+    phase: str
+    label: str
+    status: str
+    detail: str
+    action_label: str
+    action_href: str
+
+
+@dataclass(frozen=True)
 class AnalysisSessionDashboard:
     status: str
     title: str
@@ -532,6 +542,7 @@ class AnalysisSessionDashboard:
     finding_explainers: list[AnalysisSessionFindingExplainer]
     execution_queue: list[AnalysisSessionExecutionQueueItem]
     controlled_test_gate: AnalysisSessionControlledTestGate
+    controlled_test_runbook: list[AnalysisSessionControlledTestRunbookStep]
 
 
 @dataclass(frozen=True)
@@ -2294,6 +2305,16 @@ def analysis_session_dashboard(
         failed_count=failed_count,
         planned_command_count=sum(len(plan.commands) for plan in scan_plans),
     )
+    controlled_test_runbook = analysis_session_controlled_test_runbook(
+        mission=mission,
+        approved_scope_count=len(approved_scope),
+        ready_count=ready_count,
+        blocked_count=blocked_count,
+        completed_count=completed_count,
+        failed_count=failed_count,
+        reports_ready=reports_ready,
+        package_ready=package_ready,
+    )
     return AnalysisSessionDashboard(
         status=status,
         title=title,
@@ -2333,6 +2354,7 @@ def analysis_session_dashboard(
         finding_explainers=finding_explainers,
         execution_queue=execution_queue,
         controlled_test_gate=controlled_test_gate,
+        controlled_test_runbook=controlled_test_runbook,
     )
 
 
@@ -2956,6 +2978,96 @@ def analysis_session_controlled_test_gate(
         action_label="Voir file d'execution",
         action_href="#session-execution-queue",
     )
+
+
+def analysis_session_controlled_test_runbook(
+    mission: Mission,
+    approved_scope_count: int,
+    ready_count: int,
+    blocked_count: int,
+    completed_count: int,
+    failed_count: int,
+    reports_ready: bool,
+    package_ready: bool,
+) -> list[AnalysisSessionControlledTestRunbookStep]:
+    preparation_status = (
+        "ready" if mission.is_authorized and approved_scope_count else "blocked"
+    )
+    preparation_action_href = (
+        "#scope" if mission.is_authorized else "#mission-setup"
+    )
+    execution_status = "ready" if ready_count else "blocked"
+    if blocked_count and ready_count:
+        execution_status = "warning"
+
+    monitoring_status = "missing"
+    monitoring_detail = "Aucune execution enregistree ; surveiller le premier lancement."
+    if failed_count:
+        monitoring_status = "blocked"
+        monitoring_detail = f"{failed_count} execution(s) echouee(s) a revoir avant restitution."
+    elif completed_count:
+        monitoring_status = "ready"
+        monitoring_detail = f"{completed_count} execution(s) terminee(s) et disponibles pour analyse."
+
+    delivery_status = "ready" if reports_ready and package_ready else "missing"
+    delivery_detail = "Generer les rapports PDF/JSON puis verifier le package de remise."
+    if reports_ready and not package_ready:
+        delivery_status = "warning"
+        delivery_detail = "Rapports generes ; finaliser le package de remise client."
+    elif reports_ready and package_ready:
+        delivery_detail = "Rapports et package prets pour controle final avant partage."
+
+    return [
+        AnalysisSessionControlledTestRunbookStep(
+            phase="Avant",
+            label="Mettre la VM a jour",
+            status="warning",
+            detail=(
+                "Executer la mise a jour applicative et verifier /test-readiness "
+                "avant de lancer un controle chez le client."
+            ),
+            action_label="Ouvrir readiness",
+            action_href="/test-readiness",
+        ),
+        AnalysisSessionControlledTestRunbookStep(
+            phase="Avant",
+            label="Verifier autorisation et perimetre",
+            status=preparation_status,
+            detail=(
+                f"{approved_scope_count} cible(s) approuvee(s) ; "
+                "aucun controle ne doit sortir du perimetre autorise."
+            ),
+            action_label="Verifier mission",
+            action_href=preparation_action_href,
+        ),
+        AnalysisSessionControlledTestRunbookStep(
+            phase="Pendant",
+            label="Lancer uniquement les controles prets",
+            status=execution_status,
+            detail=(
+                f"{ready_count} controle(s) pret(s), {blocked_count} bloque(s). "
+                "Les controles bloques restent documentes et non lances."
+            ),
+            action_label="Voir file",
+            action_href="#session-execution-queue",
+        ),
+        AnalysisSessionControlledTestRunbookStep(
+            phase="Pendant",
+            label="Surveiller preuves et erreurs",
+            status=monitoring_status,
+            detail=monitoring_detail,
+            action_label="Voir executions",
+            action_href="#session-runs",
+        ),
+        AnalysisSessionControlledTestRunbookStep(
+            phase="Apres",
+            label="Generer livrables et limites",
+            status=delivery_status,
+            detail=delivery_detail,
+            action_label="Voir rapports",
+            action_href="#reports",
+        ),
+    ]
 
 
 def plain_finding_explanation(finding: Finding) -> str:

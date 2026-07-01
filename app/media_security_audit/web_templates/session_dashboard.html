@@ -109,6 +109,30 @@
   <a class="readiness-action" href="{{ view.session_dashboard.controlled_test_gate.action_href }}">{{ view.session_dashboard.controlled_test_gate.action_label }}</a>
 </section>
 
+<section class="session-runbook" aria-label="Controlled test runbook">
+  <div class="session-runbook-head">
+    <div>
+      <p class="eyebrow">Runbook operateur</p>
+      <h2>Essai Pilote En Conditions Reelles</h2>
+      <p>Suit les etapes minimales avant, pendant et apres le test controle.</p>
+    </div>
+    <a class="button secondary-button" href="/test-readiness">Readiness VM</a>
+  </div>
+  <div class="session-runbook-grid">
+    {% for step in view.session_dashboard.controlled_test_runbook %}
+    <article class="session-runbook-card session-runbook-{{ step.status }}">
+      <div class="session-runbook-card-head">
+        <span class="badge status-{{ step.status }}">{{ step.status }}</span>
+        <span class="session-runbook-phase">{{ step.phase }}</span>
+      </div>
+      <strong>{{ step.label }}</strong>
+      <p>{{ step.detail }}</p>
+      <a class="readiness-action" href="{{ step.action_href }}">{{ step.action_label }}</a>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+
 <section class="session-client-brief session-client-brief-{{ view.session_dashboard.client_brief.status }}" aria-label="Session client brief">
   <div class="session-client-brief-head">
     <div>

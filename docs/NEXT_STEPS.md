@@ -131,6 +131,7 @@ Codex action:
 - keep session finding explanations plain-language, short, and tied to remediation and counter-test guidance
 - keep session execution queues focused on selected checks, planned commands, latest run status, findings, and evidence
 - keep controlled test decision gates conservative, explicit, and linked to the next safe review section
+- keep controlled test runbooks short, phase-based, and tied to VM readiness, execution, monitoring, and delivery
 - keep Clients and Audits list pages focused on search, status, and next technician action
 - keep Client and Mission detail pages focused on context, next action, and handoff routes
 - keep delivery and remediation pages focused on client handoff, clear corrections, and quick search

@@ -1153,6 +1153,7 @@ class WebUiTests(unittest.TestCase):
         self.assertIn("view.session_dashboard.execution_queue", template)
         self.assertIn("view.session_dashboard.controlled_test_gate", template)
         self.assertIn("view.session_dashboard.controlled_test_runbook", template)
+        self.assertIn("view.session_dashboard.pilot_pack", template)
         self.assertIn("view.session_dashboard.selected_service_count", template)
         self.assertIn("view.session_dashboard.completed_service_count", template)
         self.assertIn("view.session_dashboard.vulnerability_match_count", template)
@@ -1160,6 +1161,8 @@ class WebUiTests(unittest.TestCase):
         self.assertIn('aria-label="Controlled test decision"', template)
         self.assertIn("Runbook operateur", template)
         self.assertIn('aria-label="Controlled test runbook"', template)
+        self.assertIn("Pack test pilote", template)
+        self.assertIn('aria-label="Controlled test pilot pack"', template)
         self.assertIn("Brief client", template)
         self.assertIn('aria-label="Session client brief"', template)
         self.assertIn('aria-label="Session finding explainers"', template)
@@ -1202,6 +1205,9 @@ class WebUiTests(unittest.TestCase):
         self.assertIn(".session-runbook", css)
         self.assertIn(".session-runbook-grid", css)
         self.assertIn(".session-runbook-warning", css)
+        self.assertIn(".session-pilot-pack", css)
+        self.assertIn(".session-pilot-pack-grid", css)
+        self.assertIn(".session-pilot-pack-warning", css)
         self.assertIn(".session-client-brief", css)
         self.assertIn(".session-client-brief-grid", css)
         self.assertIn(".session-client-brief-warning", css)
@@ -4216,6 +4222,32 @@ class WebUiTests(unittest.TestCase):
         self.assertEqual(
             runbook_by_label["Generer livrables et limites"].status,
             "missing",
+        )
+        self.assertEqual(len(view.session_dashboard.pilot_pack), 5)
+        pilot_pack_by_label = {
+            item.label: item for item in view.session_dashboard.pilot_pack
+        }
+        self.assertEqual(pilot_pack_by_label["Commande VM"].status, "warning")
+        self.assertEqual(pilot_pack_by_label["Perimetre pilote"].status, "ready")
+        self.assertEqual(
+            pilot_pack_by_label["Controles a lancer"].status,
+            "warning",
+        )
+        self.assertEqual(
+            pilot_pack_by_label["Preuves a conserver"].status,
+            "ready",
+        )
+        self.assertEqual(
+            pilot_pack_by_label["Livrables de sortie"].status,
+            "missing",
+        )
+        self.assertEqual(
+            pilot_pack_by_label["Commande VM"].value,
+            "bash scripts/debian-vm-update.sh",
+        )
+        self.assertEqual(
+            pilot_pack_by_label["Controles a lancer"].action_href,
+            "#session-execution-queue",
         )
         self.assertEqual(len(view.session_dashboard.remediation_priorities), 1)
         priority = view.session_dashboard.remediation_priorities[0]

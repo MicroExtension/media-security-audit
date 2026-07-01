@@ -503,6 +503,16 @@ class AnalysisSessionControlledTestRunbookStep:
 
 
 @dataclass(frozen=True)
+class AnalysisSessionPilotPackItem:
+    label: str
+    status: str
+    value: str
+    detail: str
+    action_label: str
+    action_href: str
+
+
+@dataclass(frozen=True)
 class AnalysisSessionDashboard:
     status: str
     title: str
@@ -543,6 +553,7 @@ class AnalysisSessionDashboard:
     execution_queue: list[AnalysisSessionExecutionQueueItem]
     controlled_test_gate: AnalysisSessionControlledTestGate
     controlled_test_runbook: list[AnalysisSessionControlledTestRunbookStep]
+    pilot_pack: list[AnalysisSessionPilotPackItem]
 
 
 @dataclass(frozen=True)
@@ -2315,6 +2326,15 @@ def analysis_session_dashboard(
         reports_ready=reports_ready,
         package_ready=package_ready,
     )
+    pilot_pack = analysis_session_pilot_pack(
+        mission=mission,
+        approved_scope_count=len(approved_scope),
+        ready_count=ready_count,
+        blocked_count=blocked_count,
+        run_count=len(scan_runs),
+        report_count=len(reports),
+        package_ready=package_ready,
+    )
     return AnalysisSessionDashboard(
         status=status,
         title=title,
@@ -2355,6 +2375,7 @@ def analysis_session_dashboard(
         execution_queue=execution_queue,
         controlled_test_gate=controlled_test_gate,
         controlled_test_runbook=controlled_test_runbook,
+        pilot_pack=pilot_pack,
     )
 
 
@@ -3064,6 +3085,83 @@ def analysis_session_controlled_test_runbook(
             label="Generer livrables et limites",
             status=delivery_status,
             detail=delivery_detail,
+            action_label="Voir rapports",
+            action_href="#reports",
+        ),
+    ]
+
+
+def analysis_session_pilot_pack(
+    mission: Mission,
+    approved_scope_count: int,
+    ready_count: int,
+    blocked_count: int,
+    run_count: int,
+    report_count: int,
+    package_ready: bool,
+) -> list[AnalysisSessionPilotPackItem]:
+    scope_status = "ready" if mission.is_authorized and approved_scope_count else "blocked"
+    execution_status = "ready" if ready_count and not blocked_count else "warning"
+    if not ready_count:
+        execution_status = "blocked"
+    evidence_status = "ready" if run_count else "missing"
+    delivery_status = "ready" if report_count and package_ready else "missing"
+    if report_count and not package_ready:
+        delivery_status = "warning"
+
+    return [
+        AnalysisSessionPilotPackItem(
+            label="Commande VM",
+            status="warning",
+            value="bash scripts/debian-vm-update.sh",
+            detail=(
+                "A executer apres merge pour reconstruire l'application et verifier "
+                "le demarrage local."
+            ),
+            action_label="Readiness VM",
+            action_href="/test-readiness",
+        ),
+        AnalysisSessionPilotPackItem(
+            label="Perimetre pilote",
+            status=scope_status,
+            value=f"{approved_scope_count} cible(s) approuvee(s)",
+            detail=(
+                "Verifier la reference d'autorisation, les exclusions et le contact "
+                "client avant lancement."
+            ),
+            action_label="Verifier perimetre",
+            action_href="#session-targets",
+        ),
+        AnalysisSessionPilotPackItem(
+            label="Controles a lancer",
+            status=execution_status,
+            value=f"{ready_count} pret(s), {blocked_count} bloque(s)",
+            detail=(
+                "Lancer uniquement les controles prets et documenter les controles "
+                "bloques comme limites de l'essai."
+            ),
+            action_label="Voir file",
+            action_href="#session-execution-queue",
+        ),
+        AnalysisSessionPilotPackItem(
+            label="Preuves a conserver",
+            status=evidence_status,
+            value=f"{run_count} execution(s) stockee(s)",
+            detail=(
+                "Conserver les preuves de run, erreurs, constats et exports pour "
+                "la revue apres test."
+            ),
+            action_label="Voir executions",
+            action_href="#session-runs",
+        ),
+        AnalysisSessionPilotPackItem(
+            label="Livrables de sortie",
+            status=delivery_status,
+            value=f"{report_count} rapport(s)",
+            detail=(
+                "Generer PDF et JSON, puis finaliser le package de remise avant "
+                "partage client."
+            ),
             action_label="Voir rapports",
             action_href="#reports",
         ),
